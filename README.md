@@ -27,15 +27,6 @@ services:
     restart: always
 ```
 
-### Features
-
-- **Pages:** Home / Favorites / Player / Channels / Channel / MultiView / Settings / Search / Library
-- **Performance:** Request concurrency pool, in-flight deduplication, 60s response cache, stale-while-revalidate, parallel prefetch
-- **Theater/Cinema Mode:** Redesigned player layout with vignette overlay and viewport-constrained video
-- **MultiView:** Dropdown-based controls, inline URL input, drag-to-reorder playlists
-- **Channel Page:** Responsive banner, inline identity, sort/grid controls, topic badges
-- **Deployments:** Docker / Demo Site
-
 ### License
 
 MIT License. Content powered by Holodex API.
