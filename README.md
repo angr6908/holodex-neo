@@ -3,10 +3,9 @@
 A high-performance Vue 3 remake of Holodex, migrating from legacy Vue 2/Vuetify to Vite, Shadcn Vue, and Tailwind v4.
 
 ### Demo
-
 https://001920.xyz
 
-🚧 Still under heavy development; the demo might not be the latest version.
+<img src="preview.avif" width="800" alt="v1.0.0">
 
 ### Quick Start (Docker)
 
