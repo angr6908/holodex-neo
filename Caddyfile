@@ -1,0 +1,21 @@
+# Replace 001920.xyz with your domain
+001920.xyz {
+
+	encode
+
+	handle /api/* {
+		reverse_proxy https://holodex.net {
+			header_up Host holodex.net
+		}
+	}
+
+	handle /statics/* {
+		reverse_proxy https://holodex.net {
+			header_up Host holodex.net
+		}
+	}
+
+	handle {
+		reverse_proxy localhost:8080
+	}
+}

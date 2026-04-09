@@ -1,0 +1,15 @@
+music:
+  title: '{{english_name}} เพลงออริจินัลและคัฟเวอร์ - Holodex'
+  description: >-
+    ฟังเพลงและสตรีมคาราโอเกะที่ถูกแท็กโดยชุมชนของเราผ่านตัวเล่นเพลงของ Holodex
+channel:
+  normal:
+    title: '{{english_name}} คลิป, สตรีม, เพลง และโคแลป - Holodex'
+    description: >-
+      ค้นพบ {{clip_count}} คลิป, {{video_count}} สตรีมโดย {{english_name}} และรู้เมื่อพวกเขาเริ่มสตรีมโดยการเพิ่มพวกเขาเข้าไปยังรายการโปรด Holodex ของคุณ
+    descriptionWithTopic: >-
+      ค้นพบสตรีม{{ topics }} โดย {{english_name}} ติดตาม {{clip_count}} คลิป, {{video_count}} สตรีม และอื่น ๆ บน Holodex
+  clip:
+    title: 'ข้อมูล {{english_name}} - Holodex'
+    description: >-
+      ค้นพบ {{video_count}} คลิปของวีทูบเบอร์ที่คุณชื่นชอบโดย {{english_name}}

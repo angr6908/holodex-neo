@@ -1,0 +1,7 @@
+services:
+  holodex-neo:
+    image: unmol637/holodex-neo:latest
+    container_name: holodex-neo
+    ports:
+      - "8080:80"
+    restart: always
