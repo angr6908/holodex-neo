@@ -4,36 +4,28 @@
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
   >
-    <Teleport to="#mainNavExt" :disabled="!isActive">
-      <div v-if="isActive" class="channels-tab-stack">
-        <div class="channels-tab-cover channels-tab-cover-top" aria-hidden="true" />
-        <div class="channels-tab-cover channels-tab-cover-left" aria-hidden="true" />
-        <div class="channels-tab-cover channels-tab-cover-right" aria-hidden="true" />
-        <div
-          class="channels-tabs relative z-1 flex w-full items-center gap-2 overflow-visible rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--surface-nav)] px-2 py-1.5 backdrop-blur-xl"
-        >
-        <!-- Category tabs (left-aligned, fill available space) -->
-        <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto overflow-y-visible">
+    <!-- Side-panel layout (channels controls) -->
+    <Teleport v-if="channelsPanelReady" to="#channels-panel-portal">
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1">
           <button
             v-for="tab in tabOptions"
             :key="tab.value"
             type="button"
-            class="cursor-pointer rounded-xl px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition-colors sm:text-sm"
+            class="cursor-pointer rounded-xl px-2.5 py-2 text-left text-xs font-medium whitespace-nowrap transition-colors"
             :class="category === tab.value ? 'bg-[color:var(--color-bold)] text-white' : 'text-[color:var(--color-muted-foreground)] hover:bg-white/8 hover:text-[color:var(--color-foreground)]'"
             @click="category = tab.value"
           >
             {{ tab.label }}
           </button>
         </div>
-
-        <!-- Sort + grid toggle (right-aligned, only when not blocked) -->
-        <div v-if="category !== Tabs.BLOCKED" class="ml-auto flex shrink-0 items-center gap-1 pl-2">
+        <div v-if="category !== Tabs.BLOCKED" class="flex items-center gap-1">
           <UiSelect
             v-model="sort"
             :options="sortOptions"
             label-key="text"
             value-key="value"
-            class-name="h-8 text-sm"
+            class-name="h-8 min-w-0 flex-1 text-xs"
             :fluid="false"
           />
           <span
@@ -51,7 +43,6 @@
           >
             <UiIcon :icon="cardView ? mdiViewModule : mdiViewList" />
           </UiButton>
-        </div>
         </div>
       </div>
     </Teleport>
@@ -73,6 +64,7 @@
         v-else
         v-slot="{ data, isLoading: lod }"
         :key="`channel-list-${category}-${identifier}`"
+        :cache-key="`channel-list-${category}-${identifier}`"
         infinite-load
         :per-page="category === Tabs.VTUBER ? 100 : 25"
         :load-fn="getLoadFn()"
@@ -110,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import ChannelList from "@/components/channel/ChannelList.vue";
@@ -133,6 +125,12 @@ import { useIsActive } from "@/composables/useIsActive";
 
 const { t } = useI18n();
 
+const props = withDefaults(defineProps<{
+  embedded?: boolean;
+}>(), {
+  embedded: false,
+});
+
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 const favoritesStore = useFavoritesStore();
@@ -143,6 +141,13 @@ const { blockedChannels } = storeToRefs(settingsStore);
 
 const identifier = ref(+new Date());
 const touchStartX = ref<number | null>(null);
+
+// Delay side-panel teleport until portal target exists
+const channelsPanelReady = ref(false);
+onMounted(async () => {
+  await nextTick();
+  channelsPanelReady.value = true;
+});
 
 const Tabs = Object.freeze({
   VTUBER: 0,
@@ -414,44 +419,6 @@ init();
 </script>
 
 <style scoped>
-.channels-tab-stack {
-    --channels-bar-radius: 1rem;
-    --channels-bar-cover-rise: 16px;
-    position: relative;
-}
-
-.channels-tab-cover {
-    position: absolute;
-    background: var(--color-background);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.channels-tab-cover-top {
-    top: calc(-1 * var(--channels-bar-cover-rise));
-    right: 0;
-    left: 0;
-    height: var(--channels-bar-cover-rise);
-}
-
-.channels-tab-cover-left,
-.channels-tab-cover-right {
-    top: 0;
-    width: calc(var(--channels-bar-radius) + 1px);
-    height: calc(var(--channels-bar-radius) + 1px);
-}
-
-.channels-tab-cover-left {
-    left: 0;
-    background:
-        radial-gradient(circle at bottom right, transparent calc(var(--channels-bar-radius) - 1px), var(--color-background) var(--channels-bar-radius));
-}
-
-.channels-tab-cover-right {
-    right: 0;
-    background:
-        radial-gradient(circle at bottom left, transparent calc(var(--channels-bar-radius) - 1px), var(--color-background) var(--channels-bar-radius));
-}
 </style>
 
 <style>

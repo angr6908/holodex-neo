@@ -32,7 +32,7 @@
         <div
           v-if="isOpen"
           :class="inline
-            ? 'home-org-inline-panel absolute left-0 top-[calc(100%+0.5rem)] z-[360] w-[min(94vw,58rem)] max-w-[58rem]'
+            ? 'home-org-inline-panel absolute left-0 top-[calc(100%+0.5rem)] z-[360] w-[min(94vw,58rem)] max-w-[58rem] rounded-2xl p-3'
             : 'fixed inset-0 z-[110] flex items-center justify-center overflow-hidden p-4 backdrop-blur-sm'"
           :style="inline ? undefined : 'background-color: var(--overlay-backdrop);'"
           @click.self="!inline && closeDialog()"
@@ -268,7 +268,7 @@ const triggerLabel = computed(() => {
   if (selectedNames.value.length === 2) {
     return selectedNames.value.map((name) => displayOrgName(name)).join(" + ");
   }
-  return `${selectedNames.value.length} Groups`;
+  return `${selectedNames.value.length} Orgs`;
 });
 
 const resolvedButtonClass = computed(() => [
@@ -440,15 +440,21 @@ onBeforeUnmount(() => {
 }
 
 .home-org-select-card {
-  border-color: var(--color-border) !important;
-  background: var(--surface-nav) !important;
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
+  border: none !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.home-org-inline-panel {
+  background: var(--surface-nav-solid);
+  border: 1px solid var(--color-border);
   box-shadow: 0 20px 56px rgb(2 6 23 / 0.34);
 }
 
 .home-org-select-card :deep(.select-card) {
-  border-color: var(--color-border) !important;
+  border: none !important;
   background: transparent !important;
 }
 

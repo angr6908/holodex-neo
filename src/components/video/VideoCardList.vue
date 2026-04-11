@@ -84,7 +84,7 @@ const props = withDefaults(defineProps<{
   inMultiViewSelector?: boolean;
   fadeUnderNavExt?: boolean;
 }>(), {
-  cols: () => ({ xs: 1, sm: 3, md: 4, lg: 6, xl: 8 }),
+  cols: () => ({ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }),
   activeId: "",
   dense: false,
   disableDefaultClick: false,

@@ -8,7 +8,6 @@ import { useOrgsStore } from "@/stores/orgs";
 
 
 const Channel = () => import("../views/Channel.vue");
-const Channels = () => import("../views/Channels.vue");
 const ChannelVideos = () => import("../views/channel_views/ChannelVideos.vue");
 const ChannelAbout = () => import("../views/channel_views/ChannelAbout.vue");
 const Watch = () => import("../views/Watch.vue");
@@ -34,19 +33,6 @@ const routes = [
         path: "/",
         name: "home",
         component: HomeFave,
-        props: { isFavPage: false },
-    },
-    {
-        path: "/archive",
-        name: "home_archive",
-        component: HomeFave,
-        props: { isFavPage: false },
-    },
-    {
-        path: "/clips",
-        name: "home_clips",
-        component: HomeFave,
-        props: { isFavPage: false },
     },
     {
         // Backwards compatibility with old home
@@ -62,22 +48,18 @@ const routes = [
         },
     },
     {
-        path: "/favorites/",
-        name: "favorites",
-        component: HomeFave,
-        props: { isFavPage: true },
+        // Redirect old archive/clips routes to home
+        path: "/archive",
+        redirect: "/",
     },
     {
-        path: "/favorites/archive",
-        name: "favorites_archive",
-        component: HomeFave,
-        props: { isFavPage: true },
+        path: "/clips",
+        redirect: "/",
     },
     {
-        path: "/favorites/clips",
-        name: "favorites_clips",
-        component: HomeFave,
-        props: { isFavPage: true },
+        // Redirect old favorites routes to home
+        path: "/favorites/:pathMatch(.*)*",
+        redirect: "/",
     },
     {
         path: "/channel/:id",
@@ -113,14 +95,14 @@ const routes = [
         ],
     },
     {
+        // Redirect old channels route to home
         path: "/channels",
-        name: "channels",
-        component: Channels,
+        redirect: "/",
     },
     {
         // Backwards compat redirect from old /channel/ list page
         path: "/channel/",
-        redirect: "/channels",
+        redirect: "/",
     },
     {
         name: "watch",

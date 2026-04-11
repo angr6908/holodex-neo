@@ -561,9 +561,10 @@ onBeforeUnmount(() => {
   max-height: calc(100vh - 10rem) !important;
   overflow: auto;
   left: 0 !important;
-  box-shadow: none !important;
-  border: 1px solid var(--color-light) !important;
-  border-radius: 0.75rem !important;
+  box-shadow: 0 20px 56px rgb(2 6 23 / 0.34) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 1rem !important;
+  background: var(--surface-nav-solid) !important;
 }
 
 /* At narrow widths, shift panel left to align with viewport left edge */
@@ -599,14 +600,14 @@ onBeforeUnmount(() => {
 
 .search-inline-org-select :deep(.home-org-select-card) {
   border: none !important;
-  background: var(--colorbg) !important;
+  background: transparent !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
 }
 
 .search-inline-org-select :deep(.home-org-select-card .select-card) {
-  background: var(--colorbg) !important;
+  background: transparent !important;
 }
 
 .search-inline-org-select :deep(.home-org-select-card .select-card-content),
@@ -614,7 +615,7 @@ onBeforeUnmount(() => {
 .search-inline-org-select :deep(.home-org-quick-select),
 .search-inline-org-select :deep(.home-org-select-scroll .scroll-area-viewport-native),
 .search-inline-org-select :deep(.home-org-select-scroll .scroll-area-viewport) {
-  background: var(--colorbg) !important;
+  background: transparent !important;
 }
 
 .search-inline-org-select :deep(.home-org-select-scroll) {

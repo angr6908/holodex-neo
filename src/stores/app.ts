@@ -20,7 +20,7 @@ export const useAppStore = defineStore("app", () => {
     });
 
     const isMobile = ref(true);
-    const currentGridSize = ref(1);
+    const currentGridSize = ref(0);
 
     const currentOrg = ref<{ name: string; short: string }>({ name: "Hololive", short: "Holo" });
     const selectedHomeOrgs = ref<string[]>(["Hololive"]);
@@ -66,7 +66,7 @@ export const useAppStore = defineStore("app", () => {
         lastShownInstallPrompt.value = 0;
         userdata.value = { user: null, jwt: null };
         isMobile.value = true;
-        currentGridSize.value = 1;
+        currentGridSize.value = 0;
         currentOrg.value = { name: "Hololive", short: "Holo" };
         selectedHomeOrgs.value = ["Hololive"];
         orgFavorites.value = [

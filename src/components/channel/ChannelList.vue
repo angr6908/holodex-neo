@@ -204,7 +204,7 @@ const isLoggedIn = computed(() => appStore.isLoggedIn);
 
 // Channel grid uses the HomeFave default grid degree (gridSize=1) but stays independent
 // — it does NOT change when the user adjusts the homepage grid slider.
-const CHANNEL_GRID_SIZE = 1;
+const CHANNEL_GRID_SIZE = 0;
 const colSize = computed(() => {
   const width = appStore.windowWidth || window.innerWidth;
   if (width < 600)  return 1 + CHANNEL_GRID_SIZE;

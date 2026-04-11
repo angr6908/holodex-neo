@@ -114,6 +114,17 @@
   </div>
 </template>
 
+<script lang="ts">
+// Module-level cache so topics survive component remounts and page refreshes
+const TOPICS_STORAGE_KEY = "holodex-topics-cache";
+let cachedTopics: any[] = (() => {
+  try {
+    const raw = localStorage.getItem(TOPICS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+})();
+</script>
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
@@ -144,7 +155,7 @@ const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 const search = ref("");
-const topics = ref<any[]>([]);
+const topics = ref<any[]>(cachedTopics);
 const topicsLoading = ref(false);
 
 const hideCollabStreams = computed({
@@ -210,6 +221,8 @@ async function fetchTopics() {
     topicsLoading.value = true;
     const { data } = await backendApi.topics();
     topics.value = data.map(({ id, count }: any) => ({ value: id, count }));
+    cachedTopics = topics.value;
+    try { localStorage.setItem(TOPICS_STORAGE_KEY, JSON.stringify(topics.value)); } catch {}
     topicsLoading.value = false;
   }
 }

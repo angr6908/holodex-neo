@@ -1,5 +1,5 @@
 <template>
-  <UiCard id="about" class-name="space-y-6 border-[color:var(--color-border)] bg-[color:var(--color-card)] p-6">
+  <UiCard id="about" class-name="space-y-6 border-[color:var(--color-border)] p-6">
     <header>
       <h2 class="text-3xl font-semibold tracking-tight text-[color:var(--color-foreground)]">
         {{ t("component.mainNav.about") }}

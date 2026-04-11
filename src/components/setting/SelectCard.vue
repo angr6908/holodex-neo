@@ -1,9 +1,9 @@
 <template>
   <div
     ref="rootEl"
-    class="select-card rounded-2xl px-4 py-3"
+    class="select-card"
   >
-    <div class="space-y-3">
+    <div class="flex flex-col gap-[0.45rem]">
       <div v-if="$slots.title || title || description" class="space-y-1">
         <slot name="title">
           <div class="select-card-title">
@@ -171,18 +171,14 @@ onBeforeUnmount(() => {
 <style scoped>
 .select-card {
   --select-card-control-height: 2.5rem;
-  border: 1px solid var(--color-light);
-  background: var(--color-base);
-  transition: border-color 160ms ease;
-}
-
-.select-card:hover {
-  border-color: var(--color-bold);
 }
 
 .select-card-title {
-  font-size: 0.875rem;
-  color: var(--color-foreground);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
 }
 
 .select-card-description {
@@ -235,17 +231,17 @@ onBeforeUnmount(() => {
   max-width: 100%;
   align-items: center;
   gap: 0.55rem;
-  height: var(--select-card-control-height);
-  min-height: var(--select-card-control-height);
-  border-radius: 999px;
-  border: 1px solid var(--color-light);
-  background: var(--color-card);
-  padding: 0 0.8rem;
-  color: color-mix(in srgb, var(--color-muted-foreground) 90%, var(--color-border) 10%);
+  height: 2.2rem;
+  min-height: 2.2rem;
+  border-radius: 0.75rem;
+  border: none;
+  background: var(--color-base);
+  padding: 0 0.625rem;
+  color: var(--color-muted-foreground);
   cursor: pointer;
   font-size: 0.8rem;
-  line-height: 1;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  font-weight: 500;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 .select-card :deep(.settings-check-chip.select-card-chip-compact),
@@ -262,7 +258,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
-  line-height: 1.2;
 }
 
 .select-card :deep(.settings-check-chip.select-card-chip-compact .select-card-chip-meta),
@@ -273,49 +268,51 @@ onBeforeUnmount(() => {
 
 .select-card :deep(.settings-check-chip-indicator),
 .select-card :deep(.stream-check-chip-indicator) {
-  height: 0.9rem;
-  width: 0.9rem;
+  height: 0.75rem;
+  width: 0.75rem;
+  min-width: 0.75rem;
+  flex-shrink: 0;
   border-radius: 999px;
-  border: 1px solid var(--color-light);
-  background: var(--color-card);
+  border: 1.5px solid var(--color-muted-foreground);
+  background: transparent;
   transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
   pointer-events: none;
 }
 
 .select-card :deep(.peer:checked + .settings-check-chip-indicator),
 .select-card :deep(.peer:checked + .stream-check-chip-indicator) {
-  border-color: var(--color-bold);
-  background: var(--color-bold);
+  border-color: currentColor;
+  background: currentColor;
   transform: scale(1.05);
 }
 
 .select-card :deep(.settings-check-chip:hover),
 .select-card :deep(.stream-check-chip:hover) {
-  background: var(--color-base);
-  border-color: var(--color-bold);
-  color: var(--color-foreground);
+  background: var(--color-bold);
+  color: white;
 }
 
 .select-card :deep(.settings-check-chip:hover .settings-check-chip-indicator),
 .select-card :deep(.stream-check-chip:hover .stream-check-chip-indicator) {
-  border-color: var(--color-bold);
+  border-color: currentColor;
 }
 
 .select-card :deep(.settings-check-chip-selected),
 .select-card :deep(.stream-check-chip-selected) {
-  background: var(--color-card);
-  border: 1px solid var(--color-bold);
+  background: var(--color-bold);
+  color: white;
 }
 
 .select-card :deep(.settings-check-chip-selected:hover),
 .select-card :deep(.stream-check-chip-selected:hover) {
-  background: var(--color-card);
+  background: var(--color-bold);
+  color: white;
 }
 
 .select-card :deep(.settings-check-chip-selected .settings-check-chip-indicator),
 .select-card :deep(.stream-check-chip-selected .stream-check-chip-indicator) {
-  border-color: var(--color-bold);
-  background: var(--color-bold);
+  border-color: currentColor;
+  background: currentColor;
   transform: scale(1.05);
 }
 
@@ -323,7 +320,7 @@ onBeforeUnmount(() => {
 .select-card :deep(.stream-check-chip-selected > span:nth-of-type(2)),
 .select-card :deep(.settings-check-chip-selected .select-card-chip-label),
 .select-card :deep(.stream-check-chip-selected .select-card-chip-label) {
-  color: var(--color-foreground);
+  color: white;
 }
 
 .select-card :deep(.settings-check-chip-disabled) {

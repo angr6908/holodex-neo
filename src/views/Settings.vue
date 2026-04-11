@@ -3,7 +3,7 @@
     <div class="min-w-0" :class="slim ? 'space-y-6' : 'grid gap-6 xl:grid-cols-2 xl:items-start'">
       <UiCard
         id="settings-main"
-        class-name="min-w-0 space-y-6 border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4 sm:p-6"
+        class-name="min-w-0 space-y-6 border-[color:var(--color-border)] p-4 sm:p-6"
       >
         <header>
           <h1
@@ -25,12 +25,16 @@
                   label-key="display"
                   value-key="val"
                   placeholder="Select language"
+                  class="lang-select"
                 >
                   <template #trigger="{ selectedOption, open }">
                     <span class="flex w-full min-w-0 items-center justify-between gap-3 text-left">
-                      <span class="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-                        <span class="min-w-0 truncate text-[color:var(--color-foreground)]">
+                      <span class="flex min-w-0 flex-1 flex-col">
+                        <span class="min-w-0 truncate">
                           {{ selectedOption?.display || "Select language" }}
+                        </span>
+                        <span v-if="selectedOption?.credit" class="lang-credit text-[color:var(--color-muted-foreground)] text-xs">
+                          {{ selectedOption.credit }}
                         </span>
                       </span>
                       <UiIcon
@@ -43,9 +47,12 @@
 
                   <template #option="{ option, selected }">
                     <span class="flex w-full min-w-0 items-center justify-between gap-3">
-                      <span class="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-                        <span class="min-w-0 truncate text-[color:var(--color-foreground)]">
+                      <span class="flex min-w-0 flex-1 flex-col overflow-hidden">
+                        <span class="min-w-0 truncate">
                           {{ option.display }}
+                        </span>
+                        <span v-if="option.credit" class="lang-credit min-w-0 truncate text-[color:var(--color-muted-foreground)] text-xs">
+                          {{ option.credit }}
                         </span>
                       </span>
                       <UiIcon
@@ -593,9 +600,18 @@ html[data-theme="light"] .settings-update-btn-force:hover {
 
 :deep(#settings-main.glass-panel),
 :deep(#about.glass-panel) {
+  background: var(--surface-nav-solid) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
+}
+
+.lang-select {
+  min-width: min-content;
+}
+
+.lang-select :deep(.lang-credit) {
+  min-width: max-content;
 }
 
 </style>

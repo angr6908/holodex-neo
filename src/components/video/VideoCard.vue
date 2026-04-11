@@ -184,9 +184,9 @@
             class="video-card-title-wrap"
             :class="{ 'video-card-title-wrap-default': !horizontal && !denseList && !isSingleLineTitle }"
           >
-            <button
+            <a
               ref="titleButton"
-              type="button"
+              :href="titleHref"
               :class="[
                 'plain-button video-card-title text-left',
                 { 'video-watched': hasWatched },
@@ -205,7 +205,7 @@
                 :title="$t('component.videoCard.uncertainPlaceholder')"
               />
               {{ title }}
-            </button>
+            </a>
           </div>
           <div class="video-card-meta">
             <!-- Channel -->
@@ -554,6 +554,16 @@ const watchLink = computed(() => {
     ? `?playlist=${props.parentPlaylistId}`
     : "";
   return `/watch/${data.value.id}${q}`;
+});
+
+const titleHref = computed(() => {
+  if (isPlaceholder.value && data.value.placeholderType === "external-stream" && data.value.link) {
+    return data.value.link;
+  }
+  if (redirectMode.value) {
+    return `https://youtu.be/${data.value.id}`;
+  }
+  return watchLink.value;
 });
 
 const hasTLs = computed(() => {
@@ -957,7 +967,7 @@ onBeforeUnmount(() => {
 }
 
 .video-card:hover {
-  transform: translateY(-4px);
+  transform: none;
 }
 
 .video-card-fluid {
@@ -985,9 +995,6 @@ onBeforeUnmount(() => {
 
 .video-card:hover .video-card-shell {
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border) 72%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.06),
-    0 22px 44px rgb(2 6 23 / 0.2);
 }
 
 .video-card-dragging {

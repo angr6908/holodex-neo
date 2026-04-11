@@ -2,17 +2,6 @@
   <div v-if="video" class="space-y-1 p-1 text-sm">
     <template v-if="video.type !== 'placeholder'">
       <a
-        :href="watchPath"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="video-card-menu-item"
-        @click.stop="closeMenu()"
-      >
-        <UiIcon :icon="icons.mdiOpenInNew" class-name="h-4 w-4" />
-        {{ $t("component.videoCard.openInBackground") }}
-      </a>
-
-      <a
         target="_blank"
         :href="`https://youtu.be/${video.id}`"
         class="video-card-menu-item"
@@ -193,6 +182,7 @@ const isChattable = computed(() => {
   if (props.video.type !== "stream") return false;
   return true;
 });
+
 
 function openGoogleCalendar() {
   const startdate = props.video.start_scheduled;

@@ -9,59 +9,7 @@
         v-if="teleportReady && !isMobile"
         :to="`#${portalName}`"
       >
-        <div class="flex items-center gap-1.5">
-          <div ref="filterRoot" class="relative">
-            <UiButton
-              type="button"
-              variant="ghost"
-              size="icon"
-              class-name="h-8 w-8"
-              @click="showFilterPanel = !showFilterPanel"
-            >
-              <UiIcon :icon="mdiFilterVariant" />
-            </UiButton>
-            <div
-              v-if="showFilterPanel"
-              ref="filterPanelEl"
-              class="absolute right-0 top-10 z-[160] w-[280px] rounded-[calc(var(--radius)+6px)] border border-[color:var(--color-border)] shadow-2xl"
-              style="background-color: var(--surface-elevated); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);"
-              tabindex="-1"
-              @click.stop
-              @keydown.escape.stop="showFilterPanel = false"
-            >
-              <div class="flex flex-col gap-4 p-4">
-                <div
-                  v-if="tab === Tabs.LIVE_UPCOMING"
-                  class="flex flex-col gap-2"
-                >
-                  <span class="filter-panel-label">Sort By</span>
-                  <UiSelect
-                    v-model="sortBy"
-                    :options="sortOptions"
-                    label-key="text"
-                    value-key="value"
-                    class-name="h-10 rounded-xl"
-                    placeholder="Sort by"
-                  />
-                </div>
-                <div
-                  v-if="tab !== Tabs.LIVE_UPCOMING && isActive"
-                  class="flex flex-col gap-2"
-                >
-                  <span class="filter-panel-label">Uploaded Before</span>
-                  <div class="filter-panel-datepicker">
-                    <DatePicker
-                      :model-value="toDate ?? ''"
-                      placeholder="Pick a date"
-                      @update:model-value="toDate = $event || null"
-                    />
-                  </div>
-                </div>
-                <video-list-filters class="filter-panel-filters" :show-descriptions="false" :compact="true" />
-              </div>
-            </div>
-          </div>
-
+        <div class="absolute top-0 right-0">
           <UiButton
             type="button"
             variant="ghost"
@@ -71,6 +19,40 @@
           >
             <UiIcon :icon="displayIcon" />
           </UiButton>
+        </div>
+        <div class="flex min-h-0 flex-1 flex-col gap-3">
+          <div
+            v-if="tab === Tabs.LIVE_UPCOMING"
+            class="flex flex-col gap-[0.45rem]"
+          >
+            <span class="filter-panel-label">Sort By</span>
+            <div class="inline-flex w-fit items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-0.5">
+              <button
+                v-for="opt in sortOptions"
+                :key="opt.value"
+                type="button"
+                class="cursor-pointer rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition"
+                :class="sortBy === opt.value ? 'bg-[color:var(--color-bold)] text-white' : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'"
+                @click="sortBy = opt.value"
+              >
+                {{ opt.text }}
+              </button>
+            </div>
+          </div>
+          <div
+            v-if="tab !== Tabs.LIVE_UPCOMING && isActive"
+            class="flex flex-col gap-[0.45rem]"
+          >
+            <span class="filter-panel-label">Uploaded Before</span>
+            <div class="filter-panel-datepicker">
+              <DatePicker
+                :model-value="toDate ?? ''"
+                placeholder="Pick a date"
+                @update:model-value="toDate = $event || null"
+              />
+            </div>
+          </div>
+          <video-list-filters class="filter-panel-filters" :show-descriptions="false" :compact="true" />
         </div>
       </Teleport>
     </div>
@@ -100,7 +82,7 @@
           :dense-list="homeViewMode === 'denseList'"
           :horizontal="homeViewMode === 'list'"
           :in-multi-view-selector="inMultiViewSelector"
-          :fade-under-nav-ext="!inMultiViewSelector"
+          :fade-under-nav-ext="false"
         />
         <template v-if="homeViewMode === 'grid'">
           <div v-if="lives.length" class="my-3 h-px bg-[color:var(--color-border)]" />
@@ -115,7 +97,7 @@
             :dense-list="homeViewMode === 'denseList'"
             :horizontal="homeViewMode === 'list'"
             :in-multi-view-selector="inMultiViewSelector"
-            :fade-under-nav-ext="!inMultiViewSelector"
+            :fade-under-nav-ext="false"
           />
         </template>
       </div>
@@ -132,6 +114,7 @@
       <generic-list-loader
         v-slot="{ data, isLoading: lod }"
         :key="loaderCacheKey"
+        :cache-key="loaderCacheKey"
         :infinite-load="scrollMode"
         :paginate="!scrollMode"
         :per-page="pageLength"
@@ -156,7 +139,7 @@
           :dense-list="homeViewMode === 'denseList'"
           :horizontal="homeViewMode === 'list'"
           :in-multi-view-selector="inMultiViewSelector"
-          :fade-under-nav-ext="!inMultiViewSelector"
+          :fade-under-nav-ext="false"
         />
         <!-- only show SkeletonCardList if it's loading and no previous data -->
         <SkeletonCardList
@@ -172,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import backendApi from "@/utils/backend-api";
 
@@ -182,7 +165,6 @@ import VideoCardList from "@/components/video/VideoCardList.vue";
 import { videoTemporalComparator } from "@/utils/functions";
 import { dayjs } from "@/utils/time";
 import {
-  mdiFilterVariant,
   mdiFormatListBulleted,
   mdiViewList,
 } from "@mdi/js";
@@ -238,22 +220,14 @@ const props = withDefaults(defineProps<{
 const route = useRoute();
 const router = useRouter();
 
-const filterRoot = ref<HTMLElement | null>(null);
-const filterPanelEl = ref<HTMLElement | null>(null);
 const pageLength = ref(24);
 const Tabs = Object.freeze({ LIVE_UPCOMING: 0, ARCHIVE: 1, CLIPS: 2 });
 const toDate = ref<string | null>(null);
 const sortBy = ref("viewers");
-const showFilterPanel = ref(false);
 const sortOptions = [
-  { text: "Most Viewers", value: "viewers" },
+  { text: "Viewers", value: "viewers" },
   { text: "Latest", value: "latest" },
 ];
-
-// Focus the filter panel when it opens so Escape key works
-watch(showFilterPanel, (v) => {
-  if (v) nextTick(() => filterPanelEl.value?.focus());
-});
 
 const settingsStore = useSettingsStore();
 const homeStore = useHomeStore();
@@ -422,13 +396,11 @@ watch(selectedHomeOrgsKey, () => {
 
 watch(() => props.tab, (newTab, oldTab) => {
   if (!props.isActive) return;
-  showFilterPanel.value = false;
   if (newTab !== oldTab && newTab === Tabs.LIVE_UPCOMING) init(false);
 });
 
 watch(scrollMode, (newValue, oldValue) => {
   if (!props.isActive || newValue === oldValue) return;
-  showFilterPanel.value = false;
   syncRouteWithScrollMode(newValue);
 });
 
@@ -444,21 +416,6 @@ init(true);
       const key = cacheKeyForTab(tabVal);
       startMultiOrgFetch(key, buildTabQuery(tabVal), orgs);
     }
-  }
-}
-
-onMounted(() => {
-  document.addEventListener("click", handleDocumentClick);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("click", handleDocumentClick);
-});
-
-function handleDocumentClick(event: MouseEvent) {
-  if (!showFilterPanel.value) return;
-  if (!filterRoot.value?.contains(event.target as Node)) {
-    showFilterPanel.value = false;
   }
 }
 
@@ -687,15 +644,13 @@ defineExpose({ init, reload });
 </style>
 
 <style scoped>
-/* Consistent label style for all filter sections */
+/* Match select-card-title style */
 .filter-panel-label {
-  font-size: 0.875rem;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--color-muted-foreground);
-}
-
-/* Make DatePicker trigger button full width to match Select and chips */
-.filter-panel-datepicker :deep(button) {
-  width: 100%;
 }
 
 /* Strip SelectCard chrome and unify title color with other labels */
@@ -709,15 +664,40 @@ defineExpose({ init, reload });
   color: var(--color-muted-foreground);
 }
 
-/* Scroll area: use max-height instead of fixed height so it
-   shrinks to content and doesn't leave empty bottom space */
+/* Flex growth chain: blocked topics scroll area fills remaining aside space */
+.filter-panel-filters {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.filter-panel-filters :deep(.select-card:last-child) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.filter-panel-filters :deep(.select-card:last-child > *) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.filter-panel-filters :deep(:has(> .scroll-area-viewport-native)) {
+  height: auto !important;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 .filter-panel-filters :deep(.scroll-area-viewport-native) {
-  max-height: 8rem;
+  height: 100% !important;
+  max-height: none;
 }
 
-/* Make stream check chips match UiSelect control height */
-.filter-panel-filters :deep(.stream-check-chip) {
-  height: 2.5rem;
-  min-height: 2.5rem;
+/* Make grid layout single-column to match tab button list */
+.filter-panel-filters :deep(.stream-check-grid) {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div v-if="showTopBar" ref="navRootEl" class="fixed inset-x-0 top-0 z-[90]">
-    <header class="relative z-[130] border-b border-[color:var(--color-border)] bg-[color:var(--surface-nav)] backdrop-blur-xl">
+    <header ref="navHeaderEl" class="relative z-[130] border-b border-[color:var(--color-border)] bg-[color:var(--surface-nav)] backdrop-blur-xl">
       <div class="mx-auto flex max-w-[1600px] items-center gap-4 px-3 py-3 sm:px-5">
         <router-link class="flex shrink-0 items-center gap-3 pr-2 min-[960px]:pr-5" :to="{ name: defaultOpenRoute }">
           <div class="menu-logo-tile flex h-10 w-10 items-center justify-center rounded-2xl border">
@@ -24,6 +24,11 @@
         </div>
 
         <div class="hidden min-w-0 flex-1 items-center gap-3 min-[960px]:flex">
+          <HomeOrgMultiSelect
+            inline
+            button-class="h-10 w-auto min-w-0 max-w-[min(36vw,24rem)] shrink justify-between rounded-xl px-3 text-[0.8rem] font-normal"
+          />
+
           <form class="menu-search-form" @submit.prevent="submitSearch">
             <div class="relative min-w-0 flex-1">
               <div class="menu-search-tags-wrap">
@@ -86,14 +91,10 @@
             </div>
           </form>
 
-          <HomeOrgMultiSelect
-            button-class="h-10 w-auto min-w-0 max-w-[min(36vw,24rem)] shrink justify-between rounded-xl px-3 font-normal"
-          />
-
           <div class="flex items-center gap-2">
             <UiButton
               as="a"
-              variant="secondary"
+              variant="ghost"
               size="icon"
               class-name="menu-action-btn"
               :href="musicdexURL"
@@ -126,7 +127,7 @@
 
             <UiButton
               as="router-link"
-              variant="secondary"
+              variant="ghost"
               size="icon"
               to="/multiview"
               class-name="menu-action-btn"
@@ -142,7 +143,7 @@
               <UiPopoverTrigger as-child>
                 <UiButton
                   type="button"
-                  variant="secondary"
+                  variant="ghost"
                   size="icon"
                   class-name="group relative menu-action-btn"
                   :title="$t('component.mainNav.playlist')"
@@ -401,7 +402,7 @@
 
             <UiButton
               as="router-link"
-              variant="secondary"
+              variant="ghost"
               size="icon"
               to="/settings"
               class-name="menu-action-btn"
@@ -414,7 +415,7 @@
             <UiButton
               as="router-link"
               to="/user"
-              variant="secondary"
+              variant="ghost"
               size="icon"
               class-name="menu-action-btn menu-avatar-btn"
             >
@@ -433,7 +434,7 @@
 
         <UiButton
           class-name="ml-auto min-[960px]:hidden menu-action-btn"
-          variant="secondary"
+          variant="ghost"
           size="icon"
           @click="mobileSearchOpen = !mobileSearchOpen"
         >
@@ -448,7 +449,7 @@
           as="router-link"
           to="/multiview"
           class-name="min-[960px]:hidden menu-action-btn"
-          variant="secondary"
+          variant="ghost"
           size="icon"
           :title="$t('component.mainNav.multiview')"
         >
@@ -464,7 +465,7 @@
           target="_blank"
           rel="noopener noreferrer"
           class-name="min-[960px]:hidden menu-action-btn"
-          variant="secondary"
+          variant="ghost"
           size="icon"
           title="Musicdex"
         >
@@ -502,7 +503,7 @@
         </form>
         <div class="mt-2">
           <HomeOrgMultiSelect
-            button-class="h-10 w-full justify-between rounded-xl px-3 font-normal"
+            button-class="h-10 w-full justify-between rounded-xl px-3 text-[0.8rem] font-normal"
           />
         </div>
       </div>
@@ -588,7 +589,9 @@ const desktopSearchInput = ref<HTMLInputElement | null>(null);
 
 // Track the fixed header height so main content can set its padding-top dynamically
 const navRootEl = ref<HTMLElement | null>(null);
+const navHeaderEl = ref<HTMLElement | null>(null);
 let _navRo: ResizeObserver | null = null;
+let _headerRo: ResizeObserver | null = null;
 
 function observeNav(el: HTMLElement | null) {
   _navRo?.disconnect();
@@ -600,9 +603,20 @@ function observeNav(el: HTMLElement | null) {
   _navRo.observe(el);
 }
 
+function observeHeader(el: HTMLElement | null) {
+  _headerRo?.disconnect();
+  if (!el) return;
+  _headerRo = new ResizeObserver(([entry]) => {
+    const h = Math.ceil(entry.borderBoxSize?.[0]?.blockSize ?? entry.target.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--nav-header-height", `${h}px`);
+  });
+  _headerRo.observe(el);
+}
+
 watch(navRootEl, observeNav);
-onMounted(() => observeNav(navRootEl.value));
-onBeforeUnmount(() => { _navRo?.disconnect(); });
+watch(navHeaderEl, observeHeader);
+onMounted(() => { observeNav(navRootEl.value); observeHeader(navHeaderEl.value); });
+onBeforeUnmount(() => { _navRo?.disconnect(); _headerRo?.disconnect(); });
 
 // Focus the rename input when it appears
 watch(playlistEditName, (editing) => {
@@ -726,18 +740,15 @@ const pages = computed(() => {
 });
 
 const primaryPages = computed(() => {
-  const primaryPageOrder = ["home", "favorites", "channels"];
-  return primaryPageOrder
-    .map((key) => pages.value.find((page) => page.key === key))
-    .filter(Boolean);
+  return [] as typeof pages.value;
 });
 
 const mobilePages = computed(() =>
-  pages.value.filter((page) => ["home", "favorites", "channels", "playlists"].includes(page.key)),
+  pages.value.filter((page) => ["home", "playlists"].includes(page.key)),
 );
 
 const mobileMorePages = computed(() =>
-  pages.value.filter((page) => !["home", "favorites", "channels", "playlists", "settings"].includes(page.key) && !page.extra),
+  pages.value.filter((page) => !["home", "playlists", "settings"].includes(page.key) && !page.extra),
 );
 
 watch(() => route.fullPath, () => {
@@ -1043,17 +1054,12 @@ function exportPlaylistToYT() {
 }
 
 .menu-action-btn {
-  border-color: var(--color-light) !important;
-  background: var(--color-card) !important;
-  color: var(--color-muted-foreground) !important;
+  border: none !important;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.menu-action-btn:hover {
-  border-color: var(--color-bold) !important;
-  background: var(--color-base) !important;
-  color: var(--color-foreground) !important;
+.menu-theme-icon {
+  color: inherit;
 }
 
 /* Playlist count badge: layered background for true opacity.
@@ -1073,9 +1079,8 @@ function exportPlaylistToYT() {
 }
 
 .menu-theme-icon {
-  color: var(--color-primary);
+  color: inherit;
   filter: none;
-  transition: color 160ms ease;
 }
 
 .menu-avatar-btn {
@@ -1224,6 +1229,7 @@ function exportPlaylistToYT() {
 
 .menu-search-tags-input::placeholder {
   color: var(--color-muted-foreground);
+  font-size: 0.8rem;
 }
 
 .menu-search-filter-tag {

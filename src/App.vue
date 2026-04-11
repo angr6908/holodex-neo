@@ -214,6 +214,16 @@ function withAlpha(color: string, alpha: number) {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
 }
 
+// Composite an rgba layer over a solid hex background → solid hex
+function compositeOver(bgHex: string, fgR: number, fgG: number, fgB: number, fgA: number) {
+  const bg = hexToRgb(bgHex);
+  if (!bg) return bgHex;
+  const r = Math.round(fgR * fgA + bg.r * (1 - fgA));
+  const g = Math.round(fgG * fgA + bg.g * (1 - fgA));
+  const b = Math.round(fgB * fgA + bg.b * (1 - fgA));
+  return rgbToHex(r, g, b);
+}
+
 function mixColors(baseColor: string, tintColor: string, tintWeight = 0.5) {
   const baseRgb = hexToRgb(baseColor);
   const tintRgb = hexToRgb(tintColor);
@@ -302,8 +312,8 @@ function getContrastColor(color: string) {
 
 function buildThemeVars() {
   const cacheKey = getThemeModeKey();
-  const cachedVars = themeVarsCache[cacheKey];
-  if (cachedVars) return cachedVars;
+  // Clear stale cache entry so new variables are always included
+  delete themeVarsCache[cacheKey];
 
   const resolvedTheme = resolveThemeById(themeId.value);
   const theme = resolvedTheme.themes[darkMode.value ? "dark" : "light"];
@@ -349,6 +359,13 @@ function buildThemeVars() {
   const surfaceSoft = isDark ? "rgba(255, 255, 255, 0.06)" : withAlpha(lightSurfaceSoftBase, 0.94);
   const surfaceSoftHover = isDark ? "rgba(255, 255, 255, 0.08)" : withAlpha(lightSurfaceSoftHoverBase, 0.98);
   const surfaceNav = isDark ? "rgba(2, 6, 23, 0.78)" : withAlpha(lightSurfaceNavBase, 0.84);
+  // Solid version of surface-nav for components that can't use backdrop-blur
+  const surfaceNavSolid = isDark
+    ? compositeOver(background, 2, 6, 23, 0.78)
+    : (() => {
+        const rgb = hexToRgb(lightSurfaceNavBase);
+        return rgb ? compositeOver(background, rgb.r, rgb.g, rgb.b, 0.84) : background;
+      })();
   const surfaceElevated = isDark ? "rgba(2, 6, 23, 0.94)" : withAlpha(lightSurfaceElevatedBase, 0.98);
   const overlayBackdrop = isDark ? "rgba(2, 6, 23, 0.74)" : withAlpha(lightOverlayBase, 0.66);
   const skeletonFill = isDark ? "rgba(255, 255, 255, 0.08)" : withAlpha(lightSkeletonBase, 0.58);
@@ -396,6 +413,7 @@ function buildThemeVars() {
     "--surface-soft": surfaceSoft,
     "--surface-soft-hover": surfaceSoftHover,
     "--surface-nav": surfaceNav,
+    "--surface-nav-solid": surfaceNavSolid,
     "--surface-elevated": surfaceElevated,
     "--overlay-backdrop": overlayBackdrop,
     "--skeleton-fill": skeletonFill,
