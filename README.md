@@ -5,7 +5,7 @@ A high-performance Vue 3 remake of Holodex, migrating from legacy Vue 2/Vuetify 
 ### Demo
 https://001920.xyz
 
-<img src="preview.avif" width="800" alt="v1.0.0">
+<img src="preview-v1.0.1.avif" width="800" alt="v1.0.1">
 
 ### Quick Start (Docker)
 
