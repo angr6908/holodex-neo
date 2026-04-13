@@ -1,6 +1,6 @@
 # holodex-neo
 
-A high-performance Vue 3 remake of the Holodex frontend, migrating from legacy Vue 2/Vuetify to Vite, Shadcn Vue, and Tailwind v4.
+A high-performance Vue 3 remake of the Holodex frontend, migrating from legacy Vue 2/Vuetify to Vue 3, Vite, Shadcn Vue, and Tailwind v4.
 
 ### Demo
 https://001920.xyz
