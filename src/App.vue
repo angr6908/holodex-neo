@@ -545,14 +545,6 @@ applyTheme();
 locale.value = settingsStore.lang;
 orgsStore.fetchOrgs();
 
-if (
-  (!appStore.selectedHomeOrgs || appStore.selectedHomeOrgs.length === 0)
-  && appStore.currentOrg?.name === "All Vtubers"
-) {
-  appStore.setSelectedHomeOrgs(["Hololive"]);
-  appStore.setCurrentOrg({ name: "Hololive", short: "Holo" });
-}
-
 appStore.loginCheck();
 
 if (favoritesUpdateTask) clearInterval(favoritesUpdateTask);

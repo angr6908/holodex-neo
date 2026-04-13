@@ -10,8 +10,24 @@
     <span v-if="showYtChat && !needExtension && !chatLoaded" class="loading-text">
       {{ $t("views.watch.chat.loading") }}
     </span>
+    <!-- Live translations -->
+    <template v-if="showTlChat && isLiveTLVideo">
+      <LiveTranslations
+        v-show="showTlChat"
+        :video="video!"
+        :class="{
+          'stick-bottom': settingsStore.liveTlStickBottom,
+          'tl-full-height': !showYtChat,
+        }"
+        :style="{ height: tlChatHeight }"
+        :current-time="currentTime"
+        :use-local-subtitle-toggle="useLocalSubtitleToggle"
+        @videoUpdate="(obj) => emit('videoUpdate', obj)"
+        @timeJump="time => emit('timeJump', time)"
+      />
+    </template>
     <!-- Archive translations -->
-    <template v-if="canShowTLChat && showTlChat">
+    <template v-else-if="canShowTLChat && showTlChat">
       <ArchiveTranslations
         v-show="showTlChat"
         v-if="showTlChat"
@@ -74,6 +90,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { useAppStore } from "@/stores/app";
 
 const ArchiveTranslations = defineAsyncComponent(() => import("@/components/chat/ArchiveTranslations.vue"));
+const LiveTranslations = defineAsyncComponent(() => import("@/components/chat/LiveTranslations.vue"));
 
 defineOptions({ name: "WatchLiveChat" });
 
@@ -96,6 +113,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
+  (e: "videoUpdate", obj: any): void;
   (e: "timeJump", time: any): void;
 }>();
 
@@ -110,6 +128,7 @@ const needExtension = ref(!window.ARCHIVE_CHAT_OVERRIDE && props.video?.status =
 const canShowTLChat = computed(() =>
   (props.video?.topic_id === "membersonly" && props.currentTime > 0) || (props.video?.topic_id !== "membersonly"),
 );
+const isLiveTLVideo = computed(() => ["live", "upcoming"].includes(props.video?.status ?? ""));
 
 const showTlChat = computed(() => props.modelValue.showTlChat);
 const showYtChat = computed(() => props.modelValue.showYtChat);

@@ -1,5 +1,8 @@
 <template>
-  <UiCard class-name="rounded-none border-x-0 border-t-0 px-3 py-2 shadow-none">
+  <UiCard
+    class-name="watch-highlights rounded-none border-x-0 border-t-0 px-3 py-2 shadow-none"
+    :style="cardStyle"
+  >
     <div v-if="bucketsFiltered.length > 0" class="highlight-container">
       <div class="highlight-bar">
         <template v-for="b in bucketsFiltered" :key="b.display">
@@ -78,8 +81,10 @@ const props = withDefaults(defineProps<{
   comments: any[];
   video: Record<string, any>;
   limit?: number;
+  playerWidth?: number | null;
 }>(), {
   limit: 0,
+  playerWidth: null,
 });
 
 const emit = defineEmits<{
@@ -188,6 +193,15 @@ const bucketsFiltered = computed(() => {
     });
   }
   return buckets.value;
+});
+
+const cardStyle = computed(() => {
+  if (!props.playerWidth) return {};
+  return {
+    width: `${props.playerWidth}px`,
+    maxWidth: `${props.playerWidth}px`,
+    marginInline: "auto",
+  };
 });
 
 function computeItemStyle(ts: number) {

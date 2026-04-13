@@ -2,14 +2,18 @@
   <div v-if="showTopBar" ref="navRootEl" class="fixed inset-x-0 top-0 z-[90]">
     <header ref="navHeaderEl" class="relative z-[130] border-b border-[color:var(--color-border)] bg-[color:var(--surface-nav)] backdrop-blur-xl">
       <div class="mx-auto flex max-w-[1600px] items-center gap-4 px-3 py-3 sm:px-5">
-        <router-link class="flex shrink-0 items-center gap-3 pr-2 min-[960px]:pr-5" :to="{ name: defaultOpenRoute }">
+        <button
+          type="button"
+          class="flex shrink-0 items-center gap-3 pr-2 min-[960px]:pr-5 text-left"
+          @click="goHomeFromLogo"
+        >
           <div class="menu-logo-tile flex h-10 w-10 items-center justify-center rounded-2xl border">
             <Logo width="22" height="22" />
           </div>
           <div class="hidden min-w-0 sm:block text-[1.02rem] font-semibold tracking-[0.01em] text-[color:var(--color-foreground)]">
             Holodex
           </div>
-        </router-link>
+        </button>
 
         <div class="hidden min-[960px]:ml-1 min-[960px]:flex min-[960px]:items-center min-[960px]:gap-3">
           <router-link
@@ -647,8 +651,6 @@ const isWatchPage = computed(() => {
   return false;
 });
 
-const defaultOpenRoute = computed(() => settingsStore.defaultOpen || "home");
-
 const currentOrg = computed(() => appStore.currentOrg);
 
 const playlistCount = computed(() => playlistStore.active?.videos?.length || 0);
@@ -676,6 +678,13 @@ const avatarUrl = computed(() => {
 const disableExt = computed(() =>
   isWatchPage.value || route.name === "search",
 );
+
+async function goHomeFromLogo() {
+  await router.push({ name: "home" }).catch(() => {});
+  await nextTick();
+  appStore.reloadCurrentPage({ source: "logo-home", consumed: false });
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
 
 const pages = computed(() => {
   return [

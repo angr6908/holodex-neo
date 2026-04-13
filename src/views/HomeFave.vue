@@ -1,5 +1,6 @@
 <template>
   <section
+    ref="homeRoot"
     class="flex min-h-full"
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
@@ -175,6 +176,7 @@ import { useFavoritesStore } from "@/stores/favorites";
 import { useAppStore } from "@/stores/app";
 import { useMetaTitle } from "@/composables/useMetaTitle";
 import { useReloadable } from "@/composables/useReloadable";
+import { useRoute } from "vue-router";
 import ConnectedVideoList from "@/components/video/ConnectedVideoList.vue";
 import ChannelsView from "@/views/Channels.vue";
 import LoadingOverlay from "@/components/common/LoadingOverlay.vue";
@@ -186,6 +188,7 @@ import * as icons from "@/utils/icons";
 defineOptions({ name: "HomeFave" });
 
 const { t } = useI18n();
+const route = useRoute();
 
 const homeStore = useHomeStore();
 const favoritesStore = useFavoritesStore();
@@ -221,6 +224,7 @@ let refreshTimer: ReturnType<typeof setInterval> | null = null;
 const touchStartX = ref<number | null>(null);
 const videoList = ref<InstanceType<typeof ConnectedVideoList> | null>(null);
 const asideRef = ref<HTMLElement | null>(null);
+const homeRoot = ref<HTMLElement | null>(null);
 const panelMinHeight = ref("0px");
 let _asideMo: MutationObserver | null = null;
 
@@ -271,6 +275,31 @@ function currentScrollKey() {
   return viewMode.value === "channels" ? "channels" : `streams-${tab.value}`;
 }
 
+function resetScrollableElement(element: Element | null | undefined) {
+  if (!(element instanceof HTMLElement)) return;
+  element.scrollTop = 0;
+  element.scrollLeft = 0;
+}
+
+function resetAllHomeScrollbars() {
+  scrollPositions.clear();
+  resetScrollableElement(asideRef.value);
+  resetScrollableElement(homeRoot.value);
+
+  const root = homeRoot.value;
+  if (!root) return;
+
+  root.querySelectorAll<HTMLElement>("*").forEach((element) => {
+    const style = window.getComputedStyle(element);
+    const canScrollY = ["auto", "scroll", "overlay"].includes(style.overflowY)
+      && element.scrollHeight > element.clientHeight;
+    const canScrollX = ["auto", "scroll", "overlay"].includes(style.overflowX)
+      && element.scrollWidth > element.clientWidth;
+    if (!canScrollY && !canScrollX) return;
+    resetScrollableElement(element);
+  });
+}
+
 const { isActive } = useReloadable(reload);
 
 useMetaTitle(() => {
@@ -304,6 +333,27 @@ watch(() => appStore.visibilityState, () => {
       homeStore.fetchLive({ force: false });
     }
   }
+});
+
+function applyLogoHomeReset(trigger = appStore.reloadTrigger) {
+  if (!trigger || trigger.consumed || route.name !== "home" || trigger.source !== "logo-home") {
+    return false;
+  }
+  trigger.consumed = true;
+  resetAllHomeScrollbars();
+  isFavPage.value = false;
+  viewMode.value = "streams";
+  tab.value = Tabs.LIVE_UPCOMING;
+  saveState();
+  return true;
+}
+
+watch(() => appStore.reloadTrigger, (trigger) => {
+  if (!applyLogoHomeReset(trigger)) return;
+  nextTick(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    init(true);
+  });
 });
 
 // Persist state to localStorage
@@ -407,6 +457,7 @@ function reload() {
 }
 
 // Lifecycle (created equivalent)
+applyLogoHomeReset();
 init(true);
 setAutoRefresh();
 

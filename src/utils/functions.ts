@@ -112,6 +112,12 @@ const numberFormatAdjust = {
     "lol-PEKO": "en",
 };
 
+function toFiniteNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const num = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(num) ? num : null;
+}
+
 export function formatCount(n, lang = "en") {
     const converted = numberFormatAdjust[lang] ?? lang;
     if (!formatters[converted]) {
@@ -124,6 +130,11 @@ export function formatCount(n, lang = "en") {
     let num = n;
     if (typeof n === "string") num = +n;
     return formatters[converted].format(num);
+}
+
+export function getLiveViewerCount(video?: Record<string, any> | null) {
+    if (!video || typeof video !== "object") return 0;
+    return toFiniteNumber(video.live_viewers) ?? toFiniteNumber(video.ccv) ?? 0;
 }
 
 export function decodeHTMLEntities(str) {

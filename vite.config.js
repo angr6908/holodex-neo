@@ -189,6 +189,18 @@ export default ({ mode }) => {
                     changeOrigin: true,
                     secure: false,
                 },
+                "/twitch-gql": {
+                    target: "https://gql.twitch.tv",
+                    changeOrigin: true,
+                    secure: true,
+                    rewrite: () => "/gql",
+                    configure: (proxy) => {
+                        proxy.on("proxyReq", (proxyReq) => {
+                            proxyReq.setHeader("Origin", "https://www.twitch.tv");
+                            proxyReq.setHeader("Referer", "https://www.twitch.tv/");
+                        });
+                    },
+                },
             },
         },
     });

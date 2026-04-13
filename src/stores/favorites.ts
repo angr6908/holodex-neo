@@ -4,7 +4,8 @@ import api from "@/utils/backend-api";
 import { sendFavoritesToExtension, sendTokenToExtension } from "@/utils/messaging";
 import debounce from "lodash-es/debounce";
 import fdequal from "fast-deep-equal";
-import { videoTemporalComparator } from "@/utils/functions";
+import { getLiveViewerCount, videoTemporalComparator } from "@/utils/functions";
+import { enrichLiveVideosWithTwitchViewerCounts } from "@/utils/twitch";
 import { useAppStore } from "./app";
 
 export const useFavoritesStore = defineStore("favorites", () => {
@@ -65,10 +66,11 @@ export const useFavoritesStore = defineStore("favorites", () => {
             hasError.value = false;
             inflightFetch = api
                 .favoritesLive({ includePlaceholder: true }, appStore.userdata.jwt)
-                .then((res: any) => {
+                .then(async (res: any) => {
+                    res = await enrichLiveVideosWithTwitchViewerCounts(res);
                     res.sort(videoTemporalComparator);
                     // Only update when data changed to avoid re-rendering with stale persisted data
-                    const fp = (arr: any[]) => arr.map((v: any) => `${v.id}:${v.status}`).join(",");
+                    const fp = (arr: any[]) => arr.map((v: any) => `${v.id}:${v.status}:${getLiveViewerCount(v)}`).join(",");
                     if (fp(res) !== fp(live.value)) {
                         live.value = res;
                     }

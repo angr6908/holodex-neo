@@ -14,6 +14,7 @@
       'watch-page--chat': showChatWindow,
       'watch-page--mobile': isMobile,
     }"
+    :style="{ '--player-stack-reserve': `${playerStackReserve}px` }"
   >
     <KeyPress
       key-event="keyup"
@@ -55,6 +56,7 @@
             :comments="comments"
             :video="video"
             :limit="isMobile ? 8 : 0"
+            :player-width="playerRenderWidth"
             @timeJump="seekTo"
           />
           <WatchToolBar :video="video" :no-back-button="!isMobile">
@@ -163,7 +165,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, defineAsyncComponent, nextTick, getCurrentInstance } from "vue";
+import {
+  ref, computed, watch, defineAsyncComponent, nextTick, getCurrentInstance, onMounted, onBeforeUnmount,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
@@ -215,7 +219,10 @@ const currentTime = ref(0);
 const player = ref<any>(null);
 const ytPlayer = ref<any>(null);
 const watchLayout = ref<HTMLElement | null>(null);
+const playerRenderWidth = ref<number | null>(null);
+const playerStackReserve = ref(52);
 let hintConnectLiveTL = false;
+let playerWidthRaf: number | null = null;
 
 // Computed
 const chatStatus = computed({
@@ -275,20 +282,65 @@ const getLang = computed(() => getYTLangFromState({ settings: { lang: settingsSt
 // Watchers
 watch(() => route.params.id, () => { init(); });
 watch(() => route.query.v, () => { init(); });
+watch(theaterMode, () => { schedulePlayerWidthMeasure(); });
+watch(isMobile, () => { schedulePlayerWidthMeasure(); });
+watch(showChatWindow, () => { schedulePlayerWidthMeasure(); });
+watch(showHighlightsBar, () => { schedulePlayerWidthMeasure(); });
 
 // Methods
+function measurePlayerWidth() {
+  const playerSurface = document.querySelector(".watch-screen .video");
+  if (!(playerSurface instanceof HTMLElement)) {
+    playerRenderWidth.value = null;
+    return;
+  }
+  const width = Math.round(playerSurface.getBoundingClientRect().width);
+  playerRenderWidth.value = width > 0 ? width : null;
+
+  const toolbarEl = document.querySelector(".watch-toolbar");
+  const highlightsEl = document.querySelector(".watch-highlights");
+  const toolbarHeight = toolbarEl instanceof HTMLElement
+    ? Math.ceil(toolbarEl.getBoundingClientRect().height)
+    : 52;
+  const highlightsHeight = highlightsEl instanceof HTMLElement
+    ? Math.ceil(highlightsEl.getBoundingClientRect().height)
+    : 0;
+  const nextReserve = toolbarHeight + highlightsHeight;
+  const reserveChanged = playerStackReserve.value !== nextReserve;
+  playerStackReserve.value = nextReserve;
+  if (reserveChanged) {
+    nextTick(() => {
+      schedulePlayerWidthMeasure();
+    });
+  }
+}
+
+function schedulePlayerWidthMeasure() {
+  if (playerWidthRaf) cancelAnimationFrame(playerWidthRaf);
+  playerWidthRaf = requestAnimationFrame(() => {
+    playerWidthRaf = null;
+    measurePlayerWidth();
+  });
+}
+
 function init() {
   window.scrollTo(0, 0);
   startTime.value = 0;
   watchStore.$reset();
   watchStore.setId(videoId.value);
   watchStore.fetchVideo()?.then(() => {
+    nextTick(() => {
+      schedulePlayerWidthMeasure();
+    });
     historyStore.addWatchedVideo(video.value);
   });
 }
 
 function ready(event: any) {
   player.value = event;
+  nextTick(() => {
+    schedulePlayerWidthMeasure();
+  });
 }
 
 function playing() {
@@ -340,6 +392,7 @@ function ended() {
 function toggleTheaterMode() {
   theaterMode.value = !theaterMode.value;
   nextTick(() => {
+    schedulePlayerWidthMeasure();
     if (watchLayout.value) watchLayout.value.scrollTop = 0;
   });
 }
@@ -357,6 +410,18 @@ init();
 if (showTL.value && !hintConnectLiveTL) {
   hintConnectLiveTL = true;
 }
+
+onMounted(() => {
+  window.addEventListener("resize", schedulePlayerWidthMeasure, { passive: true });
+  nextTick(() => {
+    schedulePlayerWidthMeasure();
+  });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", schedulePlayerWidthMeasure);
+  if (playerWidthRaf) cancelAnimationFrame(playerWidthRaf);
+});
 </script>
 
 <style>
@@ -471,30 +536,18 @@ if (showTL.value && !hintConnectLiveTL) {
   margin-top: calc(-1 * var(--pad-y));
 }
 
-/* Cinematic vignette — on the video, not the screen */
-.watch-screen--cinema .video::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 55%,
-    rgba(0, 0, 0, 0.65) 100%
-  );
-}
-
 /* Video constrained by viewport height (nav + toolbar + top padding), centered */
 .watch-screen--cinema .video {
-  max-width: calc((100vh - var(--nav-h) - var(--toolbar-h) - var(--pad-y)) * 16 / 9);
+  max-width: calc((100dvh - var(--nav-h) - var(--player-stack-reserve)) * 16 / 9);
   margin-inline: auto;
+  box-shadow: 0 28px 80px rgb(2 6 23 / 0.38);
 }
 
 /* Toolbar matches video width in cinema */
 .watch-page--cinema .watch-toolbar {
-  max-width: calc((100vh - var(--nav-h) - var(--toolbar-h) - var(--pad-y)) * 16 / 9);
+  max-width: calc((100dvh - var(--nav-h) - var(--player-stack-reserve)) * 16 / 9);
   margin-inline: auto;
+  width: 100%;
 }
 
 /* Cinema: content flows vertically, items stretch */
@@ -584,7 +637,7 @@ if (showTL.value && !hintConnectLiveTL) {
     border-radius: 0;
     right: 0;
     top: var(--nav-h);
-    height: calc(100vh - var(--nav-h));
+    height: calc(100dvh - var(--nav-h));
   }
 }
 

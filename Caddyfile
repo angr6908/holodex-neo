@@ -15,6 +15,15 @@
 		}
 	}
 
+	handle /twitch-gql {
+		uri replace /twitch-gql /gql
+		reverse_proxy https://gql.twitch.tv {
+			header_up Host gql.twitch.tv
+			header_up Origin https://www.twitch.tv
+			header_up Referer https://www.twitch.tv/
+		}
+	}
+
 	handle {
 		reverse_proxy localhost:8080
 	}

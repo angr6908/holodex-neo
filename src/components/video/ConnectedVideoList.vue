@@ -64,7 +64,7 @@
       </template>
       <template v-else>
         <SkeletonCardList
-        v-if="isLoading"
+        v-if="showLiveLoading"
         :cols="colSizes"
         :dense="currentGridSize > 0"
         :dense-list="homeViewMode === 'denseList'"
@@ -102,7 +102,7 @@
         </template>
       </div>
       <div
-        v-show="!isLoading && lives.length == 0 && upcoming.length == 0"
+        v-show="!showLiveLoading && lives.length == 0 && upcoming.length == 0"
         class="m-auto p-5 text-center"
       >
         {{ $t("views.home.noStreams") }}
@@ -155,14 +155,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import backendApi from "@/utils/backend-api";
 
 import GenericListLoader from "@/components/video/GenericListLoader.vue";
 import SkeletonCardList from "@/components/video/SkeletonCardList.vue";
 import VideoCardList from "@/components/video/VideoCardList.vue";
-import { videoTemporalComparator } from "@/utils/functions";
+import { getLiveViewerCount, videoTemporalComparator } from "@/utils/functions";
 import { dayjs } from "@/utils/time";
 import {
   mdiFormatListBulleted,
@@ -173,6 +173,13 @@ import { useSettingsStore } from "@/stores/settings";
 import { useHomeStore } from "@/stores/home";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useAppStore } from "@/stores/app";
+import {
+  fetchTwitchViewerCounts,
+  getTwitchLogin,
+  getTwitchViewerCountFingerprint,
+  mergeTwitchViewerCountsIntoVideos,
+  readCachedTwitchViewerCounts,
+} from "@/utils/twitch";
 import VideoListFilters from "../setting/VideoListFilters.vue";
 import UiButton from "@/components/ui/button/Button.vue";
 import UiIcon from "@/components/ui/icon/Icon.vue";
@@ -250,18 +257,87 @@ const homeViewMode = computed({
 
 const favoriteChannelIDs = computed(() => favoritesStore.favoriteChannelIDs);
 const isLoggedIn = computed(() => appStore.isLoggedIn);
+const twitchViewerCounts = ref<Record<string, number>>({});
+let twitchRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
+function getLiveSourceList() {
+  return ((props.liveContent?.length && props.liveContent)
+    || (props.isFavPage ? favoritesStore.live : homeStore.live)) as any[];
+}
+
+function getLiveTwitchLogins(videos: any[]) {
+  return [...new Set(
+    (videos || [])
+      .filter((video: any) => video?.status === "live")
+      .map((video: any) => getTwitchLogin(video))
+      .filter((login): login is string => !!login),
+  )];
+}
+
+async function refreshTwitchViewerCounts() {
+  if (!props.isActive) return;
+  if (props.tab !== Tabs.LIVE_UPCOMING) return;
+
+  const source = getLiveSourceList();
+  const logins = getLiveTwitchLogins(source);
+
+  if (logins.length === 0) {
+    if (Object.keys(twitchViewerCounts.value).length > 0) {
+      twitchViewerCounts.value = {};
+    }
+    return;
+  }
+
+  const counts = await fetchTwitchViewerCounts(logins);
+  if (
+    getTwitchViewerCountFingerprint(counts)
+    !== getTwitchViewerCountFingerprint(twitchViewerCounts.value)
+  ) {
+    twitchViewerCounts.value = counts;
+  }
+}
+
+function stopTwitchViewerRefresh() {
+  if (!twitchRefreshTimer) return;
+  clearInterval(twitchRefreshTimer);
+  twitchRefreshTimer = null;
+}
+
+function ensureTwitchViewerRefresh() {
+  stopTwitchViewerRefresh();
+  if (!props.isActive || props.tab !== Tabs.LIVE_UPCOMING) return;
+  const cached = readCachedTwitchViewerCounts(getLiveTwitchLogins(getLiveSourceList()));
+  if (
+    getTwitchViewerCountFingerprint(cached)
+    !== getTwitchViewerCountFingerprint(twitchViewerCounts.value)
+  ) {
+    twitchViewerCounts.value = cached;
+  }
+  refreshTwitchViewerCounts();
+  twitchRefreshTimer = setInterval(() => {
+    refreshTwitchViewerCounts();
+  }, 60_000);
+}
 
 const live = computed(() => {
-  let liveList = (props.liveContent?.length && props.liveContent)
-    || (props.isFavPage ? favoritesStore.live : homeStore.live);
+  let liveList = getLiveSourceList();
+  liveList = mergeTwitchViewerCountsIntoVideos(liveList, twitchViewerCounts.value);
   if (sortBy.value === "viewers") {
-    liveList = [...liveList].sort((a, b) => (b.live_viewers || 0) - (a.live_viewers || 0));
+    liveList = [...liveList].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a));
   }
   return liveList;
 });
 
+const waitingForTwitchViewerCounts = computed(() => {
+  if (props.tab !== Tabs.LIVE_UPCOMING || sortBy.value !== "viewers") return false;
+  return getLiveSourceList()
+    .some((video: any) => video?.status === "live" && !!getTwitchLogin(video) && getLiveViewerCount(video) <= 0
+      && twitchViewerCounts.value[getTwitchLogin(video)!] === undefined);
+});
+
 const isLoading = computed(() => props.isFavPage ? favoritesStore.isLoading : homeStore.isLoading);
 const hasError = computed(() => props.isFavPage ? favoritesStore.hasError : homeStore.hasError);
+const showLiveLoading = computed(() => isLoading.value || waitingForTwitchViewerCounts.value);
 
 const scrollMode = computed(() => settingsStore.scrollMode);
 
@@ -397,6 +473,7 @@ watch(selectedHomeOrgsKey, () => {
 watch(() => props.tab, (newTab, oldTab) => {
   if (!props.isActive) return;
   if (newTab !== oldTab && newTab === Tabs.LIVE_UPCOMING) init(false);
+  ensureTwitchViewerRefresh();
 });
 
 watch(scrollMode, (newValue, oldValue) => {
@@ -404,8 +481,23 @@ watch(scrollMode, (newValue, oldValue) => {
   syncRouteWithScrollMode(newValue);
 });
 
+watch(
+  [
+    () => props.isActive,
+    () => props.isFavPage,
+    () => props.liveContent,
+    () => homeStore.live,
+    () => favoritesStore.live,
+  ],
+  () => {
+    ensureTwitchViewerRefresh();
+  },
+  { deep: true },
+);
+
 // Equivalent to created()
 init(true);
+ensureTwitchViewerRefresh();
 
 // Eagerly prefetch archive & clips data for multi-org so tab switches are instant.
 // Starts immediately in parallel with live fetch — concurrency pool handles rate limiting.
@@ -451,6 +543,7 @@ function init(updateFavorites: boolean) {
 
 function reload() {
   init(false);
+  refreshTwitchViewerCounts();
 }
 
 function syncRouteWithScrollMode(isScrollMode: boolean) {
@@ -463,6 +556,10 @@ function syncRouteWithScrollMode(isScrollMode: boolean) {
     hash: route.hash,
   }).catch(() => {});
 }
+
+onBeforeUnmount(() => {
+  stopTwitchViewerRefresh();
+});
 
 const API_MAX_LIMIT = 100;
 

@@ -1,16 +1,22 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import api from "@/utils/backend-api";
-import { videoTemporalComparator } from "@/utils/functions";
+import { getLiveViewerCount, videoTemporalComparator } from "@/utils/functions";
+import { enrichLiveVideosWithTwitchViewerCounts } from "@/utils/twitch";
 import { useAppStore } from "./app";
 
 function dedupeVideos(videos: any[]) {
     return Array.from(new Map(videos.map((video) => [video.id, video])).values());
 }
 
+function makeLiveCacheKey(orgTargets: string[]) {
+    const targets = (orgTargets || []).filter(Boolean);
+    return JSON.stringify(targets.length ? [...targets].sort() : ["All Vtubers"]);
+}
+
 /** Quick fingerprint: IDs + statuses. If unchanged, skip the reactive update. */
 function liveFingerprint(arr: any[]): string {
-    return arr.map((v) => `${v.id}:${v.status}`).join(",");
+    return arr.map((v) => `${v.id}:${v.status}:${getLiveViewerCount(v)}`).join(",");
 }
 
 export const useHomeStore = defineStore("home", () => {
@@ -19,6 +25,7 @@ export const useHomeStore = defineStore("home", () => {
     const isLoading = ref(false);
     const hasError = ref(false);
     const lastLiveUpdate = ref(0);
+    const liveCacheKey = ref(JSON.stringify(["Hololive"]));
 
     // Deduplicate concurrent fetchLive calls — return the same promise if one is in-flight.
     let inflightFetch: Promise<void> | null = null;
@@ -28,6 +35,15 @@ export const useHomeStore = defineStore("home", () => {
     // ── Actions ──
     function fetchLive({ force = false, minutes = 5 }: { force?: boolean; minutes?: number } = {}) {
         const appStore = useAppStore();
+        const selectedOrgs = appStore.selectedHomeOrgs || [];
+        const orgTargets = selectedOrgs.length ? selectedOrgs : ["All Vtubers"];
+        const nextCacheKey = makeLiveCacheKey(orgTargets);
+
+        if (liveCacheKey.value !== nextCacheKey) {
+            live.value = [];
+            lastLiveUpdate.value = 0;
+            liveCacheKey.value = nextCacheKey;
+        }
 
         if (appStore.visibilityState === "hidden" && !force) {
             return null;
@@ -56,17 +72,15 @@ export const useHomeStore = defineStore("home", () => {
             if (!hasStaleData) {
                 isLoading.value = true;
             }
-            const selectedOrgs = appStore.selectedHomeOrgs || [];
-            const orgTargets = selectedOrgs.length ? selectedOrgs : ["All Vtubers"];
             inflightFetch = api
                 .allLive(orgTargets, {
                     type: "placeholder,stream",
                     include: "mentions",
                 })
-                .then((res: any) => {
+                .then(async (res: any) => {
                     // Ignore result if this request was aborted (org changed)
                     if (abort.signal.aborted) return;
-                    const merged = dedupeVideos(res);
+                    const merged = dedupeVideos(await enrichLiveVideosWithTwitchViewerCounts(res));
                     merged.sort(videoTemporalComparator);
                     if (liveFingerprint(merged) !== liveFingerprint(live.value)) {
                         live.value = merged;
@@ -104,6 +118,7 @@ export const useHomeStore = defineStore("home", () => {
         isLoading.value = false;
         hasError.value = false;
         lastLiveUpdate.value = 0;
+        liveCacheKey.value = JSON.stringify(["Hololive"]);
     }
 
     return {
@@ -111,6 +126,7 @@ export const useHomeStore = defineStore("home", () => {
         isLoading,
         hasError,
         lastLiveUpdate,
+        liveCacheKey,
         fetchLive,
         cancelInflight,
         $reset,
@@ -118,6 +134,6 @@ export const useHomeStore = defineStore("home", () => {
 }, {
     persist: {
         key: "holodex-v2-home",
-        pick: ["live", "lastLiveUpdate"],
+        pick: ["live", "lastLiveUpdate", "liveCacheKey"],
     },
 });

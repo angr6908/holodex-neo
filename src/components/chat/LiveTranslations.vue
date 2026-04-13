@@ -181,8 +181,9 @@ const tlBody = ref<InstanceType<typeof MessageRenderer> | null>(null);
 const instance = getCurrentInstance();
 const socket = instance?.proxy?.$socket;
 
-const connected = computed(() => Boolean(socket?.connected));
-const socketDisconnected = computed(() => Boolean(socket?.disconnected));
+const hasSocketClient = computed(() => Boolean(socket?.client));
+const connected = computed(() => !hasSocketClient.value || Boolean(socket?.connected));
+const socketDisconnected = computed(() => hasSocketClient.value && Boolean(socket?.disconnected));
 
 const blockedNames = computed(() => settingsStore.liveTlBlockedNames);
 
@@ -212,7 +213,11 @@ watch(() => props.tlLang, () => {
 });
 
 watch(liveTlLang, (nw, old) => {
-  switchLanguage(nw, old);
+  if (hasSocketClient.value) {
+    switchLanguage(nw, old);
+    return;
+  }
+  refreshFallbackHistory();
 });
 
 watch(connected, (nw) => {
@@ -289,7 +294,34 @@ function handleMessage(msg: any) {
   }
 }
 
+let fallbackPollTimer: ReturnType<typeof setInterval> | null = null;
+
+function refreshFallbackHistory() {
+  loadMessages(true, false, props.tlClient);
+  showOverlay.value = false;
+  forceCloseOverlay.value = false;
+  isLoading.value = false;
+}
+
+function stopFallbackPolling() {
+  if (!fallbackPollTimer) return;
+  clearInterval(fallbackPollTimer);
+  fallbackPollTimer = null;
+}
+
+function startFallbackPolling() {
+  stopFallbackPolling();
+  refreshFallbackHistory();
+  fallbackPollTimer = setInterval(() => {
+    refreshFallbackHistory();
+  }, 15000);
+}
+
 function tlJoin() {
+  if (!hasSocketClient.value) {
+    refreshFallbackHistory();
+    return;
+  }
   if (!initSocket()) return;
   if (!socket?.client) return;
 
@@ -407,7 +439,9 @@ onMounted(() => {
     });
   }
 
-  if (socket?.connected) {
+  if (!hasSocketClient.value) {
+    startFallbackPolling();
+  } else if (socket?.connected) {
     tlJoin();
   } else {
     initSocket();
@@ -415,6 +449,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  stopFallbackPolling();
   tlLeave();
 });
 </script>
