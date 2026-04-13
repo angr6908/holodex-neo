@@ -380,7 +380,10 @@ const discordOAuth2Links = computed(() => {
     case "localhost": return ("https://discord.com/api/oauth2/authorize?client_id=826055534318583858&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Frelaybot&response_type=code&scope=guilds%20identify");
     case "staging.holodex.net": return ("https://discord.com/api/oauth2/authorize?client_id=826055534318583858&redirect_uri=https%3A%2F%2Fstaging.holodex.net%2Frelaybot&response_type=code&scope=guilds%20identify");
     case "holodex.net": return ("https://discord.com/api/oauth2/authorize?client_id=826055534318583858&redirect_uri=https%3A%2F%2Fholodex.net%2Frelaybot&response_type=code&scope=guilds%20identify");
-    default: return ("");
+    default: {
+      const redirectUri = encodeURIComponent(window.location.origin + "/relaybot");
+      return `https://discord.com/api/oauth2/authorize?client_id=826055534318583858&redirect_uri=${redirectUri}&response_type=code&scope=guilds%20identify`;
+    }
   }
 });
 
@@ -408,7 +411,8 @@ function init() {
       mode = 2;
       break;
     default:
-      mode = 3;
+      // Custom domain — use the same mode as production
+      mode = 2;
       break;
   }
 

@@ -24,6 +24,19 @@
 		}
 	}
 
+	# Proxy stats/orgs JSON used by the frontend
+	handle_path /stats.json {
+		reverse_proxy https://holodex.net {
+			header_up Host holodex.net
+		}
+	}
+
+	handle_path /orgs.json {
+		reverse_proxy https://holodex.net {
+			header_up Host holodex.net
+		}
+	}
+
 	handle {
 		reverse_proxy localhost:8080
 	}

@@ -370,6 +370,17 @@ onBeforeUnmount(() => {
 .select-card :deep(.select-card-chip-count) {
   margin-left: 0.45rem;
   max-width: 100%;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 10px;
+  line-height: 1;
+  padding: 0 0.375rem;
 }
 
 .select-card :deep(.select-card-chip-remove-btn) {

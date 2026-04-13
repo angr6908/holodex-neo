@@ -68,7 +68,7 @@
               <UiIcon
                 :icon="hasSaved ? icons.mdiCheck : icons.mdiPlus"
                 class-name="h-4 w-4"
-                :class="hasSaved ? 'text-[color:var(--color-primary)]' : 'video-card-action-icon-unsaved'"
+                class="video-card-action-icon-unsaved"
               />
             </button>
           </div>
@@ -275,9 +275,12 @@
         <teleport to="body">
           <div
             v-if="showMenu"
-            class="fixed inset-0 z-[500]"
+            ref="menuOverlayEl"
+            class="fixed inset-0 z-[500] outline-none"
+            tabindex="-1"
             @click.stop="showMenu = false"
             @contextmenu.prevent="showMenu = false"
+            @keydown.esc="showMenu = false"
           >
             <div
               class="video-card-menu-shell absolute w-[260px] rounded-2xl p-2"
@@ -414,6 +417,7 @@ const updatecycle = ref<ReturnType<typeof setInterval> | null>(null);
 const hasWatched = ref(false);
 const placeholderOpen = ref(false);
 const showMenu = ref(false);
+const menuOverlayEl = ref<HTMLElement | null>(null);
 const menuX = ref(0);
 const menuY = ref(0);
 const isSingleLineTitle = ref(false);
@@ -866,6 +870,7 @@ function openContextMenu(event: MouseEvent) {
   menuX.value = event.clientX;
   menuY.value = event.clientY;
   showMenu.value = true;
+  nextTick(() => menuOverlayEl.value?.focus());
 }
 
 function move(id: string, direction: string) {

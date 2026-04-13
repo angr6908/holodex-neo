@@ -4,7 +4,7 @@
       <button
         :class="cn(
           'inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-[color:var(--color-border)]',
-          'bg-[color:var(--surface-soft)] text-sm text-[color:var(--color-foreground)]',
+          'bg-[color:var(--surface-soft)] text-[0.8rem] font-medium text-[color:var(--color-foreground)]',
           'hover:bg-[color:var(--surface-elevated)] transition-colors cursor-pointer',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-ring)]',
           !modelValue && 'text-[color:var(--color-muted-foreground)]',

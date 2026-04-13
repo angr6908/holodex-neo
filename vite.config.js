@@ -184,11 +184,6 @@ export default ({ mode }) => {
                     changeOrigin: true,
                     secure: false,
                 },
-                "/login": {
-                    target: API_BASE_URL,
-                    changeOrigin: true,
-                    secure: false,
-                },
                 "/twitch-gql": {
                     target: "https://gql.twitch.tv",
                     changeOrigin: true,

@@ -155,7 +155,7 @@
                   <UiIcon :icon="mdiPlaylistPlay" class-name="menu-theme-icon h-5.5 w-5.5" />
                   <UiBadge
                     v-if="playlistCount"
-                    class-name="playlist-count-badge absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center px-1 text-[10px] leading-none tracking-normal"
+                    class-name="playlist-count-badge absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center px-1.5 text-[10px] leading-none tracking-normal"
                   >
                     {{ playlistCount }}
                   </UiBadge>
@@ -416,23 +416,7 @@
               <span class="sr-only">{{ $t("component.mainNav.settings") }}</span>
             </UiButton>
 
-            <UiButton
-              as="router-link"
-              to="/user"
-              variant="ghost"
-              size="icon"
-              class-name="menu-action-btn menu-avatar-btn"
-            >
-              <img
-                v-if="user"
-                :src="avatarUrl"
-                alt="User avatar"
-                class="menu-avatar-image"
-              >
-              <svg v-else viewBox="0 0 24 24" class="menu-theme-icon h-5 w-5 fill-current">
-                <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
-              </svg>
-            </UiButton>
+            <NavUserMenu />
           </div>
         </div>
 
@@ -563,6 +547,7 @@ import UiPopover from "@/components/ui/popover/Popover.vue";
 import UiPopoverTrigger from "@/components/ui/popover/PopoverTrigger.vue";
 import UiPopoverContent from "@/components/ui/popover/PopoverContent.vue";
 import UiScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
+import NavUserMenu from "@/components/nav/NavUserMenu.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -1071,18 +1056,18 @@ function exportPlaylistToYT() {
   color: inherit;
 }
 
-/* Playlist count badge: layered background for true opacity.
-   linear-gradient paints the semi-transparent card color on top of
-   the opaque base color, producing an opaque composite. */
 .playlist-count-badge {
-  background: linear-gradient(var(--color-card), var(--color-card));
-  background-color: var(--color-base);
-  border-color: var(--color-light);
-  color: var(--color-foreground);
-  transition: background 160ms ease, border-color 160ms ease;
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 10px;
+  line-height: 1;
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
 .menu-action-btn:hover .playlist-count-badge {
-  background: var(--color-base);
   background-color: var(--color-base);
   border-color: var(--color-bold);
 }

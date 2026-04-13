@@ -166,6 +166,38 @@
 
             <UiSeparator v-if="userdata.user.yt_channel_key" />
           </div>
+
+          <div class="space-y-3 px-5 py-5 sm:px-6 sm:py-6">
+            <div class="text-sm font-semibold text-[color:var(--color-foreground)]">
+              API Key
+            </div>
+            <p class="text-xs text-[color:var(--color-muted-foreground)]">
+              {{ $t("views.login.apikeyMsg") }}
+            </p>
+            <div v-if="apiKey" class="flex items-center gap-2">
+              <UiInput
+                :model-value="apiKey"
+                disabled
+                class-name="flex-1 font-mono text-xs"
+              />
+              <UiButton
+                variant="secondary"
+                size="icon"
+                class-name="h-9 w-9 shrink-0"
+                :title="$t('component.videoCard.copiedToClipboard')"
+                @click="copyApiKey"
+              >
+                <UiIcon :icon="mdiContentCopy" size="xs" />
+              </UiButton>
+            </div>
+            <UiButton
+              variant="secondary"
+              size="sm"
+              @click="resetApiKey"
+            >
+              {{ $t("views.login.apikeyNew") }}
+            </UiButton>
+          </div>
         </div>
 
         <div id="calendar" class="space-y-4 px-5 py-5 sm:px-6 sm:py-6">
@@ -194,7 +226,7 @@
 import { ref, computed, onMounted, nextTick, getCurrentInstance } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { mdiCheck, mdiClose, mdiPencil, mdiGoogle } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiPencil, mdiGoogle, mdiContentCopy } from "@mdi/js";
 import { mdiDiscord } from "@/utils/icons";
 import api from "@/utils/backend-api";
 import { useMetaTitle } from "@/composables/useMetaTitle";
@@ -210,7 +242,7 @@ import UiBadge from "@/components/ui/badge/Badge.vue";
 import UiSeparator from "@/components/ui/separator/Separator.vue";
 import UiIcon from "@/components/ui/icon/Icon.vue";
 
-const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || "793619250115379262";
+const DISCORD_CLIENT_ID = "793619250115379262";
 
 const route = useRoute();
 const { t } = useI18n();
@@ -231,6 +263,7 @@ const googleSignInProxy = ref<InstanceType<typeof GoogleSignInButton> | null>(nu
 const editingUsername = ref(false);
 const editUsernameInput = ref("");
 const initialQueryForCalendar = ref<false | object[]>(false);
+const apiKey = computed(() => userdata.value?.user?.api_key || "");
 
 // Computed
 const userdata = computed(() => appStore.userdata);
@@ -270,8 +303,9 @@ const usernameInput = computed({
 function resolveDiscordRedirectUri() {
   const override = import.meta.env.VITE_DISCORD_REDIRECT_URI;
   if (override) return override;
-  // Always use current origin for OAuth redirect (works for any self-hosted instance).
-  return window.location.origin + "/user?service=discord";
+  // Use /login path to match the redirect URI registered with Holodex's Discord app.
+  // The /login route is aliased to /user in the router, so the callback still works.
+  return window.location.origin + "/login?service=discord";
 }
 
 function scrollFix(hashbang: string) {
@@ -289,6 +323,27 @@ function cancelUsernameEdit() {
   editUsernameInput.value = userdata.value?.user?.username || "";
 }
 
+async function resetApiKey() {
+  if (!apiKey.value || confirm(t("views.login.apikeyResetConfirm1"))) {
+    if (apiKey.value && !confirm(t("views.login.apikeyResetConfirm2"))) {
+      alert(t("views.login.apikeyResetNvm"));
+      return;
+    }
+    try {
+      await api.resetAPIKey(appStore.userdata.jwt);
+      await appStore.loginVerify();
+    } catch (e) {
+      console.error("Failed to reset API key:", e);
+    }
+  }
+}
+
+async function copyApiKey() {
+  if (apiKey.value) {
+    await navigator.clipboard.writeText(apiKey.value);
+  }
+}
+
 async function loginGoogle({ credential }: { credential: string }) {
   const resp = await api.login(
     appStore.userdata.jwt,
@@ -296,7 +351,7 @@ async function loginGoogle({ credential }: { credential: string }) {
     "google",
   );
   appStore.setUser(resp.data);
-  proxy!.$gtag.event("login", {
+  proxy?.$gtag?.event("login", {
     event_label: "google",
   });
   favoritesStore.resetFavorites();
@@ -327,10 +382,9 @@ function triggerGoogleLogin() {
     return;
   }
   // Fallback: initialize Google Identity and show One Tap prompt
-  const GOOGLE_CLIENT_ID = "275540829388-87s7f9v2ht3ih51ah0tjkqng8pd8bqo2.apps.googleusercontent.com";
   if ((window as any).google?.accounts?.id) {
     (window as any).google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
+      client_id: "275540829388-87s7f9v2ht3ih51ah0tjkqng8pd8bqo2.apps.googleusercontent.com",
       callback: (e: any) => loginGoogle(e),
     });
     (window as any).google.accounts.id.prompt((notification: any) => {
@@ -387,19 +441,23 @@ onMounted(async () => {
   const params = new URL(window.location.href).searchParams;
   const service = params.get("service");
   if (service === "discord" && window.location.hash) {
-    const hash = window.location.hash.substring(1);
-    const discordAuthParams = new URLSearchParams(hash);
-    const accessToken = discordAuthParams.get("access_token");
-    const resp = await api.login(
-      appStore.userdata.jwt,
-      accessToken,
-      "discord",
-    );
-    appStore.setUser(resp.data);
-    proxy!.$gtag.event("login", {
-      event_label: "discord",
-    });
-    favoritesStore.resetFavorites();
+    try {
+      const hash = window.location.hash.substring(1);
+      const discordAuthParams = new URLSearchParams(hash);
+      const accessToken = discordAuthParams.get("access_token");
+      const resp = await api.login(
+        appStore.userdata.jwt,
+        accessToken,
+        "discord",
+      );
+      appStore.setUser(resp.data);
+      proxy?.$gtag?.event("login", {
+        event_label: "discord",
+      });
+      favoritesStore.resetFavorites();
+    } catch (e) {
+      console.error("Discord login failed:", e);
+    }
   }
   if (route.hash) setTimeout(() => scrollFix(route.hash), 1);
 });

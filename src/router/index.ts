@@ -15,7 +15,7 @@ const Search = () => import("../views/Search.vue");
 const Library = () => import("../views/Library.vue");
 const Settings = () => import("../views/Settings.vue");
 const NotFound = () => import("../views/NotFound.vue");
-const User = () => import("../views/User.vue");
+const User = () => import("../views/LoginCallback.vue");
 const EditVideo = () => import("../views/EditVideo.vue");
 const MultiView = () => import("../views/MultiView.vue");
 const AddPlaceholderStream = () => import("../views/AddPlaceholderStream.vue");
@@ -150,10 +150,13 @@ const routes = [
         component: Settings,
     },
     {
-        name: "user",
-        path: "/user",
-        alias: ["/login"],
+        name: "login-callback",
+        path: "/login",
         component: User,
+    },
+    {
+        path: "/user",
+        redirect: "/",
     },
     {
         name: "extension",
