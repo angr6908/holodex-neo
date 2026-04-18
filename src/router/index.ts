@@ -209,6 +209,14 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     if (!from.path.match(/^\/watch/)) to.meta.prevPath = from.fullPath;
 
+    // Redirect "/" to the default page when entering the app fresh
+    if (to.path === "/" && to.name === "home" && !from.name) {
+        const settingsStore = useSettingsStore();
+        if (settingsStore.defaultOpen === "multiview") {
+            return next({ name: "multiview", replace: true });
+        }
+    }
+
     if (from.query.lang) {
         to.query.lang = from.query.lang;
     }

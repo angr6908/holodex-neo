@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-4 sm:p-5">
+  <div class="settings-scroll space-y-6 p-4 sm:p-5">
     <div class="space-y-3">
             <div class="settings-top-grid">
               <div class="settings-field min-w-0">
@@ -97,18 +97,6 @@
                 </UiSelect>
               </div>
 
-              <div class="settings-field" :style="topFieldStyles.grid">
-                <span class="settings-field-label">{{ $t("views.settings.gridSizeLabel") }}</span>
-                <UiSelect
-                  v-model="currentGridSize"
-                  :options="gridSizeOptions"
-                  :fluid="true"
-                  label-key="text"
-                  value-key="value"
-                  placeholder="Select grid size"
-                />
-              </div>
-
               <div class="settings-field" :style="topFieldStyles.defaultPage">
                 <span class="settings-field-label">{{ $t("views.settings.defaultPage") }}</span>
                 <UiSelect
@@ -198,7 +186,6 @@ import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
-import { useAppStore } from "@/stores/app";
 import { useSettingsStore } from "@/stores/settings";
 import { mdiCheck, mdiChevronDown } from "@mdi/js";
 import { langs } from "@/plugins/app-i18n";
@@ -215,7 +202,6 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
-const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 
 const { darkMode, followSystemTheme, redirectMode, scrollMode, defaultOpen } = storeToRefs(settingsStore);
@@ -231,15 +217,6 @@ const defaultOpenChoices = Object.freeze([
 let textMeasureCanvas: HTMLCanvasElement | null = null;
 
 // Computed
-const currentGridSize = computed({
-  get() {
-    return appStore.currentGridSize;
-  },
-  set(val: number) {
-    appStore.setCurrentGridSize(Number(val));
-  },
-});
-
 const useEnName = computed({
   get() {
     return settingsStore.useEnName;
@@ -288,23 +265,12 @@ const themeOptions = computed(() =>
   })),
 );
 
-const gridSizeOptions = computed(() => [
-  { text: t("views.settings.gridSize[0]"), value: 0 },
-  { text: t("views.settings.gridSize[1]"), value: 1 },
-  { text: t("views.settings.gridSize[2]"), value: 2 },
-]);
-
 const defaultOpenLabel = computed(() =>
   defaultOpenChoices.find((item) => item.value === defaultOpen.value)?.text || defaultOpen.value,
 );
 
-const currentGridLabel = computed(() =>
-  t(`views.settings.gridSize[${currentGridSize.value}]`),
-);
-
 const topFieldStyles = computed(() => {
   const themeWidth = estimateTopFieldWidthPx(t("views.settings.theme"), currentThemeLabel.value, 18);
-  const gridWidth = estimateTopFieldWidthPx(t("views.settings.gridSizeLabel"), currentGridLabel.value);
   const defaultPageWidth = estimateTopFieldWidthPx(t("views.settings.defaultPage"), defaultOpenLabel.value);
   const toStyle = (widthPx: number) => ({
     flex: `${Math.max(1, Math.round(widthPx))} 1 0`,
@@ -312,7 +278,6 @@ const topFieldStyles = computed(() => {
   });
   return {
     theme: toStyle(themeWidth),
-    grid: toStyle(gridWidth),
     defaultPage: toStyle(defaultPageWidth),
   };
 });
@@ -364,6 +329,23 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.select-card-chip-flow {
+  align-items: stretch !important;
+}
+
+.select-card-chip-flow > .settings-check-chip {
+  width: auto;
+  flex: 1 1 0;
+  min-width: fit-content;
+}
+
+.settings-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  flex: 1;
+}
+
 .settings-field {
   display: flex;
   flex-direction: column;

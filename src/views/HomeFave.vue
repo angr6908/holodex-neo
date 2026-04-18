@@ -8,13 +8,13 @@
     <!-- Floating side panel -->
     <aside
       ref="asideRef"
-      class="home-fave-side-panel sticky z-[80] mr-8 hidden w-60 shrink-0 flex-col overflow-y-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--surface-nav)] p-3 shadow-2xl backdrop-blur-3xl min-[960px]:flex"
+      class="home-fave-side-panel sticky z-[80] mr-8 hidden w-60 shrink-0 self-start flex-col overflow-y-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--surface-nav)] p-3 shadow-2xl backdrop-blur-3xl min-[960px]:flex"
       :style="{
         top: 'var(--nav-total-height, 80px)',
-        height: 'calc(100vh - 2 * var(--nav-total-height, 80px) + var(--nav-header-height, 64px))',
+        maxHeight: 'calc(100vh - 2 * var(--nav-total-height, 80px) + var(--nav-header-height, 64px))',
       }"
     >
-      <div class="flex min-h-0 flex-1 flex-col gap-3" :style="{ minHeight: panelMinHeight }">
+      <div class="flex min-h-0 flex-col gap-3">
       <!-- Home / Favorite tabs -->
       <div class="flex items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-0.5">
         <button
@@ -80,8 +80,8 @@
       <hr class="border-t border-[color:var(--color-border)]" />
 
       <!-- Streams filter controls (teleported from ConnectedVideoList) -->
-      <div v-if="!isMobile && viewMode === 'streams'" class="relative flex min-h-0 flex-1 flex-col gap-3">
-        <div :id="`date-selector${isFavPage}`" class="flex min-h-0 flex-1 flex-col" />
+      <div v-if="!isMobile && viewMode === 'streams'" class="relative flex min-h-0 flex-col gap-3">
+        <div :id="`date-selector${isFavPage}`" class="flex min-h-0 flex-col" />
       </div>
 
       <!-- Channels controls (teleported from Channels.vue) -->
@@ -174,6 +174,7 @@ import { storeToRefs } from "pinia";
 import { useHomeStore } from "@/stores/home";
 import { useFavoritesStore } from "@/stores/favorites";
 import { useAppStore } from "@/stores/app";
+import { useSettingsStore } from "@/stores/settings";
 import { useMetaTitle } from "@/composables/useMetaTitle";
 import { useReloadable } from "@/composables/useReloadable";
 import { useRoute } from "vue-router";
@@ -193,6 +194,7 @@ const route = useRoute();
 const homeStore = useHomeStore();
 const favoritesStore = useFavoritesStore();
 const appStore = useAppStore();
+const settingsStore = useSettingsStore();
 
 const { live: h_live, hasError: h_hasError } = storeToRefs(homeStore);
 const {
@@ -208,18 +210,11 @@ const Tabs = Object.freeze({
   LIST: 3,
 });
 
-// Restore persisted state immediately to avoid flicker
 const STORAGE_KEY = "holodex-home-state";
-const _savedState = (() => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-})();
 
-const tab = ref(typeof _savedState.tab === "number" && _savedState.tab >= 0 && _savedState.tab <= 3 ? _savedState.tab : 0);
-const isFavPage = ref(typeof _savedState.isFavPage === "boolean" ? _savedState.isFavPage : false);
-const viewMode = ref<"streams" | "channels">(_savedState.viewMode === "channels" ? "channels" : "streams");
+const tab = ref(Tabs.LIVE_UPCOMING);
+const isFavPage = ref(settingsStore.defaultOpen === "favorites");
+const viewMode = ref<"streams" | "channels">("streams");
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 const touchStartX = ref<number | null>(null);
 const videoList = ref<InstanceType<typeof ConnectedVideoList> | null>(null);
@@ -272,7 +267,8 @@ onBeforeUnmount(() => _asideMo?.disconnect());
 const scrollPositions = new Map<string, number>();
 
 function currentScrollKey() {
-  return viewMode.value === "channels" ? "channels" : `streams-${tab.value}`;
+  const prefix = isFavPage.value ? "fav" : "home";
+  return viewMode.value === "channels" ? `${prefix}-channels` : `${prefix}-streams-${tab.value}`;
 }
 
 function resetScrollableElement(element: Element | null | undefined) {
@@ -341,7 +337,7 @@ function applyLogoHomeReset(trigger = appStore.reloadTrigger) {
   }
   trigger.consumed = true;
   resetAllHomeScrollbars();
-  isFavPage.value = false;
+  isFavPage.value = trigger.defaultOpen === "favorites";
   viewMode.value = "streams";
   tab.value = Tabs.LIVE_UPCOMING;
   saveState();
@@ -419,18 +415,26 @@ function init(updateFavorites = false) {
 
 function switchToHome() {
   if (!isFavPage.value && viewMode.value === "streams") return;
+  scrollPositions.set(currentScrollKey(), window.scrollY);
   isFavPage.value = false;
   viewMode.value = "streams";
   saveState();
   init(true);
+  nextTick(() => {
+    window.scrollTo(0, scrollPositions.get(currentScrollKey()) || 0);
+  });
 }
 
 function switchToFavorites() {
   if (isFavPage.value && viewMode.value === "streams") return;
+  scrollPositions.set(currentScrollKey(), window.scrollY);
   isFavPage.value = true;
   viewMode.value = "streams";
   saveState();
   init(true);
+  nextTick(() => {
+    window.scrollTo(0, scrollPositions.get(currentScrollKey()) || 0);
+  });
 }
 
 function switchToStreams(nextTab: number) {

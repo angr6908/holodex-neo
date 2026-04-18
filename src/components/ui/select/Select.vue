@@ -25,56 +25,60 @@
       </slot>
     </button>
 
-    <transition name="ui-select-menu" appear>
-      <UiCard
-        v-if="open"
-        :class-name="menuClass"
-        :style="menuStyle"
-        role="listbox"
-      >
-        <div v-if="searchable" class="ui-select-search-wrap">
-          <input
-            ref="searchInput"
-            v-model="searchQuery"
-            type="text"
-            class="ui-select-search-input"
-            :placeholder="searchPlaceholder"
-          >
-        </div>
-        <UiScrollArea class-name="ui-select-menu-scroll" :native-scrollbar="true" :style="scrollEdgeStyle">
-          <button
-            v-for="(option, index) in visibleOptions"
-            :key="option.key || index"
-            type="button"
-            role="option"
-            :aria-selected="isSelected(option.raw) ? 'true' : 'false'"
-            :class="getOptionClass(option.raw, index)"
-            @mouseenter="hoveredIndex = index"
-            @mouseleave="hoveredIndex = -1"
-            @focus="focusedIndex = index"
-            @blur="focusedIndex = -1"
-            @click="selectOption(option.raw)"
-          >
-            <slot
-              name="option"
-              :option="option.raw"
-              :selected="isSelected(option.raw)"
+    <Teleport to="body">
+      <transition name="ui-select-menu" appear>
+        <UiCard
+          v-if="open"
+          :class-name="menuClass"
+          :style="menuStyle"
+          role="listbox"
+          @click.stop
+          @mousedown.stop
+        >
+          <div v-if="searchable" class="ui-select-search-wrap">
+            <input
+              ref="searchInput"
+              v-model="searchQuery"
+              type="text"
+              class="ui-select-search-input"
+              :placeholder="searchPlaceholder"
             >
-              <span class="truncate">{{ option.label }}</span>
-              <UiIcon
-                v-if="isSelected(option.raw)"
-                :icon="mdiCheck"
-                size="sm"
-                class-name="ml-3 shrink-0 text-[color:var(--color-foreground)]"
-              />
-            </slot>
-          </button>
-          <div v-if="visibleOptions.length === 0" class="ui-select-empty">
-            No options found
           </div>
-        </UiScrollArea>
-      </UiCard>
-    </transition>
+          <UiScrollArea class-name="ui-select-menu-scroll" :native-scrollbar="true" :style="scrollEdgeStyle">
+            <button
+              v-for="(option, index) in visibleOptions"
+              :key="option.key || index"
+              type="button"
+              role="option"
+              :aria-selected="isSelected(option.raw) ? 'true' : 'false'"
+              :class="getOptionClass(option.raw, index)"
+              @mouseenter="hoveredIndex = index"
+              @mouseleave="hoveredIndex = -1"
+              @focus="focusedIndex = index"
+              @blur="focusedIndex = -1"
+              @click="selectOption(option.raw)"
+            >
+              <slot
+                name="option"
+                :option="option.raw"
+                :selected="isSelected(option.raw)"
+              >
+                <span class="truncate">{{ option.label }}</span>
+                <UiIcon
+                  v-if="isSelected(option.raw)"
+                  :icon="mdiCheck"
+                  size="sm"
+                  class-name="ml-3 shrink-0 text-[color:var(--color-foreground)]"
+                />
+              </slot>
+            </button>
+            <div v-if="visibleOptions.length === 0" class="ui-select-empty">
+              No options found
+            </div>
+          </UiScrollArea>
+        </UiCard>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
@@ -220,18 +224,28 @@ const rootClass = computed(() => cn(props.fluid ? "relative w-full" : "relative 
 
 const menuClass = computed(() =>
   cn(
-    "ui-select-menu absolute top-[calc(100%+0.45rem)] z-[360] min-w-[max-content] overflow-hidden border bg-[color:var(--color-card)] p-0",
-    props.align === "right" ? "right-0" : "left-0",
+    "ui-select-menu fixed z-[360] min-w-[max-content] overflow-hidden border bg-[color:var(--color-card)] p-0",
     props.searchable && "ui-select-menu-searchable",
     props.menuClassName,
   ),
 );
 
 const menuStyle = computed(() => {
-  if (!props.matchTriggerWidth || !menuWidth.value) return undefined;
-  return {
-    minWidth: `${menuWidth.value}px`,
+  if (!open.value) return undefined;
+  const rect = trigger.value?.getBoundingClientRect();
+  if (!rect) return undefined;
+  const style: Record<string, string> = {
+    top: `${rect.bottom + 6}px`,
   };
+  if (props.align === "right") {
+    style.right = `${window.innerWidth - rect.right}px`;
+  } else {
+    style.left = `${rect.left}px`;
+  }
+  if (props.matchTriggerWidth && menuWidth.value) {
+    style.minWidth = `${menuWidth.value}px`;
+  }
+  return style;
 });
 
 function isOptionActive(option: any, index: number) {
@@ -299,7 +313,11 @@ function handleOutsideClick(event: MouseEvent) {
 function handleWindowScroll(event: Event) {
   if (!open.value) return;
   const target = event?.target;
-  if (target instanceof Node && target !== document && root.value?.contains(target)) return;
+  if (target instanceof Node && target !== document) {
+    // Allow scroll from inside the select, from an ancestor, or from the teleported menu
+    if (root.value?.contains(target) || target.contains(root.value)) return;
+    if (target instanceof Element && target.closest?.(".ui-select-menu")) return;
+  }
   closeMenu();
   const activeElement = document.activeElement;
   if (activeElement instanceof HTMLElement && root.value?.contains(activeElement)) {

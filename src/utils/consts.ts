@@ -87,7 +87,7 @@ export const TL_LANGS = Object.freeze([
         value: "id",
     },
     {
-        text: "Русский язык",
+        text: "Русский",
         value: "ru",
     },
     {

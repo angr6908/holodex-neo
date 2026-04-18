@@ -656,9 +656,14 @@ const disableExt = computed(() =>
 );
 
 async function goHomeFromLogo() {
-  await router.push({ name: "home" }).catch(() => {});
+  const page = settingsStore.defaultOpen;
+  if (page === "multiview") {
+    await router.push({ name: "multiview" }).catch(() => {});
+  } else {
+    await router.push({ name: "home" }).catch(() => {});
+  }
   await nextTick();
-  appStore.reloadCurrentPage({ source: "logo-home", consumed: false });
+  appStore.reloadCurrentPage({ source: "logo-home", consumed: false, defaultOpen: page });
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 

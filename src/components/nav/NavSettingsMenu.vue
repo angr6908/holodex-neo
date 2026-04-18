@@ -13,7 +13,7 @@
       </UiButton>
     </UiPopoverTrigger>
 
-    <UiPopoverContent align="end" class-name="w-[26rem] max-h-[min(80vh,700px)] flex flex-col p-0">
+    <UiPopoverContent align="end" class-name="w-[26rem] max-h-[min(80vh,700px)] flex flex-col p-0" @interact-outside="onInteractOutside">
       <div class="flex items-center border-b border-[color:var(--color-border)] px-3 py-2">
         <div class="inline-flex items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-0.5">
           <button
@@ -59,4 +59,11 @@ const tabs = computed(() => [
   { key: "settings" as const, label: t("component.mainNav.settings") },
   { key: "about" as const, label: t("component.mainNav.about") },
 ]);
+
+function onInteractOutside(event: Event) {
+  const target = event.target as HTMLElement;
+  if (target?.closest?.(".ui-select-menu")) {
+    event.preventDefault();
+  }
+}
 </script>

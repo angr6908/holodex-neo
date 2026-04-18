@@ -772,6 +772,16 @@ defineExpose({ init, reload });
 </style>
 
 <style scoped>
+.select-card-chip-flow {
+  align-items: stretch !important;
+}
+
+.select-card-chip-flow > .stream-check-chip {
+  width: auto;
+  flex: 1 1 0;
+  min-width: fit-content;
+}
+
 /* Match select-card-title style */
 .filter-panel-label {
   font-size: 0.68rem;
