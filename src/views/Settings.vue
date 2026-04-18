@@ -1,20 +1,6 @@
 <template>
-  <section>
-    <div class="min-w-0" :class="slim ? 'space-y-6' : 'grid gap-6 xl:grid-cols-2 xl:items-start'">
-      <UiCard
-        id="settings-main"
-        class-name="min-w-0 space-y-6 border-[color:var(--color-border)] p-4 sm:p-6"
-      >
-        <header>
-          <h1
-            class="text-3xl font-semibold tracking-tight text-[color:var(--color-foreground)]"
-          >
-            {{ $t("views.settings.title") }}
-          </h1>
-        </header>
-
-        <div class="space-y-6">
-          <div class="space-y-3">
+  <div class="space-y-6 p-4 sm:p-5">
+    <div class="space-y-3">
             <div class="settings-top-grid">
               <div class="settings-field min-w-0">
                 <span class="settings-field-label">{{ $t("views.settings.languageSettings") }}</span>
@@ -123,7 +109,7 @@
                 />
               </div>
 
-              <div v-if="!slim" class="settings-field" :style="topFieldStyles.defaultPage">
+              <div class="settings-field" :style="topFieldStyles.defaultPage">
                 <span class="settings-field-label">{{ $t("views.settings.defaultPage") }}</span>
                 <UiSelect
                   v-model="defaultOpen"
@@ -149,7 +135,7 @@
             <SelectCard
               title="System Options"
             >
-              <div>
+              <div class="select-card-chip-flow">
                 <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': redirectMode }">
                   <input
                     :checked="redirectMode"
@@ -159,16 +145,6 @@
                   >
                   <span class="settings-check-chip-indicator" />
                   <span>{{ $t("views.settings.redirectModeLabel") }}</span>
-                </label>
-                <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': useEnName }">
-                  <input
-                    :checked="useEnName"
-                    type="checkbox"
-                    class="peer sr-only"
-                    @change="useEnName = $event.target.checked"
-                  >
-                  <span class="settings-check-chip-indicator" />
-                  <span>{{ $t("views.settings.useEnglishNameLabel") }}</span>
                 </label>
                 <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': darkMode, 'settings-check-chip-disabled': followSystemTheme && !darkMode }">
                   <input
@@ -181,16 +157,6 @@
                   <span class="settings-check-chip-indicator" />
                   <span>{{ $t("views.settings.darkModeLabel") }}</span>
                 </label>
-                <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': followSystemTheme }">
-                  <input
-                    :checked="followSystemTheme"
-                    type="checkbox"
-                    class="peer sr-only"
-                    @change="followSystemTheme = $event.target.checked"
-                  >
-                  <span class="settings-check-chip-indicator" />
-                  <span>Follow System Theme</span>
-                </label>
                 <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': scrollMode }">
                   <input
                     :checked="scrollMode"
@@ -201,66 +167,30 @@
                   <span class="settings-check-chip-indicator" />
                   <span>{{ $t("views.settings.scrollModeLabel") }}</span>
                 </label>
-              </div>
-            </SelectCard>
-
-            <SelectCard
-              title="Clip Languages"
-            >
-              <div>
-                <label
-                  v-for="lang in TL_LANGS"
-                  :key="`${lang.value}-clip`"
-                  class="settings-check-chip"
-                  :class="{ 'settings-check-chip-selected': clipLangs.includes(lang.value) }"
-                >
+                <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': followSystemTheme }">
                   <input
-                    :checked="clipLangs.includes(lang.value)"
+                    :checked="followSystemTheme"
                     type="checkbox"
                     class="peer sr-only"
-                    @change="toggleClipLang(lang.value, $event.target.checked)"
+                    @change="followSystemTheme = $event.target.checked"
                   >
                   <span class="settings-check-chip-indicator" />
-                  <span>{{ lang.text }}</span>
+                  <span>Follow System Theme</span>
+                </label>
+                <label class="settings-check-chip" :class="{ 'settings-check-chip-selected': useEnName }">
+                  <input
+                    :checked="useEnName"
+                    type="checkbox"
+                    class="peer sr-only"
+                    @change="useEnName = $event.target.checked"
+                  >
+                  <span class="settings-check-chip-indicator" />
+                  <span>{{ $t("views.settings.useEnglishNameLabel") }}</span>
                 </label>
               </div>
             </SelectCard>
-
-            <div>
-              <video-list-filters compact :show-descriptions="false" />
-            </div>
-          </div>
-
-          <div
-            v-if="!slim"
-            id="settings-updates"
-            class="space-y-2"
-          >
-            <div class="settings-update-grid">
-              <UiButton
-                variant="outline"
-                class-name="settings-update-btn settings-update-btn-check"
-                @click="forceCheckUpdate"
-              >
-                <UiIcon :icon="mdiRefresh" size="sm" class-name="settings-update-btn-icon" />
-                <span>Check For Update</span>
-              </UiButton>
-              <UiButton
-                variant="outline"
-                class-name="settings-update-btn settings-update-btn-force"
-                @click="forceUninstall"
-              >
-                <UiIcon :icon="mdiReloadAlert" size="sm" class-name="settings-update-btn-icon" />
-                <span>Force Refresh App</span>
-              </UiButton>
-            </div>
-          </div>
-        </div>
-      </UiCard>
-
-      <AboutSection v-if="!slim" />
-    </div>
-  </section>
+      </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -270,32 +200,16 @@ import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { useAppStore } from "@/stores/app";
 import { useSettingsStore } from "@/stores/settings";
-import { useMetaTitle } from "@/composables/useMetaTitle";
-import { mdiCheck, mdiChevronDown, mdiRefresh, mdiReloadAlert } from "@mdi/js";
+import { mdiCheck, mdiChevronDown } from "@mdi/js";
 import { langs } from "@/plugins/app-i18n";
-import { TL_LANGS } from "@/utils/consts";
 import themeSet, { readStoredThemeId, resolveThemeById } from "@/utils/themes";
 import backendApi from "@/utils/backend-api";
-import AboutSection from "@/components/setting/AboutSection.vue";
 import SelectCard from "@/components/setting/SelectCard.vue";
-import VideoListFilters from "@/components/setting/VideoListFilters.vue";
-import UiCard from "@/components/ui/card/Card.vue";
-import UiButton from "@/components/ui/button/Button.vue";
 import UiIcon from "@/components/ui/icon/Icon.vue";
 import UiSelect from "@/components/ui/select/Select.vue";
-import * as SW from "../sw";
+
 
 defineOptions({ name: "Settings" });
-
-withDefaults(defineProps<{
-  slim?: boolean;
-}>(), {
-  slim: false,
-});
-
-defineEmits<{
-  close: [];
-}>();
 
 const route = useRoute();
 const router = useRouter();
@@ -305,8 +219,6 @@ const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 
 const { darkMode, followSystemTheme, redirectMode, scrollMode, defaultOpen } = storeToRefs(settingsStore);
-
-useMetaTitle(() => `${t("component.mainNav.settings")} - Holodex`);
 
 // Data
 const themeId = ref(readStoredThemeId());
@@ -362,15 +274,6 @@ const overrideLanguage = computed({
       hash: route.hash,
     });
     window.location.assign(r.href);
-  },
-});
-
-const clipLangs = computed({
-  get() {
-    return settingsStore.clipLangs;
-  },
-  set(val: string[]) {
-    settingsStore.setClipLangs(val.sort());
   },
 });
 
@@ -441,35 +344,6 @@ function estimateTopFieldWidthPx(label: string, value: string, extra = 0): numbe
   return Math.max(136, Math.min(420, Math.ceil(pixelWidth)));
 }
 
-function toggleClipLang(value: string, checked: boolean) {
-  const next = new Set(clipLangs.value);
-  if (checked) next.add(value);
-  else next.delete(value);
-  clipLangs.value = [...next];
-}
-
-function forceUninstall() {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistration().then((reg) => {
-      if (reg) {
-        reg.unregister().then(() => { window.location.reload(); });
-      } else {
-        window.location.reload();
-      }
-    });
-  }
-}
-
-function forceCheckUpdate() {
-  const reg = SW.getRegistration();
-  if (!reg || !reg.waiting) {
-    window.location.reload();
-  } else {
-    SW.updateServiceWorker();
-    SW.getRegistration()?.update();
-  }
-}
-
 function scrollToHash(hash: string) {
   if (!hash) return;
   nextTick(() => {
@@ -527,83 +401,6 @@ onMounted(async () => {
   border-radius: 999px;
   border: 1px solid var(--color-border);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
-}
-
-.settings-update-grid {
-  display: grid;
-  gap: 0.55rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.settings-update-btn {
-  width: 100%;
-  justify-content: flex-start;
-  gap: 0.55rem;
-  height: 2.7rem;
-  border-radius: 0.85rem;
-  padding-inline: 0.9rem;
-  font-size: 0.82rem;
-  font-weight: 400;
-  cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
-}
-
-.settings-update-btn-icon {
-  opacity: 0.95;
-}
-
-.settings-update-btn-check {
-  border-color: var(--color-border) !important;
-  background: color-mix(in srgb, var(--color-card) 84%, var(--color-primary) 16%) !important;
-  color: var(--color-foreground) !important;
-}
-
-.settings-update-btn-check:hover {
-  border-color: var(--color-primary) !important;
-  background: color-mix(in srgb, var(--color-card) 74%, var(--color-primary) 26%) !important;
-}
-
-.settings-update-btn-check :deep(.settings-update-btn-icon) {
-  color: color-mix(in srgb, var(--color-primary) 86%, var(--color-foreground) 14%);
-}
-
-.settings-update-btn-check:focus-visible {
-  border-color: var(--color-primary) !important;
-}
-
-.settings-update-btn-force {
-  border: 1px solid color-mix(in srgb, var(--color-destructive) 32%, transparent) !important;
-  background: color-mix(in srgb, var(--color-card) 84%, var(--color-destructive) 16%) !important;
-  color: var(--color-foreground) !important;
-}
-
-.settings-update-btn-force:hover {
-  border-color: color-mix(in srgb, var(--color-destructive) 86%, transparent) !important;
-  background: color-mix(in srgb, var(--color-card) 74%, var(--color-destructive) 26%) !important;
-}
-
-html[data-theme="light"] .settings-update-btn-check {
-  background: color-mix(in srgb, #ffffff 90%, var(--color-primary) 10%) !important;
-}
-
-html[data-theme="light"] .settings-update-btn-check:hover {
-  background: color-mix(in srgb, #ffffff 82%, var(--color-primary) 18%) !important;
-}
-
-html[data-theme="light"] .settings-update-btn-force {
-  background: color-mix(in srgb, #ffffff 90%, var(--color-destructive) 10%) !important;
-}
-
-html[data-theme="light"] .settings-update-btn-force:hover {
-  background: color-mix(in srgb, #ffffff 82%, var(--color-destructive) 18%) !important;
-}
-
-:deep(#settings-main.glass-panel),
-:deep(#about.glass-panel) {
-  background: var(--surface-nav-solid) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  box-shadow: none !important;
 }
 
 .lang-select {

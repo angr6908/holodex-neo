@@ -746,10 +746,16 @@ function goToVideo() {
   emit("videoClicked", data.value);
 
   if (props.disableDefaultClick) return;
+  // External stream placeholders (e.g. Twitch) open the link directly
+  if (isPlaceholder.value && data.value.placeholderType === "external-stream" && data.value.link) {
+    window.open(data.value.link, "_blank", "noopener");
+    return;
+  }
   if (isPlaceholder.value) {
     openPlaceholder();
     return;
   }
+  hasWatched.value = true;
   // On mobile, clicking on watch links should not increment browser history
   // Back button will always return to the originating video list in one click
   if (route.path.match(/^\/watch/) && isMobile.value) {

@@ -19,6 +19,10 @@ if ("serviceWorker" in navigator) {
     immediate: true,
     onNeedRefresh: () => {
       needsRefreshCallback();
+      // Auto-apply update; controllerchange listener will reload the page
+      if (reg && reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
     },
     onOfflineReady() {
       offlineReadyCallback();

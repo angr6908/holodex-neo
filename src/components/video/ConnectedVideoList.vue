@@ -52,7 +52,28 @@
               />
             </div>
           </div>
-          <video-list-filters class="filter-panel-filters" :show-descriptions="false" :compact="true" />
+          <div v-if="tab === Tabs.CLIPS && isActive" class="filter-panel-filters">
+            <SelectCard title="Clip Languages">
+              <div class="select-card-chip-flow">
+                <label
+                  v-for="lang in TL_LANGS"
+                  :key="`${lang.value}-clip`"
+                  class="stream-check-chip"
+                  :class="{ 'stream-check-chip-selected': clipLangs.includes(lang.value) }"
+                >
+                  <input
+                    :checked="clipLangs.includes(lang.value)"
+                    type="checkbox"
+                    class="peer sr-only"
+                    @change="toggleClipLang(lang.value, ($event.target as HTMLInputElement).checked)"
+                  >
+                  <span class="stream-check-chip-indicator" />
+                  <span>{{ lang.text }}</span>
+                </label>
+              </div>
+            </SelectCard>
+          </div>
+          <video-list-filters v-if="tab !== Tabs.CLIPS" class="filter-panel-filters" :show-descriptions="false" :compact="true" />
         </div>
       </Teleport>
     </div>
@@ -158,6 +179,7 @@
 import { ref, computed, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import backendApi from "@/utils/backend-api";
+import { TL_LANGS } from "@/utils/consts";
 
 import GenericListLoader from "@/components/video/GenericListLoader.vue";
 import SkeletonCardList from "@/components/video/SkeletonCardList.vue";
@@ -181,6 +203,7 @@ import {
   readCachedTwitchViewerCounts,
 } from "@/utils/twitch";
 import VideoListFilters from "../setting/VideoListFilters.vue";
+import SelectCard from "@/components/setting/SelectCard.vue";
 import UiButton from "@/components/ui/button/Button.vue";
 import UiIcon from "@/components/ui/icon/Icon.vue";
 import UiSelect from "@/components/ui/select/Select.vue";
@@ -240,6 +263,14 @@ const settingsStore = useSettingsStore();
 const homeStore = useHomeStore();
 const favoritesStore = useFavoritesStore();
 const appStore = useAppStore();
+
+const clipLangs = computed(() => settingsStore.clipLangs);
+function toggleClipLang(value: string, checked: boolean) {
+  const next = new Set(clipLangs.value);
+  if (checked) next.add(value);
+  else next.delete(value);
+  settingsStore.setClipLangs([...next].sort());
+}
 
 // Per-key cache for multi-org fetches: avoids re-fetching on every page change.
 // Keyed by loaderCacheKey so it auto-invalidates when filters / orgs / tab change.

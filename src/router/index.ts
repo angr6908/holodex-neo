@@ -13,7 +13,6 @@ const ChannelAbout = () => import("../views/channel_views/ChannelAbout.vue");
 const Watch = () => import("../views/Watch.vue");
 const Search = () => import("../views/Search.vue");
 const Library = () => import("../views/Library.vue");
-const Settings = () => import("../views/Settings.vue");
 const NotFound = () => import("../views/NotFound.vue");
 const User = () => import("../views/LoginCallback.vue");
 const EditVideo = () => import("../views/EditVideo.vue");
@@ -132,12 +131,7 @@ const routes = [
     {
         name: "about",
         path: "/about",
-        redirect() {
-            return {
-                name: "settings",
-                hash: "#about",
-            };
-        },
+        redirect: "/",
     },
     {
         name: "search",
@@ -145,9 +139,9 @@ const routes = [
         component: Search,
     },
     {
-        name: "settings",
+        // Redirect old settings route to home (settings is now a nav dropdown)
         path: "/settings",
-        component: Settings,
+        redirect: "/",
     },
     {
         name: "login-callback",

@@ -221,7 +221,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-items: flex-start;
+  align-items: stretch;
+}
+
+.select-card :deep(.select-card-chip-flow > .settings-check-chip),
+.select-card :deep(.select-card-chip-flow > .stream-check-chip) {
+  width: auto;
+  flex: 1 1 0;
+  min-width: fit-content;
 }
 
 .select-card :deep(.settings-check-chip),

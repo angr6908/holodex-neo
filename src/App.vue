@@ -159,7 +159,7 @@ const mainStyle = computed(() => {
   if (
     route.name === "watch" || resolvedPath.startsWith("/watch") ||
     route.name === "multiview" || resolvedPath.startsWith("/multiview") ||
-    route.name === "settings" || route.name === "search"
+    route.name === "search"
   ) {
     return {};
   }

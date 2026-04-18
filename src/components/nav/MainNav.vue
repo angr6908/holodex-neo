@@ -2,10 +2,10 @@
   <div v-if="showTopBar" ref="navRootEl" class="fixed inset-x-0 top-0 z-[90]">
     <header ref="navHeaderEl" class="relative z-[130] border-b border-[color:var(--color-border)] bg-[color:var(--surface-nav)] backdrop-blur-xl">
       <div class="mx-auto flex max-w-[1600px] items-center gap-4 px-3 py-3 sm:px-5">
-        <button
-          type="button"
-          class="flex shrink-0 items-center gap-3 pr-2 min-[960px]:pr-5 text-left"
-          @click="goHomeFromLogo"
+        <a
+          href="/"
+          class="flex shrink-0 items-center gap-3 pr-2 min-[960px]:pr-5 text-left no-underline select-none"
+          @click.prevent="goHomeFromLogo"
         >
           <div class="menu-logo-tile flex h-10 w-10 items-center justify-center rounded-2xl border">
             <Logo width="22" height="22" />
@@ -13,7 +13,7 @@
           <div class="hidden min-w-0 sm:block text-[1.02rem] font-semibold tracking-[0.01em] text-[color:var(--color-foreground)]">
             Holodex
           </div>
-        </button>
+        </a>
 
         <div class="hidden min-[960px]:ml-1 min-[960px]:flex min-[960px]:items-center min-[960px]:gap-3">
           <router-link
@@ -404,17 +404,7 @@
               </UiCard>
             </UiDialog>
 
-            <UiButton
-              as="router-link"
-              variant="ghost"
-              size="icon"
-              to="/settings"
-              class-name="menu-action-btn"
-              :title="$t('component.mainNav.settings')"
-            >
-              <UiIcon :icon="mdiCog" class-name="menu-theme-icon h-5 w-5" />
-              <span class="sr-only">{{ $t("component.mainNav.settings") }}</span>
-            </UiButton>
+            <NavSettingsMenu />
 
             <NavUserMenu />
           </div>
@@ -524,7 +514,7 @@
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { mdiCog, mdiMagnify, mdiPlaylistPlay, mdiContentSave, mdiPlaylistPlus, mdiCheck, mdiPencil, mdiRefresh, mdiDelete, mdiFileDelimited, mdiClose } from "@mdi/js";
+import { mdiMagnify, mdiPlaylistPlay, mdiContentSave, mdiPlaylistPlus, mdiCheck, mdiPencil, mdiRefresh, mdiDelete, mdiFileDelimited, mdiClose } from "@mdi/js";
 import { json2csvAsync } from "json-2-csv";
 import debounce from "lodash-es/debounce";
 import backendApi from "@/utils/backend-api";
@@ -548,6 +538,7 @@ import UiPopoverTrigger from "@/components/ui/popover/PopoverTrigger.vue";
 import UiPopoverContent from "@/components/ui/popover/PopoverContent.vue";
 import UiScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import NavUserMenu from "@/components/nav/NavUserMenu.vue";
+import NavSettingsMenu from "@/components/nav/NavSettingsMenu.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -701,12 +692,6 @@ const pages = computed(() => {
       collapsible: true,
     },
     {
-      key: "settings",
-      name: t("component.mainNav.settings"),
-      path: "/settings",
-      collapsible: true,
-    },
-    {
       key: "tlclient",
       name: "TL Client",
       path: "/tlclient",
@@ -742,7 +727,7 @@ const mobilePages = computed(() =>
 );
 
 const mobileMorePages = computed(() =>
-  pages.value.filter((page) => !["home", "playlists", "settings"].includes(page.key) && !page.extra),
+  pages.value.filter((page) => !["home", "playlists"].includes(page.key) && !page.extra),
 );
 
 watch(() => route.fullPath, () => {
