@@ -1,11 +1,50 @@
 import { dayjs, formatDistance, formatDuration, titleTimeString } from "@/lib/time";
 import { getChannelPhoto, getLiveViewerCount, getVideoThumbnails, decodeHTMLEntities, formatCount } from "@/lib/functions";
+import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
 
 const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
+type ThumbnailSize = "default" | "medium" | "standard" | "maxres";
+const TWITCH_PREVIEW_HOST = "static-cdn.jtvnw.net";
+const TWITCH_THUMBNAIL_SIZES: Record<ThumbnailSize, { width: number; height: number }> = {
+  default: { width: 320, height: 180 },
+  medium: { width: 320, height: 180 },
+  standard: { width: 640, height: 360 },
+  maxres: { width: 1920, height: 1080 },
+};
 
 export function channelDisplayName(channel: any, useEnglish = true) { return (useEnglish ? channel?.english_name : null) || channel?.name || ""; }
 export function channelGroup(channel: any) { return channel?.group || (channel?.suborg ? String(channel.suborg).slice(2) : null); }
 export function staticThumbnailPath(thumbnail: string, size: "default" | "maxres" = "default") { const n = btoa(thumbnail).replace("+", "-").replace("/", "_").replace(/=+$/, ""); return `/statics/thumbnail/${size}/${n}.jpg`; }
+function isTwitchPreviewThumbnail(thumbnail: string) {
+  try {
+    const url = new URL(thumbnail);
+    return url.hostname === TWITCH_PREVIEW_HOST && url.pathname.startsWith("/previews-ttv/live_user_");
+  } catch {
+    return false;
+  }
+}
+function twitchPreviewThumbnail(login: string, size: ThumbnailSize) {
+  const { width, height } = TWITCH_THUMBNAIL_SIZES[size];
+  return `https://${TWITCH_PREVIEW_HOST}/previews-ttv/live_user_${encodeURIComponent(login.trim().toLowerCase())}-${width}x${height}.jpg`;
+}
+function resizeTwitchPreviewThumbnail(thumbnail: string, size: ThumbnailSize) {
+  const { width, height } = TWITCH_THUMBNAIL_SIZES[size];
+  return thumbnail.replace(/-\d+x\d+(\.jpg)(?=([?#]|$))/i, `-${width}x${height}$1`);
+}
+function getVideoTwitchLogin(video: any) {
+  if (video?.type === "twitch" && video.id) return String(video.id);
+  return video?.link?.match?.(TWITCH_VIDEO_URL_REGEX)?.groups?.id || "";
+}
+function thumbnailSizeForVideo(opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {}): ThumbnailSize {
+  if (opts.horizontal) return "medium";
+  if ((opts.colSize || 1) > 2 && (opts.colSize || 1) <= 8 && typeof window !== "undefined") return window.devicePixelRatio > 1 ? "standard" : "medium";
+  return "standard";
+}
+export function thumbnailImage(thumbnail: string, size: ThumbnailSize = "default") {
+  if (isTwitchPreviewThumbnail(thumbnail)) return resizeTwitchPreviewThumbnail(thumbnail, size);
+  if (typeof btoa === "undefined") return thumbnail;
+  return staticThumbnailPath(thumbnail, size === "maxres" ? "maxres" : "default");
+}
 export function linkifyVideoTimestamps(message: string, videoId: string, redirectMode = false) {
   const decoder = typeof document !== "undefined" ? document.createElement("div") : null;
   if (decoder) decoder.innerHTML = String(message || "");
@@ -19,7 +58,10 @@ export function linkifyVideoTimestamps(message: string, videoId: string, redirec
 export function videoTitle(video: any, useEnglish = true) { if (!video) return ""; if (video.type === "placeholder") return decodeHTMLEntities((useEnglish ? video.title ?? video.jp_name : video.jp_name ?? video.title) || ""); return decodeHTMLEntities(video.title || ""); }
 export function videoImage(video: any, opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {}) {
   if (!video) return "";
-  if (video.thumbnail && typeof btoa !== "undefined") return staticThumbnailPath(video.thumbnail);
+  const thumbnailSize = thumbnailSizeForVideo(opts);
+  if (video.thumbnail) return thumbnailImage(video.thumbnail, thumbnailSize);
+  const twitchLogin = getVideoTwitchLogin(video);
+  if (twitchLogin) return twitchPreviewThumbnail(twitchLogin, thumbnailSize);
   if (video.type === "placeholder") return getChannelPhoto(video.channel_id || video.channel?.id);
   const srcs = getVideoThumbnails(video.id, !opts.forceJpg);
   if (opts.horizontal) return srcs.medium;
@@ -66,4 +108,5 @@ export function videoDisplayTime(video: any) {
   return video.available_at || video.start_scheduled;
 }
 export function absoluteTime(video: any, lang: string) { return titleTimeString(videoDisplayTime(video), lang); }
-export function viewerText(video: any, lang: string) { const n = getLiveViewerCount(video); return n > 0 ? `• ${formatCount(n, lang)} Watching` : ""; }
+export function viewerCountText(video: any, lang: string) { const n = getLiveViewerCount(video); return n > 0 ? formatCount(n, lang) : ""; }
+export function viewerText(video: any, lang: string) { const text = viewerCountText(video, lang); return text ? `• ${text} Watching` : ""; }
