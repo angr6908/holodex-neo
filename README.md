@@ -1,30 +1,15 @@
 # holodex-neo
 
-A remake of the Holodex frontend, migrating from legacy Vue 2/Vuetify to Vue 3, Vite, Shadcn Vue, and Tailwind v4.
+A remake of the Holodex frontend, migrating from legacy Vue 2 to Next.js 16.
 
 ### Demo
 https://001920.xyz
 
-<img src="preview-v1.0.1.avif" width="800" alt="v1.0.1">
+<img src="preview-v2.0.0.avif" width="800" alt="v2.0.0">
 
-### Quick Start (Docker)
+### Install (Docker)
+Please refer to the `compose.yml` and the `Caddyfile`.
 
-```bash
-docker pull unmol637/holodex-neo:latest
-docker run -d -p 8080:80 unmol637/holodex-neo:latest
-```
-
-Or with Docker Compose:
-
-```yaml
-services:
-  holodex-neo:
-    image: unmol637/holodex-neo:latest
-    container_name: holodex-neo
-    ports:
-      - "8080:80"
-    restart: always
-```
 
 ### License
 

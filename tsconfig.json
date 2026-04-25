@@ -1,37 +1,42 @@
 {
   "compilerOptions": {
-    "strict": false,
-    "noImplicitAny": false,
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "./dist",
-    "types": [
-      "chrome",
-      "vite-plugin-pwa/client"
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
     ],
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     },
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ]
+    "noImplicitAny": false,
+    "strictNullChecks": false
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.vue"
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
   ],
   "exclude": [
     "node_modules"

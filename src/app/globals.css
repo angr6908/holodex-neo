@@ -1,0 +1,5583 @@
+@import "../../node_modules/tailwindcss/index.css";
+@import "../../node_modules/tw-animate-css/dist/tw-animate.css";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+  --color-background: oklch(0.14 0.02 240);
+  --colorbg: oklch(0.18 0.02 240);
+  --color-foreground: oklch(0.96 0.01 240);
+  --color-card: oklch(0.19 0.02 240);
+  --color-card-foreground: oklch(0.96 0.01 240);
+  --color-popover: oklch(0.16 0.02 240);
+  --color-popover-foreground: oklch(0.96 0.01 240);
+  --color-primary: oklch(0.74 0.15 222);
+  --color-primary-foreground: oklch(0.14 0.02 240);
+  --color-secondary: oklch(0.3 0.04 245);
+  --color-secondary-foreground: oklch(0.96 0.01 240);
+  --color-muted: oklch(0.24 0.02 240);
+  --color-muted-foreground: oklch(0.76 0.02 240);
+  --color-accent: oklch(0.27 0.05 205);
+  --color-accent-foreground: oklch(0.97 0.01 240);
+  --color-destructive: oklch(0.65 0.2 25);
+  --color-border: oklch(0.28 0.02 240);
+  --color-input: oklch(0.23 0.02 240);
+  --color-ring: oklch(0.74 0.15 222);
+  --radius: 0.75rem;
+}
+
+:root {
+  --app-body-background: #12161f;
+  --colorbg: #111827;
+  --scrollbar-thumb: rgb(148 163 184 / 0.55);
+  --scrollbar-thumb-hover: rgb(226 232 240 / 0.78);
+  --scrollbar-track: rgb(15 23 42 / 0.14);
+  color-scheme: dark;
+  background-color: var(--colorbg, #111827);
+}
+
+html[data-theme="light"] {
+  --app-body-background: #f4f6f9;
+  --colorbg: #eef2f7;
+  --scrollbar-thumb: rgb(15 23 42 / 0.72);
+  --scrollbar-thumb-hover: rgb(15 23 42 / 0.84);
+  --scrollbar-track: rgb(148 163 184 / 0.16);
+}
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  background-image: none !important;
+  background: none !important;
+  background-color: var(--colorbg, #111827) !important;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  min-height: 100%;
+  background-image: none !important;
+  background: none !important;
+  background-color: var(--colorbg, #111827) !important;
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  padding-left: min(calc(env(safe-area-inset-left)), 30px);
+  padding-right: min(calc(env(safe-area-inset-right)), 30px);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%) color-mix(in srgb, var(--color-light) 42%, transparent);
+}
+
+* {
+  scrollbar-color: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%) color-mix(in srgb, var(--color-light) 42%, transparent);
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 1px solid color-mix(in srgb, var(--color-bold) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-bold) 78%, var(--color-light) 22%);
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+#app {
+  min-height: 100vh;
+  background-image: none !important;
+  background-color: var(--colorbg, #111827);
+}
+
+.glass-panel {
+  backdrop-filter: blur(18px);
+  background: var(--colorbg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 80px rgb(15 23 42 / 0.35);
+}
+
+html[data-theme="light"] .glass-panel {
+  background: var(--colorbg);
+  border-color: var(--color-border);
+  box-shadow: 0 20px 60px rgb(148 163 184 / 0.20);
+}
+
+html[data-theme="light"] .text-white {
+  color: var(--color-foreground) !important;
+}
+
+html[data-theme="light"] .text-slate-100 {
+  color: #1e293b !important;
+}
+
+html[data-theme="light"] .text-slate-200,
+html[data-theme="light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="light"] .bg-slate-950,
+html[data-theme="light"] .bg-slate-950\/96,
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-950\/75,
+html[data-theme="light"] .bg-slate-950\/70,
+html[data-theme="light"] .bg-slate-950\/55,
+html[data-theme="light"] .bg-slate-900,
+html[data-theme="light"] .bg-slate-900\/95 {
+  background-color: rgb(255 255 255 / 0.92) !important;
+}
+
+html[data-theme="light"] .bg-white\/4 {
+  background-color: rgb(241 245 249 / 0.72) !important;
+}
+
+html[data-theme="light"] .bg-white\/5 {
+  background-color: rgb(241 245 249 / 0.78) !important;
+}
+
+html[data-theme="light"] .bg-white\/6,
+html[data-theme="light"] .bg-white\/\[0\.03\] {
+  background-color: rgb(248 250 252 / 0.9) !important;
+}
+
+html[data-theme="light"] .bg-white\/8 {
+  background-color: rgb(226 232 240 / 0.9) !important;
+}
+
+html[data-theme="light"] .bg-white\/10 {
+  background-color: rgb(203 213 225 / 0.45) !important;
+}
+
+html[data-theme="light"] .bg-white\/30 {
+  background-color: rgb(255 255 255 / 0.96) !important;
+}
+
+html[data-theme="light"] .border-white\/8,
+html[data-theme="light"] .border-white\/10,
+html[data-theme="light"] .border-white\/12,
+html[data-theme="light"] .border-white\/14,
+html[data-theme="light"] .border-white\/20 {
+  border-color: rgb(148 163 184 / 0.32) !important;
+}
+
+html[data-theme="light"] .hover\:bg-white\/4:hover {
+  background-color: rgb(241 245 249 / 0.82) !important;
+}
+
+html[data-theme="light"] .hover\:bg-white\/6:hover,
+html[data-theme="light"] .hover\:bg-white\/8:hover,
+html[data-theme="light"] .hover\:bg-white\/10:hover,
+html[data-theme="light"] .hover\:bg-white\/12:hover {
+  background-color: rgb(226 232 240 / 0.9) !important;
+}
+
+html[data-theme="light"] .hover\:text-white:hover {
+  color: var(--color-foreground) !important;
+}
+
+html[data-theme="light"] .shadow-slate-950\/20,
+html[data-theme="light"] .shadow-slate-950\/30,
+html[data-theme="light"] .shadow-slate-950\/40,
+html[data-theme="light"] .shadow-slate-950\/80 {
+  --tw-shadow-color: rgb(148 163 184 / 0.18) !important;
+}
+@charset "UTF-8";
+/* Ported verbatim from holodex-neo Vue SFC <style> blocks. */
+/* Vue scoped/deep/global markers are flattened intentionally for the native Next.js port. */
+/* ---- App.vue  ---- */
+.twitter-banner-enter-active,
+.twitter-banner-leave-active {
+  transition: all 0.18s ease;
+}
+
+.twitter-banner-enter-from,
+.twitter-banner-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+/* ---- components/channel/ChannelCard.vue scoped ---- */
+.channel-card {
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.channel-card:hover {
+  transform: translateY(-4px);
+}
+
+.channel-card-shell {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  backface-visibility: hidden;
+  border-radius: 1rem;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 92%, white 8%) 0%, var(--color-card) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  filter: drop-shadow(0 12px 28px rgba(2, 6, 23, 0.13));
+  transition: filter 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.channel-card:hover .channel-card-shell {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border) 72%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  filter: drop-shadow(0 22px 44px rgba(2, 6, 23, 0.2));
+}
+
+/* Stats row: don't let it shrink/crop */
+.channel-card-stats {
+  flex-shrink: 0;
+}
+
+/* Compact social icons for card footer */
+.channel-card-footer .channel-social-horizontal {
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0.15rem;
+}
+
+.channel-card-footer .channel-social-horizontal button,
+.channel-card-footer .channel-social-horizontal a {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+/* Topic badges hover */
+.channel-topic-badge:hover {
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+
+/* Light theme */
+html[data-theme=light] .channel-card-shell {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 94%, white 6%) 0%, var(--color-card) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  filter: drop-shadow(0 12px 28px rgba(148, 163, 184, 0.15));
+}
+
+html[data-theme=light] .channel-card:hover .channel-card-shell {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  filter: drop-shadow(0 22px 42px rgba(148, 163, 184, 0.22));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel-card,
+  .channel-card-shell {
+    transition: none !important;
+  }
+}
+/* ---- components/channel/ChannelChip.vue  ---- */
+.channel-hover-tooltip {
+  max-height: 48px;
+  overflow: hidden;
+}
+
+/* ---- components/channel/ChannelImg.vue scoped ---- */
+img:hover {
+  cursor: pointer;
+}
+
+/* Smooth fade-in for avatars — only animates on network download, not cache */
+.img-fade-in.img-pending {
+  opacity: 0;
+}
+
+.img-fade-in.img-pending[data-fade-ready] {
+  transition: opacity 0.3s ease;
+}
+
+.img-fade-in.loaded {
+  opacity: 1;
+}
+
+/* ---- components/channel/ChannelInfo.vue scoped ---- */
+.topic-chip {
+  background-color: var(--surface-soft);
+  border: 1px solid var(--color-border);
+  padding: 2px 6px;
+  border-radius: 1rem;
+  text-decoration: none;
+  text-transform: capitalize;
+  margin-right: 4px;
+  align-items: center;
+  display: inline-flex;
+  color: var(--color-foreground);
+}
+
+.topic-chip:hover {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.text--org {
+  font-size: 12px;
+  font-weight: 300;
+  /* display:block; */
+  /* display: block; */
+  opacity: 0.7;
+  color: var(--color-muted-foreground);
+}
+
+.text--org:hover {
+  opacity: 1;
+}
+
+/* ---- components/channel/ChannelList.vue  ---- */
+/* Dynamic columns driven by JS-computed --channel-grid-columns, matching video grid */
+.channel-card-grid {
+  display: grid;
+  column-gap: 0.25rem;
+  row-gap: 0.35rem;
+  grid-template-columns: repeat(var(--channel-grid-columns, 1), minmax(140px, 1fr));
+}
+
+.channel-skeleton-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  background: var(--color-card);
+}
+
+.channel-list-container {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.channel-list-divider {
+  height: 1px;
+  background: var(--color-border, rgba(255, 255, 255, 0.07));
+}
+
+/* ---- components/channel/ChannelSocials.vue  ---- */
+.channel-social-horizontal {
+  margin: 0 !important;
+  flex: 0 1 auto !important;
+  flex-wrap: wrap;
+}
+
+/* ---- components/chat/ArchiveTranslations.vue  ---- */
+.tl-body.archive {
+  overflow-y: auto;
+  position: relative;
+  overscroll-behavior: contain;
+  height: calc(100% - 32px);
+  display: flex;
+  flex-direction: column-reverse;
+  flex-direction: column;
+  line-height: 1.35;
+  letter-spacing: 0.0178571429em !important;
+}
+
+.active-message {
+  position: relative;
+}
+
+.active-message {
+  z-index: 0;
+}
+
+.active-message .tl-message::before {
+  content: "";
+  background-color: color-mix(in srgb, var(--color-primary) 70%, transparent);
+  opacity: 0.25;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  position: absolute;
+  top: -1px;
+  left: 0;
+  z-index: -1;
+}
+
+.hide-spoiler {
+  display: none;
+}
+
+/* ---- components/chat/ChatMessage.vue  ---- */
+.tl-caption {
+  color: hsla(0, 0%, 70%, 0.7);
+}
+
+.tl-body .tl-caption {
+  letter-spacing: 0.033em;
+  font-size: 0.85em;
+}
+
+.tl-name, .tl-message {
+  word-break: break-word;
+}
+
+.tl-name {
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.tl-name .tl-name-icon {
+  opacity: 0;
+}
+
+.tl-name:hover .tl-name-icon {
+  opacity: 1;
+}
+
+.with-author {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+/* Emojis */
+.tl-message img {
+  width: auto;
+  height: 1.3em;
+  vertical-align: middle;
+}
+
+/* ---- components/chat/LiveTranslations.vue  ---- */
+.tl-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  height: calc(100% - 32px);
+  display: flex;
+  flex-direction: column-reverse;
+  line-height: 1.35;
+  letter-spacing: 0.018em;
+}
+
+.tl-expanded {
+  overscroll-behavior: auto !important;
+  height: 75vh;
+}
+
+.tl-expanded > .tl-body {
+  height: 75vh;
+  width: 100%;
+}
+
+.tl-overlay {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- components/chat/MessageRenderer.vue  ---- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.4s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.ios-safari-reverse-fix {
+  transform: scale(1, -1);
+  flex-direction: column !important;
+}
+
+/* ---- components/common/HomeOrgMultiSelect.vue scoped ---- */
+.home-org-trigger {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+  color: var(--color-muted-foreground) !important;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.home-org-trigger:hover {
+  border-color: var(--color-bold) !important;
+  background: var(--color-base) !important;
+  color: var(--color-foreground) !important;
+}
+
+.home-org-trigger-open {
+  border-color: var(--color-bold) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-bold) 22%, transparent);
+}
+
+.home-org-trigger-icon {
+  color: var(--color-primary);
+  opacity: 0.95;
+}
+
+.home-org-trigger-chevron {
+  color: var(--color-muted-foreground);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.home-org-trigger-chevron-open {
+  transform: rotate(180deg);
+  color: var(--color-foreground);
+}
+
+.home-org-select-card {
+  border: none !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.home-org-inline-panel {
+  background: var(--surface-nav-solid);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 56px rgba(2, 6, 23, 0.34);
+}
+
+.home-org-select-card .select-card {
+  border: none !important;
+  background: transparent !important;
+}
+
+.home-org-select-card .select-card-search-input {
+  background: color-mix(in srgb, var(--surface-nav) 78%, transparent) !important;
+}
+
+.home-org-quick-select {
+  position: relative;
+  background: transparent;
+}
+
+.home-org-quick-select-divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-border) 72%, transparent 28%);
+  pointer-events: none;
+}
+
+.home-org-quick-separator {
+  height: 1.25rem;
+  align-self: center;
+  opacity: 0.9;
+}
+
+.home-org-select-scroll .scroll-area-viewport {
+  overscroll-behavior: contain;
+}
+
+.home-org-backdrop-enter-active,
+.home-org-backdrop-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.home-org-backdrop-enter-from,
+.home-org-backdrop-leave-to {
+  opacity: 0;
+}
+
+.home-org-backdrop[data-state="open"],
+.dialog-overlay[data-state="open"] {
+  animation: holodex-fade-in 180ms ease both;
+}
+
+.home-org-backdrop[data-state="closed"],
+.dialog-overlay[data-state="closed"] {
+  animation: holodex-fade-out 180ms ease both;
+}
+
+.home-org-inline-enter-active,
+.home-org-inline-leave-active {
+  transition: opacity 160ms ease;
+}
+
+.home-org-inline-enter-from,
+.home-org-inline-leave-to {
+  opacity: 0;
+}
+
+.home-org-inline-panel[data-state="open"] {
+  animation: holodex-fade-in 160ms ease both;
+}
+
+.home-org-inline-panel[data-state="closed"] {
+  animation: holodex-fade-out 160ms ease both;
+}
+
+.home-org-panel-enter-active,
+.home-org-panel-leave-active {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+}
+
+.home-org-panel-enter-from,
+.home-org-panel-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+}
+
+.home-org-panel[data-state="open"] {
+  animation: holodex-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.home-org-panel[data-state="closed"] {
+  animation: holodex-panel-out 180ms ease both;
+}
+
+.home-org-chip-enter-active,
+.home-org-chip-leave-active {
+  transition: transform 170ms ease, opacity 170ms ease;
+}
+
+.home-org-chip-enter-from,
+.home-org-chip-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+}
+
+.home-org-option-enter-active,
+.home-org-option-leave-active {
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.home-org-option-enter-from,
+.home-org-option-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+@keyframes holodex-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes holodex-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes holodex-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes holodex-panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+/* ---- components/common/LoadingOverlay.vue scoped ---- */
+.loading-overlay {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay--default {
+  min-height: 12rem;
+  padding: 2.5rem 1.5rem;
+}
+
+.loading-overlay--watch {
+  min-height: auto;
+}
+
+.loading-overlay__panel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--surface-elevated);
+  padding: 0.9rem 1.1rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.loading-overlay__spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+  border-top-color: var(--color-primary);
+  animation: loading-spinner 0.8s linear infinite;
+}
+
+.loading-overlay__feedback {
+  width: 100%;
+}
+
+.loading-overlay__label {
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--color-foreground);
+  letter-spacing: 0.01em;
+}
+
+@keyframes loading-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ---- components/common/Logo.vue scoped ---- */
+.logo {
+  display: block;
+}
+
+/* ---- components/common/PullToRefresh.vue  ---- */
+/* pull to refresh skin */
+.ptr--ptr {
+  box-shadow: none !important;
+}
+
+.ptr--box {
+  padding: 0px !important;
+  justify-content: center;
+  display: flex;
+}
+
+/* icon size */
+.ptr--icon,
+.ptr--text > svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* rotate left arrow to be down arrow, micro bandwidth savings */
+.ptr--icon {
+  transform: rotate(90deg);
+}
+
+/* only display either icon or text */
+.ptr--ptr.ptr--refresh .ptr--content .ptr--icon {
+  display: none;
+}
+
+.ptr--text {
+  display: none;
+}
+
+/* rotate arrow when threshold reached */
+.ptr--ptr.ptr--release .ptr--content .ptr--icon {
+  transform: rotate(270deg);
+}
+
+/* show text with refresh spinner and animate */
+.ptr--ptr.ptr--refresh .ptr--content .ptr--text {
+  animation: spin 1.1s infinite linear;
+  display: block;
+}
+
+.pull-to-refresh-material {
+  position: relative;
+}
+
+.pull-to-refresh-material__control {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 6px rgba(0,0,0,.117647), 0 1px 4px rgba(0,0,0,.117647);
+  display: none;
+}
+
+.pull-to-refresh--pulling .pull-to-refresh-material__control,
+.pull-to-refresh--aborting .pull-to-refresh-material__control,
+.pull-to-refresh--reached .pull-to-refresh-material__control,
+.pull-to-refresh--refreshing .pull-to-refresh-material__control,
+.pull-to-refresh--restoring .pull-to-refresh-material__control {
+  display: flex;
+}
+
+.pull-to-refresh--pulling .pull-to-refresh-material__spinner,
+.pull-to-refresh--aborting .pull-to-refresh-material__spinner,
+.pull-to-refresh--reached .pull-to-refresh-material__spinner,
+.pull-to-refresh--refreshing .pull-to-refresh-material__icon,
+.pull-to-refresh--restoring .pull-to-refresh-material__icon {
+  display: none;
+}
+
+.pull-to-refresh-material__spinner {
+  transform-origin: center center;
+  animation: pull-to-refresh-material-rotate 2s linear infinite;
+}
+
+.pull-to-refresh-material__path {
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: pull-to-refresh-material-dash 1.5s ease-in-out infinite;
+}
+
+.pull-to-refresh-material__path--colorful {
+  animation: pull-to-refresh-material-dash 1.5s ease-in-out infinite, pull-to-refresh-material-colorful 6s ease-in-out infinite;
+}
+
+@keyframes pull-to-refresh-material-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pull-to-refresh-material-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+@keyframes pull-to-refresh-material-colorful {
+  100%,
+  0% {
+    stroke: #4285f4;
+  }
+  40% {
+    stroke: #ea4335;
+  }
+  66% {
+    stroke: #fbbc05;
+  }
+  80%,
+  90% {
+    stroke: #34a853;
+  }
+}
+
+@keyframes spin {
+    0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+/* ---- components/common/TruncatedText.vue  ---- */
+.truncated-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- components/common/TwitterFeed.vue scoped ---- */
+.social-card {
+  display: grid;
+  gap: 1rem;
+  min-height: 100%;
+  padding: 1.25rem;
+  background: var(--color-base);
+}
+
+.social-stats-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  align-items: stretch;
+}
+
+.social-stat-card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-light);
+  background: var(--color-card);
+  padding: 0.8rem;
+  min-width: 0;
+  height: 100%;
+}
+
+.social-stat-value {
+  color: var(--color-foreground);
+  font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.social-stat-label {
+  margin-top: 0.3rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.social-stat-delta {
+  margin-top: 0.22rem;
+  color: #34d399;
+  font-size: 0.72rem;
+}
+
+.social-kicker {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  padding: 0.35rem 0.6rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.social-grid {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.social-grid-top {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.social-grid-bottom {
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+}
+
+.social-bottom-layout {
+  display: grid;
+  gap: 0.75rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.social-link {
+  display: grid;
+  gap: 0.65rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-light);
+  background: var(--color-card);
+  padding: 0.8rem;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 160ms ease;
+  min-width: 0;
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+  border-color: var(--color-bold) !important;
+}
+
+.social-link-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.social-link-top .min-w-0 {
+  overflow: hidden;
+}
+
+.social-icon {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  flex-shrink: 0;
+}
+
+.social-link-title {
+  color: var(--color-foreground);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.social-link-label {
+  color: var(--color-muted-foreground);
+  font-size: 0.78rem;
+}
+
+.social-bookmark-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  height: 100%;
+}
+
+.social-bookmark-main {
+  min-width: 0;
+}
+
+.social-bookmark-icon {
+  background: color-mix(in srgb, #22c55e 72%, #0f172a 28%);
+  color: #f8fafc;
+}
+
+.social-bookmark-copy {
+  min-width: 0;
+}
+
+.social-bookmark-label-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.social-bookmark-youtube-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.95rem;
+  height: 0.64rem;
+  border-radius: 0.22rem;
+  background: #ff0033;
+  flex-shrink: 0;
+}
+
+.social-bookmark-youtube-play {
+  width: 0;
+  height: 0;
+  border-top: 0.15rem solid transparent;
+  border-bottom: 0.15rem solid transparent;
+  border-left: 0.23rem solid #fff;
+  margin-left: 0.02rem;
+}
+
+.social-grid-bottom .social-link {
+  height: 100%;
+}
+
+.social-grid-top .social-link {
+  height: 100%;
+}
+
+@media (min-width: 1100px) {
+  .social-bottom-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+/* ---- components/common/VideoCardMenu.vue scoped ---- */
+.video-card-menu-item {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.875rem;
+  padding: 0.625rem 0.75rem;
+  color: var(--color-foreground);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.video-card-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.video-card-menu-playlist {
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.5rem;
+}
+
+.video-card-menu-item-done {
+  background: rgba(52, 211, 153, 0.2);
+  color: #d1fae5;
+}
+
+html[data-theme=light] .video-card-menu-item:hover {
+  background: rgba(226, 232, 240, 0.9);
+}
+
+html[data-theme=light] .video-card-menu-playlist {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(241, 245, 249, 0.95);
+}
+
+html[data-theme=light] .video-card-menu-item-done {
+  background: rgba(52, 211, 153, 0.18);
+  color: #065f46;
+}
+
+/* ---- components/edit/RelativeTimestampEditor.vue lang="scss" ---- */
+.ts-progress {
+  margin: 20px 8px 6px 8px;
+  display: flex;
+  width: auto !important;
+  align-items: flex-start;
+}
+
+.ts-try-play {
+  position: absolute;
+  z-index: 1;
+  margin-top: -14px;
+}
+
+.rel-ts {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+.rel-ts .timeline {
+  padding-top: 25px;
+  cursor: pointer;
+}
+.rel-ts .timeline:hover .rel-current {
+  display: block;
+  opacity: 1;
+}
+.rel-ts .rel-current {
+  display: block;
+  opacity: 0;
+  font-size: 9px;
+  border-left: 2px solid #aaa;
+  height: 20px;
+  position: absolute;
+  margin-top: -23px;
+  left: 0;
+  pointer-events: none;
+  padding-left: 5px;
+}
+.rel-ts:hover .showOnHover {
+  opacity: 0.7;
+}
+.rel-ts .showOnHover {
+  opacity: 0;
+}
+.rel-ts .slider {
+  margin-top: 12px;
+}
+
+/* ---- components/edit/VideoEditSongs.vue lang="scss" ---- */
+.am-listen-btn {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* https://css-tricks.com/almanac/properties/w/word-break/ */
+  word-break: break-all;
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  justify-content: left;
+  text-align: left;
+  font-size: small;
+  padding-top: 3px !important;
+}
+
+button.tweak-btn {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgb(241, 241, 241);
+  border-radius: 2px;
+  margin: 1px 2px;
+  padding: 5px;
+  min-width: 50px;
+  width: 70px;
+  font-family: monospace;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+button.tweak-btn:not(:disabled):hover {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.tweak-input {
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+}
+
+/* ---- components/media/SongItem.vue scoped ---- */
+.limit-width {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* https://css-tricks.com/almanac/properties/w/word-break/ */
+  word-break: break-all;
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  display: -webkit-box;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  justify-content: left;
+  text-align: left;
+  color: inherit;
+}
+
+.song-clickable {
+  text-decoration: none;
+}
+
+.song-clickable:hover {
+  text-decoration: underline;
+  background-color: rgba(120, 120, 120, 0.4);
+}
+
+.text-xs .muted {
+  opacity: 0.4;
+}
+
+/* ---- components/multiview/CellContainer.vue lang="scss" ---- */
+.mv-cell {
+  display: flex;
+  background-size: contain;
+  background-position: center;
+  height: 100%;
+  border: 1px solid rgba(240, 98, 145, 0.09);
+  justify-content: flex-start;
+  align-content: stretch;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+}
+.mv-cell .cell-content {
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 100%;
+  flex-shrink: 1;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mv-cell.edit-mode {
+  border: 1px solid transparent;
+  box-shadow: inset 0 0 0 2px var(--color-secondary);
+}
+
+.vue-grid-item.vue-draggable-dragging .mv-cell,
+.vue-grid-item.resizing .mv-cell {
+  pointer-events: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ---- components/multiview/CellControl.vue  ---- */
+.mobile-helpers .cell-control {
+  margin: 0 -5px;
+}
+
+.cell-control {
+  margin: 0;
+  padding: 0.35rem 0.35rem 0.4rem;
+}
+
+.mobile-helpers .cell-control .returnbtn {
+  width: 25px;
+  min-width: 40px;
+}
+
+.cell-control .return-btn {
+  border-radius: 0;
+  width: 60px;
+  margin-right: 10px;
+  position: relative;
+}
+
+.return-btn::after {
+  transition: width 0.1s, right 0.1s;
+  content: "";
+  width: 10px;
+  position: absolute;
+  right: -8px;
+  background-color: inherit;
+  height: 100%;
+  border-radius: 0 6px 6px 0;
+}
+
+.return-btn:hover::after {
+  content: "";
+  width: 18px;
+  position: absolute;
+  right: -16px;
+  background-color: inherit;
+  height: 100%;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ---- components/multiview/ChatCell.vue  ---- */
+.tabbed-chat-select {
+  min-width: 0;
+}
+
+.chat-stage {
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.chat-stage .watch-live-chat {
+  min-height: 0 !important;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.chat-stage .embedded-chat {
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.chat-btns {
+  display: flex;
+  min-height: 26px;
+}
+
+/* ---- components/multiview/EmptyCell.vue lang="scss" scoped ---- */
+.centered-btn {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  flex-direction: column;
+}
+
+/* ---- components/multiview/LayoutPreview.vue  ---- */
+.layout-preview {
+  border: 2px solid #475569;
+  background-color: #1f2937;
+  position: relative;
+  overflow: hidden;
+}
+
+.layout-preview-cell {
+  position: absolute;
+  border: 2px solid #475569;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.layout-preview.theme--light > .layout-preview-cell > span {
+  color: black;
+}
+
+.layout-preview.theme--light {
+  border-color: #d6d9df;
+  background-color: #f5f5f5;
+}
+
+.layout-preview.theme--light > .layout-preview-cell {
+  border-color: #d6d9df;
+  background-color: #e0e0e0;
+}
+
+/* ---- components/multiview/LayoutPreviewCard.vue  ---- */
+.layout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.layout-card-text {
+  position: relative;
+}
+
+/* ---- components/multiview/MediaControls.vue  ---- */
+.volume-slider {
+  flex-basis: 96px;
+  accent-color: rgb(56, 189, 248);
+  box-sizing: border-box;
+}
+
+/* ---- components/multiview/MultiviewBackground.vue  ---- */
+.mv-background {
+  opacity: 0.75;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-repeat: initial;
+  background-image: linear-gradient(to right, rgba(128, 128, 128, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(128, 128, 128, 0.15) 1px, transparent 1px);
+}
+
+.mv-empty-state {
+  display: flex;
+  justify-content: center;
+  padding: clamp(1rem, 4vh, 2.5rem) 1rem 0;
+}
+
+.mv-empty-card {
+  width: min(100%, 40rem);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(6px);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.25rem 1rem;
+  color: rgba(226, 232, 240, 0.96);
+  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.35);
+}
+
+.mv-empty-lead {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.mv-empty-sublead {
+  margin-top: 0.5rem;
+  color: rgba(203, 213, 225, 0.9);
+  line-height: 1.45;
+}
+
+.mv-empty-divider {
+  height: 1px;
+  margin: 1rem 0 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 640px) {
+  .mv-empty-card {
+    width: min(100%, 24rem);
+    padding: 1rem 1rem 0.9rem;
+  }
+  .mv-empty-lead {
+    font-size: 0.95rem;
+  }
+}
+.hints .hint-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  font-weight: 400;
+}
+
+.hints .text-h4 {
+  font-weight: 400;
+}
+
+/* ---- components/multiview/MultiviewSyncBar.vue lang="scss" ---- */
+.sync-bar {
+  width: 100%;
+  height: 100px;
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.progressSlider {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 90px;
+}
+
+.slider-container {
+  position: sticky;
+  margin-top: -90px;
+  left: 32px;
+  top: 0;
+  width: calc(100% - 32px);
+  height: 90px;
+  z-index: 5;
+  border: none;
+}
+
+.sync-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  background: none;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2s;
+}
+
+.sync-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 3px; /* Set a specific slider handle width */
+  height: 90px; /* Slider handle height */
+  background: var(--v-primary-base); /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  opacity: 0.8;
+  display: flex;
+}
+
+.sync-slider::-moz-range-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 3px; /* Set a specific slider handle width */
+  height: 90px; /* Slider handle height */
+  background: var(--v-primary-base); /* Green background */
+  cursor: pointer; /* Cursor on hover */
+  opacity: 0.8;
+  display: flex;
+}
+
+.sync-slider:focus {
+  outline: none;
+}
+
+.time-tooltip-wrapper {
+  position: absolute;
+  margin-left: 32px;
+  width: calc(100% - 8px - 32px);
+  z-index: 5;
+  top: -30px;
+}
+
+.time-tooltip {
+  display: inline-block;
+  white-space: pre;
+  text-align: center;
+  opacity: 0.7;
+  background: black;
+  color: white;
+  padding: 4px;
+  border-radius: 0.25em;
+  transform: translate(-50%, -50%);
+}
+
+/* ---- components/multiview/MultiviewToolbar.vue scoped ---- */
+.mv-toolbar-button {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.mv-toolbar-button-colored,
+.mv-toolbar-button-colored:hover,
+.mv-toolbar-button-colored:active,
+.mv-toolbar-button-colored:focus-visible {
+  color: var(--mv-toolbar-button-fg, currentColor) !important;
+}
+
+.mv-share-copy-btn {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.mv-share-copy-btn:hover,
+.mv-share-copy-btn:focus-visible {
+  color: color-mix(in srgb, var(--color-primary) 90%, var(--color-foreground) 10%);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  outline: none;
+}
+
+/* ---- components/multiview/MvUrlInput.vue scoped ---- */
+.mv-url-input {
+  min-width: 2rem;
+}
+
+/* When expanded, take up available space */
+.mv-url-input:has(form) {
+  min-width: 0;
+  max-width: 280px;
+}
+
+/* ---- components/multiview/PresetSelector.vue scoped ---- */
+.preset-dropdown-menu {
+  width: min(36rem, 100vw - 2rem);
+  max-height: min(80vh, 600px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+}
+
+/* ---- components/multiview/ReorderLayout.vue  ---- */
+.grabbable, .grabbable *, .grabbable *:hover, .grabbable *:active {
+  cursor: move !important; /* fallback if grab cursor is unsupported */
+}
+
+/* ---- components/multiview/VideoCell.vue  ---- */
+.mv-frame > div > iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.mv-frame {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+.video-cell {
+  min-height: 0;
+}
+
+.video-cell .cell-control {
+  flex-shrink: 0;
+}
+
+/* ---- components/multiview/VideoSelector.vue scoped ---- */
+.favorites-login-button {
+  color: #f8fafc !important;
+}
+
+.mv-quick-btn {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.mv-quick-btn:hover {
+  transform: translateY(-1px);
+}
+
+.mv-quick-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.mv-avatar-badge {
+  border-color: rgba(2, 6, 23, 0.9);
+  background: rgba(2, 6, 23, 0.95);
+  color: #f8fafc;
+}
+
+html[data-theme=light] .mv-avatar-badge {
+  border-color: var(--color-border);
+  background: color-mix(in srgb, var(--surface-elevated) 92%, white 8%);
+  color: var(--color-foreground);
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.24);
+}
+
+/* ---- components/multiview/VideoSelector.vue  ---- */
+.video-list {
+  flex: 1 1 auto;
+  min-height: 0px;
+  overflow-y: auto;
+}
+
+.refresh-spin {
+  animation: spin 1.1s infinite linear;
+}
+
+.videos-bar {
+  padding: 0 6px 0 2px;
+}
+
+.videos-strip {
+  overflow: hidden;
+  height: 52px;
+}
+
+.videos-strip.compact {
+  height: 40px;
+}
+
+.mv-video-scroll {
+  position: relative;
+  overflow: hidden;
+  height: 52px;
+}
+
+.mv-video-scroll-compact {
+  min-width: 0;
+  height: 40px;
+}
+
+.mv-video-scroll-vp {
+  height: 49px;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mv-video-scroll-vp::-webkit-scrollbar {
+  display: none;
+}
+
+.mv-video-scroll-compact .mv-video-scroll-vp,
+.mv-video-scroll-compact .scroll-area-viewport {
+  height: 40px;
+}
+
+.mv-video-scroll > .mv-scrollbar-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mv-video-scroll > .mv-scrollbar-track > .mv-scrollbar-thumb {
+  height: 100%;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.34);
+  will-change: transform, width;
+}
+
+/* ---- components/nav/MainNav.vue scoped ---- */
+.menu-logo-tile {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+}
+
+.menu-action-btn {
+  border: none !important;
+  cursor: pointer;
+}
+
+.menu-theme-icon {
+  color: inherit;
+}
+
+.playlist-count-badge {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 10px;
+  line-height: 1;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.menu-action-btn:hover .playlist-count-badge {
+  background-color: var(--color-base);
+  border-color: var(--color-bold);
+}
+
+@media (max-width: 959.98px) {
+  .main-nav-ext--home-tabs {
+    min-height: 62px;
+  }
+}
+
+.menu-theme-icon {
+  color: inherit;
+  filter: none;
+}
+
+.menu-avatar-btn {
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.menu-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.menu-search-form {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.menu-search-inline-btn {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.menu-search-inline-btn:hover,
+.menu-search-inline-btn:focus-visible {
+  color: color-mix(in srgb, var(--color-primary) 90%, var(--color-foreground) 10%);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  outline: none;
+}
+
+.menu-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--colorbg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.85rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  padding: 0.3rem;
+}
+
+.menu-autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-foreground);
+  transition: background-color 120ms ease;
+}
+
+.menu-autocomplete-item:hover,
+.menu-autocomplete-item:focus {
+  background: var(--surface-soft);
+  outline: none;
+}
+
+.menu-autocomplete-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+  color: var(--color-muted-foreground);
+}
+
+.menu-autocomplete-text {
+  flex: 1 1 auto;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-autocomplete-type {
+  font-size: 0.65rem;
+  color: var(--color-muted-foreground);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+/* ─── Search filter tags ─── */
+.menu-search-tags-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--color-light);
+  border-radius: 0.75rem;
+  background: var(--color-card);
+  padding: 0.25rem 2.5rem 0.25rem 0.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Prevent tags from overflowing under the search icon */
+  scroll-padding-right: 2.5rem;
+}
+
+.menu-search-tags-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-search-tags-wrap:focus-within {
+  border-color: var(--color-primary);
+}
+
+.menu-search-tags-input {
+  flex: 1 1 60px;
+  min-width: 60px;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  color: var(--color-foreground);
+  padding: 0;
+  height: 1.75rem;
+}
+
+.menu-search-tags-input::placeholder {
+  color: var(--color-muted-foreground);
+  font-size: 0.8rem;
+}
+
+.menu-search-filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.25rem 0.1rem 0.3rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: var(--surface-soft);
+  color: var(--color-foreground);
+}
+
+.menu-search-filter-tag-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
+  color: var(--color-muted-foreground);
+}
+
+.menu-search-filter-tag-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 8rem;
+}
+
+.menu-search-filter-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.menu-search-filter-tag-remove:hover {
+  color: var(--color-foreground);
+}
+
+/* ---- components/nav/MainNav.vue lang="scss" ---- */
+/* Remove focus outlines from buttons inside the playlist popover (portaled to body) */
+.popover-content button:focus,
+.popover-content button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.popover-content[data-state="closed"],
+.dropdown-menu-content[data-state="closed"] {
+  animation-fill-mode: forwards !important;
+}
+
+/* Playlist video list compact actions (from Playlist.vue) */
+.playlist-video-list .video-card-item-actions {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.playlist-video-list .video-card:hover .video-card-item-actions {
+  opacity: 1;
+}
+
+.playlist-video-list .video-card .video-card-item-actions {
+  opacity: 0.2;
+}
+
+.playlist-video-list .video-card-item-actions button {
+  padding: 1px 0 !important;
+  margin: 0 !important;
+  height: 22px !important;
+  width: 22px !important;
+  line-height: 20px;
+}
+
+/* ---- components/nav/NavUserMenu.vue  ---- */
+.nav-user-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--color-border);
+  background: var(--color-card);
+  transition: border-color 150ms ease, background-color 150ms ease;
+  padding: 0;
+}
+
+.nav-user-trigger:hover {
+  border-color: var(--color-foreground);
+}
+
+/* Ghost mode: looks like the other nav icon buttons */
+.nav-user-trigger--ghost {
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--color-muted-foreground);
+}
+
+.nav-user-trigger--ghost:hover {
+  background: var(--surface-soft);
+  color: var(--color-foreground);
+}
+
+.nav-user-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.nav-user-avatar-placeholder {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: var(--color-muted-foreground);
+}
+
+.nav-user-provider-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.nav-user-google-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  height: 2.75rem;
+}
+
+.nav-user-google-wrapper--sm {
+  height: 2rem;
+  border-radius: 0.5rem;
+}
+
+.nav-user-google-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.01;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.nav-user-google-overlay > * {
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.nav-user-google-wrapper .nav-user-provider-google {
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-foreground);
+  pointer-events: none;
+}
+
+.nav-user-provider-google {
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-foreground);
+}
+
+.nav-user-provider-google:hover {
+  border-color: #e91e8c;
+  background: color-mix(in srgb, #e91e8c 18%, var(--color-card));
+}
+
+.nav-user-google-wrapper:hover .nav-user-provider-google {
+  border-color: #e91e8c;
+  background: color-mix(in srgb, #e91e8c 18%, var(--color-card));
+}
+
+.nav-user-provider-btn--sm {
+  height: 2rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.nav-user-provider-discord {
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-card) !important;
+  color: var(--color-foreground) !important;
+}
+
+.nav-user-provider-discord:hover {
+  border-color: #5865F2 !important;
+  background: color-mix(in srgb, #5865F2 18%, var(--color-card)) !important;
+  color: var(--color-foreground) !important;
+}
+
+.nav-user-status-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background: var(--color-card);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--color-muted-foreground);
+}
+
+/* ---- components/playlist/Playlist.vue lang="scss" ---- */
+.playlist-video-list .video-card-item-actions {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.playlist-video-list .video-card:hover .video-card-item-actions {
+  opacity: 1;
+}
+
+.playlist-video-list .video-card .video-card-item-actions {
+  opacity: 0.2;
+}
+
+.playlist-video-list .video-card-item-actions button {
+  padding: 1px 0 !important;
+  margin: 0 !important;
+  height: 22px !important;
+  width: 22px !important;
+  line-height: 20px;
+}
+
+/* ---- components/search/SearchForm.vue scoped ---- */
+/* ─── Layout ─── */
+.search-form-wrapper {
+  padding: 0;
+}
+
+.search-inline-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.search-inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1 1 120px;
+  position: relative;
+}
+
+/* Descending z-indexes: earlier fields above later fields so their menus overlap correctly */
+.search-inline-field:nth-child(1) {
+  z-index: 8;
+} /* org */
+.search-inline-field:nth-child(2) {
+  z-index: 7;
+} /* type */
+.search-inline-field:nth-child(3) {
+  z-index: 6;
+} /* topic */
+.search-inline-field:nth-child(4) {
+  z-index: 5;
+} /* channel */
+.search-inline-field:nth-child(5) {
+  z-index: 4;
+} /* title */
+.search-inline-field:nth-child(6) {
+  z-index: 3;
+} /* comment */
+.search-inline-field:nth-child(7) {
+  z-index: 2;
+} /* sort */
+.search-inline-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  padding-bottom: 0.05rem;
+}
+
+.search-inline-label {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+}
+
+/* ─── Buttons (coherent pair: bordered square icons matching nav buttons) ─── */
+.search-btn-submit,
+.search-btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-light);
+  background: var(--color-card);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.search-btn-submit {
+  color: var(--color-muted-foreground);
+}
+
+.search-btn-submit:hover,
+.search-btn-submit:focus-visible {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+  outline: none;
+}
+
+.search-btn-reset {
+  color: var(--color-muted-foreground);
+}
+
+.search-btn-reset:hover,
+.search-btn-reset:focus-visible {
+  border-color: #ef4444;
+  background: #ef4444;
+  color: #ffffff;
+  outline: none;
+}
+
+/* ─── Org panel overrides ─── */
+.search-inline-org-select .home-org-inline-panel {
+  width: min(92vw, 42rem) !important;
+  max-width: calc(100vw - 1.5rem) !important;
+  max-height: calc(100vh - 10rem) !important;
+  overflow: auto;
+  left: 0 !important;
+  box-shadow: 0 20px 56px rgba(2, 6, 23, 0.34) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 1rem !important;
+  background: var(--surface-nav-solid) !important;
+}
+
+/* At narrow widths, shift panel left to align with viewport left edge */
+@media (max-width: 960px) {
+  .search-inline-org-select .home-org-inline-panel {
+    left: calc(-1 * var(--org-field-left, 0px) + 0.75rem) !important;
+    right: auto !important;
+    width: calc(100vw - 1.5rem) !important;
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+}
+@media (max-width: 640px) {
+  .search-inline-org-select .home-org-inline-panel {
+    left: calc(-1 * var(--org-field-left, 0px) + 0.75rem) !important;
+    right: auto !important;
+    width: calc(100vw - 1.5rem) !important;
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+}
+.search-inline-org-select .home-org-trigger {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.search-inline-org-select .home-org-trigger-open {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.search-inline-org-select .home-org-select-card {
+  border: none !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.search-inline-org-select .home-org-select-card .select-card {
+  background: transparent !important;
+}
+
+.search-inline-org-select .home-org-select-card .select-card-content,
+.search-inline-org-select .home-org-select-card .select-card-body,
+.search-inline-org-select .home-org-quick-select,
+.search-inline-org-select .home-org-select-scroll .scroll-area-viewport-native,
+.search-inline-org-select .home-org-select-scroll .scroll-area-viewport {
+  background: transparent !important;
+}
+
+.search-inline-org-select .home-org-select-scroll {
+  height: auto !important;
+  max-height: min(40vh, 22rem) !important;
+}
+
+.search-inline-org-select .home-org-select-scroll .scroll-area-viewport {
+  height: auto !important;
+  max-height: min(40vh, 22rem) !important;
+}
+
+.search-inline-org-select .home-org-select-card .select-card-search-input {
+  background: var(--colorbg) !important;
+}
+
+/* ─── Channel chip-input combobox ─── */
+.search-channel-combobox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  border: 1px solid var(--color-light);
+  border-radius: 0.75rem;
+  background: var(--color-card);
+  padding: 0 0.5rem;
+  cursor: text;
+  gap: 0.25rem;
+  transition: border-color 150ms ease;
+}
+
+.search-channel-combobox:focus-within,
+.search-channel-combobox-open {
+  border-color: var(--color-primary);
+}
+
+.search-channel-inner {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.25rem;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  white-space: nowrap;
+}
+
+.search-channel-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.search-channel-text-input {
+  flex: 1 1 40px;
+  min-width: 40px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  color: var(--color-foreground);
+  height: 1.5rem;
+  padding: 0;
+}
+
+.search-channel-text-input::placeholder {
+  color: var(--color-muted-foreground);
+  font-size: 0.8rem;
+}
+
+.search-channel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  padding: 0.05rem 0.2rem 0.05rem 0.35rem;
+  font-size: 0.68rem;
+  max-width: 7rem;
+  flex-shrink: 0;
+}
+
+.search-channel-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-foreground);
+}
+
+.search-channel-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  padding: 0;
+  line-height: 1;
+}
+
+.search-channel-chip-remove:hover {
+  color: var(--color-foreground);
+}
+
+.search-channel-chevron {
+  flex-shrink: 0;
+  color: var(--color-muted-foreground);
+  display: flex;
+  align-items: center;
+}
+
+.search-channel-panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 360;
+  background: var(--colorbg);
+  border: 1px solid var(--color-light);
+  border-radius: 0.75rem;
+  box-shadow: none;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0 0.3rem 0.5rem;
+  min-width: 100%;
+  width: max(100%, 20rem);
+}
+
+.search-channel-suggestions {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.25rem;
+}
+
+.search-channel-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  text-align: left;
+  font-size: 0.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-foreground);
+  transition: background-color 120ms ease;
+}
+
+.search-channel-suggestion:hover,
+.search-channel-suggestion:focus {
+  background: var(--color-base);
+  outline: none;
+}
+
+.search-channel-suggestion-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-base);
+}
+
+.search-channel-suggestion-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  color: var(--color-muted-foreground);
+}
+
+.search-channel-suggestion-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.search-channel-selected-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid var(--color-light);
+}
+
+.search-channel-selected-section.search-channel-selected-no-divider {
+  border-bottom: none;
+}
+
+.search-channel-selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem 0.25rem 0.3rem;
+  font-size: 0.78rem;
+  color: var(--color-foreground);
+  max-width: 100%;
+}
+
+.search-channel-tag-avatar {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-base);
+}
+
+.search-channel-tag-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.search-channel-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  padding: 0;
+  line-height: 1;
+}
+
+.search-channel-tag-remove:hover {
+  color: var(--color-foreground);
+}
+
+.search-channel-empty {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--color-muted-foreground);
+}
+
+/* ─── Topic count badge ─── */
+.search-topic-count {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--surface-soft);
+  color: var(--color-foreground);
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+/* ---- components/setting/AboutSection.vue scoped ---- */
+.faq-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.about-credits a {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.faq-content a {
+  color: var(--color-primary);
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.faq-item {
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) + 2px);
+  background: color-mix(in srgb, var(--surface-soft) 90%, transparent);
+  overflow: hidden;
+  transition: border-color 160ms ease;
+}
+
+.faq-item:hover {
+  border-color: var(--color-bold);
+}
+
+.faq-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  cursor: pointer;
+  list-style: none;
+  padding: 0.95rem 1rem;
+  color: var(--color-foreground);
+  font-size: 0.92rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.faq-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.faq-chevron {
+  flex-shrink: 0;
+  color: var(--color-muted-foreground);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.faq-item[open] .faq-chevron {
+  transform: rotate(180deg);
+  color: var(--color-foreground);
+}
+
+.faq-content {
+  border-top: 1px solid var(--color-border);
+  padding: 0.85rem 1rem 1rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.6;
+}
+
+/* ---- components/setting/SelectCard.vue scoped ---- */
+.select-card {
+  --select-card-control-height: 2.5rem;
+}
+
+.select-card-title {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+.select-card-description {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.select-card-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Match search input font size to chip font size */
+.select-card .select-card-search-input {
+  font-size: 0.8rem;
+  height: var(--select-card-control-height);
+}
+
+/* Add gap between content and native scrollbar so chips aren't clipped */
+.select-card .scroll-area-viewport-native {
+  --scroll-area-native-gap: 6px;
+}
+
+.select-card div:has(> .settings-check-chip, > .stream-check-chip):not(.select-card-chip-flow) {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--select-card-chip-min-width, 10.5rem)), 1fr));
+  align-items: stretch;
+}
+
+.select-card .select-card-chip-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--select-card-chip-min-width, 10.5rem)), 1fr));
+  align-items: stretch;
+}
+
+.select-card .select-card-chip-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.select-card .settings-check-chip,
+.select-card .stream-check-chip {
+  display: inline-flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  height: 2.2rem;
+  min-height: 2.2rem;
+  border-radius: 0.75rem;
+  border: none;
+  background: var(--color-base);
+  padding: 0 0.625rem;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.select-card .settings-check-chip.select-card-chip-compact,
+.select-card .stream-check-chip.select-card-chip-compact {
+  width: auto;
+  max-width: 100%;
+}
+
+.select-card .settings-check-chip.select-card-chip-compact .select-card-chip-label,
+.select-card .stream-check-chip.select-card-chip-compact .select-card-chip-label {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.select-card .settings-check-chip.select-card-chip-compact .select-card-chip-meta,
+.select-card .stream-check-chip.select-card-chip-compact .select-card-chip-meta {
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.select-card .settings-check-chip-indicator,
+.select-card .stream-check-chip-indicator {
+  height: 0.75rem;
+  width: 0.75rem;
+  min-width: 0.75rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-muted-foreground);
+  background: transparent;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  pointer-events: none;
+}
+
+.select-card .peer:checked + .settings-check-chip-indicator,
+.select-card .peer:checked + .stream-check-chip-indicator {
+  border-color: currentColor;
+  background: currentColor;
+  transform: scale(1.05);
+}
+
+.select-card .settings-check-chip:hover,
+.select-card .stream-check-chip:hover {
+  background: var(--color-bold);
+  color: white;
+}
+
+.select-card .settings-check-chip:hover .settings-check-chip-indicator,
+.select-card .stream-check-chip:hover .stream-check-chip-indicator {
+  border-color: currentColor;
+}
+
+.select-card .settings-check-chip-selected,
+.select-card .stream-check-chip-selected {
+  background: var(--color-bold);
+  color: white;
+}
+
+.select-card .settings-check-chip-selected:hover,
+.select-card .stream-check-chip-selected:hover {
+  background: var(--color-bold);
+  color: white;
+}
+
+.select-card .settings-check-chip-selected .settings-check-chip-indicator,
+.select-card .stream-check-chip-selected .stream-check-chip-indicator {
+  border-color: currentColor;
+  background: currentColor;
+  transform: scale(1.05);
+}
+
+.select-card .settings-check-chip-selected > span:nth-of-type(2),
+.select-card .stream-check-chip-selected > span:nth-of-type(2),
+.select-card .settings-check-chip-selected .select-card-chip-label,
+.select-card .stream-check-chip-selected .select-card-chip-label {
+  color: white;
+}
+
+.select-card .settings-check-chip-disabled {
+  cursor: not-allowed;
+}
+
+.select-card .settings-check-chip-disabled > span:nth-of-type(2),
+.select-card .settings-check-chip-disabled .select-card-chip-label {
+  color: var(--color-muted-foreground);
+}
+
+.select-card .settings-check-chip-disabled:hover {
+  background: var(--color-card);
+}
+
+.select-card .settings-check-chip-disabled:hover > span:nth-of-type(2),
+.select-card .settings-check-chip-disabled:hover .select-card-chip-label {
+  color: var(--color-muted-foreground);
+}
+
+.select-card .settings-check-chip > span:nth-of-type(2),
+.select-card .stream-check-chip > span:nth-of-type(2),
+.select-card .select-card-chip-label {
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.select-card .select-card-chip-meta {
+  margin-left: auto;
+  color: var(--color-muted-foreground);
+  flex-shrink: 0;
+  transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+
+.select-card .select-card-chip-remove {
+  display: inline-flex;
+  height: 1.1rem;
+  width: 1.1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-bold);
+  background: color-mix(in srgb, var(--color-card) 90%, transparent);
+}
+
+.select-card .select-card-chip-count {
+  margin-left: 0.45rem;
+  max-width: 100%;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-muted-foreground);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 10px;
+  line-height: 1;
+  padding: 0 0.375rem;
+}
+
+.select-card .select-card-chip-remove-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  border-width: 1px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.select-card .select-card-clear-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  height: var(--select-card-control-height) !important;
+  width: var(--select-card-control-height) !important;
+  flex-shrink: 0;
+  border: 1px solid var(--color-bold) !important;
+  background: color-mix(in srgb, var(--color-card) 90%, transparent) !important;
+  color: var(--color-muted-foreground) !important;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.select-card .select-card-clear-btn:hover,
+.select-card .select-card-clear-btn:focus-visible {
+  border-color: #ef4444 !important;
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.select-card .select-card-chip-remove-btn:hover,
+.select-card .select-card-chip-remove-btn:focus-visible {
+  border-color: #ef4444;
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* ---- components/setting/VideoListFilters.vue scoped ---- */
+.stream-check-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+/* ---- components/tlscripteditor/EnhancedEntry.vue  ---- */
+.EntryContainer2 {
+  font-weight: bold;
+  text-align: center;
+  margin: 2px 4px 2px 4px;
+  word-wrap: break-word;
+}
+
+/* ---- components/tlscripteditor/Entrytr.vue  ---- */
+.EntryContainer {
+  font-weight: bold;
+}
+
+/* ---- components/tlscriptmanager/Entrytr.vue  ---- */
+.EntryContainer {
+  font-weight: bold;
+}
+
+/* ---- components/ui/dialog/Dialog.vue scoped ---- */
+.dialog-fade-enter-active,
+.dialog-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.dialog-fade-enter-from,
+.dialog-fade-leave-to {
+  opacity: 0;
+}
+
+/* ---- components/ui/input/Input.vue scoped ---- */
+.ui-input-base {
+  border-color: var(--color-light);
+  background: var(--color-card);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.ui-input-base:focus,
+.ui-input-base:focus-visible {
+  border-color: var(--color-bold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-bold) 28%, transparent);
+}
+
+/* ---- components/ui/scroll-area/ScrollArea.vue scoped ---- */
+.scroll-area-viewport {
+  overscroll-behavior: contain;
+}
+
+.scroll-area-viewport-custom {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-area-viewport-custom::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-area-viewport-native {
+  --scroll-area-native-size: 12px;
+  --scroll-area-native-gap: 0px;
+  scrollbar-width: thin;
+  scrollbar-gutter: auto;
+  padding-inline-end: var(--scroll-area-native-gap);
+  margin-inline-end: calc(var(--scroll-area-native-gap) * -1);
+  scrollbar-color: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%) color-mix(in srgb, var(--color-light) 42%, transparent);
+  background: transparent;
+}
+
+.scroll-area-viewport-native::-webkit-scrollbar {
+  width: var(--scroll-area-native-size);
+  height: var(--scroll-area-native-size);
+}
+
+.scroll-area-viewport-native::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.scroll-area-viewport-native::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-bold) 38%, transparent);
+  background: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%);
+}
+
+.scroll-area-viewport-native::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-bold) 78%, var(--color-light) 22%);
+}
+
+.scroll-area-content-native {
+  box-sizing: border-box;
+  padding-inline-end: var(--scroll-area-native-gap);
+  background: transparent;
+}
+
+.scroll-area-track {
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-light) 42%, transparent);
+  transition: background-color 160ms ease;
+}
+
+.scroll-area-track:hover {
+  background: color-mix(in srgb, var(--color-bold) 34%, transparent);
+}
+
+.scroll-area-track-vertical {
+  inset-block: 0.45rem;
+  right: 0;
+  width: 0.38rem;
+}
+
+.scroll-area-track-horizontal {
+  inset-inline: 0.35rem;
+  bottom: 0.2rem;
+  height: 0.38rem;
+}
+
+.scroll-area-thumb {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-bold) 72%, var(--color-light) 28%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-bold) 38%, transparent);
+}
+
+.scroll-area-thumb-vertical {
+  left: 0;
+  right: 0;
+}
+
+.scroll-area-thumb-horizontal {
+  top: 0;
+  bottom: 0;
+}
+
+/* ---- components/ui/select/Select.vue scoped ---- */
+.ui-select-search-wrap {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  background: var(--colorbg);
+  border-top: 0 !important;
+  border-bottom: 1px solid var(--color-light);
+  box-shadow: none;
+}
+
+.ui-select-search-input {
+  width: 100%;
+  height: 1.95rem;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-foreground);
+  padding: 0;
+  font-size: 0.83rem;
+  outline: none;
+  box-shadow: none;
+}
+
+.ui-select-search-input:focus {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.ui-select-menu-scroll {
+  position: relative;
+  max-height: 18rem;
+  overflow: hidden;
+  background: var(--colorbg);
+}
+
+.ui-select-menu-scroll .scroll-area-viewport-native {
+  max-height: 18rem;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  background: linear-gradient(to bottom, var(--edge-top, var(--colorbg)) 0%, var(--edge-bottom, var(--colorbg)) 100%);
+}
+
+.ui-select-menu-scroll .scroll-area-content-native {
+  background: transparent;
+  width: 100%;
+}
+
+.ui-select-empty {
+  padding: 0.65rem 0.95rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.8rem;
+}
+
+.ui-select-menu {
+  border-color: var(--color-light) !important;
+  background: var(--colorbg) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 20px 56px rgba(2, 6, 23, 0.34);
+}
+
+.ui-select-menu-enter-active,
+.ui-select-menu-leave-active {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+}
+
+.ui-select-menu-enter-from,
+.ui-select-menu-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.ui-select-menu[data-state="open"] {
+  animation: holodex-select-menu-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ui-select-menu[data-state="closed"] {
+  animation: holodex-select-menu-out 180ms ease both;
+}
+
+@keyframes holodex-select-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes holodex-select-menu-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.ui-select-trigger {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+  color: var(--color-muted-foreground) !important;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.ui-select-trigger:hover {
+  border-color: var(--color-bold) !important;
+  background: var(--color-base) !important;
+  color: var(--color-foreground) !important;
+}
+
+.ui-select-trigger-open {
+  border-color: var(--color-bold) !important;
+  background: var(--color-base) !important;
+  color: var(--color-foreground) !important;
+  box-shadow: none;
+}
+
+.ui-select-trigger-chevron {
+  color: var(--color-muted-foreground);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.ui-select-trigger-chevron-open {
+  transform: rotate(180deg);
+  color: var(--color-foreground);
+}
+
+.ui-select-trigger:focus {
+  border-color: var(--color-bold);
+  box-shadow: none;
+}
+
+.ui-select-option {
+  --ui-select-line-top: transparent;
+  --ui-select-line-bottom: transparent;
+  width: 100%;
+  white-space: nowrap;
+  margin-inline: 0;
+  position: relative;
+  z-index: 1;
+  border-radius: 0;
+  padding: 0.68rem 0.75rem;
+  background: var(--colorbg) !important;
+  border: 0 !important;
+  outline: none;
+  box-shadow: inset 0 1px 0 var(--ui-select-line-top), inset 0 -1px 0 var(--ui-select-line-bottom);
+}
+
+.ui-select-option + .ui-select-option {
+  margin-top: 0;
+}
+
+.ui-select-option-active,
+.ui-select-option:hover,
+.ui-select-option:focus,
+.ui-select-option:focus-visible,
+.ui-select-option:active {
+  --ui-select-line-top: var(--color-light);
+  --ui-select-line-bottom: var(--color-light);
+  background: var(--color-base) !important;
+  outline: none;
+}
+
+.ui-select-option-selected {
+  --ui-select-line-top: var(--color-light);
+  --ui-select-line-bottom: var(--color-light);
+  background: var(--color-base) !important;
+}
+
+/* join/edge classes use doubled class selector to beat :hover specificity (0,2,0 > 0,1,1) */
+.ui-select-option.ui-select-option-active-join-next {
+  --ui-select-line-bottom: transparent;
+}
+
+.ui-select-option.ui-select-option-active-first {
+  --ui-select-line-top: transparent;
+}
+
+.ui-select-option.ui-select-option-active-last {
+  --ui-select-line-bottom: transparent;
+}
+
+/* ---- components/ui/sheet/Sheet.vue scoped ---- */
+.sheet-fade-enter-active,
+.sheet-fade-leave-active,
+.sheet-left-enter-active,
+.sheet-left-leave-active,
+.sheet-right-enter-active,
+.sheet-right-leave-active {
+  transition: all 0.18s ease;
+}
+
+.sheet-fade-enter-from,
+.sheet-fade-leave-to {
+  opacity: 0;
+}
+
+.sheet-left-enter-from,
+.sheet-left-leave-to {
+  transform: translateX(-100%);
+}
+
+.sheet-right-enter-from,
+.sheet-right-leave-to {
+  transform: translateX(100%);
+}
+
+/* ---- components/video/Comment.vue  ---- */
+.comment-chip {
+  /* background-color: rgba(231, 159, 245, 0.281); */
+  line-height: initial;
+  padding: 1px 1px;
+  border-radius: 4px;
+  display: inline-block;
+  text-decoration: none;
+  /* border: 1px solid; */
+}
+
+.comment-chip:hover {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.comment {
+  border-left: 2px solid rgba(255, 255, 255, 0.5);
+  min-height: 0px !important;
+  padding: 0.25rem 1rem;
+  position: relative;
+}
+
+.comment:hover .openOnYoutube {
+  display: block;
+}
+
+.comment:focus .openOnYoutube {
+  display: block;
+}
+
+.openOnYoutube {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+/* ---- components/video/ConnectedVideoList.vue  ---- */
+.loading-spinner-sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+  border-top-color: var(--color-primary);
+  animation: cv-spinner 0.8s linear infinite;
+}
+
+@keyframes cv-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* ---- components/video/ConnectedVideoList.vue scoped ---- */
+.select-card-chip-flow {
+  align-items: stretch !important;
+}
+
+.select-card-chip-flow > .stream-check-chip {
+  width: auto;
+  flex: 1 1 0;
+  min-width: fit-content;
+}
+
+/* Match select-card-title style */
+.filter-panel-label {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+/* Strip SelectCard chrome and unify title color with other labels */
+.filter-panel-filters .select-card {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0;
+}
+
+.filter-panel-filters .select-card-title {
+  color: var(--color-muted-foreground);
+}
+
+/* Flex growth chain: blocked topics scroll area fills remaining aside space */
+.filter-panel-filters {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-panel-filters .select-card:last-child {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-panel-filters .select-card:last-child > * {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-panel-filters :has(> .scroll-area-viewport-native) {
+  height: auto !important;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.filter-panel-filters .scroll-area-viewport-native {
+  height: 100% !important;
+  max-height: none;
+}
+
+/* Make grid layout single-column to match tab button list */
+.filter-panel-filters .stream-check-grid {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ---- components/video/PlaceholderCard.vue  ---- */
+.placeholder-punchout {
+  position: absolute;
+  right: 20px;
+  margin-top: 15px;
+  z-index: 30;
+}
+
+.placeholder-img {
+  object-fit: contain;
+  width: 100%;
+  height: 500px;
+  background: black;
+  max-height: 50vh;
+}
+
+/* ---- components/video/PlaceholderOverlay.vue scoped ---- */
+.placeholder-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.placeholder-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.show-on-hover {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-card:hover .show-on-hover {
+  opacity: 1;
+}
+
+.placeholder-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.placeholder-line {
+  opacity: 0.9;
+}
+
+/* Hover animations */
+.video-card:hover .placeholder-line {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+/* ---- components/video/SkeletonCardList.vue lang="scss" ---- */
+.video-skeleton-grid {
+  display: grid;
+  column-gap: 0.25rem;
+  row-gap: 0.35rem;
+  grid-template-columns: repeat(var(--video-grid-xs, var(--video-grid-columns, 1)), minmax(0, 1fr));
+}
+
+@media (min-width: 600px) {
+  .video-skeleton-grid {
+    grid-template-columns: repeat(var(--video-grid-sm, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .video-skeleton-grid {
+    grid-template-columns: repeat(var(--video-grid-md, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1264px) {
+  .video-skeleton-grid {
+    grid-template-columns: repeat(var(--video-grid-lg, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1904px) {
+  .video-skeleton-grid {
+    grid-template-columns: repeat(var(--video-grid-xl, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+.video-skeleton-grid--compact {
+  column-gap: 0.25rem;
+  row-gap: 0.35rem;
+}
+
+.video-skeleton-grid--list {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: 0.75rem;
+  overflow: hidden;
+  row-gap: 0 !important;
+}
+
+.video-skeleton-grid--list:empty {
+  border: none;
+}
+
+.video-skeleton-grid--list .video-skeleton-item {
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+}
+
+.video-skeleton-grid--list .video-skeleton-item:last-child {
+  border-bottom: none;
+}
+
+.video-skeleton-item {
+  min-width: 0;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+  contain: layout style;
+}
+
+/* Grid card skeleton: match .video-card-shell border-radius, bg, shadow */
+.video-skeleton-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  background: var(--color-card, rgba(255, 255, 255, 0.04));
+}
+
+/* ---- components/video/VideoCard.vue scoped lang="scss" ---- */
+.video-watched {
+  color: color-mix(in srgb, var(--color-primary) 70%, white 30%) !important;
+  opacity: 0.6;
+}
+
+html[data-theme=light] .video-watched {
+  color: color-mix(in srgb, var(--color-primary) 44%, #0f172a 56%) !important;
+  opacity: 1;
+}
+
+.video-card {
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: none !important;
+  contain: layout style;
+}
+
+.video-card:hover {
+  transform: none;
+}
+
+.video-card-fluid {
+  width: 100%;
+}
+
+.video-card-shell {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  backface-visibility: hidden;
+  border-radius: 1rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 92%, white 8%) 0%, var(--color-card) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(2, 6, 23, 0.13);
+  transition: box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.video-card:hover .video-card-shell {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border) 72%);
+}
+
+.video-card-dragging {
+  opacity: 0.92;
+  transform: scale(0.985);
+}
+
+.video-card-drag-preview {
+  position: fixed !important;
+  top: -1000px !important;
+  left: -1000px !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  overflow: hidden;
+  box-shadow: none !important;
+  transform: rotate(1.2deg) !important;
+}
+
+.video-thumbnail {
+  overflow: hidden;
+  border-radius: 0;
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.video-card-overlay {
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.video-card .text-live {
+  color: red;
+  font-weight: 500;
+}
+
+.video-card-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: row;
+  gap: 0.625rem;
+  min-height: 88px;
+  position: relative;
+  padding: 0.5rem 0.625rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent 28%);
+  background: transparent;
+  box-shadow: none !important;
+}
+
+.video-card-text-single-line {
+  min-height: 96.1875px;
+  height: 96.1875px;
+}
+
+.video-card-lines {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.video-card-avatar-slot {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.video-card-avatar-slot img,
+.video-card-avatar-slot .v-image,
+.video-card-avatar-slot .rounded {
+  box-shadow: 0 6px 16px rgba(2, 6, 23, 0.14);
+}
+
+/* Grid mode avatar (live/upcoming): vertically centered, balanced padding */
+.video-card-avatar-slot--grid {
+  align-self: center !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.video-card-avatar-slot--grid img,
+.video-card-avatar-slot--grid .rounded {
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.12);
+}
+
+.video-card-meta {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: auto;
+}
+
+.video-card-meta > div {
+  margin-bottom: 2px;
+}
+
+.video-card-title-wrap {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.video-card-title-wrap-default {
+  margin-top: 0.14rem;
+}
+
+.video-card-channel-slot {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  min-width: 0;
+}
+
+.video-card-lines-single-line {
+  height: 100%;
+  justify-content: center;
+  gap: 0.4rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.video-card-lines-single-line .video-card-title-wrap {
+  margin-top: 0 !important;
+  padding-top: 0;
+  margin-bottom: 0;
+}
+
+.video-card-lines-single-line .video-card-meta {
+  margin-top: 0;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 0.26rem;
+}
+
+.video-card-lines-single-line .video-card-channel-slot {
+  flex: 0 0 auto;
+  align-items: center;
+  padding-top: 0;
+  min-height: 0;
+}
+
+.video-card-lines-single-line .video-card-meta > div {
+  margin-bottom: 0;
+}
+
+.video-card-lines-single-line .video-card-time {
+  margin-bottom: 0;
+  transform: none;
+  min-height: 1.05rem;
+  margin-top: 0;
+}
+
+/* https://css-tricks.com/almanac/properties/w/word-break/ */
+.video-card-title {
+  line-height: 1.25rem !important;
+  max-height: 2.5rem;
+  cursor: pointer;
+  /* Smooth out watched-state color changes after async IndexedDB lookups */
+  transition: color 0.25s ease;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.channel-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.channel-name > a:hover {
+  color: var(--color-foreground) !important;
+}
+
+.video-card .hover-placeholder {
+  visibility: hidden;
+  display: none;
+  line-height: 13px;
+  position: relative;
+  top: 1px;
+}
+
+.video-card:hover .hover-placeholder {
+  visibility: visible;
+  display: inline-block;
+  line-height: 13px;
+  position: relative;
+  top: 1px;
+}
+
+.video-card .duration-placeholder {
+  visibility: visible;
+  display: inline-block;
+  line-height: 13px;
+  position: relative;
+  top: 1px;
+}
+
+.video-card:hover .duration-placeholder {
+  visibility: hidden;
+  display: none;
+  line-height: 13px;
+  position: relative;
+  top: 1px;
+}
+
+.video-card .hover-opacity {
+  opacity: 0.6;
+}
+
+.video-card:hover .hover-opacity {
+  opacity: 1;
+}
+
+/* Smooth fade-in for thumbnails — only animates on network download, not cache */
+.img-fade-in.img-pending {
+  opacity: 0;
+}
+
+.img-fade-in.img-pending[data-fade-ready] {
+  transition: opacity 0.3s ease;
+}
+
+.img-fade-in.loaded {
+  opacity: 1;
+}
+
+.img-fade-in.hover-opacity.loaded {
+  opacity: 0.6;
+}
+
+.video-duration {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-primary) 30%, rgba(2, 6, 23, 0.86) 70%);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, rgba(255, 255, 255, 0.18) 76%);
+  color: rgba(248, 250, 252, 0.98);
+  display: inline-flex;
+  justify-content: center;
+  margin: 5px;
+  min-height: 22px;
+  padding: 2px 5px;
+  text-align: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(2, 6, 23, 0.2);
+  vertical-align: middle;
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
+}
+.video-duration.video-duration-live {
+  background: rgba(148, 0, 0, 0.88);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.video-topic {
+  background: rgba(2, 6, 23, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(248, 250, 252, 0.98);
+  margin: 0.4rem;
+  min-height: 22px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(2, 6, 23, 0.18);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
+}
+
+/* Save/add button overlay — neutral, theme-independent */
+.video-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.video-card-action:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.video-card-action-icon-unsaved {
+  color: #f8fafc;
+}
+
+.video-card-menu-shell {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(2, 6, 23, 0.96);
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.5);
+}
+
+html[data-theme=light] .video-duration {
+  background: color-mix(in srgb, var(--color-primary) 22%, rgba(255, 255, 255, 0.96) 78%);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, rgba(148, 163, 184, 0.34) 72%);
+  color: color-mix(in srgb, var(--color-primary) 18%, #0f172a 82%);
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.14);
+  text-shadow: none;
+}
+
+html[data-theme=light] .video-duration.video-duration-live {
+  background: rgba(148, 0, 0, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+html[data-theme=light] .video-topic {
+  background: rgba(2, 6, 23, 0.86);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(248, 250, 252, 0.98);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
+  text-shadow: 0 1px 1px rgba(2, 6, 23, 0.18);
+}
+
+html[data-theme=light] .video-card-menu-shell {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 22px 48px rgba(148, 163, 184, 0.22);
+}
+
+.video-card-horizontal {
+  flex-direction: row !important;
+}
+.video-card-horizontal:hover {
+  transform: none;
+}
+.video-card-horizontal .video-card-shell {
+  flex-direction: row;
+  background: transparent;
+  border-color: transparent;
+  filter: none;
+  box-shadow: none !important;
+  border-radius: 0;
+}
+.video-card-horizontal:hover .video-card-shell {
+  background: color-mix(in srgb, var(--color-card) 55%, transparent 45%);
+  border-color: transparent;
+  filter: none;
+}
+.video-card-horizontal .video-thumbnail {
+  margin-right: 0;
+  width: 128px !important;
+  height: 72px !important;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  align-self: center;
+  margin: 0.375rem 0 0.375rem 0.375rem;
+}
+.video-card-horizontal .video-card-text {
+  border-top: 0;
+  border-left: 0;
+  padding: 0.375rem 0.5rem;
+}
+.video-card-horizontal .video-card-text .video-card-lines {
+  justify-content: space-around;
+}
+
+.video-card-list {
+  flex-direction: row !important;
+  min-height: 48px;
+  /* No float on hover — list items stay flat */
+}
+.video-card-list:hover {
+  transform: none;
+}
+.video-card-list .video-card-shell {
+  flex-direction: row;
+  min-height: 48px;
+  /* Strip card shell to match list/horizontal mode — no float, no bg */
+  background: transparent;
+  border: none !important;
+  filter: none;
+  box-shadow: none !important;
+  border-radius: 0;
+}
+.video-card-list:hover .video-card-shell {
+  background: color-mix(in srgb, var(--color-card) 55%, transparent 45%);
+  border: none !important;
+  filter: none;
+  box-shadow: none !important;
+}
+.video-card-list .video-card-text {
+  min-height: unset;
+  padding: 0 0.5rem 0 0.25rem;
+  border-top: 0;
+  border-left: 0;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+.video-card-list .video-card-avatar-slot {
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+.video-card-list .video-card-lines {
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+}
+.video-card-list .video-card-title-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+}
+.video-card-list .video-card-title {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+.video-card-list .video-card-meta {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  min-width: 0;
+}
+.video-card-list .video-card-meta > div {
+  margin-bottom: 0;
+}
+.video-card-list .video-card-channel-slot {
+  flex: 0 0 auto;
+  max-width: 150px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.video-card-list .video-card-channel-slot .channel-name {
+  overflow: hidden;
+}
+.video-card-list .video-card-channel-slot .channel-name .plain-button {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+.video-card-list .video-card-time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 80px;
+}
+.video-card-list .video-card-item-actions {
+  border-top: 0;
+  border-left: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent 30%);
+  padding: 0 0.5rem;
+  align-self: stretch;
+  height: auto;
+  display: flex;
+  align-items: center;
+}
+
+html[data-theme=light] .video-card-shell {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 94%, white 6%) 0%, var(--color-card) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 28px rgba(148, 163, 184, 0.15);
+}
+
+html[data-theme=light] .video-card:hover .video-card-shell {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 22px 42px rgba(148, 163, 184, 0.22);
+}
+
+html[data-theme=light] .video-card-drag-preview {
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-card,
+  .video-card-shell,
+  .video-card:hover,
+  .video-card-shell:hover {
+    transition: none !important;
+    transform: none !important;
+  }
+  .video-card-drag-preview {
+    transform: none !important;
+  }
+}
+.name-vtuber {
+  color: #42a5f5 !important;
+}
+
+.video-card-active {
+  /* primary color with opacity */
+  /* background-color: #f0629257; */
+  height: auto;
+  width: auto;
+  position: relative;
+}
+
+.video-card-active::before {
+  content: "";
+  background-color: color-mix(in srgb, var(--color-primary) 65%, black 35%);
+  background-size: cover;
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  opacity: 0.15;
+  border-radius: 4px;
+}
+
+.video-card-multiview-active .video-thumbnail,
+.video-card-multiview-active .video-card-title {
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+
+.video-card-subtitle {
+  line-height: 1.2;
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+}
+
+.video-card-time {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  overflow: hidden;
+  min-height: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.video-card-time-primary {
+  display: inline-block;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.video-card-time-secondary {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.live-viewers {
+  color: var(--color-muted-foreground);
+}
+
+.plain-button:before {
+  display: none;
+}
+
+.plain-button:hover:before {
+  background-color: transparent;
+}
+
+.channel-name .plain-button {
+  cursor: pointer;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-card-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.68rem 0.52rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent 30%);
+  background: inherit;
+}
+
+.video-card-item-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.35rem;
+  color: var(--color-foreground);
+  transition: background-color 0.15s ease;
+}
+
+.video-card-item-actions > button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ---- components/video/VideoCardList.vue lang="scss" ---- */
+.video-grid {
+  display: grid;
+  column-gap: 0.25rem;
+  row-gap: 0.35rem;
+  grid-template-columns: repeat(var(--video-grid-xs, var(--video-grid-columns, 1)), minmax(0, 1fr));
+}
+
+@media (min-width: 600px) {
+  .video-grid {
+    grid-template-columns: repeat(var(--video-grid-sm, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .video-grid {
+    grid-template-columns: repeat(var(--video-grid-md, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1264px) {
+  .video-grid {
+    grid-template-columns: repeat(var(--video-grid-lg, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1904px) {
+  .video-grid {
+    grid-template-columns: repeat(var(--video-grid-xl, var(--video-grid-columns, 1)), minmax(0, 1fr));
+  }
+}
+
+.video-grid--compact {
+  column-gap: 0.25rem;
+  row-gap: 0.35rem;
+}
+
+.video-grid-item {
+  min-width: 0;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+  contain: layout style;
+}
+
+.video-grid--list {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+  border-radius: 0.75rem;
+  overflow: hidden;
+  row-gap: 0 !important;
+}
+
+/* Hide border when list container is empty (e.g. loading in scroll mode) */
+.video-grid--list:empty {
+  border: none;
+}
+
+.video-grid--list .video-grid-item {
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+}
+
+.video-grid--list .video-grid-item:last-child {
+  border-bottom: none;
+}
+
+/* ---- components/video/VirtualVideoCardList.vue lang="scss" ---- */
+.virtual-video-list-item {
+  padding: 6px 4px;
+}
+
+.video-card-active {
+  /* primary color with opacity */
+  /* background-color: #f0629257; */
+  height: auto;
+  width: auto;
+  position: relative;
+}
+
+.video-card-active::before {
+  content: "";
+  background-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  background-size: cover;
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  opacity: 0.15;
+  border-radius: 4px;
+}
+
+/* ---- components/watch/WatchComments.vue scoped ---- */
+.ts-btn {
+  font-size: 11px;
+}
+
+/* ---- components/watch/WatchFrame.vue  ---- */
+.thumbnail {
+  position: relative;
+}
+
+.thumbnail-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+}
+
+.video {
+  position: relative;
+  padding-bottom: 56.25%;
+  padding-bottom: min(56.25%, 100vh - 120px);
+  width: 100%;
+}
+
+.video.video-fluid {
+  padding-bottom: min(56.25%, 100vh - 36px);
+  /* padding-bottom: min(56.25%, 100vh); */
+}
+
+.video > div > iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- components/watch/WatchHighlights.vue scoped ---- */
+.highlight-container {
+  width: 100%;
+}
+
+.highlight-bar {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.highlight-item {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  cursor: pointer;
+}
+
+.highlight-chip {
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ---- components/watch/WatchInfo.vue  ---- */
+.watch-card {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.uploader-data-list {
+  flex-basis: auto;
+  flex-direction: column;
+  align-items: stretch;
+  margin-right: 12px;
+}
+
+/* Edit button — matches fav-login-btn style */
+.watch-edit-btn {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+  color: var(--color-muted-foreground) !important;
+  font-size: 12px;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.watch-edit-btn:hover {
+  border-color: var(--color-bold) !important;
+  background: var(--color-base) !important;
+  color: var(--color-foreground) !important;
+}
+
+/* ---- components/watch/WatchLiveChat.vue  ---- */
+/* ── Watch Live Chat Container ── */
+.watch-live-chat {
+  min-height: min((75vw - 24px) * 0.5625, 100vh - 120px);
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.watch-live-chat.fluid {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+  min-width: 0;
+}
+
+/* ── Loading text ── */
+.watch-live-chat .loading-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.875rem;
+  color: rgb(148, 163, 184); /* slate-400 */
+}
+
+/* ── Embedded chat iframe ── */
+.embedded-chat {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.embedded-chat > iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+
+/* ── TL overlay sizing ── */
+.watch-live-chat.show-tl-overlay .embedded-chat {
+  height: calc(100% - clamp(140px, 24%, 210px));
+}
+
+.watch-live-chat.show-tl-overlay .tl-overlay {
+  height: clamp(140px, 24%, 210px);
+}
+
+.watch-live-chat.show-tl-overlay .tl-overlay.tl-full-height {
+  position: absolute;
+  height: 100% !important;
+  max-height: 100%;
+  padding-bottom: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom) / 1.75);
+}
+
+/* ── TL body ── */
+.watch-live-chat .tl-body {
+  font-size: 16px;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+.stick-bottom {
+  order: 2;
+}
+
+/* ── Mobile ── */
+.watch-live-chat.mobile-live-chat {
+  margin-right: 0;
+}
+
+/* ---- components/watch/WatchQuickEditor.vue  ---- */
+.watch-card {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme--dark .striped,
+.striped {
+  background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.04) 10px, rgba(255, 255, 255, 0.04) 20px);
+}
+
+/* ---- components/watch/WatchSideBar.vue  ---- */
+.lightup {
+  z-index: 1;
+  position: relative;
+  display: block;
+}
+
+.lightup * {
+  z-index: 1;
+  line-height: 28px !important;
+}
+
+.lightup::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.lightup:hover::after {
+  background-color: rgba(255, 255, 255, 0.06);
+  z-index: -1;
+}
+
+/* ---- components/watch/WatchSubtitleOverlay.vue scoped ---- */
+.overlay {
+  position: absolute;
+  bottom: 48px;
+  bottom: min(48px, 10%);
+  width: 90%;
+  margin-left: 5%;
+}
+
+.subtitle-text {
+  word-wrap: break-word;
+  box-shadow: 10px 0 0 rgba(0, 0, 0, 0.75), -10px 0 0 rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.75);
+  white-space: pre-wrap;
+  color: rgb(255, 255, 255);
+}
+
+.subtitle-name {
+  font-size: 16px;
+  font-size: max(1vw, 20px);
+  margin-bottom: -0.3rem;
+}
+
+.subtitle-name span {
+  background: rgba(0, 0, 0, 0.75);
+  padding: 0 8px;
+}
+
+/* ---- external/vue-grid-layout/src/components/CustomDragElement.vue  ---- */
+.vue-draggable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 0;
+  left: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='#999999'/></svg>") no-repeat;
+  background-position: bottom right;
+  padding: 0 8px 8px 0;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* ---- external/vue-grid-layout/src/components/GridItem.vue lang="scss" ---- */
+.vue-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+
+.vue-grid-item.no-touch {
+  -ms-touch-action: none;
+  touch-action: none;
+}
+
+.vue-grid-item.cssTransforms {
+  transition-property: transform;
+  left: 0;
+  right: auto;
+}
+
+.vue-grid-item.resizing {
+  opacity: 0.6;
+  z-index: 3;
+}
+
+.vue-grid-item.vue-draggable-dragging {
+  transition: none;
+  z-index: 3;
+}
+
+.vue-grid-item.vue-grid-placeholder {
+  background: red;
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.vue-grid-item > .vue-resizable-handle {
+  position: absolute;
+  min-width: 20px;
+  min-height: 20px;
+  box-sizing: border-box;
+  padding: 4px;
+  background-color: var(--v-primary-base, rgba(150, 93, 137, 0.452));
+  opacity: 0.3;
+  background-clip: content-box !important;
+}
+.vue-grid-item > .vue-resizable-handle.h-n {
+  top: 0 !important;
+  left: 35%;
+  bottom: unset;
+  width: 30%;
+  height: 20px !important;
+}
+.vue-grid-item > .vue-resizable-handle.h-w {
+  left: 0 !important;
+  top: 35%;
+  left: unset;
+  height: 30%;
+  width: 20px !important;
+}
+.vue-grid-item > .vue-resizable-handle.h-s {
+  bottom: 0 !important;
+  left: 35%;
+  top: unset !important;
+  width: 30%;
+  height: 20px !important;
+}
+.vue-grid-item > .vue-resizable-handle.h-e {
+  right: 0 !important;
+  top: 35%;
+  bottom: unset;
+  left: unset !important;
+  height: 30%;
+  width: 20px !important;
+}
+
+.vue-grid-item.disable-userselect {
+  user-select: none !important;
+  cursor: none !important;
+}
+
+/* ---- external/vue-grid-layout/src/components/GridLayout.vue  ---- */
+.vue-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+
+/* ---- external/vue-grid-layout/src/components/TestElement.vue  ---- */
+.remove {
+  position: absolute;
+  right: 2px;
+  top: 0;
+  cursor: pointer;
+}
+
+/* ---- views/Channel.vue  ---- */
+.channel-container {
+  padding: 0;
+}
+
+.channel-banner-wrap {
+  width: calc(100% - 1rem);
+  aspect-ratio: 6.2/1;
+  overflow: hidden;
+  border-radius: 1rem;
+  margin: 0.5rem auto 0;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+}
+
+@media (min-width: 640px) {
+  .channel-banner-wrap {
+    width: 100%;
+    border-radius: 1.25rem;
+    margin: 0;
+  }
+}
+.channel-banner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.channel-header {
+  padding: 0.75rem 0.75rem 0;
+}
+
+@media (min-width: 640px) {
+  .channel-header {
+    padding: 1rem 1.25rem 0;
+  }
+}
+.channel-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .channel-identity {
+    gap: 1rem;
+  }
+}
+/* Tabs: padding matches the video card zone (px-2 / sm:px-0) */
+.channel-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 640px) {
+  .channel-tabs {
+    padding: 0.5rem 0 0;
+  }
+}
+/* ---- views/Channels.vue  ---- */
+.channel-card-grid::after {
+  content: "";
+  flex: auto;
+}
+
+.rotate-asc {
+  transform: rotate(180deg);
+}
+
+/* ---- views/EditVideo.vue  ---- */
+.video-editor .comment-scroller {
+  height: 400px;
+  height: 60vh;
+  overflow: hidden auto;
+}
+
+.video-editor .watch-card {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.video-editor .thumbnail-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+}
+
+.video-editor .thumbnail {
+  position: relative;
+}
+
+/* ---- views/HomeFave.vue scoped ---- */
+.home-fave-tab-stack {
+  --home-fave-bar-radius: 1rem;
+  --home-fave-bar-cover-rise: 16px;
+  position: relative;
+}
+
+.home-fave-tab-bar {
+  position: relative;
+  z-index: 1;
+}
+
+.home-fave-tab-cover {
+  position: absolute;
+  background: var(--color-background);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-fave-tab-cover-top {
+  top: calc(-1 * var(--home-fave-bar-cover-rise));
+  right: 0;
+  left: 0;
+  height: var(--home-fave-bar-cover-rise);
+}
+
+.home-fave-tab-cover-left,
+.home-fave-tab-cover-right {
+  top: 0;
+  width: calc(var(--home-fave-bar-radius) + 1px);
+  height: calc(var(--home-fave-bar-radius) + 1px);
+}
+
+.home-fave-tab-cover-left {
+  left: 0;
+  background: radial-gradient(circle at bottom right, transparent calc(var(--home-fave-bar-radius) - 1px), var(--color-background) var(--home-fave-bar-radius));
+}
+
+.home-fave-tab-cover-right {
+  right: 0;
+  background: radial-gradient(circle at bottom left, transparent calc(var(--home-fave-bar-radius) - 1px), var(--color-background) var(--home-fave-bar-radius));
+}
+
+/* ---- views/HomeFave.vue  ---- */
+/* shared with favorites.vue */
+.stream-count-chip {
+  align-items: center;
+  justify-content: center;
+  letter-spacing: normal;
+  line-height: 1;
+  min-width: 24px;
+}
+
+/* Login/manage button — matches org selector colors exactly */
+.fav-login-btn {
+  border-color: var(--color-light) !important;
+  background: var(--color-card) !important;
+  color: var(--color-muted-foreground) !important;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.fav-login-btn:hover {
+  border-color: var(--color-bold) !important;
+  background: var(--color-base) !important;
+  color: var(--color-foreground) !important;
+}
+
+/* ---- views/MultiView.vue lang="scss" ---- */
+.multiview {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+.mv-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mv-stage-surface {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+}
+
+.mobile-helpers {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.mobile-helpers .mv-cell.edit-mode {
+  padding: 0;
+}
+
+.open-mv-toolbar-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  opacity: 0.7;
+  margin: 0.375rem;
+}
+
+.vue-grid-item {
+  transition: none;
+}
+
+.vue-grid-layout {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: none;
+}
+
+.hints div {
+  margin-bottom: 10px;
+}
+
+/* ---- views/Playlists.vue scoped ---- */
+.active-playlist {
+  position: relative;
+  left: -1px;
+  top: -1px;
+  border: 2px solid color-mix(in srgb, var(--color-primary) 80%, white 20%) !important;
+}
+
+.inactive-playlist:hover {
+  position: relative;
+  left: -0.5px;
+  top: -0.5px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 80%, white 20%) !important;
+}
+
+.playlist-unsaved-badge {
+  color: #f8fafc;
+}
+
+html[data-theme=light] .playlist-unsaved-badge {
+  color: #020617;
+}
+
+/* Layout */
+.playlist-preview-group {
+  position: relative;
+  width: 240px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.playlist-preview-group .stack {
+  display: block;
+  width: 150px;
+  height: 90px;
+  border: 1px solid black;
+  border-radius: 5px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  position: absolute;
+  transition: top 0.5s ease-out;
+  top: 0px;
+}
+
+.playlist-preview-group .stack:nth-child(2) {
+  left: 25px;
+}
+
+.playlist-preview-group .stack:nth-child(3) {
+  left: 50px;
+}
+
+.playlist-preview-group .stack:nth-child(4) {
+  left: 75px;
+}
+
+.playlist-preview-group .stack:hover {
+  z-index: 2;
+  top: -4px !important;
+}
+
+.playlist-preview-group:hover .stack {
+  top: 10px;
+}
+
+@media (max-width: 640px) {
+  .playlist-preview-group {
+    width: 150px;
+  }
+  .playlist-preview-group .stack:nth-child(2),
+  .playlist-preview-group .stack:nth-child(3),
+  .playlist-preview-group .stack:nth-child(4) {
+    left: 0;
+  }
+}
+/* ---- views/Search.vue scoped ---- */
+.search-form-sticky {
+  position: sticky;
+  top: 64px;
+  z-index: 50;
+  background: var(--colorbg);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  /* Extend background upward slightly to prevent sub-pixel gap with fixed nav */
+  margin-top: -1px;
+  border-top: 1px solid transparent;
+}
+
+.search-content-area {
+  padding-top: 0.75rem;
+}
+
+/* ---- views/Settings.vue scoped ---- */
+.select-card-chip-flow {
+  align-items: stretch !important;
+}
+
+.select-card-chip-flow > .settings-check-chip {
+  width: auto;
+  flex: 1 1 0;
+  min-width: fit-content;
+}
+
+/* HomeOrgMultiSelect.vue / SelectCard.vue keep compact flow chips content-sized.
+   The Settings.vue scoped rule above must not force org/topic option chips to equal width. */
+.select-card .select-card-chip-flow > .settings-check-chip.select-card-chip-compact,
+.select-card .select-card-chip-flow > .stream-check-chip.select-card-chip-compact {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.settings-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  flex: 1;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.settings-top-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.settings-top-grid .settings-field {
+  max-width: 100%;
+}
+
+.settings-field-label {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+.settings-help {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--color-muted-foreground);
+}
+
+.theme-select-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.lang-select {
+  min-width: min-content;
+}
+
+.lang-select .lang-credit {
+  min-width: max-content;
+}
+
+/* ---- views/TLClient.vue  ---- */
+.TopMenu {
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+.ColourButton {
+  margin-top: 19px;
+  margin-left: 5px;
+}
+
+.ProfileListCard {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.ChatPanelContainer {
+  display: grid;
+  grid-auto-flow: column;
+}
+
+.activeChatIFrame {
+  width: 100%;
+  height: 100%;
+}
+
+.tl-topbar > *:not(:first-child):not(:last-child) {
+  margin: 0px 3px;
+}
+
+.tl-topbar > * {
+  border-radius: 0px;
+  text-transform: unset !important;
+}
+
+#player > div,
+#player > div > iframe {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- views/TLScriptEditor.vue  ---- */
+.tl-topbar > *:not(:first-child):not(:last-child) {
+  margin: 0px 3px;
+}
+
+.tl-topbar > * {
+  border-radius: 0px;
+  text-transform: unset !important;
+}
+
+.TopMenu {
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+}
+
+.ColourButton {
+  margin-top: 19px;
+  margin-left: 5px;
+}
+
+.ProfileListCard {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.ChatPanelContainer {
+  display: grid;
+  grid-auto-flow: column;
+}
+
+.ControlBox {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 1;
+}
+
+.Marker {
+  position: absolute;
+  left: calc(40% - 2px);
+  top: 0px;
+  width: 4px;
+  height: 100%;
+  z-index: 1;
+  background-color: rgba(255, 0, 0, 0.7);
+}
+
+.TimelineContainer {
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  border-top: 2px solid white;
+  padding-top: 7px;
+  border-bottom: 2px solid white;
+}
+
+.TimelineInnerContainer.v-sheet.v-card {
+  display: flex;
+  flex-direction: row;
+  margin-left: 40%;
+  margin-bottom: 10px;
+}
+
+.Timecard.v-sheet.v-card {
+  border: 2px solid white;
+}
+
+.TimecardText {
+  width: 100%;
+  cursor: grab;
+  max-height: 3em;
+}
+
+/* ---- views/TLScriptManager.vue scoped ---- */
+td {
+  white-space: nowrap;
+}
+
+/* ---- views/User.vue  ---- */
+#calendar:target {
+  border: 1px solid rgba(248, 113, 113, 0.5);
+}
+
+.login-provider-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.login-provider-google {
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-foreground);
+}
+
+.login-provider-google:hover {
+  border-color: #e91e8c;
+  background: color-mix(in srgb, #e91e8c 18%, var(--color-card));
+}
+
+.login-provider-discord {
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-card) !important;
+  color: var(--color-foreground) !important;
+}
+
+.login-provider-discord:hover {
+  border-color: #5865F2 !important;
+  background: color-mix(in srgb, #5865F2 18%, var(--color-card)) !important;
+  color: var(--color-foreground) !important;
+}
+
+.login-google-proxy {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.login-status-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background: var(--color-card);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--color-muted-foreground);
+}
+
+/* ---- views/Watch.vue  ---- */
+/* ═══════════════════════════════════════════════════════
+   Watch Page — Cinema/Theater Mode
+   ═══════════════════════════════════════════════════════ */
+/* ── Custom Properties ── */
+.watch-page {
+  --nav-h: 65px;
+  --pad-y: 10px;
+  --pad-x: clamp(12px, 1.8vw, 24px);
+  --gap: clamp(12px, 1.6vw, 20px);
+  --chat-w: clamp(320px, 24vw, 360px);
+  --toolbar-h: 52px;
+}
+
+/* ── YouTube Embed (required for iframe sizing) ── */
+.video {
+  position: relative;
+  aspect-ratio: 16/9;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  background: #000;
+}
+
+.video > iframe,
+.video > div {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.video > div > iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+
+/* ── Loading Shell ── */
+.watch-loading-shell {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(100vh - 65px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+@media (min-width: 960px) {
+  .watch-loading-shell {
+    padding: calc(10px + 8rem) clamp(12px, 1.8vw, 24px) 0;
+  }
+}
+@media (max-width: 959px) {
+  .watch-loading-shell {
+    padding: calc(10px + 5.5rem) 1rem 0;
+  }
+}
+/* ── Base Layout ── */
+.watch-page {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: row;
+  overflow-x: clip;
+}
+
+.watch-content {
+  min-width: 0;
+  overflow: visible;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+.watch-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: min(100%, 1080px);
+  display: flex;
+  flex-direction: column;
+}
+
+.watch-section {
+  margin-top: clamp(12px, 1.4vw, 18px);
+}
+
+/* ── Player Group (video + highlights + toolbar) ──
+   In non-cinema / mobile: display:contents so children
+   flow directly in watch-main (sticky toolbar works).
+   In cinema: display:block with negative margins so
+   video and toolbar share the same extended container. */
+.watch-player-group {
+  display: contents;
+}
+
+/* ── Cinema Screen ── */
+.watch-screen {
+  position: relative;
+  transition: background 0.35s ease;
+}
+
+.watch-screen--cinema {
+  margin-top: calc(-1 * var(--pad-y));
+}
+
+/* Video constrained by viewport height (nav + toolbar + top padding), centered */
+.watch-screen--cinema .video {
+  max-width: calc((100dvh - var(--nav-h) - var(--player-stack-reserve)) * 16 / 9);
+  margin-inline: auto;
+  box-shadow: 0 28px 80px rgba(2, 6, 23, 0.38);
+}
+
+/* Toolbar matches video width in cinema */
+.watch-page--cinema .watch-toolbar {
+  max-width: calc((100dvh - var(--nav-h) - var(--player-stack-reserve)) * 16 / 9);
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* Cinema: content flows vertically, items stretch */
+.watch-page--cinema .watch-content {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.watch-page--cinema .watch-main {
+  max-width: none;
+  width: 100%;
+}
+
+/* Cinema: player group becomes a real box with edge-to-edge margins */
+.watch-page--cinema .watch-player-group {
+  display: block;
+}
+
+/* Dim content below video */
+.watch-page--cinema .watch-section {
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.watch-page--cinema .watch-section:hover {
+  opacity: 1;
+}
+
+/* Cinema chat styling */
+.watch-page--cinema .watch-chat {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(2, 6, 23, 0.95);
+}
+
+/* ── Chat Sidebar ── */
+.watch-chat {
+  flex: 0 0 var(--chat-w);
+  width: 100%;
+  min-width: 320px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════ Desktop (≥960px) ══════ */
+@media (min-width: 960px) {
+  .watch-page {
+    padding: var(--pad-y) var(--pad-x) clamp(1.5rem, 3vw, 3rem);
+    gap: var(--gap);
+    align-items: flex-start;
+  }
+  /* Player group extends to viewport edges in cinema */
+  .watch-page--cinema .watch-player-group {
+    margin-left: calc(-1 * var(--pad-x));
+    margin-right: calc(-1 * var(--pad-x));
+  }
+  /* Sticky toolbar on desktop (range limited by player-group in cinema) */
+  .watch-toolbar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 40;
+  }
+  /* Fixed chat sidebar */
+  .watch-chat {
+    position: fixed;
+    top: calc(var(--nav-h) + var(--pad-y));
+    right: var(--pad-x);
+    width: var(--chat-w);
+    height: calc(100vh - var(--nav-h) - var(--pad-y));
+    min-height: 0;
+    overflow-y: auto;
+    border-radius: 0.75rem;
+  }
+  /* Reserve space for fixed chat */
+  .watch-page--chat:not(.watch-page--mobile) {
+    padding-right: calc(var(--chat-w) + var(--gap) + var(--pad-x));
+  }
+  /* Cinema+chat: no gap between player group and chat */
+  .watch-page--cinema.watch-page--chat:not(.watch-page--mobile) {
+    padding-right: calc(var(--chat-w) + var(--pad-x));
+  }
+  /* Cinema chat: flush to right edge */
+  .watch-page--cinema .watch-chat {
+    border-radius: 0;
+    right: 0;
+    top: var(--nav-h);
+    height: calc(100dvh - var(--nav-h));
+  }
+}
+/* Narrow desktop */
+@media (min-width: 960px) and (max-width: 1320px) {
+  .watch-page {
+    --chat-w: 300px;
+  }
+}
+/* ══════ Mobile (<960px) ══════ */
+@media (max-width: 959px) {
+  .watch-page {
+    flex-direction: column;
+    padding-top: var(--pad-y);
+  }
+  .watch-content {
+    width: 100%;
+    flex-direction: column;
+  }
+  .watch-main {
+    width: 100%;
+    min-width: 0;
+    flex-basis: auto;
+  }
+  /* Sticky toolbar on mobile */
+  .watch-toolbar {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--pad-y));
+    z-index: 35;
+  }
+  .video {
+    border-radius: 0;
+  }
+  /* Chat inline below video */
+  .watch-chat {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: min(56vh, 420px);
+    max-height: 65vh;
+    margin-top: var(--gap);
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  /* Mobile TL overlay */
+  .watch-page .watch-chat .tl-overlay {
+    width: 100%;
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    height: 50%;
+  }
+  .watch-page .watch-chat .embedded-chat {
+    height: 100% !important;
+  }
+  .watch-page .watch-chat .tl-overlay.stick-bottom {
+    bottom: 0;
+    top: initial;
+  }
+}
+
+/* ---- components/video/PlaceholderCard.vue ---- */
+.placeholder-punchout {
+  position: absolute;
+  right: 20px;
+  margin-top: 15px;
+  z-index: 30;
+}
+.placeholder-img {
+  object-fit: contain;
+  width: 100%;
+  height: 500px;
+  background: black;
+  max-height: 50vh;
+}
+
+/* ---- views/TLScriptManager.vue scoped ---- */
+.tl-manager-table td {
+  white-space: nowrap;
+}

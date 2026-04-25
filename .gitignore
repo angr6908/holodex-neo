@@ -1,24 +1,30 @@
-# Dependencies
-node_modules/
+# dependencies
+/node_modules
 
-# Build output
-dist/
+# testing
+/coverage
 
-# Environment
-.env
-.env.local
-.env.*.local
+# next.js
+/.next/
+/out/
 
-# Kiro/Claude
-.claude/
+# production
+/build
 
-# Test artifacts
-playwright-report/
-test-results/
-artifacts/
-tests/e2e/screenshots/
-
-# Misc
+# misc
 .DS_Store
-stats.html
-tmp-*.png
+*.pem
+.worktrees/
+
+# debug
+bun-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
