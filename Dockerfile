@@ -8,9 +8,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN bun run build
+RUN rm -rf .next/standalone/node_modules/@img .next/standalone/node_modules/sharp
 
-FROM node:alpine AS runner
+FROM alpine:latest AS runner
 WORKDIR /app
+RUN apk add --no-cache nodejs
 ENV NODE_ENV=production
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
