@@ -8,15 +8,20 @@ import { mdiBroadcast, mdiCalendar, mdiCheck, mdiClockAlertOutline, mdiMusic, md
 import { Icon } from "@/components/ui/Icon";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { PlaceholderOverlay } from "@/components/video/PlaceholderOverlay";
-import { PlaceholderCard } from "@/components/video/PlaceholderCard";
 import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { useAppState } from "@/lib/store";
 import { useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { useI18n } from "@/lib/i18n";
-import { absoluteTime, channelDisplayName, formattedDuration, formattedVideoTime, videoImage, videoTitle, viewerCountText, viewerText } from "@/lib/video-format";
+import { absoluteTime, channelDisplayName, formattedDuration, formattedVideoTime, videoImage, videoTitle, viewerCountText } from "@/lib/video-format";
 import { cn } from "@/lib/cn";
 import { hasWatched as hasWatchedVideo } from "@/lib/history";
 import * as icons from "@/lib/icons";
+
+function externalHref(link = "") {
+  if (!link) return "";
+  if (/^https?:\/\//i.test(link)) return link;
+  return `https://${link.replace(/^\/+/, "")}`;
+}
 
 export function VideoCard({ video, source, fluid = false, includeChannel = false, includeAvatar = false, hideThumbnail = false, horizontal = false, colSize = 1, active = false, disableDefaultClick = false, activePlaylistItem = false, parentPlaylistId = null, denseList = false, inMultiViewSelector = false, onVideoClicked, children, action }: any) {
   const data = source || video;
@@ -27,7 +32,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const { t, lang } = useI18n();
   const [now, setNow] = useState(Date.now());
   const [showMenu, setShowMenu] = useState(false);
-  const [placeholderOpen, setPlaceholderOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [hasWatched, setHasWatched] = useState(false);
@@ -56,7 +60,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const channelName = channelDisplayName(data?.channel, app.settings.useEnglishName);
   const shouldHideThumbnail = app.settings.hideThumbnails || hideThumbnail;
   const watchLink = `/watch/${data?.id || ""}${parentPlaylistId ? `?playlist=${parentPlaylistId}` : ""}`;
-  const titleHref = isPlaceholder && data?.placeholderType === "external-stream" && data?.link ? data.link : app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink;
+  const placeholderSourceUrl = isPlaceholder ? externalHref(data?.link || "") : "";
+  const titleHref = placeholderSourceUrl || (app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink);
   const showGridAvatar = includeAvatar && ["live", "upcoming"].includes(data?.status) && !denseList && !horizontal && data?.channel;
   const gridAvatarSize = colSize >= 2 ? 42 : colSize >= 1 ? 48 : 56;
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
@@ -105,7 +110,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     };
   }, [title, horizontal, denseList, app.currentGridSize, updateTitleLineState]);
 
-  function openPlaceholder() { setPlaceholderOpen(true); }
   function onImgMounted(el: HTMLImageElement | null) {
     if (!el || el.dataset.fadeInit) return;
     el.dataset.fadeInit = "1";
@@ -136,8 +140,10 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   function goToVideo() {
     onVideoClicked?.(data);
     if (disableDefaultClick) return;
-    if (isPlaceholder && data?.placeholderType === "external-stream" && data?.link) { window.open(data.link, "_blank", "noopener"); return; }
-    if (isPlaceholder) { openPlaceholder(); return; }
+    if (isPlaceholder) {
+      if (placeholderSourceUrl) window.open(placeholderSourceUrl, "_blank", "noopener");
+      return;
+    }
     setHasWatched(true);
     if (pathname.startsWith("/watch") && app.isMobile) router.replace(watchLink);
     else router.push(watchLink);
@@ -145,11 +151,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   function onThumbnailClicked() {
     if (disableDefaultClick) {
       onVideoClicked?.(data);
-      return;
-    }
-    if (isPlaceholder && data?.placeholderType === "external-stream" && data?.link) {
-      onVideoClicked?.(data);
-      window.open(data.link, "_blank", "noopener");
       return;
     }
     if (isPlaceholder) {
@@ -223,11 +224,14 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const durationText = formattedDuration(data, t, now);
   const timeText = formattedVideoTime(data, lang, t, now);
   const absoluteTimeText = absoluteTime(data, lang);
-  const viewersText = viewerText(data, lang);
   const viewerCount = viewerCountText(data, lang);
+  const viewerLabel = viewerCount ? t("component.videoCard.watching", [viewerCount]) : "";
   const hideGridLiveMeta = !horizontal && !denseList && data.status === "live";
-  const showViewerBadge = hideGridLiveMeta && viewerCount;
+  const showChannelViewers = includeChannel && data.status === "live" && !!viewerCount;
+  const showViewerBadge = hideGridLiveMeta && !!viewerCount && !showChannelViewers;
   const showTimeMeta = !hideGridLiveMeta;
+  const placeholderCredits = data?.credits || {};
+  const placeholderCreditUser = isPlaceholder ? (placeholderCredits.discord?.user || placeholderCredits.editor?.name || placeholderCredits.bot?.user || placeholderCredits.datasource?.name || "") : "";
   return (
     <article className={cn("video-card no-decoration flex", fluid && "video-card-fluid", active && "video-card-active", dragging && "video-card-dragging", horizontal && "video-card-horizontal", denseList && "video-card-list", inMultiViewActiveVideos && "video-card-multiview-active", !horizontal && !denseList && "flex-col")} draggable={!dragSelectionLocked} style={{ position: "relative" }} onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))} onDragStart={drag} onDragEnd={handleDragEnd} onClick={(e) => { if ((e.target as HTMLElement).closest("a,button")) return; if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>
       <div className="video-card-shell w-full overflow-hidden border border-[color:var(--color-border)] p-0">
@@ -235,8 +239,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           {isPlaceholder && data.status === "upcoming" && data.placeholderType ? <PlaceholderOverlay width={200} height={150} showOnlyOnHover={false} /> : null}
           <div className="video-card-overlay flex justify-between flex-col" style={{ height: "100%", position: "absolute", width: "100%", zIndex: 1 }}>
             <div className="flex justify-between items-start"><div>{data.topic_id && !isClip ? <div className="video-topic">{data.topic_id}</div> : null}</div>{!isPlaceholder ? <button type="button" className="video-card-action" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}><Icon icon={hasSaved ? mdiCheck : mdiPlus} className="h-4 w-4 video-card-action-icon-unsaved" /></button> : null}</div>
-            <div className="flex items-end justify-between">
-              <div>{showViewerBadge ? <div className="video-viewer-badge" title={`${viewerCount} concurrent viewers`}><Icon icon={mdiBroadcast} size="xs" className="text-white" />{viewerCount}</div> : null}</div>
+            <div className="flex min-w-0 items-end justify-between gap-2">
+              <div className="min-w-0 flex-1">{showViewerBadge ? <div className="video-viewer-badge" title={`${viewerCount} concurrent viewers`}><Icon icon={mdiBroadcast} size="xs" className="text-white" />{viewerCount}</div> : placeholderCreditUser ? <div className="video-duration video-thumbnail-credits" title={placeholderCreditUser}><span className="truncate">{placeholderCreditUser}</span></div> : null}</div>
               {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <div className="video-duration flex items-center" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Icon icon={mdiMusic} className="h-3.5 w-3.5 text-white" /></div> : null}{hasTLs ? <div className="video-duration flex items-center" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.tlLangs?.[0] || "en"] : ""}<Icon icon={icons.tlChat} className="h-3.5 w-3.5 text-white" /></div> : null}{(data.duration > 0 || data.start_actual) ? <div className={cn("video-duration", data.status === "live" && "video-duration-live")}>{durationText}</div> : null}</div> : <div className="flex flex-col items-end"><div className={cn("video-duration", data.status === "live" && "video-duration-live")}>{durationText ? <span className="duration-placeholder">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hover-placeholder">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hover-placeholder">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hover-placeholder">{t("component.videoCard.typeEventPlaceholder")}</span> : null}<Icon className="h-4 w-4 rounded-sm" icon={twitchPlaceholder ? mdiTwitch : twitterPlaceholder ? mdiTwitter : placeholderIconMap[data.placeholderType]} /></div></div>}
             </div>
           </div>
@@ -246,13 +250,22 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           {(denseList && data.channel) || showGridAvatar ? <div className={cn("video-card-avatar-slot flex self-center mx-2 flex-col", showGridAvatar && !denseList && "video-card-avatar-slot--grid")}><button type="button" className="plain-button inline-flex items-center" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></button></div> : null}
           <div className={cn("flex video-card-lines flex-col", isSingleLineTitle && !horizontal && !denseList && !hideGridLiveMeta && "video-card-lines-single-line")}>
             <div className={cn("video-card-title-wrap", !horizontal && !denseList && !isSingleLineTitle && "video-card-title-wrap-default")}><Link ref={titleButton} href={titleHref} className={cn("plain-button video-card-title text-left", hasWatched && "video-watched")} title={title} style={{ userSelect: "text", fontSize: `${1 - app.currentGridSize / 16}rem` }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <Icon icon={mdiClockAlertOutline} className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom text-amber-400" title={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
-            <div className="video-card-meta">{includeChannel ? <div className="video-card-channel-slot"><div className="channel-name video-card-subtitle"><button type="button" className={cn("plain-button no-decoration text-left", (data.type === "stream" || data.channel?.type === "vtuber") && "name-vtuber")} style={{ userSelect: "text" }} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</button></div></div> : null}{showTimeMeta ? <div className="video-card-subtitle video-card-time"><span className={cn("video-card-time-primary", `text-${data.status}`)} title={absoluteTimeText}>{timeText}</span>{data.clips?.length && !isPlaceholder ? <span className="video-card-time-secondary text-[color:var(--color-primary)]"> • {t("component.videoCard.clips", typeof data.clips === "object" ? data.clips.length : +data.clips)}</span> : data.status === "live" && viewersText ? <span className="video-card-time-secondary live-viewers"> {viewersText}</span> : null}</div> : null}</div>
+            <div className="video-card-meta">
+              {includeChannel ? (
+                <div className="video-card-channel-slot">
+                  <div className="channel-name video-card-subtitle">
+                    <button type="button" className={cn("plain-button no-decoration text-left", (data.type === "stream" || data.channel?.type === "vtuber") && "name-vtuber")} style={{ userSelect: "text" }} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</button>
+                  </div>
+                  {showChannelViewers ? <span className="video-card-channel-viewers live-viewers" title={viewerLabel}><Icon icon={mdiBroadcast} size="xs" />{viewerCount}</span> : null}
+                </div>
+              ) : null}
+              {showTimeMeta ? <div className="video-card-subtitle video-card-time"><span className={cn("video-card-time-primary", `text-${data.status}`)} title={absoluteTimeText}>{timeText}</span>{data.clips?.length && !isPlaceholder ? <span className="video-card-time-secondary text-[color:var(--color-primary)]"> • {t("component.videoCard.clips", typeof data.clips === "object" ? data.clips.length : +data.clips)}</span> : data.status === "live" && viewerLabel && !showChannelViewers ? <span className="video-card-time-secondary live-viewers"> • {viewerLabel}</span> : null}</div> : null}
+            </div>
           </div>
         </div>
       </div>
       {showMenu && typeof document !== "undefined" ? createPortal(<div className="fixed inset-0 z-[500] outline-none" tabIndex={-1} onClick={(e) => { e.stopPropagation(); setShowMenu(false); }} onContextMenu={(e) => { e.preventDefault(); setShowMenu(false); }} onKeyDown={(e) => { if (e.key === "Escape") setShowMenu(false); }}><div className="video-card-menu-shell absolute w-[260px] rounded-2xl p-2" style={contextMenuStyle()} onClick={(e) => e.stopPropagation()} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}><VideoCardMenu video={data} close={() => setShowMenu(false)} /></div></div>, document.body) : null}
       {(children || action || activePlaylistItem) ? <div className="video-card-item-actions">{activePlaylistItem ? <><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("up"); }}><Icon icon={icons.mdiChevronUp} className="h-4 w-4" /></button><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); app.removeFromPlaylist(data.id); }}><Icon icon={icons.mdiDelete} className="h-4 w-4" /></button><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("down"); }}><Icon icon={icons.mdiChevronDown} className="h-4 w-4" /></button></> : action || children}</div> : null}
-      {isPlaceholder ? <PlaceholderCard open={placeholderOpen} video={data} onOpenChange={setPlaceholderOpen} /> : null}
     </article>
   );
 }

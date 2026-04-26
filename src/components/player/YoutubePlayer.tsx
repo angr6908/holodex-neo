@@ -159,13 +159,13 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
       }
     });
     player.on("error", (event: any) => {
-      console.error("[PLAYER ERROR]", event);
       if (!retryForMengenRef.current && String(event?.data) === "150") {
-        event?.target?.loadVideoById?.(event?.target?.getVideoData?.().video_id);
         retryForMengenRef.current = true;
-      } else {
-        onError?.(event);
+        const retryVideoId = event?.target?.getVideoData?.()?.video_id ?? videoIdRef.current;
+        event?.target?.loadVideoById?.(retryVideoId);
+        return;
       }
+      onError?.(event);
     });
     return () => {
       readyRef.current = false;
