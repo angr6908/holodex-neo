@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.DS_Store
+.env*
+coverage
+build
+out
+*.tsbuildinfo
+bun-debug.log*
