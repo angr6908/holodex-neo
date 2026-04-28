@@ -12,7 +12,7 @@ import { ThemeRuntime } from "@/components/common/ThemeRuntime";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
-import type { AppBootState } from "@/lib/persist-cookie";
+import type { AppBootState } from "@/lib/cookie-codec";
 import { openUserMenu } from "@/lib/navigation-events";
 
 export function AppProviders({
@@ -142,26 +142,13 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
   const app = useAppState();
   const { t } = useI18n();
   const [showTwitter, setShowTwitter] = useState(false);
-  const appStyle = {
-    backgroundColor: "var(--colorbg)",
-    color: "var(--color-foreground)",
-  } as React.CSSProperties;
-  const base =
-    "mx-auto min-h-screen max-w-[1600px] px-3 pb-28 sm:px-5 lg:pb-10";
-  let mainClass = base;
-  let mainStyle: React.CSSProperties = {
-    paddingTop: "var(--nav-total-height, 120px)",
-  };
-  if (pathname.startsWith("/watch")) {
-    mainClass = "min-h-screen w-full overflow-x-hidden px-0 pt-[65px]";
-    mainStyle = {};
-  } else if (pathname.startsWith("/multiview")) {
-    mainClass = "h-screen w-full overflow-hidden p-0";
-    mainStyle = {};
-  } else if (pathname.startsWith("/search")) {
-    mainClass = `${base} pt-[76px] sm:pt-[80px]`;
-    mainStyle = {};
-  }
+  const base = "mx-auto min-h-screen max-w-[1600px] px-3 pb-28 sm:px-5 lg:pb-10";
+  const specClass = pathname.startsWith("/watch") ? "min-h-screen w-full overflow-x-hidden px-0 pt-[65px]"
+    : pathname.startsWith("/multiview") ? "h-screen w-full overflow-hidden p-0"
+    : pathname.startsWith("/search") ? `${base} pt-[76px] sm:pt-[80px]`
+    : null;
+  const mainClass = specClass ?? base;
+  const mainStyle = specClass ? {} : { paddingTop: "var(--nav-total-height, 120px)" } as React.CSSProperties;
 
   useEffect(() => {
     const user = app.userdata?.user;
@@ -170,7 +157,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
   }, [app.userdata?.user]);
 
   return (
-    <div className="relative z-0 min-h-screen" style={appStyle} suppressHydrationWarning>
+    <div className="relative z-0 min-h-screen" style={{ backgroundColor: "var(--colorbg)", color: "var(--color-foreground)" }} suppressHydrationWarning>
       <MainNav />
       <main className={cn(mainClass)} style={mainStyle}>
         <PullToRefresh />

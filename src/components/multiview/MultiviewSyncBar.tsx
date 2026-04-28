@@ -14,7 +14,7 @@ import { dayjs, formatDuration } from "@/lib/time";
 import { encodeLayout } from "@/lib/mv-utils";
 import { useI18n } from "@/lib/i18n";
 import { useMultiviewStore } from "@/lib/multiview-store";
-import { useMultiviewVideoCells } from "@/lib/multiview-video-cells";
+import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
 import * as icons from "@/lib/icons";
 
 const availablePlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -23,10 +23,7 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const store = useMultiviewStore();
-  const registeredCells = useMultiviewVideoCells();
-  const cells = useMemo(() => store.layout
-    .map((item) => registeredCells.find((cell) => cell.id === String(item.i)))
-    .filter((cell): cell is NonNullable<typeof cell> => !!cell && !!cell.video), [store.layout, registeredCells]);
+  const cells = useOrderedMultiviewVideoCells(store.layout);
   const [paused, setPausedState] = useState(true);
   const [hovering, setHovering] = useState(false);
   const [currentTs, setCurrentTsState] = useState(0);
@@ -135,13 +132,12 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
   }, [cells, minTs, overlapVideos, routeCurrentTs]);
 
   const setTime = useCallback((ts: number) => {
-    const nextTs = ts;
-    setCurrentTs(nextTs);
+    setCurrentTs(ts);
     cells.forEach((cell) => {
       const { video } = cell;
       const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
       if (!olVideo) return;
-      const nextTime = nextTs - olVideo.startTs;
+      const nextTime = ts - olVideo.startTs;
       const isBefore = nextTime < 0;
       const isAfter = nextTime / olVideo.duration > 1;
       if (isBefore || isAfter) {

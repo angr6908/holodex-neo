@@ -37,14 +37,8 @@ export function WatchLiveChat({ video, currentTime = 0, modelValue, className = 
   const ytChatHeight = appStore.settings.liveTlWindowSize > 0 && showTlChat ? `${100 - appStore.settings.liveTlWindowSize}%` : "";
   const tlChatHeight = showYtChat && appStore.settings.liveTlWindowSize > 0 ? `${appStore.settings.liveTlWindowSize}%` : "";
 
-  function postFrameTime(t: number) {
-    ytChat.current?.contentWindow?.postMessage({ "yt-player-video-progress": t }, "*");
-  }
-
-  function handleChatLoad() {
-    setChatLoaded(true);
-    if (video?.status === "past") postFrameTime(currentTime);
-  }
+  const postFrameTime = (t: number) => ytChat.current?.contentWindow?.postMessage({ "yt-player-video-progress": t }, "*");
+  const handleChatLoad = () => { setChatLoaded(true); if (video?.status === "past") postFrameTime(currentTime); };
 
   useEffect(() => { setChatLoaded(false); }, [showYtChat, liveChatUrl]);
   useEffect(() => { if (video?.status === "past") postFrameTime(currentTime); }, [currentTime, video?.status]);

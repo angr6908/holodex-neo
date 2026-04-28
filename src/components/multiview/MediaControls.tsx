@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { mdiFastForward, mdiPause } from "@mdi/js";
 import { Button } from "@/components/ui/Button";
@@ -9,16 +9,13 @@ import { Icon } from "@/components/ui/Icon";
 import { useI18n } from "@/lib/i18n";
 import { getChannelPhoto } from "@/lib/functions";
 import { useMultiviewStore } from "@/lib/multiview-store";
-import { useMultiviewVideoCells } from "@/lib/multiview-video-cells";
+import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
 import * as icons from "@/lib/icons";
 
-export function MediaControls({ open }: { open?: boolean; onOpenChange?: (open: boolean) => void }) {
+export function MediaControls({ open }: { open?: boolean }) {
   const { t } = useI18n();
   const store = useMultiviewStore();
-  const registeredCells = useMultiviewVideoCells();
-  const cells = useMemo(() => store.layout
-    .map((item) => registeredCells.find((cell) => cell.id === String(item.i)))
-    .filter((cell): cell is NonNullable<typeof cell> => !!cell && !!cell.video), [store.layout, registeredCells]);
+  const cells = useOrderedMultiviewVideoCells(store.layout);
 
   useEffect(() => {
     if (!open) return;

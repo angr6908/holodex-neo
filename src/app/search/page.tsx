@@ -1,2 +1,1 @@
-import { SearchPage } from "@/views/SearchPage";
-export default function Page() { return <SearchPage />; }
+export { SearchPage as default } from "@/views/SearchPage";

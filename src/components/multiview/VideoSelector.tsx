@@ -36,6 +36,8 @@ function makeMultiOrgTab(names: string[]) {
 
 const favTab = { name: "Favorites", text: "Favorites" };
 const playlistTab = { name: "Playlist", text: "Playlist" };
+const PLAYLIST_SVG_PATH = "M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z";
+const HEART_SVG_PATH = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
 export function VideoSelector({ horizontal = false, isActive = true, compact = false, hidePlaceholder, hideMissing, activeVideos: activeVideosOverride, onVideoClicked }: { horizontal?: boolean; isActive?: boolean; compact?: boolean; hidePlaceholder?: boolean; hideMissing?: boolean; activeVideos?: any[]; onVideoClicked?: (video: any) => void }) {
   const { t } = useI18n();
@@ -70,12 +72,11 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
   const activeVideos = activeVideosOverride || multiview?.activeVideos || [];
   const selectedHomeOrgs = app.selectedHomeOrgs || [];
   const selectedHomeOrgsKey = selectedHomeOrgs.join("|");
-  const hololiveName = ((app.orgs || []).find((org: any) => org.name === "Hololive") || { name: "Hololive" }).name;
+  const hololiveName = "Hololive";
   const isLoggedIn = app.isLoggedIn;
   const isMultiOrg = selectedOrg?.name === "MultiOrg";
   const isRealOrg = selectedOrg?.name && !["Favorites", "Playlist", "YouTubeURL", "TwitchURL", "MultiOrg"].includes(selectedOrg.name);
   const isUrl = ["YouTubeURL", "TwitchURL"].includes(selectedOrg?.name);
-  const isUrlTab = isUrl;
 
   function leaveMultiviewForHome(options?: { openLogin?: boolean }) {
     if (options?.openLogin) openUserMenu();
@@ -147,9 +148,9 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
     refreshTimer.current = setInterval(() => loadSelection(), 2 * 60 * 1000);
     return () => { if (refreshTimer.current) clearInterval(refreshTimer.current); };
   }, [isActive, selectedOrg?.name, selectedHomeOrgsKey, app.userdata.jwt]);
-  useEffect(() => { if (isActive && selectedOrg?.name && selectedOrg.name !== "MultiOrg") loadSelection(true); }, [isActive, selectedOrg?.name]);
+  useEffect(() => { if (isActive && selectedOrg?.name && selectedOrg.name !== "MultiOrg") loadSelection(); }, [isActive, selectedOrg?.name]);
   useEffect(() => {
-    if (isActive && selectedOrg?.name === "MultiOrg") loadSelection(true);
+    if (isActive && selectedOrg?.name === "MultiOrg") loadSelection();
   }, [isActive, selectedOrg?.name, selectedHomeOrgsKey]);
   useEffect(() => { if (app.visibilityState === "visible") loadSelection(); }, [app.visibilityState]);
   useEffect(() => {
@@ -169,7 +170,7 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
     return () => document.removeEventListener("click", onDocClickPlaylist);
   }, [showPlaylistMenu]);
 
-  function loadSelection(force = false) {
+  function loadSelection() {
     if (!isActive) return;
     const requestId = ++loadRequestId.current;
     setHasError(false);
@@ -219,13 +220,13 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
   function selectQuickTab(nextTab: { name: string; text: string }) {
     const currentName = selectedOrg?.name;
     setSelectedOrg(nextTab);
-    if (currentName !== nextTab.name || live.length === 0 || hasError) setTimeout(() => loadSelection(true), 0);
+    if (currentName !== nextTab.name || live.length === 0 || hasError) setTimeout(() => loadSelection(), 0);
   }
 
   function handlePicker(panel: any) {
     const currentName = selectedOrg?.name;
     setSelectedOrg(panel);
-    if (panel?.name && (currentName !== panel.name || live.length === 0 || hasError)) setTimeout(() => loadSelection(true), 0);
+    if (panel?.name && (currentName !== panel.name || live.length === 0 || hasError)) setTimeout(() => loadSelection(), 0);
     if (container.current) container.current.scrollTop = 0;
   }
 
@@ -289,8 +290,7 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
   }
   function formatDurationLive(video: any) {
     const scheduled = dayjs(video.start_actual || video.start_scheduled);
-    const secs = dayjs(scheduled).diff(dayjs(tick)) / 1000;
-    return formatDurationShort(Math.abs(secs));
+    return formatDurationShort(Math.abs(scheduled.diff(dayjs(tick)) / 1000));
   }
 
   if (!horizontal) {
@@ -299,16 +299,16 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
         <div className="mb-3 flex items-center gap-1.5 border-b border-white/10 pb-3">
           <HomeOrgMultiSelect className="min-w-0 flex-1" manualApply selectedNamesOverride={selectedHomeOrgsForPicker} fallbackSelection={[hololiveName]} buttonClass="h-9 w-full justify-between rounded-xl px-3 text-sm font-normal" onApply={handleOrgApply} />
           <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition", selectedOrg?.name === "Favorites" ? "border-rose-400/40 bg-rose-500/20 text-rose-300" : "border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--surface-soft-hover)] hover:text-rose-300")} title="Favorites" onClick={() => handlePicker(favTab)}>
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d={HEART_SVG_PATH} /></svg>
           </button>
           <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition", selectedOrg?.name === "Playlist" ? "border-sky-400/40 bg-sky-500/20 text-sky-300" : "border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--surface-soft-hover)] hover:text-sky-300")} title="Playlist" onClick={() => handlePicker(playlistTab)}>
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" /></svg>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d={PLAYLIST_SVG_PATH} /></svg>
           </button>
           <form className="relative flex h-8 min-w-[8rem] flex-1 items-center" onSubmit={handleInlineUrl}>
             <input value={inlineUrl} type="url" placeholder="YouTube / Twitch URL…" className={cn("h-8 w-full rounded-xl border border-white/10 bg-slate-900 px-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-sky-500/50 focus:bg-slate-800", inlineUrlError && "border-amber-400/50", inlineUrl && "rounded-r-none")} onChange={(event) => setInlineUrl(event.target.value)} />
             {inlineUrl ? <button type="submit" className={cn("inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-r-xl border border-l-0 transition", inlineUrlError ? "border-amber-400/30 bg-slate-900 text-amber-400" : "border-sky-400/40 bg-sky-500 text-white hover:brightness-110")} title="Add URL"><svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></button> : null}
           </form>
-          {!isUrl ? <Button type="button" size="icon" variant="secondary" className={`${isLoading ? "refresh-spin " : ""}h-8 w-8 shrink-0 cursor-pointer`} title="Refresh" onClick={() => loadSelection(true)}><Icon icon={icons.mdiRefresh} /></Button> : null}
+          {!isUrl ? <Button type="button" size="icon" variant="secondary" className={`${isLoading ? "refresh-spin " : ""}h-8 w-8 shrink-0 cursor-pointer`} title="Refresh" onClick={() => loadSelection()}><Icon icon={icons.mdiRefresh} /></Button> : null}
         </div>
         <div ref={container} className="video-list min-h-0 flex-1 px-1 sm:px-2">
           {isUrl ? (
@@ -345,23 +345,23 @@ export function VideoSelector({ horizontal = false, isActive = true, compact = f
         <>
           <HomeOrgMultiSelect className="shrink-0 self-center" manualApply iconOnly inline selectedNamesOverride={selectedHomeOrgsForPicker} fallbackSelection={[hololiveName]} buttonClass="h-8 w-8 gap-0 overflow-hidden rounded-xl px-0" onApply={handleOrgApply} />
           <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition", selectedOrg?.name === "Favorites" ? "border-rose-400/40 bg-rose-500/20 text-rose-300" : "border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--surface-soft-hover)] hover:text-rose-300")} title="Favorites" onClick={() => selectQuickTab(favTab)}>
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d={HEART_SVG_PATH} /></svg>
           </button>
           <div ref={playlistMenuRoot} className="relative shrink-0 self-center">
             <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition", selectedOrg?.name === "Playlist" ? "border-sky-400/40 bg-sky-500/20 text-sky-300" : "border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--surface-soft-hover)] hover:text-sky-300")} title="Playlist" onClick={(event) => { event.stopPropagation(); setShowPlaylistMenu(!showPlaylistMenu); }}>
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" /></svg>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d={PLAYLIST_SVG_PATH} /></svg>
             </button>
             {showPlaylistMenu ? (
               <Card className="absolute left-0 top-full z-[120] mt-2 min-w-[13rem] border border-[color:var(--color-border)] bg-[color:var(--surface-nav)] p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
                 <button type="button" className={cn("flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-white/8", selectedOrg?.name === "Playlist" ? "text-sky-300" : "text-[color:var(--color-foreground)]")} onClick={() => { setShowPlaylistMenu(false); selectQuickTab(playlistTab); }}>
-                  <svg className="h-4 w-4 shrink-0 text-sky-400" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" /></svg>
+                  <svg className="h-4 w-4 shrink-0 text-sky-400" viewBox="0 0 24 24" fill="currentColor"><path d={PLAYLIST_SVG_PATH} /></svg>
                   <span>{t("component.mainNav.playlist")}</span>
                 </button>
               </Card>
             ) : null}
           </div>
           <MvUrlInput className="shrink-0 self-center" onSuccess={handleVideoClick} />
-          {!isUrlTab ? <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] transition hover:bg-[color:var(--surface-soft-hover)] hover:text-[color:var(--color-foreground)]", isLoading && "refresh-spin")} title="Refresh" onClick={() => loadSelection(true)}><svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg></button> : null}
+          {!isUrl ? <button type="button" className={cn("mv-quick-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[color:var(--color-border)] bg-[color:var(--surface-soft)] text-[color:var(--color-muted-foreground)] transition hover:bg-[color:var(--surface-soft-hover)] hover:text-[color:var(--color-foreground)]", isLoading && "refresh-spin")} title="Refresh" onClick={() => loadSelection()}><svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" /></svg></button> : null}
         </>
       ) : null}
       {selectedOrg?.name === "Favorites" && !isLoggedIn ? (

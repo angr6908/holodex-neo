@@ -15,14 +15,6 @@ import { MessageRenderer, type MessageRendererHandle } from "@/components/chat/M
 import { WatchSubtitleOverlay } from "@/components/watch/WatchSubtitleOverlay";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
 
-const MESSAGE_TYPES = Object.freeze({
-  END: "end",
-  ERROR: "error",
-  INFO: "info",
-  MESSAGE: "message",
-  UPDATE: "update",
-});
-
 export function LiveTranslations({
   video,
   currentTime = 0,
@@ -52,7 +44,6 @@ export function LiveTranslations({
   const [showSubtitle, setShowSubtitle] = useState(useLocalSubtitleToggle ? true : appStore.settings.liveTlShowSubtitle);
   const [overlayMessage, setOverlayMessage] = useState(t("views.watch.chat.loading"));
   const [showOverlay, setShowOverlay] = useState(false);
-  const [forceCloseOverlay, setForceCloseOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const tlBody = useRef<MessageRendererHandle | null>(null);
   const expandedMsgId = `tl-expanded-${useId().replace(/:/g, "")}`;
@@ -62,8 +53,6 @@ export function LiveTranslations({
 
   const blockedNames = useMemo(() => new Set(appStore.settings.liveTlBlocked || []), [appStore.settings.liveTlBlocked]);
   const filteredMessages = useMemo(() => tlHistory.filter((m: any) => !blockedNames.has(m.name)), [tlHistory, blockedNames]);
-  const connected = true;
-  const socketDisconnected = false;
   const [subtitleTarget, setSubtitleTarget] = useState<HTMLElement | null>(null);
   const toDisplay = useMemo(() => {
     if (!filteredMessages.length || !showSubtitle || tlClient) return [];
@@ -139,14 +128,12 @@ export function LiveTranslations({
         setHistoryLoading(false);
         setIsLoading(false);
         setShowOverlay(false);
-        setForceCloseOverlay(false);
       });
   }
 
   function refreshFallbackHistory() {
     loadMessages(true, false, tlClient);
     setShowOverlay(false);
-    setForceCloseOverlay(false);
     setIsLoading(false);
   }
 
@@ -176,7 +163,7 @@ export function LiveTranslations({
 
   return (
     <Card className={`tl-overlay relative w-full overflow-hidden border-0 bg-transparent p-0 text-sm shadow-none ${className}`} style={style}>
-      {showOverlay || (!forceCloseOverlay && socketDisconnected) ? (
+      {showOverlay ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950/90 px-4 text-center backdrop-blur-sm">
           {isLoading ? (
             <div className="text-sm text-slate-300">
@@ -188,12 +175,7 @@ export function LiveTranslations({
                 {overlayMessage}
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2">
-                {socketDisconnected ? (
-                  <Button variant="outline" size="sm" className="h-7 rounded-lg text-xs" onClick={tlJoin}>
-                    {t("views.watch.chat.retryBtn")}
-                  </Button>
-                ) : null}
-                <Button variant="ghost" size="sm" className="h-7 rounded-lg text-xs text-slate-500" onClick={() => { setForceCloseOverlay(true); setShowOverlay(false); }}>
+                <Button variant="ghost" size="sm" className="h-7 rounded-lg text-xs text-slate-500" onClick={() => { setShowOverlay(false); }}>
                   {t("views.app.close_btn")}
                 </Button>
               </div>
@@ -202,8 +184,8 @@ export function LiveTranslations({
         </div>
       ) : null}
       <div className="flex items-center justify-between gap-2 border-b border-white/8 px-3 py-1.5">
-        <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? "text-emerald-400" : "text-rose-400"}`}>
-          <span className={`inline-block h-1.5 w-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-rose-400"}`} />
+        <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
           TLdex [{liveTlLang}]
         </div>
         <div className="flex items-center gap-0.5">

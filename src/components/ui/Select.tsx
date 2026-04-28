@@ -108,10 +108,8 @@ export function Select<T>({
   const selectedLabel = selectedOption ? getOptionLabel(selectedOption) : placeholder;
   const selectedVisibleIndex = visibleOptions.findIndex((option) => isSelected(option.raw));
   const edgeTopActive = visibleOptions.length > 0 && (hoveredIndex === 0 || focusedIndex === 0 || selectedVisibleIndex === 0);
-  const edgeBottomActive = (() => {
-    const lastIndex = visibleOptions.length - 1;
-    return lastIndex >= 0 && (hoveredIndex === lastIndex || focusedIndex === lastIndex || selectedVisibleIndex === lastIndex);
-  })();
+  const lastVisibleIndex = visibleOptions.length - 1;
+  const edgeBottomActive = lastVisibleIndex >= 0 && (hoveredIndex === lastVisibleIndex || focusedIndex === lastVisibleIndex || selectedVisibleIndex === lastVisibleIndex);
   const scrollEdgeStyle = {
     "--edge-top": edgeTopActive ? "var(--color-base)" : "var(--colorbg)",
     "--edge-bottom": edgeBottomActive ? "var(--color-base)" : "var(--colorbg)",
@@ -149,21 +147,16 @@ export function Select<T>({
     setOpenValue(false);
   }
 
-  function isOptionActive(option: T, index: number) {
-    return hoveredIndex === index || focusedIndex === index || isSelected(option);
-  }
-
   function getOptionClass(option: T, index: number) {
-    const lastIndex = visibleOptions.length - 1;
-    const active = isOptionActive(option, index);
-    const nextActive = active && index < lastIndex && isOptionActive(visibleOptions[index + 1].raw, index + 1);
+    const active = hoveredIndex === index || focusedIndex === index || isSelected(option);
+    const nextActive = active && index < lastVisibleIndex && (hoveredIndex === index + 1 || focusedIndex === index + 1 || isSelected(visibleOptions[index + 1].raw));
     return cn(
       "ui-select-option flex w-full cursor-pointer items-center justify-between bg-transparent text-left text-[0.8rem] text-[color:var(--color-foreground)] transition-colors",
       isSelected(option) && "ui-select-option-selected",
       active && "ui-select-option-active",
       nextActive && "ui-select-option-active-join-next",
       active && index === 0 && "ui-select-option-active-first",
-      active && index === lastIndex && "ui-select-option-active-last",
+      active && index === lastVisibleIndex && "ui-select-option-active-last",
       optionClassName,
     );
   }

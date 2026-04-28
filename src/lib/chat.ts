@@ -48,17 +48,9 @@ function urlsafeB64d(payload: string): Uint8Array {
   return b64tou8(decodeURIComponent(payload));
 }
 function b64e(payload: Uint8Array, type: B64Type): string {
-  switch (type) {
-    case B64Type.B1:
-      return urlsafeB64e(payload);
-    case B64Type.B2:
-      const urlsafe = urlsafeB64e(payload);
-      const encoded = new TextEncoder().encode(urlsafe);
-      return u8tob64(encoded);
-    // return u8tob64(new TextEncoder().encode(urlsafeB64e(payload)));
-    default:
-      throw new Error(`Invalid b64type: ${type}`);
-  }
+  if (type === B64Type.B1) return urlsafeB64e(payload);
+  if (type === B64Type.B2) return u8tob64(new TextEncoder().encode(urlsafeB64e(payload)));
+  throw new Error(`Invalid b64type: ${type}`);
 }
 
 function ld(

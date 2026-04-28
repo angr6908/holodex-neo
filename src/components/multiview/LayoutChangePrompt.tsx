@@ -10,8 +10,7 @@ import { useI18n } from "@/lib/i18n";
 export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, confirmFn = () => {}, defaultOverwrite = false, layoutPreview = { layout: [], content: {} } }: { open: boolean; onOpenChange?: (value: boolean) => void; cancelFn?: (overwriteMerge: boolean) => void; confirmFn?: (overwriteMerge: boolean) => void; defaultOverwrite?: boolean; layoutPreview?: { layout: any[]; content: Record<string, any> } }) {
   const { t } = useI18n();
   const [overwriteMerge, setOverwriteMerge] = useState(defaultOverwrite);
-  useEffect(() => { setOverwriteMerge(defaultOverwrite); }, [defaultOverwrite]);
-  useEffect(() => { if (open) setOverwriteMerge(defaultOverwrite); }, [open, defaultOverwrite]);
+  useEffect(() => { setOverwriteMerge(defaultOverwrite); }, [defaultOverwrite, open]);
   return (
     <Dialog open={open} className="max-w-[400px]" onOpenChange={onOpenChange}>
       <Card className="border-0 bg-transparent p-5 shadow-none">

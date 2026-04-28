@@ -26,8 +26,8 @@ export function LiveTranslationsSetting() {
   const [showBlockedList, setShowBlockedList] = useState(false);
   const blockedList = app.settings.liveTlBlocked || [];
   useEffect(() => { if (!dialog) setShowBlockedList(false); }, [dialog]);
-  function patch(patch: any) { app.patchSettings(patch); }
-  function toggleBlockName(name: string) { patch({ liveTlBlocked: blockedList.filter((item: string) => item !== name) }); }
+  const patch = (p: any) => app.patchSettings(p);
+  const toggleBlockName = (name: string) => patch({ liveTlBlocked: blockedList.filter((item: string) => item !== name) });
   return (
     <div className="relative inline-flex">
       <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title={t("views.watch.chat.TLSettingsTitle")} onClick={() => setDialog(!dialog)}><Icon icon={icons.mdiCog} size="sm" /></Button>

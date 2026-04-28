@@ -1,2 +1,1 @@
-import { LibraryPage } from "@/views/LibraryPage";
-export default function Page() { return <LibraryPage />; }
+export { LibraryPage as default } from "@/views/LibraryPage";

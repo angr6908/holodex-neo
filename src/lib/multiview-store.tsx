@@ -10,7 +10,6 @@ import {
   LayoutItem,
   decodeLayout,
   desktopPresets,
-  generateContentId,
   getDesktopDefaults,
   mobilePresets,
 } from "@/lib/mv-utils";
@@ -215,31 +214,21 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     });
   }, []);
 
-  const freezeLayoutItem = useCallback((id: string | number) => {
+  const setLayoutItemLock = useCallback((id: string | number, locked: boolean) => {
     setLayoutState((prev) => {
       let changed = false;
       const next = prev.map((item) => {
         if (item.i !== String(id)) return item;
-        if (item.isResizable === false && item.isDraggable === false) return item;
+        if (item.isResizable === !locked && item.isDraggable === !locked) return item;
         changed = true;
-        return { ...item, isResizable: false, isDraggable: false };
+        return { ...item, isResizable: !locked, isDraggable: !locked };
       });
       return changed ? next : prev;
     });
   }, []);
 
-  const unfreezeLayoutItem = useCallback((id: string | number) => {
-    setLayoutState((prev) => {
-      let changed = false;
-      const next = prev.map((item) => {
-        if (item.i !== String(id)) return item;
-        if (item.isResizable === true && item.isDraggable === true) return item;
-        changed = true;
-        return { ...item, isResizable: true, isDraggable: true };
-      });
-      return changed ? next : prev;
-    });
-  }, []);
+  const freezeLayoutItem = useCallback((id: string | number) => setLayoutItemLock(id, true), [setLayoutItemLock]);
+  const unfreezeLayoutItem = useCallback((id: string | number) => setLayoutItemLock(id, false), [setLayoutItemLock]);
 
   const reset = useCallback(() => {
     setLayoutState([]);
@@ -251,12 +240,7 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
   }, []);
 
   const removePresetLayout = useCallback((name: string) => {
-    setPresetLayout((prev) => {
-      const next = [...prev];
-      const idx = next.findIndex((item) => item.name === name);
-      next.splice(idx, 1);
-      return next;
-    });
+    setPresetLayout((prev) => prev.filter((item) => item.name !== name));
   }, []);
 
   const setAutoLayout = useCallback(({ index, encodedLayout }: { index: number; encodedLayout: string | null }) => {

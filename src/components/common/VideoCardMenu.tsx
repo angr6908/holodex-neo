@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { dayjs } from "@/lib/time";
 import { useAppState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
@@ -19,27 +19,14 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [doneCopy, setDoneCopy] = useState(false);
 
-  const isLive = useMemo(() => {
-    if (!video) return false;
-    if (video.status === "past") return false;
-    if (video.status === "live" || Date.parse(video.start_scheduled) < Date.now()) return true;
-    return false;
-  }, [video]);
-  const isPast = !!(video?.status === "past");
+  const isLive = !!(video && video.status !== "past" && (video.status === "live" || Date.parse(video.start_scheduled) < Date.now()));
+  const isPast = video?.status === "past";
   const isChattable = !!(video && video.status !== "past" && video.type === "stream");
 
   function openGoogleCalendar() {
-    const startdate = video.start_scheduled;
-    const baseurl = "https://www.google.com/calendar/render?action=TEMPLATE&text=";
-    const videoTitle = encodeURIComponent(video.title);
-    const googleCalendarFormat = "YYYYMMDD[T]HHmmss[Z]";
-    const eventStart = dayjs.utc(startdate).format(googleCalendarFormat);
-    const eventEnd = dayjs.utc(startdate).add(1, "hour").format(googleCalendarFormat);
-    const details = `<a href="${window.origin}/watch/${video.id}">Open Video</a>`;
-    window.open(
-      baseurl.concat(videoTitle, "&dates=", eventStart, "/", eventEnd, "&details=", details),
-      "_blank",
-    );
+    const fmt = "YYYYMMDD[T]HHmmss[Z]";
+    const start = dayjs.utc(video.start_scheduled);
+    window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(video.title)}&dates=${start.format(fmt)}/${start.add(1, "hour").format(fmt)}&details=${encodeURIComponent(`<a href="${window.origin}/watch/${video.id}">Open Video</a>`)}`, "_blank");
   }
 
   function copyLink() {
@@ -63,12 +50,24 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
     window.open(`https://youtube.com/live_chat?is_popout=1&v=${video.id}`, "_blank", `width=400,height=${window.innerHeight * 0.6}`);
   }
 
-  function scriptUploadPanel() {
-    if (appStore.userdata?.user) {
-      appStore.setUploadPanel(true);
-    } else {
-      openUserMenu();
-    }
+  function scriptUploadPanel() { if (appStore.userdata?.user) appStore.setUploadPanel(true); else openUserMenu(); }
+
+  function renderGoogleCalendarButton() {
+    return (
+      <button
+        type="button"
+        className="video-card-menu-item"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openGoogleCalendar();
+          close();
+        }}
+      >
+        <Icon icon={icons.mdiCalendar} className="h-4 w-4" />
+        {t("component.videoCard.googleCalendar")}
+      </button>
+    );
   }
 
   if (!video) return null;
@@ -87,21 +86,7 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
             {t("views.settings.redirectModeLabel")}
           </a>
 
-          {video.status === "upcoming" ? (
-            <button
-              type="button"
-              className="video-card-menu-item"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                openGoogleCalendar();
-                close();
-              }}
-            >
-              <Icon icon={icons.mdiCalendar} className="h-4 w-4" />
-              {t("component.videoCard.googleCalendar")}
-            </button>
-          ) : null}
+          {video.status === "upcoming" ? renderGoogleCalendarButton() : null}
           <Link
             href={`/edit/video/${video.id}${video.type !== "stream" ? "/mentions" : "/"}`}
             className="video-card-menu-item"
@@ -130,7 +115,7 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
             <Icon icon={icons.mdiChevronRight} className={`ml-auto h-4 w-4 transition ${showPlaylist ? "rotate-90" : ""}`} />
           </button>
           {showPlaylist ? (
-            <div className={`video-card-menu-playlist ${showPlaylist ? "open" : ""}`}>
+            <div className="video-card-menu-playlist open">
               <VideoQuickPlaylist key={`${video.id}-${Date.now()}`} videoId={video.id} video={video} />
             </div>
           ) : null}
@@ -149,21 +134,7 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
         </>
       ) : (
         <>
-          {video.status === "upcoming" ? (
-            <button
-              type="button"
-              className="video-card-menu-item"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                openGoogleCalendar();
-                close();
-              }}
-            >
-              <Icon icon={icons.mdiCalendar} className="h-4 w-4" />
-              {t("component.videoCard.googleCalendar")}
-            </button>
-          ) : null}
+          {video.status === "upcoming" ? renderGoogleCalendarButton() : null}
         </>
       )}
       <button

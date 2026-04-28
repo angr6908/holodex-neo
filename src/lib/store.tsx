@@ -27,9 +27,10 @@ import {
 } from "@/lib/messaging";
 import {
   APP_BOOT_COOKIE,
-  encodeBootCookie,
+  encodeCookieJson,
   type AppBootState,
-} from "@/lib/persist-cookie";
+} from "@/lib/cookie-codec";
+import { dedupeVideos } from "@/lib/video-list";
 
 export type Org = { name: string; short: string; [key: string]: any };
 export type Settings = {
@@ -294,10 +295,8 @@ const englishNamePrefs = new Set([
   "it",
 ]);
 
-function getBrowserLanguage() {
-  if (typeof navigator === "undefined") return "en";
-  return (navigator as any).language || (navigator as any).userLanguage || "en";
-}
+const getBrowserLanguage = () =>
+  typeof navigator === "undefined" ? "en" : (navigator as any).language || (navigator as any).userLanguage || "en";
 
 function buildDefaultSettings(userLanguage = "en"): Settings {
   const lang = getLang(userLanguage);
@@ -336,11 +335,8 @@ function buildDefaultSettings(userLanguage = "en"): Settings {
   });
 }
 
-function buildBrowserDefaultSettings(): Settings {
-  return buildDefaultSettings(getBrowserLanguage());
-}
 
-const defaultSettings: Settings = buildDefaultSettings("en");
+const defaultSettings = buildDefaultSettings("en");
 
 const defaultState: State = {
   hydrated: false,
@@ -391,6 +387,14 @@ const defaultState: State = {
 
 const StoreContext = createContext<Store | null>(null);
 
+const SETTINGS_STORAGE_KEY = "holodex-v2-settings";
+const APP_STORAGE_KEY = "holodex-v2-app";
+const ORGS_STORAGE_KEY = "holodex-v2-orgs";
+const HOME_STORAGE_KEY = "holodex-v2-home";
+const FAVORITES_STORAGE_KEY = "holodex-v2-favorites";
+const LIBRARY_STORAGE_KEY = "holodex-v2-library";
+const PLAYLIST_STORAGE_KEY = "holodex-v2-playlist";
+
 function readJSON<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
@@ -405,8 +409,8 @@ function writeJSON(key: string, value: any) {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {}
 }
-function appPersistedState(state: State) {
-  return {
+function persistAppState(state: State): void {
+  writeJSON(APP_STORAGE_KEY, {
     firstVisit: state.firstVisit,
     showOrgTip: state.showOrgTip,
     showUpdateDetails: state.showUpdateDetails,
@@ -419,7 +423,20 @@ function appPersistedState(state: State) {
     currentGridSize: state.currentGridSize,
     TPCookieEnabled: state.TPCookieEnabled,
     TPCookieAlertDismissed: state.TPCookieAlertDismissed,
-  };
+  });
+  writeBootCookie(state);
+}
+
+function normalizeSelectedHomeOrgs(orgs: string[]): string[] {
+  return [
+    ...new Set((orgs || []).filter((name) => name && name !== "All Vtubers")),
+  ];
+}
+
+function selectedHomeOrgsForCurrentOrg(state: State, org: Org): string[] {
+  if ((state.selectedHomeOrgs?.length || 0) > 1) return state.selectedHomeOrgs;
+  if (org?.name && org.name !== "All Vtubers") return [org.name];
+  return [];
 }
 
 function makeLiveCacheKey(orgTargets: string[]) {
@@ -427,8 +444,9 @@ function makeLiveCacheKey(orgTargets: string[]) {
   return JSON.stringify(targets.length ? [...targets].sort() : ["All Vtubers"]);
 }
 
-function bootCookieState(state: State): AppBootState {
-  return {
+function writeBootCookie(state: State) {
+  if (typeof document === "undefined") return;
+  const encoded = encodeCookieJson({
     isMobile: state.isMobile,
     windowWidth: state.windowWidth,
     currentOrg: state.currentOrg,
@@ -444,19 +462,9 @@ function bootCookieState(state: State): AppBootState {
       darkMode: state.settings.darkMode,
       followSystemTheme: state.settings.followSystemTheme,
     },
-  };
-}
-
-function writeBootCookie(state: State) {
-  if (typeof document === "undefined") return;
-  const encoded = encodeBootCookie(bootCookieState(state));
+  });
   if (!encoded) return;
   document.cookie = `${APP_BOOT_COOKIE}=${encoded}; Path=/; Max-Age=31536000; SameSite=Lax`;
-}
-
-function normalizeBootOrg(org: AppBootState["currentOrg"], fallback: Org): Org {
-  if (!org?.name) return fallback;
-  return { ...org, short: org.short || fallback.short || org.name };
 }
 
 function buildBootState(initialBootState?: AppBootState | null): State {
@@ -482,10 +490,9 @@ function buildBootState(initialBootState?: AppBootState | null): State {
       typeof initialBootState?.currentGridSize === "number"
         ? initialBootState.currentGridSize
         : defaultState.currentGridSize,
-    currentOrg: normalizeBootOrg(
-      initialBootState?.currentOrg,
-      defaultState.currentOrg,
-    ),
+    currentOrg: initialBootState?.currentOrg?.name
+      ? { ...initialBootState.currentOrg, short: initialBootState.currentOrg.short || defaultState.currentOrg.short || initialBootState.currentOrg.name }
+      : defaultState.currentOrg,
     selectedHomeOrgs,
     orgFavorites: Array.isArray(initialBootState?.orgFavorites)
       ? initialBootState.orgFavorites
@@ -498,19 +505,19 @@ function buildBootState(initialBootState?: AppBootState | null): State {
 function loadBrowserPersistedState(base: State): State {
   if (typeof window === "undefined") return base;
   const settings = normalizeSettings(
-    readJSON("holodex-v2-settings", buildBrowserDefaultSettings()),
+    readJSON(SETTINGS_STORAGE_KEY, buildDefaultSettings(getBrowserLanguage())),
   );
-  const home = readJSON("holodex-v2-home", {
+  const home = readJSON(HOME_STORAGE_KEY, {
     live: [],
     lastLiveUpdate: 0,
     liveCacheKey: JSON.stringify(["Hololive"]),
   });
-  const fav = readJSON("holodex-v2-favorites", {
+  const fav = readJSON(FAVORITES_STORAGE_KEY, {
     favorites: [],
     live: [],
     lastLiveUpdate: 0,
   });
-  const app = readJSON("holodex-v2-app", {
+  const app = readJSON(APP_STORAGE_KEY, {
     currentOrg: defaultState.currentOrg,
     selectedHomeOrgs: defaultState.selectedHomeOrgs,
     orgFavorites: defaultState.orgFavorites,
@@ -524,9 +531,9 @@ function loadBrowserPersistedState(base: State): State {
     TPCookieEnabled: defaultState.TPCookieEnabled,
     TPCookieAlertDismissed: defaultState.TPCookieAlertDismissed,
   });
-  const orgsPersisted = readJSON("holodex-v2-orgs", { orgs: [] as any[] });
-  const library = readJSON("holodex-v2-library", { savedVideos: {} });
-  const playlistPersisted = readJSON("holodex-v2-playlist", {
+  const orgsPersisted = readJSON(ORGS_STORAGE_KEY, { orgs: [] as any[] });
+  const library = readJSON(LIBRARY_STORAGE_KEY, { savedVideos: {} });
+  const playlistPersisted = readJSON(PLAYLIST_STORAGE_KEY, {
     active: emptyPlaylist(),
     isSaved: false,
     videos: [],
@@ -573,11 +580,6 @@ function loadBrowserPersistedState(base: State): State {
     playlistIsSaved: !!playlistPersisted.isSaved,
   };
 }
-function dedupeVideos(videos: any[]) {
-  return Array.from(
-    new Map((videos || []).map((video) => [video.id, video])).values(),
-  );
-}
 function liveFingerprint(arr: any[]) {
   return (arr || [])
     .map((v) => `${v.id}:${v.status}:${getLiveViewerCount(v)}`)
@@ -621,13 +623,12 @@ export function AppStateProvider({
 
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-settings", state.settings);
+    writeJSON(SETTINGS_STORAGE_KEY, state.settings);
     writeBootCookie(state);
   }, [state.hydrated, state.settings]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-app", appPersistedState(state));
-    writeBootCookie(state);
+    persistAppState(state);
   }, [
     state.hydrated,
     state.firstVisit,
@@ -649,11 +650,11 @@ export function AppStateProvider({
   }, [state.hydrated, state.isMobile, state.windowWidth]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-orgs", { orgs: state.orgs });
+    writeJSON(ORGS_STORAGE_KEY, { orgs: state.orgs });
   }, [state.hydrated, state.orgs]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-home", {
+    writeJSON(HOME_STORAGE_KEY, {
       live: state.homeLive,
       lastLiveUpdate: state.homeLastLiveUpdate,
       liveCacheKey: state.homeLiveCacheKey,
@@ -661,7 +662,7 @@ export function AppStateProvider({
   }, [state.hydrated, state.homeLive, state.homeLastLiveUpdate, state.homeLiveCacheKey]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-favorites", {
+    writeJSON(FAVORITES_STORAGE_KEY, {
       favorites: state.favorites,
       live: state.favoritesLive,
       lastLiveUpdate: state.favoritesLastLiveUpdate,
@@ -669,11 +670,11 @@ export function AppStateProvider({
   }, [state.hydrated, state.favorites, state.favoritesLive, state.favoritesLastLiveUpdate]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-library", { savedVideos: state.savedVideos });
+    writeJSON(LIBRARY_STORAGE_KEY, { savedVideos: state.savedVideos });
   }, [state.hydrated, state.savedVideos]);
   useEffect(() => {
     if (!state.hydrated) return;
-    writeJSON("holodex-v2-playlist", {
+    writeJSON(PLAYLIST_STORAGE_KEY, {
       active: { ...state.playlistActive, videos: state.playlist },
       isSaved: state.playlistIsSaved,
     });
@@ -688,7 +689,7 @@ export function AppStateProvider({
           ...normalizedPatch,
         });
         const nextState = { ...s, settings };
-        writeJSON("holodex-v2-settings", settings);
+        writeJSON(SETTINGS_STORAGE_KEY, settings);
         if (nextState.hydrated) writeBootCookie(nextState);
         return nextState;
       }),
@@ -700,18 +701,10 @@ export function AppStateProvider({
         const nextState = {
           ...s,
           currentOrg: org,
-          selectedHomeOrgs:
-            (s.selectedHomeOrgs?.length || 0) <= 1
-              ? org?.name && org.name !== "All Vtubers"
-                ? [org.name]
-                : []
-              : s.selectedHomeOrgs,
+          selectedHomeOrgs: selectedHomeOrgsForCurrentOrg(s, org),
           homeLastLiveUpdate: 0,
         };
-        if (nextState.hydrated) {
-          writeJSON("holodex-v2-app", appPersistedState(nextState));
-          writeBootCookie(nextState);
-        }
+        if (nextState.hydrated) persistAppState(nextState);
         return nextState;
       }),
     [],
@@ -721,17 +714,10 @@ export function AppStateProvider({
       setState((s) => {
         const nextState = {
           ...s,
-          selectedHomeOrgs: [
-            ...new Set(
-              (orgs || []).filter((name) => name && name !== "All Vtubers"),
-            ),
-          ],
+          selectedHomeOrgs: normalizeSelectedHomeOrgs(orgs),
           homeLastLiveUpdate: 0,
         };
-        if (nextState.hydrated) {
-          writeJSON("holodex-v2-app", appPersistedState(nextState));
-          writeBootCookie(nextState);
-        }
+        if (nextState.hydrated) persistAppState(nextState);
         return nextState;
       }),
     [],
@@ -745,10 +731,7 @@ export function AppStateProvider({
             selectedHomeOrgs: [],
             homeLastLiveUpdate: 0,
           };
-          if (nextState.hydrated) {
-            writeJSON("holodex-v2-app", appPersistedState(nextState));
-            writeBootCookie(nextState);
-          }
+          if (nextState.hydrated) persistAppState(nextState);
           return nextState;
         }
         const exists = s.selectedHomeOrgs.includes(org);
@@ -759,10 +742,7 @@ export function AppStateProvider({
             : [...s.selectedHomeOrgs, org],
           homeLastLiveUpdate: 0,
         };
-        if (nextState.hydrated) {
-          writeJSON("holodex-v2-app", appPersistedState(nextState));
-          writeBootCookie(nextState);
-        }
+        if (nextState.hydrated) persistAppState(nextState);
         return nextState;
       }),
     [],
@@ -968,42 +948,35 @@ export function AppStateProvider({
     ],
   );
 
-  const flushFavoriteUpdates = useCallback(() => {
-    const current = stateRef.current;
-    const operations = Object.keys(current.stagedFavorites || {}).map(
-      (key) => ({
-        op: current.stagedFavorites[key],
-        channel_id: key,
-      }),
-    );
-    if (operations.length === 0 || !current.userdata.jwt) return;
-    api
-      .patchFavorites(current.userdata.jwt, operations)
-      .catch((e: any) => {
-        console.error(e);
-        return e?.response || false;
-      })
-      .then((res: any) => {
-        if (res && res.status === 200) {
-          setState((s) => ({ ...s, favorites: res.data, stagedFavorites: {} }));
-          fetchFavoritesLive({ force: true });
-          sendFavoritesToExtension(res.data);
-        } else if (res) {
-          throw new Error("Error while adding favorite");
-        }
-      })
-      .finally(() => {
-        setState((s) => ({ ...s, stagedFavorites: {} }));
-      });
-  }, [fetchFavoritesLive]);
-
   const scheduleFavoriteUpdate = useCallback(() => {
     if (favoriteFlushTimer.current) clearTimeout(favoriteFlushTimer.current);
     favoriteFlushTimer.current = setTimeout(() => {
       favoriteFlushTimer.current = null;
-      flushFavoriteUpdates();
+      const current = stateRef.current;
+      const operations = Object.keys(current.stagedFavorites || {}).map(
+        (key) => ({ op: current.stagedFavorites[key], channel_id: key }),
+      );
+      if (operations.length === 0 || !current.userdata.jwt) return;
+      api
+        .patchFavorites(current.userdata.jwt, operations)
+        .catch((e: any) => {
+          console.error(e);
+          return e?.response || false;
+        })
+        .then((res: any) => {
+          if (res?.status === 200) {
+            setState((s) => ({ ...s, favorites: res.data, stagedFavorites: {} }));
+            fetchFavoritesLive({ force: true });
+            sendFavoritesToExtension(res.data);
+          } else if (res) {
+            throw new Error("Error while adding favorite");
+          }
+        })
+        .finally(() => {
+          setState((s) => ({ ...s, stagedFavorites: {} }));
+        });
     }, 2000);
-  }, [flushFavoriteUpdates]);
+  }, [fetchFavoritesLive]);
 
   const toggleFavorite = useCallback(
     (channelId: string) => {
@@ -1062,13 +1035,13 @@ export function AppStateProvider({
       const jwt = state.userdata.jwt;
       if (state.userdata && jwt) {
         const valid: any = await api.loginIsValid(jwt);
-        if (valid && valid.status === 200) {
+        if (valid?.status === 200) {
           setCookieJWT(valid.data.jwt);
           setState((s) => ({
             ...s,
             userdata: { user: valid.data.user, jwt: valid.data.jwt },
           }));
-        } else if (valid && valid.status === 401) {
+        } else if (valid?.status === 401) {
           logout();
           if (bounceToLogin) {
             openUserMenu();
@@ -1135,22 +1108,17 @@ export function AppStateProvider({
 
   const value = useMemo<Store>(() => {
     const favoriteChannelIDs = new Set(state.favorites.map((f) => f.id));
-    const isFavorited = (channelId: string) =>
-      state.stagedFavorites[channelId] === "add" ||
-      (state.favorites.find((f) => f.id === channelId) &&
-        state.stagedFavorites[channelId] !== "remove");
     return {
       ...state,
       isLoggedIn: !!state.userdata.jwt,
       isSuperuser: ["admin", "editor"].includes(state.userdata.user?.role),
       favoriteChannelIDs,
-      blockedChannelIDs: new Set(
-        (state.settings.blockedChannels || [])
-          .map((x: any) => x.id)
-          .filter(Boolean),
-      ),
+      blockedChannelIDs: new Set(state.settings.blockedChannelIDs),
       ignoredTopicsSet: new Set(state.settings.ignoredTopics || []),
-      isFavorited: (channelId: string) => Boolean(isFavorited(channelId)),
+      isFavorited: (channelId: string) =>
+        state.stagedFavorites[channelId] === "add" ||
+        !!(state.favorites.find((f) => f.id === channelId) &&
+          state.stagedFavorites[channelId] !== "remove"),
       patchSettings,
       setIsMobile: (value) =>
         setState((s) => {
@@ -1167,10 +1135,7 @@ export function AppStateProvider({
       setCurrentGridSize: (value) =>
         setState((s) => {
           const nextState = { ...s, currentGridSize: value };
-          if (nextState.hydrated) {
-            writeJSON("holodex-v2-app", appPersistedState(nextState));
-            writeBootCookie(nextState);
-          }
+          if (nextState.hydrated) persistAppState(nextState);
           return nextState;
         }),
       setCurrentOrg,
@@ -1395,7 +1360,6 @@ export function AppStateProvider({
     loginVerify,
     logout,
   ]);
-
   return (
     <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
   );

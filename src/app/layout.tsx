@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { cookies, headers } from "next/headers";
 import { AppProviders } from "@/components/common/AppShell";
-import { APP_BOOT_COOKIE, decodeBootCookie } from "@/lib/persist-cookie";
+import {
+  APP_BOOT_COOKIE,
+  decodeAppBootCookie,
+} from "@/lib/cookie-codec";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.holodex.net"),
@@ -44,12 +47,12 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const requestHeaders = await headers();
-  const cookieBootState = decodeBootCookie(cookieStore.get(APP_BOOT_COOKIE)?.value);
+  const cookieBootState = decodeAppBootCookie(cookieStore.get(APP_BOOT_COOKIE)?.value);
   const requestIsMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(requestHeaders.get("user-agent") || "");
   const initialBootState = {
     ...(cookieBootState || {}),
     isMobile: cookieBootState?.isMobile ?? requestIsMobile,
     windowWidth: cookieBootState?.windowWidth ?? (requestIsMobile ? 390 : 1440),
   };
-  return <html lang="en" suppressHydrationWarning style={{ backgroundColor: "var(--colorbg, #111827)" }}><head suppressHydrationWarning><script id="holodex-theme-init" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInit }} /><script src="/config.js" defer suppressHydrationWarning /></head><body className="scroll-bar" suppressHydrationWarning style={{ paddingTop: "env(safe-area-inset-top)", backgroundColor: "var(--colorbg, #111827)" }}><noscript><strong>We're sorry but this site doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><AppProviders initialBootState={initialBootState}>{children}</AppProviders></body></html>;
+  return <html lang="en" suppressHydrationWarning style={{ backgroundColor: "var(--colorbg, #0e1827)" }}><head suppressHydrationWarning><link rel="preconnect" href="https://www.youtube.com" /><link rel="dns-prefetch" href="https://i.ytimg.com" /><link rel="dns-prefetch" href="https://yt3.ggpht.com" /><script id="holodex-theme-init" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInit }} /><script src="/config.js" defer suppressHydrationWarning /></head><body className="scroll-bar" suppressHydrationWarning style={{ paddingTop: "env(safe-area-inset-top)", backgroundColor: "var(--colorbg, #0e1827)" }}><noscript><strong>We're sorry but this site doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><AppProviders initialBootState={initialBootState}>{children}</AppProviders></body></html>;
 }

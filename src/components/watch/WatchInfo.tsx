@@ -15,8 +15,8 @@ import { TruncatedText } from "@/components/common/TruncatedText";
 import { useAppState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { decodeHTMLEntities, formatCount, getKnownLiveViewerCount, getLiveViewerCount } from "@/lib/functions";
-import { linkifyVideoTimestamps } from "@/lib/video-format";
-import { dayjs, formatDistance, formatDuration, localizedDayjs, titleTimeString } from "@/lib/time";
+import { elapsedLiveDuration, linkifyVideoTimestamps } from "@/lib/video-format";
+import { formatDistance, formatDuration, localizedDayjs, titleTimeString } from "@/lib/time";
 import * as icons from "@/lib/icons";
 
 export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Record<string, any>; onTimeJump?: (time: number) => void; noChips?: boolean; noSubCount?: boolean }) {
@@ -29,7 +29,7 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Re
   const previousLiveViewers = useRef<number | undefined>(undefined);
   const lang = app.settings.lang;
   const absoluteTimeString = titleTimeString(video.available_at, lang);
-  const formattedTime = video.status === "upcoming" ? formatDistance(video.start_scheduled, lang, t) : video.status === "live" ? t("component.watch.streamingFor", [elapsedTime]) : localizedDayjs(video.available_at, lang).format("LLL");
+  const formattedTime = video.status === "upcoming" ? formatDistance(video.start_scheduled, lang, t) : video.status === "live" ? t("component.watch.streamingFor", [elapsedTime]) : localizedDayjs(video.available_at).format("LLL");
   const liveViewerCount = getLiveViewerCount(video);
   const knownLiveViewerCount = getKnownLiveViewerCount(video);
   const liveViewers = liveViewerCount ? formatCount(liveViewerCount, lang) : "";
@@ -41,7 +41,7 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Re
 
   useEffect(() => {
     if (video.status !== "live") return;
-    const timer = setInterval(() => setElapsedTime(formatDuration(dayjs().diff(dayjs(video.start_actual)))), 1000);
+    const timer = setInterval(() => setElapsedTime(elapsedLiveDuration(video.start_actual)), 1000);
     return () => clearInterval(timer);
   }, [video.status, video.start_actual]);
   useEffect(() => {

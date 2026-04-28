@@ -121,12 +121,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     }
   }
   function onImgLoad(event: React.SyntheticEvent<HTMLImageElement>) {
-    const img = event.currentTarget;
-    if (!img.dataset.fadeReady) {
-      img.classList.add("loaded");
-      return;
-    }
-    img.classList.add("loaded");
+    event.currentTarget.classList.add("loaded");
   }
   function shouldIgnoreTextClick(event: any) {
     const selection = window.getSelection?.();
@@ -236,7 +231,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     <article className={cn("video-card no-decoration flex", fluid && "video-card-fluid", active && "video-card-active", dragging && "video-card-dragging", horizontal && "video-card-horizontal", denseList && "video-card-list", inMultiViewActiveVideos && "video-card-multiview-active", !horizontal && !denseList && "flex-col")} draggable={!dragSelectionLocked} style={{ position: "relative" }} onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))} onDragStart={drag} onDragEnd={handleDragEnd} onClick={(e) => { if ((e.target as HTMLElement).closest("a,button")) return; if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>
       <div className="video-card-shell w-full overflow-hidden border border-[color:var(--color-border)] p-0">
         {!denseList ? <div style={{ position: "relative", width: "100%", ...(horizontal && !shouldHideThumbnail ? { background: `url(${imageSrc}) center/cover` } : {}) }} className="video-thumbnail text-white rounded flex-shrink-0 flex cursor-pointer overflow-hidden" role="link" tabIndex={0} onClick={(e) => { e.stopPropagation(); onThumbnailClicked(); }} onContextMenu={openContextMenu} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onThumbnailClicked(); } }}>
-          {isPlaceholder && data.status === "upcoming" && data.placeholderType ? <PlaceholderOverlay width={200} height={150} showOnlyOnHover={false} /> : null}
+          {isPlaceholder && data.status === "upcoming" && data.placeholderType ? <PlaceholderOverlay showOnlyOnHover={false} /> : null}
           <div className="video-card-overlay flex justify-between flex-col" style={{ height: "100%", position: "absolute", width: "100%", zIndex: 1 }}>
             <div className="flex justify-between items-start"><div>{data.topic_id && !isClip ? <div className="video-topic">{data.topic_id}</div> : null}</div>{!isPlaceholder ? <button type="button" className="video-card-action" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}><Icon icon={hasSaved ? mdiCheck : mdiPlus} className="h-4 w-4 video-card-action-icon-unsaved" /></button> : null}</div>
             <div className="flex min-w-0 items-end justify-between gap-2">
@@ -246,10 +241,10 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           </div>
           {!horizontal && !shouldHideThumbnail ? <img ref={onImgMounted} src={imageSrc} width="100%" loading="lazy" decoding="async" className={cn("aspect-video w-full object-cover img-fade-in", data.placeholderType === "scheduled-yt-stream" && "hover-opacity")} alt="" onLoad={onImgLoad} /> : !horizontal && shouldHideThumbnail ? <div className="aspect-[60/9] w-full bg-white/6" /> : null}
         </div> : null}
-        <div className={cn("video-card-text no-decoration", hideGridLiveMeta && "video-card-text-live-compact", isSingleLineTitle && !horizontal && !denseList && !hideGridLiveMeta && "video-card-text-single-line")}>
+        <div className={cn("video-card-text no-decoration", hideGridLiveMeta && "video-card-text-live-compact", isSingleLineTitle && !horizontal && !denseList && "video-card-text-single-line")}>
           {(denseList && data.channel) || showGridAvatar ? <div className={cn("video-card-avatar-slot flex self-center mx-2 flex-col", showGridAvatar && !denseList && "video-card-avatar-slot--grid")}><button type="button" className="plain-button inline-flex items-center" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></button></div> : null}
-          <div className={cn("flex video-card-lines flex-col", isSingleLineTitle && !horizontal && !denseList && !hideGridLiveMeta && "video-card-lines-single-line")}>
-            <div className={cn("video-card-title-wrap", !horizontal && !denseList && !isSingleLineTitle && "video-card-title-wrap-default")}><Link ref={titleButton} href={titleHref} className={cn("plain-button video-card-title text-left", hasWatched && "video-watched")} title={title} style={{ userSelect: "text", fontSize: `${1 - app.currentGridSize / 16}rem` }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <Icon icon={mdiClockAlertOutline} className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom text-amber-400" title={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
+          <div className={cn("flex video-card-lines flex-col", isSingleLineTitle && !horizontal && !denseList && "video-card-lines-single-line")}>
+            <div className={cn("video-card-title-wrap", !horizontal && !denseList && "video-card-title-wrap-default")}><Link ref={titleButton} href={titleHref} className={cn("plain-button video-card-title text-left", hasWatched && "video-watched")} title={title} style={{ userSelect: "text", fontSize: `${1 - app.currentGridSize / 16}rem` }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <Icon icon={mdiClockAlertOutline} className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom text-amber-400" title={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
             <div className="video-card-meta">
               {includeChannel ? (
                 <div className="video-card-channel-slot">

@@ -39,12 +39,12 @@ export function formatDuration(millisecs: number): string {
     return `${negate ? "-" : ""}${hStr}${mStr}:${sStr}`;
 }
 
-export function localizedDayjs(time: string | number | Date, _lang?: string): ReturnType<typeof dayjs> {
+export function localizedDayjs(time: string | number | Date): ReturnType<typeof dayjs> {
     return dayjs(time);
 }
 
 export function titleTimeString(available_at: string, lang?: string): string {
-    const ts = localizedDayjs(available_at, lang);
+    const ts = localizedDayjs(available_at);
     const ts1 = ts.format(`${ts.isTomorrow() ? "ddd " : ""}LT zzz`);
     const ts2 = ts.tz("Asia/Tokyo").format(`${ts.isTomorrow() ? "ddd " : ""}LT zzz`);
     if (ts1 === ts2) return ts1;
@@ -54,26 +54,13 @@ export function titleTimeString(available_at: string, lang?: string): string {
 export function formatDistance(time: string | null, lang: string | undefined, $t: (key: string, args?: any) => string, allowNegative = true, now = dayjs()): string {
     if (!time) return "?";
     const minutesDiff = now.diff(time, "minutes");
-    if (Math.abs(minutesDiff) < 1) return $t("time.soon");
-    if (!allowNegative && minutesDiff > 0) return $t("time.soon");
+    if (Math.abs(minutesDiff) < 1 || (!allowNegative && minutesDiff > 0)) return $t("time.soon");
+    const timeObj = localizedDayjs(time);
     const hourDiff = now.diff(time, "hour");
-    if (hourDiff < -23) {
-        return $t("time.diff_future_date", [
-            localizedDayjs(time, lang).format("l"),
-            localizedDayjs(time, lang).format("LT"),
-        ]);
-    }
-    if (hourDiff > 23) {
-        return `${localizedDayjs(time, lang).format("l")} (${localizedDayjs(time, lang).format("LT")})`;
-    }
-    const timeObj = localizedDayjs(time, lang);
-    if (new Date(time) > new Date()) {
-        return $t("time.diff_future_date", [
-            timeObj.fromNow(),
-            timeObj.format(`${timeObj.isTomorrow() ? "ddd " : ""}LT`),
-        ]);
-    }
-    return $t("time.distance_past_date", [localizedDayjs(time, lang).fromNow()]);
+    if (hourDiff < -23) return $t("time.diff_future_date", [timeObj.format("l"), timeObj.format("LT")]);
+    if (hourDiff > 23) return `${timeObj.format("l")} (${timeObj.format("LT")})`;
+    if (new Date(time) > new Date()) return $t("time.diff_future_date", [timeObj.fromNow(), timeObj.format(`${timeObj.isTomorrow() ? "ddd " : ""}LT`)]);
+    return $t("time.distance_past_date", [timeObj.fromNow()]);
 }
 
 export function secondsToHuman(s: number): string {

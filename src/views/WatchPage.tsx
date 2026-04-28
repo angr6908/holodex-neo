@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { mdiTheater, mdiThumbUp } from "@mdi/js";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
@@ -57,12 +57,12 @@ export function WatchPage() {
   const comments = video.comments || [];
   const isPlaylist = !!searchParams.get("playlist");
   const role = app.userdata?.user?.role;
+  const isEditor = role === "admin" || role === "editor";
   const hasRelatedSections = Boolean(video?.simulcasts?.length || video?.clips?.length || video?.sources?.length || video?.same_source_clips?.length || video?.recommendations?.length || video?.refers?.length);
-  const showUtilityRail = Boolean(role === "admin" || role === "editor" || isPlaylist);
+  const showUtilityRail = Boolean(isEditor || isPlaylist);
   const showUpload = app.uploadPanel;
   const hasExtension = typeof window !== "undefined" && !!(window as any).HOLODEX_PLUS_INSTALLED;
   const showHighlightsBar = (comments.length || video.songcount) && (!app.isMobile || !showTL);
-  const getLang = getYTLangFromState({ settings: { lang: app.settings.lang } });
 
   useEffect(() => {
     if (!videoId) { setHasError(true); setIsLoading(false); return; }
@@ -140,11 +140,6 @@ export function WatchPage() {
     requestAnimationFrame(() => { schedulePlayerWidthMeasure(); if (watchLayout.current) watchLayout.current.scrollTop = 0; });
   }
 
-  function playNextPlaylist({ video: nextVideo }: { video: any }) {
-    const playlist = searchParams.get("playlist");
-    if (nextVideo?.id) router.push(`/watch/${nextVideo.id}${playlist ? `?playlist=${playlist}` : ""}`);
-  }
-
   if (isLoading || hasError) return <div className="watch-loading-shell"><LoadingOverlay isLoading={isLoading} showError={hasError} variant="watch" /></div>;
   return (
     <div className={`watch-page ${theaterMode && !app.isMobile ? "watch-page--cinema" : ""} ${showChatWindow ? "watch-page--chat" : ""} ${app.isMobile ? "watch-page--mobile" : ""}`} style={{ "--player-stack-reserve": `${playerStackReserve}px` } as React.CSSProperties}>
@@ -159,8 +154,8 @@ export function WatchPage() {
                     className="video"
                     videoId={video.id}
                     start={timeOffset}
-                    autoplay={!!isPlaylist}
-                    lang={getLang}
+                    autoplay
+                    lang={getYTLangFromState({ settings: { lang: app.settings.lang } })}
                     onReady={(p) => { player.current = p; requestAnimationFrame(schedulePlayerWidthMeasure); }}
                     onCurrentTime={setCurrentTime}
                     onEnded={() => { if (playlistIndex >= 0) setPlaylistIndex((value) => value + 1); }}
@@ -183,8 +178,8 @@ export function WatchPage() {
           {hasRelatedSections ? <WatchSideBar key="related" video={video} className="watch-section" showSongs={false} showRelations onTimeJump={seekTo} /> : null}
           {showUtilityRail ? (
             <div className="watch-section flex flex-col gap-4">
-              {role === "admin" || role === "editor" ? <WatchQuickEditor video={video} /> : null}
-              {isPlaylist ? <WatchPlaylist value={playlistIndex} video={video} onInput={setPlaylistIndex} onPlayNext={playNextPlaylist} /> : null}
+              {isEditor ? <WatchQuickEditor video={video} /> : null}
+              {isPlaylist ? <WatchPlaylist value={playlistIndex} video={video} onInput={setPlaylistIndex} onPlayNext={({ video: nextVideo }) => { const playlist = searchParams.get("playlist"); if (nextVideo?.id) router.push(`/watch/${nextVideo.id}${playlist ? `?playlist=${playlist}` : ""}`); }} /> : null}
             </div>
           ) : null}
         </div>

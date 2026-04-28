@@ -1,5 +1,1 @@
-import { TLClientPage } from "@/views/TLClientPage";
-
-export default function Page() {
-  return <TLClientPage />;
-}
+export { TLClientPage as default } from "@/views/TLClientPage";

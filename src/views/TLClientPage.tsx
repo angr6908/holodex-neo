@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { mdiClose, mdiCloseCircle, mdiCog, mdiCogOff, mdiHome, mdiMinusCircle, mdiPlusCircle } from "@mdi/js";
 import { api } from "@/lib/api";
 import { TL_LANGS, VIDEO_URL_REGEX } from "@/lib/consts";
@@ -19,6 +19,7 @@ import { VideoSelector } from "@/components/multiview/VideoSelector";
 import { YoutubePlayer } from "@/components/player/YoutubePlayer";
 import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { openUserMenu } from "@/lib/navigation-events";
+import { readJSON, writeJSON } from "@/lib/storage";
 
 const defaultProfile = [{
   Name: "Default",
@@ -29,20 +30,6 @@ const defaultProfile = [{
   useOC: false,
   OC: "#000000",
 }];
-
-function readStorage<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeStorage(key: string, value: any) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-}
 
 export function TLClientPage() {
   const { t } = useI18n();
@@ -75,7 +62,6 @@ export function TLClientPage() {
   const [resizePos, setResizePos] = useState(0);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | false>(false);
-  const [menuBool, setMenuBool] = useState(false);
   const [video, setVideo] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -86,8 +72,8 @@ export function TLClientPage() {
 
   useEffect(() => {
     document.title = "TLClient - Holodex";
-    setProfile(readStorage("tldex-profiles", defaultProfile));
-    setMainStreamLink(readStorage("tldex-lastlink", ""));
+    setProfile(readJSON("tldex-profiles", defaultProfile));
+    setMainStreamLink(readJSON("tldex-lastlink", ""));
     init();
     const defaultSetting = localStorage.getItem("Holodex-TLClient");
     if (defaultSetting) {
@@ -98,8 +84,8 @@ export function TLClientPage() {
     }
   }, []);
 
-  useEffect(() => { writeStorage("tldex-profiles", profile); }, [profile]);
-  useEffect(() => { writeStorage("tldex-lastlink", mainStreamLink); }, [mainStreamLink]);
+  useEffect(() => { writeJSON("tldex-profiles", profile); }, [profile]);
+  useEffect(() => { writeJSON("tldex-lastlink", mainStreamLink); }, [mainStreamLink]);
 
   useEffect(() => {
     const queryVideo = searchParams.get("video");
@@ -275,8 +261,7 @@ export function TLClientPage() {
   }
 
   function addProfile() {
-    let name = addProfileNameString;
-    if (name.trim() === "") name = `Profile ${profile.length}`;
+    const name = addProfileNameString.trim() ? addProfileNameString : `Profile ${profile.length}`;
     setProfile((prev) => [...prev, { Name: name, Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }]);
     setProfileIdx(profile.length);
     setModalNexus(false);
@@ -421,7 +406,7 @@ export function TLClientPage() {
         </Button>
       </Card>
 
-      <div className="flex min-h-0 flex-1 items-stretch gap-3" onClick={() => setMenuBool(false)} onMouseMove={resizeMouseMove} onMouseLeave={() => resizeMouseLeave(1)} onMouseUp={resizeMouseUp}>
+      <div className="flex min-h-0 flex-1 items-stretch gap-3" onMouseMove={resizeMouseMove} onMouseLeave={() => resizeMouseLeave(1)} onMouseUp={resizeMouseUp}>
         <div className="glass-panel relative flex min-h-0 flex-col overflow-hidden rounded-[calc(var(--radius)+6px)]" style={{ width: `${activeChat.length < 2 ? videoPanelWidth1 : videoPanelWidth2}%` }} onMouseLeave={() => resizeMouseLeave(0)}>
           {resizeActive ? <div className="absolute inset-0 z-10 bg-transparent" /> : null}
           {vidPlayer && parsedMain ? (

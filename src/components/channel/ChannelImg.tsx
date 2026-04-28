@@ -28,28 +28,14 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "" 
   const photo = photoSources[sourceIndex] || "";
   const style = { width: `${px}px`, height: `${px}px`, minWidth: `${px}px` };
 
-  function onImgMounted(el: HTMLImageElement | null) {
+  const onImgMounted = (el: HTMLImageElement | null) => {
     if (!el || el.dataset.fadeInit) return;
     el.dataset.fadeInit = "1";
-    if (el.complete && el.naturalHeight > 0) {
-      el.classList.add("loaded");
-    } else {
-      el.classList.add("img-pending");
-      el.dataset.fadeReady = "1";
-    }
-  }
-
-  function onImgLoad(event: React.SyntheticEvent<HTMLImageElement>) {
-    event.currentTarget.classList.add("loaded");
-  }
-
-  function onImgError() {
-    if (sourceIndex < photoSources.length - 1) {
-      setSourceIndex((index) => index + 1);
-      return;
-    }
-    setErr(true);
-  }
+    if (el.complete && el.naturalHeight > 0) el.classList.add("loaded");
+    else { el.classList.add("img-pending"); el.dataset.fadeReady = "1"; }
+  };
+  const onImgLoad = (event: React.SyntheticEvent<HTMLImageElement>) => event.currentTarget.classList.add("loaded");
+  const onImgError = () => sourceIndex < photoSources.length - 1 ? setSourceIndex((index) => index + 1) : setErr(true);
 
   if (err || !photo) {
     return <div title={channel?.name} className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[color:var(--color-secondary)] text-white ring-1 ring-white/10", className)} style={style}><Icon icon={mdiAccountCircleOutline} size="lg" /></div>;

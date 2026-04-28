@@ -16,7 +16,7 @@ function Separator() {
   return <div role="none" className="h-px w-full shrink-0 bg-[color:var(--color-border)]" />;
 }
 
-export function ChannelCard({ channel }: { channel: Record<string, any>; withLink?: boolean }) {
+export function ChannelCard({ channel }: { channel: Record<string, any> }) {
   const router = useRouter();
   const app = useAppState();
   const { t } = useI18n();

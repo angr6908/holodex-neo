@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { mdiFormatListBulleted, mdiViewList } from "@mdi/js";
 import { api } from "@/lib/api";
 import { TL_LANGS } from "@/lib/consts";
-import { getLiveViewerCount, videoTemporalComparator } from "@/lib/functions";
+import { getLiveViewerCount } from "@/lib/functions";
 import { dayjs } from "@/lib/time";
 import { mdiViewComfy, mdiViewGrid, mdiViewModule } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
@@ -27,58 +27,23 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Icon } from "@/components/ui/Icon";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
-import { videoEndTimestamp } from "@/lib/video-format";
+import { dedupeVideos, extractItems, sortVideosForTab } from "@/lib/video-list";
 
 const Tabs = Object.freeze({ LIVE_UPCOMING: 0, ARCHIVE: 1, CLIPS: 2 });
 const API_MAX_LIMIT = 100;
-const multiOrgDataCache = new Map<
-  string,
-  { page1: Promise<any[]>; full: Promise<any[]> }
->();
-
-function nearestUTCDate(date: any) {
-  return date.add(1, "day").toDate().toISOString();
-}
-
-function dedupeVideos(videos: any[]) {
-  return Array.from(
-    new Map((videos || []).map((video) => [video.id, video])).values(),
-  );
-}
-
-function extractVideoItems(payload: any) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return [];
-  return (
-    (Object.values(payload).find((value) => Array.isArray(value)) as any[]) ||
-    []
-  );
-}
-
-function sortForTab(items: any[], tab: number) {
-  if (tab !== Tabs.ARCHIVE) return [...(items || [])].sort((a, b) => videoTemporalComparator(b, a));
-  return (items || [])
-    .map((item, index) => ({
-      item,
-      index,
-      endTime: videoEndTimestamp(item),
-      id: String(item?.id || ""),
-    }))
-    .sort((a, b) => {
-      const diff = b.endTime - a.endTime;
-      if (diff) return diff;
-      const idDiff = b.id.localeCompare(a.id);
-      if (idDiff) return idDiff;
-      return a.index - b.index;
-    })
-    .map(({ item }) => item);
-}
+type MultiOrgCacheEntry = {
+  page1: Promise<any[]>;
+  getCurrentItems: () => any[];
+  fetchMore: () => Promise<void>;
+  isExhausted: () => boolean;
+};
+const multiOrgDataCache = new Map<string, MultiOrgCacheEntry>();
 
 function sortPayloadForTab(payload: any, tab: number) {
   if (tab !== Tabs.ARCHIVE) return payload;
-  if (Array.isArray(payload)) return sortForTab(payload, tab);
+  if (Array.isArray(payload)) return sortVideosForTab(payload, true);
   if (payload?.items && Array.isArray(payload.items))
-    return { ...payload, items: sortForTab(payload.items, tab) };
+    return { ...payload, items: sortVideosForTab(payload.items, true) };
   return payload;
 }
 
@@ -122,13 +87,10 @@ export function ConnectedVideoList({
   const prevScrollMode = useRef(scrollMode);
   const currentGridSize = app.currentGridSize;
   const colSizes = useMemo(
-    () => ({
-      xs: 1 + currentGridSize,
-      sm: 2 + currentGridSize,
-      md: 3 + currentGridSize,
-      lg: 4 + currentGridSize,
-      xl: 5 + currentGridSize,
-    }),
+    () =>
+      Object.fromEntries(
+        (["xs", "sm", "md", "lg", "xl"] as const).map((k, i) => [k, i + 1 + currentGridSize]),
+      ) as { xs: number; sm: number; md: number; lg: number; xl: number },
     [currentGridSize],
   );
   const breakpointName = useMemo(() => {
@@ -214,10 +176,8 @@ export function ConnectedVideoList({
         .filter((v: any) => v.status === "upcoming")
         .sort((v1: any, v2: any) => {
           if (v1.available_at !== v2.available_at) return 0;
-          const v1IsPlaceholder = v1.type === "placeholder";
-          const v2IsPlaceholder = v2.type === "placeholder";
-          if (v1IsPlaceholder && v2IsPlaceholder) return 0;
-          return v1IsPlaceholder ? 1 : -1;
+          if (v1.type === "placeholder" && v2.type === "placeholder") return 0;
+          return v1.type === "placeholder" ? 1 : -1;
         });
   const waitingForTwitchViewerCounts =
     tab === Tabs.LIVE_UPCOMING &&
@@ -236,16 +196,7 @@ export function ConnectedVideoList({
   const selectedHomeOrgsKey = JSON.stringify(app.selectedHomeOrgs || []);
   const orgTargetsOverrideKey = JSON.stringify(orgTargetsOverride || []);
   const clipLangsKey = JSON.stringify(clipLangs || []);
-  const loaderCacheKey = [
-    "vlx",
-    isFavPage ? "fav" : "home",
-    tab,
-    scrollMode ? "scroll" : "page",
-    selectedHomeOrgsKey,
-    orgTargetsOverrideKey,
-    toDate || "",
-    clipLangsKey,
-  ].join("-");
+  const loaderCacheKey = cacheKeyForTab(tab);
 
   useEffect(() => {
     setPortalTarget(document.getElementById(portalName));
@@ -397,21 +348,14 @@ export function ConnectedVideoList({
   })();
 
   function buildTabQuery(tabValue: number): Record<string, any> {
-    const inclusion =
-      (
-        {
-          [Tabs.ARCHIVE]: "mentions,clips",
-          [Tabs.LIVE_UPCOMING]: "mentions",
-          [Tabs.CLIPS]: "mentions",
-        } as Record<number, string>
-      )[tabValue] ?? "";
+    const inclusion = tabValue === Tabs.ARCHIVE ? "mentions,clips" : "mentions";
     return {
       status: tabValue === Tabs.ARCHIVE ? "past,missing" : "past",
       type: tabValue === Tabs.ARCHIVE ? "stream" : "clip",
       include: inclusion,
       lang: clipLangs.join(","),
       paginated: false,
-      ...(toDate && { to: nearestUTCDate(dayjs(toDate)) }),
+      ...(toDate && { to: dayjs(toDate).add(1, "day").toDate().toISOString() }),
       max_upcoming_hours: 1,
     };
   }
@@ -437,42 +381,73 @@ export function ConnectedVideoList({
   ) {
     if (multiOrgDataCache.has(cacheKey)) return;
     const baseQuery = { ...query, paginated: false };
-    const orgPage1Promises = orgTargets.map((org) =>
+    const isArchive = tabValue === Tabs.ARCHIVE;
+
+    const allOrgItems: any[][] = orgTargets.map(() => []);
+    const orgOffsets: number[] = orgTargets.map(() => 0);
+    const orgExhausted: boolean[] = orgTargets.map(() => false);
+    let inflightFetch: Promise<void> | null = null;
+    let currentItems: any[] = [];
+
+    const mergeAll = () => {
+      currentItems = sortVideosForTab(dedupeVideos(allOrgItems.flat()), isArchive);
+    };
+
+    const orgPage1Promises = orgTargets.map((org, i) =>
       api
         .videos({ ...baseQuery, org, limit: API_MAX_LIMIT, offset: 0 })
-        .then((res: any) => extractVideoItems(res.data))
-        .catch(() => [] as any[]),
+        .then((res: any) => {
+          allOrgItems[i] = extractItems(res.data);
+          orgOffsets[i] = API_MAX_LIMIT;
+          if (allOrgItems[i].length < API_MAX_LIMIT) orgExhausted[i] = true;
+          return allOrgItems[i];
+        })
+        .catch(() => {
+          orgExhausted[i] = true;
+          return (allOrgItems[i] = [] as any[]);
+        }),
     );
-    const page1 = Promise.all(orgPage1Promises).then((page1Items) => {
-      const merged = dedupeVideos(page1Items.flat());
-      return sortForTab(merged, tabValue);
+
+    const page1 = Promise.all(orgPage1Promises).then(() => {
+      mergeAll();
+      return currentItems;
     });
-    const full = Promise.all(orgPage1Promises).then(async (page1Items) => {
-      const needsPage2 = orgTargets
-        .map((org, i) => ({ org, index: i }))
-        .filter(({ index }) => page1Items[index].length >= API_MAX_LIMIT);
-      const page2Flat = needsPage2.length
-        ? (
-            await Promise.allSettled(
-              needsPage2.map(({ org }) =>
-                api.videos({
-                  ...baseQuery,
-                  org,
-                  limit: API_MAX_LIMIT,
-                  offset: API_MAX_LIMIT,
-                }),
-              ),
-            )
-          ).flatMap((r) =>
-            r.status === "fulfilled"
-              ? extractVideoItems((r.value as any).data)
-              : [],
-          )
-        : [];
-      const merged = dedupeVideos(page1Items.flat().concat(page2Flat));
-      return sortForTab(merged, tabValue);
+
+    // Fetches one more page per non-exhausted org; concurrent calls share the same batch.
+    const fetchMore = (): Promise<void> => {
+      if (inflightFetch) return inflightFetch;
+      if (orgExhausted.every(Boolean)) return Promise.resolve();
+      inflightFetch = Promise.all(
+        orgTargets.map(async (org, i) => {
+          if (orgExhausted[i]) return;
+          try {
+            const res: any = await api.videos({
+              ...baseQuery,
+              org,
+              limit: API_MAX_LIMIT,
+              offset: orgOffsets[i],
+            });
+            const items = extractItems(res.data);
+            allOrgItems[i] = [...allOrgItems[i], ...items];
+            orgOffsets[i] += API_MAX_LIMIT;
+            if (items.length < API_MAX_LIMIT) orgExhausted[i] = true;
+          } catch {
+            orgExhausted[i] = true;
+          }
+        }),
+      ).then(() => {
+        mergeAll();
+        inflightFetch = null;
+      });
+      return inflightFetch;
+    };
+
+    multiOrgDataCache.set(cacheKey, {
+      page1,
+      getCurrentItems: () => currentItems,
+      fetchMore,
+      isExhausted: () => orgExhausted.every(Boolean),
     });
-    multiOrgDataCache.set(cacheKey, { page1, full });
   }
 
   function getLoadFn() {
@@ -494,7 +469,8 @@ export function ConnectedVideoList({
       };
     }
     const orgTargets = resolvedOrgTargets;
-    if (orgTargets.length === 1) {
+    // Fast path: single org, non-archive — server sort matches display order.
+    if (orgTargets.length === 1 && tab !== Tabs.ARCHIVE) {
       return async (offset: number, limit: number) => {
         const res: any = await api.videos({
           ...query,
@@ -505,31 +481,72 @@ export function ConnectedVideoList({
         return sortPayloadForTab(res.data, tab);
       };
     }
+    // Single-org archive or multi-org: collect all pages for global endTime sort.
     const cacheKey = loaderCacheKey;
     startMultiOrgFetch(cacheKey, query, orgTargets);
-    [Tabs.ARCHIVE, Tabs.CLIPS].forEach((otherTab) => {
-      if (otherTab === tab) return;
-      const key = cacheKeyForTab(otherTab);
-      if (!multiOrgDataCache.has(key))
-        startMultiOrgFetch(key, buildTabQuery(otherTab), orgTargets, otherTab);
-    });
+    // Pre-fetch the sibling tab only for multi-org (avoids wasted single-org requests).
+    if (orgTargets.length > 1) {
+      [Tabs.ARCHIVE, Tabs.CLIPS].forEach((otherTab) => {
+        if (otherTab === tab) return;
+        const key = cacheKeyForTab(otherTab);
+        if (!multiOrgDataCache.has(key))
+          startMultiOrgFetch(key, buildTabQuery(otherTab), orgTargets, otherTab);
+      });
+    }
     const cached = multiOrgDataCache.get(cacheKey)!;
-    const page1Threshold = API_MAX_LIMIT * orgTargets.length;
     return async (offset: number, limit: number) => {
-      const all =
-        offset + limit <= page1Threshold
-          ? await cached.page1
-          : await cached.full;
-      const slice = all.slice(offset, offset + limit);
+      await cached.page1;
+      // Fetch more pages until we have enough items or all orgs are exhausted.
+      while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted()) {
+        await cached.fetchMore();
+      }
+      const snapshot = cached.getCurrentItems();
+      const slice = snapshot.slice(offset, offset + limit);
+      // Prefetch next batch when within 4 pages of the end so items are ready.
+      if (!cached.isExhausted() && snapshot.length - (offset + limit) < limit * 4) {
+        cached.fetchMore();
+      }
       if (!scrollMode) {
-        const fullData = await Promise.race([
-          cached.full.then((d: any[]) => d),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 0)),
-        ]);
-        return { items: slice, total: fullData ? fullData.length : all.length };
+        const total = cached.isExhausted() ? snapshot.length : snapshot.length + limit;
+        return { items: slice, total };
       }
       return slice;
     };
+  }
+
+  function renderSkeletonList() {
+    return (
+      <SkeletonCardList
+        cols={colSizes}
+        dense={currentGridSize > 0}
+        denseList={homeViewMode === "denseList"}
+        horizontal={homeViewMode === "list"}
+      />
+    );
+  }
+
+  function renderVideoCardList(
+    videos: any[],
+    listOptions: { denseList?: boolean; horizontal?: boolean } = {},
+  ) {
+    const listDense = listOptions.denseList ?? (homeViewMode === "denseList");
+    const listHorizontal = listOptions.horizontal ?? (homeViewMode === "list");
+
+    return (
+      <VideoCardList
+        {...attrs}
+        videos={videos}
+        includeChannel
+        includeAvatar={shouldIncludeAvatar}
+        cols={colSizes}
+        dense={currentGridSize > 0}
+        filterConfig={filterConfig}
+        denseList={listDense}
+        horizontal={listHorizontal}
+        inMultiViewSelector={inMultiViewSelector}
+        fadeUnderNavExt={false}
+      />
+    );
   }
 
   const controls = (
@@ -639,47 +656,21 @@ export function ConnectedVideoList({
           </div>
         ) : (
           <>
-            {showLiveLoading ? (
-              <SkeletonCardList
-                cols={colSizes}
-                dense={currentGridSize > 0}
-                denseList={homeViewMode === "denseList"}
-                horizontal={homeViewMode === "list"}
-              />
-            ) : null}
+            {showLiveLoading ? renderSkeletonList() : null}
             {lives.length || upcoming.length ? (
               <div>
-                <VideoCardList
-                  {...attrs}
-                  videos={homeViewMode === "grid" || app.settings.hideUpcoming ? lives : live}
-                  includeChannel
-                  includeAvatar={shouldIncludeAvatar}
-                  cols={colSizes}
-                  dense={currentGridSize > 0}
-                  filterConfig={filterConfig}
-                  denseList={homeViewMode === "denseList"}
-                  horizontal={homeViewMode === "list"}
-                  inMultiViewSelector={inMultiViewSelector}
-                  fadeUnderNavExt={false}
-                />
+                {renderVideoCardList(
+                  homeViewMode === "grid" || app.settings.hideUpcoming ? lives : live,
+                )}
                 {homeViewMode === "grid" ? (
                   <>
                     {lives.length && upcoming.length ? (
                       <div className="my-3 h-px bg-[color:var(--color-border)]" />
                     ) : null}
-                    <VideoCardList
-                      {...attrs}
-                      videos={upcoming}
-                      includeChannel
-                      includeAvatar={shouldIncludeAvatar}
-                      cols={colSizes}
-                      dense={currentGridSize > 0}
-                      filterConfig={filterConfig}
-                      denseList={false}
-                      horizontal={false}
-                      inMultiViewSelector={inMultiViewSelector}
-                      fadeUnderNavExt={false}
-                    />
+                    {renderVideoCardList(upcoming, {
+                      denseList: false,
+                      horizontal: false,
+                    })}
                   </>
                 ) : null}
               </div>
@@ -723,28 +714,9 @@ export function ConnectedVideoList({
                     scrollMode || data.length > 0 || !lod ? undefined : "none",
                 }}
               >
-                <VideoCardList
-                  {...attrs}
-                  videos={data}
-                  includeChannel
-                  includeAvatar={shouldIncludeAvatar}
-                  cols={colSizes}
-                  dense={currentGridSize > 0}
-                  filterConfig={filterConfig}
-                  denseList={homeViewMode === "denseList"}
-                  horizontal={homeViewMode === "list"}
-                  inMultiViewSelector={inMultiViewSelector}
-                  fadeUnderNavExt={false}
-                />
+                {renderVideoCardList(data)}
               </div>
-              {lod && data.length === 0 ? (
-                <SkeletonCardList
-                  cols={colSizes}
-                  dense={currentGridSize > 0}
-                  denseList={homeViewMode === "denseList"}
-                  horizontal={homeViewMode === "list"}
-                />
-              ) : null}
+              {lod && data.length === 0 ? renderSkeletonList() : null}
             </>
           )}
         </GenericListLoader>

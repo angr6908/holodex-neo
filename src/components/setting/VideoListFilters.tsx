@@ -3,17 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { mdiClose } from "@mdi/js";
 import { api } from "@/lib/api";
+import { readJSON, writeJSON } from "@/lib/storage";
 import { useAppState } from "@/lib/store";
+
+const TOPICS_STORAGE_KEY = "holodex-topics-cache";
 import { SelectCard } from "@/components/setting/SelectCard";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
-const TOPICS_STORAGE_KEY = "holodex-topics-cache";
-function readCachedTopics() {
-  if (typeof window === "undefined") return [] as any[];
-  try { return JSON.parse(localStorage.getItem(TOPICS_STORAGE_KEY) || "[]"); } catch { return []; }
-}
 
 export function VideoListFilters({ topicFilter = true, collabFilter = true, placeholderFilter = true, missingFilter = true, showDescriptions = true, compact = false, className = "" }: any) {
   const app = useAppState();
@@ -21,7 +19,7 @@ export function VideoListFilters({ topicFilter = true, collabFilter = true, plac
   const [topics, setTopics] = useState<any[]>([]);
   const [topicsLoading, setTopicsLoading] = useState(false);
 
-  useEffect(() => { setTopics(readCachedTopics()); }, []);
+  useEffect(() => { setTopics(readJSON(TOPICS_STORAGE_KEY, [])); }, []);
   useEffect(() => { if (topicFilter) void fetchTopics(); }, [topicFilter]);
 
   const ignoredTopics = app.settings.ignoredTopics || [];
@@ -38,7 +36,7 @@ export function VideoListFilters({ topicFilter = true, collabFilter = true, plac
       const { data }: any = await api.topics();
       const next = (data || []).map(({ id, count }: any) => ({ value: id, count }));
       setTopics(next);
-      try { localStorage.setItem(TOPICS_STORAGE_KEY, JSON.stringify(next)); } catch {}
+      writeJSON(TOPICS_STORAGE_KEY, next);
     } finally { setTopicsLoading(false); }
   }
   function toggleTopic(topicValue: string) {

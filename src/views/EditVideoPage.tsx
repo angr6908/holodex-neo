@@ -8,7 +8,6 @@ import { useI18n } from "@/lib/i18n";
 import { decodeHTMLEntities, getYTLangFromState } from "@/lib/functions";
 import { LoadingOverlay } from "@/components/common/LoadingOverlay";
 import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
-import { WatchFrame } from "@/components/watch/WatchFrame";
 import { WatchInfo } from "@/components/watch/WatchInfo";
 import { WatchToolbar } from "@/components/watch/WatchToolbar";
 import { WatchLiveChat } from "@/components/watch/WatchLiveChat";
@@ -106,15 +105,6 @@ export function EditVideoPage() {
     seekTo(timeframe.start_time, true);
   }
 
-  function handleVideoUpdate(update: any) {
-    if (!update?.status || !update?.start_actual) return;
-    setVideo((value: any) => ({
-      ...value,
-      live_viewers: update.live_viewers,
-      status: update.status,
-      start_actual: typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
-    }));
-  }
 
   useEffect(() => {
     const tab = params.tab?.[0]?.toUpperCase();
@@ -136,18 +126,20 @@ export function EditVideoPage() {
     <section className="video-editor">
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="px-0 pt-0 lg:col-span-4">
-          <WatchFrame video={video}>
-            {video.id ? (
-              <YoutubePlayer
-                ref={player}
-                videoId={video.id}
-                start={timeOffset}
-                autoplay
-                lang={getLang}
-                onReady={(p) => { player.current = p; setTimer(); }}
-              />
-            ) : null}
-          </WatchFrame>
+          <div>
+            <div className="video">
+              {video.id ? (
+                <YoutubePlayer
+                  ref={player}
+                  videoId={video.id}
+                  start={timeOffset}
+                  autoplay
+                  lang={getLang}
+                  onReady={(p) => { player.current = p; setTimer(); }}
+                />
+              ) : null}
+            </div>
+          </div>
           <WatchToolbar video={video}>
               {isLive ? (
                 <Button type="button" size="icon" variant={showTL ? "default" : "ghost"} title={showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn")} onClick={() => setShowTL((value) => !value)}>
@@ -167,7 +159,15 @@ export function EditVideoPage() {
                 video={video}
                 currentTime={currentTime}
                 modelValue={{ showTlChat: showTL, showYtChat: showLiveChat }}
-                onVideoUpdate={handleVideoUpdate}
+                onVideoUpdate={(update) => {
+                  if (!update?.status || !update?.start_actual) return;
+                  setVideo((value: any) => ({
+                    ...value,
+                    live_viewers: update.live_viewers,
+                    status: update.status,
+                    start_actual: typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
+                  }));
+                }}
               />
             </div>
           ) : null}

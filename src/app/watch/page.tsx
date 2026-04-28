@@ -1,2 +1,1 @@
-import { WatchPage } from "@/views/WatchPage";
-export default function Page() { return <WatchPage />; }
+export { WatchPage as default } from "@/views/WatchPage";

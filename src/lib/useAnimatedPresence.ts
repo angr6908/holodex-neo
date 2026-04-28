@@ -11,22 +11,27 @@ export function useAnimatedPresence(open: boolean, timeout = 220) {
   const [state, setState] = useState<"open" | "closed">(
     open ? "open" : "closed",
   );
+  // Transitions to "idle" once the open animation finishes so browser tab
+  // re-focus cannot replay data-[state=open] animations on any consumer.
+  const [settled, setSettled] = useState(open);
 
   useEffect(() => {
     if (open) {
       setPresent(true);
       setState("open");
+      setSettled(false);
       return undefined;
     }
     setState("closed");
+    setSettled(false);
     const timer = window.setTimeout(() => setPresent(false), timeout + 50);
     return () => window.clearTimeout(timer);
   }, [open, timeout]);
 
-  function onAnimationEnd(event: AnimationEvent<HTMLElement>) {
-    if (event.target !== event.currentTarget) return;
-    if (state === "closed") setPresent(false);
-  }
+  const onAnimationEnd = (event: AnimationEvent<HTMLElement>) => { if (event.target !== event.currentTarget) return; if (state === "closed") setPresent(false); else setSettled(true); };
 
-  return { present, state, onAnimationEnd };
+  // Return "idle" when settled: no data-[state=open] or data-[state=closed]
+  // CSS/Tailwind rule will match, so animations cannot replay.
+  const publicState = settled ? ("idle" as const) : state;
+  return { present, state: publicState, onAnimationEnd };
 }

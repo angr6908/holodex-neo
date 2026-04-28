@@ -10,7 +10,7 @@ import { Icon } from "@/components/ui/Icon";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import * as icons from "@/lib/icons";
 
-export function ChatMessage({ source, hideAuthor = false }: { source: Record<string, any>; index?: number; hideAuthor?: boolean }) {
+export function ChatMessage({ source, hideAuthor = false }: { source: Record<string, any>; hideAuthor?: boolean }) {
   const app = useAppState();
   const [showBlockChannelDialog, setShowBlockChannelDialog] = useState(false);
   const realTime = useMemo(() => dayjs(source.timestamp).format("LTS"), [source.timestamp]);
@@ -39,7 +39,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
       <div className="basis-full">
         {!hideAuthor && !source.shouldHideAuthor ? (
           <div
-            className={`tl-caption ${source.is_owner ? "text-[color:var(--color-primary)]" : (!source.is_owner && (source.is_verified || source.is_moderator || source.is_vtuber) ? "text-[color:var(--color-accent)]" : "")}`}
+            className={`tl-caption ${source.is_owner ? "text-[color:var(--color-primary)]" : ((source.is_verified || source.is_moderator || source.is_vtuber) ? "text-[color:var(--color-accent)]" : "")}`}
           >
             <button type="button" className="tl-name relative text-left" onClick={() => setShowBlockChannelDialog(true)}>
               {source.is_vtuber ? <span>[Vtuber]</span> : null}

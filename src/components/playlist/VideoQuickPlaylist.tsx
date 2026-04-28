@@ -32,7 +32,7 @@ export function VideoQuickPlaylist({ videoId, video }: { videoId: string; video:
     return () => { cancelled = true; };
   }, [appStore.userdata?.jwt, appStore.playlist, videoId]);
 
-  async function toggle(playlist: any, index: number) {
+  async function toggle(index: number) {
     const { id, active, contains } = playlistState[index];
 
     if (active) {
@@ -56,7 +56,7 @@ export function VideoQuickPlaylist({ videoId, video }: { videoId: string; video:
           key={`${p.id}${p.name}`}
           type="button"
           className={`flex items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-white/8 ${p.contains ? "bg-emerald-500/12 text-emerald-100" : ""}`}
-          onClick={(event) => { event.stopPropagation(); toggle(p, idx); }}
+          onClick={(event) => { event.stopPropagation(); toggle(idx); }}
         >
           <span>{p.name}</span>
           {p.loading ? <span className="ml-2 inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}

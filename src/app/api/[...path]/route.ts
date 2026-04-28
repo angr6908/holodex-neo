@@ -21,10 +21,4 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   return new Response(upstream.body, { status: upstream.status, statusText: upstream.statusText, headers: outHeaders });
 }
 
-export const GET = proxy;
-export const POST = proxy;
-export const PUT = proxy;
-export const PATCH = proxy;
-export const DELETE = proxy;
-export const HEAD = proxy;
-export const OPTIONS = proxy;
+export const GET = proxy, POST = proxy, PUT = proxy, PATCH = proxy, DELETE = proxy, HEAD = proxy, OPTIONS = proxy;

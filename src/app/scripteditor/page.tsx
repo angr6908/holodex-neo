@@ -1,5 +1,1 @@
-import { TLScriptEditorPage } from "@/views/TLScriptEditorPage";
-
-export default function Page() {
-  return <TLScriptEditorPage />;
-}
+export { TLScriptEditorPage as default } from "@/views/TLScriptEditorPage";

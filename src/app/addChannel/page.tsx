@@ -1,2 +1,1 @@
-import { AddChannelPage } from "@/views/FormPages";
-export default function Page() { return <AddChannelPage />; }
+export { AddChannelPage as default } from "@/views/FormPages";

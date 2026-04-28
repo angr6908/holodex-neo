@@ -64,9 +64,7 @@ export function videoImage(video: any, opts: { horizontal?: boolean; colSize?: n
   if (twitchLogin) return twitchPreviewThumbnail(twitchLogin, thumbnailSize);
   if (video.type === "placeholder") return getChannelPhoto(video.channel_id || video.channel?.id);
   const srcs = getVideoThumbnails(video.id, !opts.forceJpg);
-  if (opts.horizontal) return srcs.medium;
-  if ((opts.colSize || 1) > 2 && (opts.colSize || 1) <= 8 && typeof window !== "undefined") return window.devicePixelRatio > 1 ? srcs.standard : srcs.medium;
-  return srcs.standard;
+  return srcs[thumbnailSize];
 }
 export function formattedVideoTime(video: any, lang: string, t: any, now = Date.now()) {
   if (!video) return "";
@@ -76,7 +74,7 @@ export function formattedVideoTime(video: any, lang: string, t: any, now = Date.
 }
 export function formattedDuration(video: any, t: any, now = Date.now()) {
   if (!video) return "";
-  if (video.start_actual && video.status === "live") return formatDuration(dayjs(now).diff(dayjs(video.start_actual)));
+  if (video.start_actual && video.status === "live") return elapsedLiveDuration(video.start_actual, now);
   if (video.status === "upcoming" && video.duration) return t("component.videoCard.premiere");
   return video.duration ? formatDuration(video.duration * 1000) : "";
 }
@@ -108,5 +106,7 @@ export function videoDisplayTime(video: any) {
   return video.available_at || video.start_scheduled;
 }
 export function absoluteTime(video: any, lang: string) { return titleTimeString(videoDisplayTime(video), lang); }
+export function elapsedLiveDuration(startActual: string | number | Date, now = Date.now()) {
+  return formatDuration(dayjs(now).diff(dayjs(startActual)));
+}
 export function viewerCountText(video: any, lang: string) { const n = getLiveViewerCount(video); return n > 0 ? formatCount(n, lang) : ""; }
-export function viewerText(video: any, lang: string) { const text = viewerCountText(video, lang); return text ? `• ${text} Watching` : ""; }

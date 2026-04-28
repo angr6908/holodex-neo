@@ -17,9 +17,7 @@ export interface Content {
 const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.";
 export const sortLayout = (a, b) => a.x - b.x || a.y - b.y;
 
-export const generateContentId = () => Array.from({ length: 8 })
-    .map(() => b64[Math.floor(Math.random() * b64.length)])
-    .join("");
+export const generateContentId = () => Array.from({ length: 8 }, () => b64[Math.floor(Math.random() * b64.length)]).join("");
 
 /**
  * Encodes a layout array and contents to a compact URI
@@ -32,13 +30,13 @@ export function encodeLayout({ layout, contents, includeVideo = false }) {
         layout.forEach((item) => {
             let encodedBlock = "";
             let invalid = false;
-            ["x", "y", "w", "h"].forEach((key) => {
+            for (const key of ["x", "y", "w", "h"]) {
                 if (item[key] >= 64) {
                     invalid = true;
-                } else {
-                    encodedBlock += b64[item[key]];
+                    break;
                 }
-            });
+                encodedBlock += b64[item[key]];
+            }
 
             if (invalid) return;
 

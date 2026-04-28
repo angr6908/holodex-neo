@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { api } from "@/lib/api";
 import { formatDuration } from "@/lib/time";
 import { Input } from "@/components/ui/Input";
 import { Icon } from "@/components/ui/Icon";

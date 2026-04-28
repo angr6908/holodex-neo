@@ -8,7 +8,8 @@ import { mdiSortAscending, mdiSortDescending } from "@mdi/js";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
-import { vueLinkifyHtml } from "@/lib/linkify";
+import linkifyHtml from "linkifyjs/html";
+import { useDomElement } from "@/lib/use-dom-element";
 import { formatCount, getBannerImages } from "@/lib/functions";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
@@ -131,22 +132,16 @@ function ChannelVideos({ channel, tab, id }: { channel: any; tab: "videos" | "cl
   const app = useAppState();
   const { t } = useI18n();
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
-  const [controlsEl, setControlsEl] = useState<HTMLElement | null>(null);
+  const controlsEl = useDomElement("channelTabControls");
   const pageLength = 24;
-  const type = tab === "clips" ? "clips" : tab === "collabs" ? "collabs" : "videos";
+  const type = tab;
   const loaderKey = `${id}-${type}-${sortOrder}`;
   const currentGridSize = app.currentGridSize;
   const colSizes = { xs: 1 + currentGridSize, sm: 2 + currentGridSize, md: 3 + currentGridSize, lg: 4 + currentGridSize, xl: 5 + currentGridSize };
-  const gridIcon = currentGridSize === 1 ? mdiViewComfy : currentGridSize === 2 ? mdiViewModule : mdiViewGrid;
+  let gridIcon = mdiViewGrid;
+  if (currentGridSize === 1) gridIcon = mdiViewComfy;
+  else if (currentGridSize === 2) gridIcon = mdiViewModule;
   const hasChannelInfo = tab === "clips" || tab === "collabs";
-
-  useEffect(() => {
-    const update = () => setControlsEl(document.getElementById("channelTabControls"));
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [id, type]);
 
   const getLoadFn = useCallback(async (offset: number, limit: number) => {
     const query = {
@@ -165,6 +160,7 @@ function ChannelVideos({ channel, tab, id }: { channel: any; tab: "videos" | "cl
 
   useEffect(() => {
     const tabName = type === "clips" ? t("views.channel.clips") : type === "collabs" ? t("views.channel.collabs") : t("views.channel.video");
+
     const channelName = channel?.[app.settings.nameProperty] || channel?.name;
     if (channelName) document.title = `${channelName} - ${tabName} - Holodex`;
   }, [channel, type, app.settings.nameProperty, t]);
@@ -205,5 +201,5 @@ function ChannelAbout({ channel }: { channel: any }) {
     const channelName = channel?.[app.settings.nameProperty] || channel?.name;
     if (channelName) document.title = `${channelName} - ${t("views.channel.about")} - Holodex`;
   }, [app.settings.nameProperty, channel, t]);
-  return <div className="mx-auto w-full"><div className="flex flex-wrap gap-6"><div className="w-full md:w-[calc(25%-1.5rem)]"><strong>{t("component.channelInfo.stats")}</strong><div className="my-3 h-px bg-white/10" />{t("component.channelInfo.videoCount", [channel.video_count])}<div className="my-3 h-px bg-white/10" />{channel.clip_count} {t("component.channelInfo.clipCount", [channel.clip_count])}<div className="my-3 h-px bg-white/10" />{channel.view_count} {t("component.channelInfo.totalViews")}<div className="my-3 h-px bg-white/10" /></div><div style={{ whiteSpace: "pre-wrap" }} className="w-full flex-1"><strong>{t("component.videoDescription.description")}</strong><br /><div dangerouslySetInnerHTML={{ __html: vueLinkifyHtml(channel.description || "") }} /></div></div></div>;
+  return <div className="mx-auto w-full"><div className="flex flex-wrap gap-6"><div className="w-full md:w-[calc(25%-1.5rem)]"><strong>{t("component.channelInfo.stats")}</strong><div className="my-3 h-px bg-white/10" />{t("component.channelInfo.videoCount", [channel.video_count])}<div className="my-3 h-px bg-white/10" />{channel.clip_count} {t("component.channelInfo.clipCount", [channel.clip_count])}<div className="my-3 h-px bg-white/10" />{channel.view_count} {t("component.channelInfo.totalViews")}<div className="my-3 h-px bg-white/10" /></div><div style={{ whiteSpace: "pre-wrap" }} className="w-full flex-1"><strong>{t("component.videoDescription.description")}</strong><br /><div dangerouslySetInnerHTML={{ __html: linkifyHtml(channel.description || "") }} /></div></div></div>;
 }

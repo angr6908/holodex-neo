@@ -25,33 +25,25 @@ export function ChannelList({
   includeVideoCount?: boolean;
   grouped?: boolean;
   groupKey?: string;
-  showDelete?: boolean;
   loading?: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
   const app = useAppState();
   const isXs = app.windowWidth <= 420;
-  const CHANNEL_GRID_SIZE = 0;
   const colSize =
     app.windowWidth < 600
-      ? 1 + CHANNEL_GRID_SIZE
+      ? 1
       : app.windowWidth < 960
-        ? 2 + CHANNEL_GRID_SIZE
+        ? 2
         : app.windowWidth < 1264
-          ? 3 + CHANNEL_GRID_SIZE
+          ? 3
           : app.windowWidth < 1904
-            ? 4 + CHANNEL_GRID_SIZE
-            : 5 + CHANNEL_GRID_SIZE;
+            ? 4
+            : 5;
   const gridStyle = {
     "--channel-grid-columns": colSize,
   } as React.CSSProperties;
-  const skeletonCount = colSize * 3;
-
-  function isFavorited(id: string) {
-    return app.isFavorited(id);
-  }
-
   function isHidden(groupName: string) {
     const org = app.currentOrg.name;
     const hiding = app.settings.hiddenGroups;
@@ -76,7 +68,7 @@ export function ChannelList({
         lastGroup = group;
       }
       groupedChannels[groupedChannels.length - 1].items.push(c);
-      if (!isFavorited(c.id))
+      if (!app.isFavorited(c.id))
         groupedChannels[groupedChannels.length - 1].allFavorited = false;
     });
     return groupedChannels;
@@ -86,7 +78,7 @@ export function ChannelList({
     if (!app.isLoggedIn) return;
     const allFav = channelsByGroup[index].allFavorited;
     channelsByGroup[index].items.forEach((c: any) => {
-      if ((!isFavorited(c.id) && !allFav) || (isFavorited(c.id) && allFav))
+      if ((!app.isFavorited(c.id) && !allFav) || (app.isFavorited(c.id) && allFav))
         app.toggleFavorite(c.id);
     });
   }
@@ -120,43 +112,37 @@ export function ChannelList({
   if (cardView) {
     if (grouped) {
       return (
-        <div>
-          <div className="space-y-4">
-            {channelsByGroup.map((group, index) => (
-              <div key={`card-group-${index}`}>
-                <div className="px-2 py-3 text-xl font-medium tracking-tight text-[color:var(--color-foreground)]">
-                  {group.title}
-                </div>
-                <div className="channel-card-grid" style={gridStyle}>
-                  {group.items.map((channel: any, itemIndex: number) => (
-                    <div
-                      key={`${channel.id || "channel"}-${index}-${itemIndex}`}
-                      style={
-                        channel.inactive ? { opacity: 0.5 } : { opacity: 1 }
-                      }
-                    >
-                      <ChannelCard channel={channel} />
-                    </div>
-                  ))}
-                </div>
+        <div className="space-y-4">
+          {channelsByGroup.map((group, index) => (
+            <div key={`card-group-${index}`}>
+              <div className="px-2 py-3 text-xl font-medium tracking-tight text-[color:var(--color-foreground)]">
+                {group.title}
               </div>
-            ))}
-          </div>
+              <div className="channel-card-grid" style={gridStyle}>
+                {group.items.map((channel: any, itemIndex: number) => (
+                  <div
+                    key={`${channel.id || "channel"}-${index}-${itemIndex}`}
+                    style={{ opacity: channel.inactive ? 0.5 : 1 }}
+                  >
+                    <ChannelCard channel={channel} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
     return (
-      <div>
-        <div className="channel-card-grid" style={gridStyle}>
-          {(channels || []).map((channel, index) => (
-            <div
-              key={`${channel.id || "channel"}-${index}`}
-              style={channel.inactive ? { opacity: 0.5 } : { opacity: 1 }}
-            >
-              <ChannelCard channel={channel} />
-            </div>
-          ))}
-        </div>
+      <div className="channel-card-grid" style={gridStyle}>
+        {(channels || []).map((channel, index) => (
+          <div
+            key={`${channel.id || "channel"}-${index}`}
+            style={{ opacity: channel.inactive ? 0.5 : 1 }}
+          >
+            <ChannelCard channel={channel} />
+          </div>
+        ))}
       </div>
     );
   }
@@ -228,7 +214,7 @@ export function ChannelList({
               <div key={`${channel.id || "channel"}-${index}-${index2}`}>
                 <div className="channel-list-divider" />
                 <div
-                  style={channel.inactive ? { opacity: 0.5 } : { opacity: 1 }}
+                  style={{ opacity: channel.inactive ? 0.5 : 1 }}
                 >
                   {channel ? (
                     <div
@@ -276,7 +262,7 @@ export function ChannelList({
         {(channels || []).map((channel, index) => (
           <div key={`${channel.id || "channel"}-${index}`}>
             {index > 0 ? <div className="channel-list-divider" /> : null}
-            <div style={channel.inactive ? { opacity: 0.5 } : { opacity: 1 }}>
+            <div style={{ opacity: channel.inactive ? 0.5 : 1 }}>
               {channel ? (
                 <div
                   role="link"
@@ -315,32 +301,6 @@ export function ChannelList({
   }
 
   if (loading) {
-    if (cardView) {
-      return (
-        <div className="channel-card-grid" style={gridStyle}>
-          {Array.from({ length: skeletonCount }, (_, i) => i + 1).map((i) => (
-            <div key={i} className="channel-skeleton-card">
-              <div className="flex flex-col items-center gap-1.5 px-3 pt-4 pb-2.5">
-                <div className="h-[52px] w-[52px] animate-pulse rounded-full bg-[color:var(--skeleton-fill)]" />
-                <div className="h-3.5 w-3/4 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-2.5 w-1/2 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-              </div>
-              <div className="mx-0 h-px bg-[color:var(--color-border)]" />
-              <div className="flex items-center justify-center gap-3 px-2 py-2">
-                <div className="h-2.5 w-12 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-2.5 w-10 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-              </div>
-              <div className="mx-0 h-px bg-[color:var(--color-border)]" />
-              <div className="flex items-center justify-center gap-1 px-1 py-1.5">
-                <div className="h-5 w-5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-5 w-5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-5 w-5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
     return (
       <div className="channel-list-container">
         {Array.from({ length: 12 }, (_, i) => i + 1).map((i) => (

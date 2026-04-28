@@ -43,8 +43,6 @@ export function ChatCell({ item, cellWidth = 0, tl = false, onDelete }: { item: 
   function selectChannel(value: number) { setCurrentTab(value); setSelectorOpen(false); }
   function toggleYtChat() { setShowYtChat((prev) => { if (prev) setShowTlChat(true); return !prev; }); }
   function toggleTlChat() { setShowTlChat((prev) => { if (prev) setShowYtChat(true); return !prev; }); }
-  function resetCell() { store.deleteLayoutContent(item.i); }
-  function deleteCell() { onDelete?.(item.i); }
   function handleVideoUpdate(update: any) {
     if (!videoCellId || !store.layoutContent[videoCellId]?.video) return;
     const v = store.layoutContent[videoCellId].video;
@@ -80,7 +78,7 @@ export function ChatCell({ item, cellWidth = 0, tl = false, onDelete }: { item: 
           <Button type="button" size="sm" variant={showYtChat ? "default" : "ghost"} className="h-7 w-1/4 rounded-none px-2 text-xs" onClick={toggleYtChat}><Icon icon={icons.ytChat} size="sm" className="mr-1" />{cellWidth > 200 ? "Chat" : null}</Button>
           <Button type="button" size="sm" variant={showTlChat ? "default" : "ghost"} className="h-7 w-1/4 rounded-none px-2 text-xs" onClick={toggleTlChat}><Icon icon={icons.tlChat} size="sm" className="mr-1" />{cellWidth > 200 ? "TL" : null}</Button>
         </div>
-      ) : <CellControl playIcon={icons.mdiCheck} onPlaypause={() => store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: false })} onBack={resetCell} onDelete={deleteCell} />}
+      ) : <CellControl playIcon={icons.mdiCheck} onPlaypause={() => store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: false })} onBack={() => store.deleteLayoutContent(item.i)} onDelete={() => onDelete?.(item.i)} />}
     </div>
   );
 }

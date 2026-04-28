@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { csv2json } from "json-2-csv";
 import { mdiMagnify } from "@mdi/js";
 import { api } from "@/lib/api";
 import { forwardTransformSearchToAPIQuery } from "@/lib/functions";
@@ -56,6 +55,7 @@ export function SearchPage() {
   const searchVideo = useMemo(() => {
     if (!executedQuery || executedQuery.length < 5) return null;
     return async (offset: number, limit: number) => {
+      const { csv2json } = await import("json-2-csv");
       const parsedQuery = await csv2json(executedQuery);
       const searchQuery = forwardTransformSearchToAPIQuery(parsedQuery, {
         sort: filterSort,

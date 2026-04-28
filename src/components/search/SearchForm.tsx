@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { csv2json, json2csv } from "json-2-csv";
 import { mdiBroom, mdiCheck, mdiChevronDown, mdiClose, mdiMagnify } from "@mdi/js";
 import { api } from "@/lib/api";
 import { getChannelPhoto } from "@/lib/functions";
@@ -64,10 +63,6 @@ export function SearchForm({
     });
     return suggestions;
   }, [channelResults, selectedValues, selectedTexts]);
-  const hasRealChannelCandidates = channelSuggestions.length > 0;
-  const commentIsFilled = !!comment;
-  const titleIsFilled = !!title;
-
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (!channelSearch) {
@@ -91,7 +86,7 @@ export function SearchForm({
 
   useEffect(() => {
     const q = searchParams.get("q");
-    void processQuery(q ? q : "");
+    void processQuery(q || "");
   }, [searchParams]);
 
   useEffect(() => {
@@ -119,15 +114,16 @@ export function SearchForm({
   async function processQuery(q: string) {
     let queryArray: any[] = [];
     if (q) {
+      const { csv2json } = await import("json-2-csv");
       try { queryArray = await csv2json(q); } catch { queryArray = []; }
     }
     const topicOpt = queryArray.find((v) => v.type === "topic");
-    setTopic((topicOpt && topicOpt.value) || "");
+    setTopic(topicOpt?.value || "");
     setChannels(queryArray.filter((v) => v.type === "channel"));
     const titleOpt = queryArray.find((v) => v.type === "title & desc");
-    setTitle((titleOpt && titleOpt.text) || "");
+    setTitle(titleOpt?.text || "");
     const commentOpt = queryArray.find((v) => v.type === "comments");
-    setComment((commentOpt && commentOpt.text) || "");
+    setComment(commentOpt?.text || "");
     const orgOpts = queryArray.filter((v) => v.type === "org");
     setSelectedOrgs(orgOpts.map((v) => v.value));
   }
@@ -183,6 +179,7 @@ export function SearchForm({
     if (channels) reconstruction.push(...channels);
     if (title) reconstruction.push({ type: "title & desc", value: `${title}title & desc`, text: title });
     if (comment) reconstruction.push({ type: "comments", value: `${comment}comments`, text: comment });
+    const { json2csv } = await import("json-2-csv");
     const params = new URLSearchParams(searchParams.toString());
     params.set("q", await json2csv(reconstruction));
     params.delete("page");
@@ -232,7 +229,7 @@ export function SearchForm({
             {channelPanelOpen ? (
               <div className="search-channel-panel">
                 {channels.length ? (
-                  <div className={cn("search-channel-selected-section", !hasRealChannelCandidates && "search-channel-selected-no-divider")}>
+                  <div className={cn("search-channel-selected-section", !channelSuggestions.length && "search-channel-selected-no-divider")}>
                     {channels.map((channel) => (
                       <span key={`sel-${channel.value}`} className="search-channel-selected-tag">
                         {channel.value && channel.value.length > 10 ? <img src={getChannelPhoto(channel.value)} className="search-channel-tag-avatar" loading="lazy" onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = "none"; }} alt="" /> : null}
@@ -259,12 +256,12 @@ export function SearchForm({
 
         <label className="search-inline-field">
           <span className="search-inline-label">{t("component.search.type.titledesc")}</span>
-          <Input value={title} disabled={commentIsFilled} placeholder="" className="h-10" onChange={(event) => setTitle(event.target.value)} />
+          <Input value={title} disabled={!!comment} placeholder="" className="h-10" onChange={(event) => setTitle(event.target.value)} />
         </label>
 
         <label className="search-inline-field">
           <span className="search-inline-label">{t("component.search.type.comments")}</span>
-          <Input value={comment} disabled={titleIsFilled} placeholder="" className="h-10" onChange={(event) => setComment(event.target.value)} />
+          <Input value={comment} disabled={!!title} placeholder="" className="h-10" onChange={(event) => setComment(event.target.value)} />
         </label>
 
         <label className="search-inline-field">

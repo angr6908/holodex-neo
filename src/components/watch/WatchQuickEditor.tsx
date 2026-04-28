@@ -80,14 +80,14 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
       setIsSelectedAll(false);
       showSuccess("Successfully deleted mention");
       updateMentions();
-    }).catch((e: any) => showError((e.response && e.response.data.message) || e.message || "Error occured")).finally(() => setIsApplyingBulkEdit(false));
+    }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured")).finally(() => setIsApplyingBulkEdit(false));
   }
   function addMention(channel: any) {
     api.addMention(video.id, channel.id, app.userdata.jwt).then(({ data }: any) => {
       if (!data) return;
       showSuccess(`Added channel: ${channelDisplayName(channel, useEnglishName)}`);
       updateMentions();
-    }).catch((e: any) => showError((e.response && e.response.data.message) || e.message || "Error occured"));
+    }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured"));
   }
   async function loadTopics() {
     if (topics.length > 0) return;
@@ -95,7 +95,7 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
     setTopics((data || []).map((topic: any) => ({ value: topic.id, text: `${topic.id} (${topic.count ?? 0})` })));
   }
   function saveTopic() {
-    api.topicSet(newTopic, video.id, app.userdata.jwt).then(() => { setCurrentTopic(newTopic); showSuccess(`Updated Topic to ${newTopic}`); }).catch((e: any) => showError((e.response && e.response.data.message) || e.message || "Error occured"));
+    api.topicSet(newTopic, video.id, app.userdata.jwt).then(() => { setCurrentTopic(newTopic); showSuccess(`Updated Topic to ${newTopic}`); }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured"));
   }
 
   return (

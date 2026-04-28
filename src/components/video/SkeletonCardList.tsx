@@ -28,21 +28,9 @@ export function SkeletonCardList({
   const width =
     app.windowWidth ||
     (typeof window !== "undefined" ? window.innerWidth : 1440);
-  const colSize =
-    horizontal || denseList
-      ? 1
-      : width < 600
-        ? cols.xs
-        : width < 960
-          ? cols.sm
-          : width < 1264
-            ? cols.md
-            : width < 1904
-              ? cols.lg
-              : cols.xl;
-  const cssCols = horizontal || denseList
-    ? { xs: 1, sm: 1, md: 1, lg: 1, xl: 1 }
-    : cols;
+  const isFlat = horizontal || denseList;
+  const cssCols = isFlat ? { xs: 1, sm: 1, md: 1, lg: 1, xl: 1 } : cols;
+  const colSize = isFlat ? 1 : width < 600 ? cols.xs : width < 960 ? cols.sm : width < 1264 ? cols.md : width < 1904 ? cols.lg : cols.xl;
   const gridStyle = {
     "--video-grid-columns": colSize,
     "--video-grid-xs": cssCols.xs,
@@ -57,8 +45,8 @@ export function SkeletonCardList({
       <div
         className={cn(
           "video-skeleton-grid",
-          (dense || horizontal || denseList) && "video-skeleton-grid--compact",
-          (denseList || horizontal) && "video-skeleton-grid--list",
+          (dense || isFlat) && "video-skeleton-grid--compact",
+          isFlat && "video-skeleton-grid--list",
         )}
         style={gridStyle}
       >

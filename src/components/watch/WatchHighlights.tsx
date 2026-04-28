@@ -60,14 +60,9 @@ export function WatchHighlights({ comments, video, limit = 0, playerWidth = null
     return result;
   }, [comments, video]);
   const bucketsFiltered = limit ? [...buckets].filter((b, _i, arr) => b.song || arr.filter((x) => !x.song).indexOf(b) < limit) : buckets;
-  function computeItemStyle(ts: number) { return { marginLeft: `${Math.round((ts / video.duration) * 100)}%` }; }
-  function computeTipStyle(bucket: any) {
-    const { count } = bucket; let width = "1px"; let color = "rgb(100, 100, 100)";
-    if (bucket.song) { width = "3px"; color = "var(--color-primary)"; }
-    if (count > 1) { width = "2px"; color = "rgb(164, 164, 164)"; }
-    if (count > 2) color = "darkorange"; if (count > 3) color = "orange"; if (count > 4) color = "#d05b5b"; if (count > 5) color = "red";
-    return { width, backgroundColor: color };
-  }
+  const computeTipStyle = ({ song, count }: any) => song
+    ? { width: "3px", backgroundColor: "var(--color-primary)" }
+    : { width: count > 1 ? "2px" : "1px", backgroundColor: count > 5 ? "red" : count > 4 ? "#d05b5b" : count > 3 ? "orange" : count > 2 ? "darkorange" : count > 1 ? "rgb(164, 164, 164)" : "rgb(100, 100, 100)" };
   const cardStyle = playerWidth ? { width: `${playerWidth}px`, maxWidth: `${playerWidth}px`, marginInline: "auto" } : undefined;
-  return <Card className="watch-highlights rounded-none border-x-0 border-t-0 px-3 py-2 shadow-none" style={cardStyle}>{bucketsFiltered.length > 0 ? <div className="highlight-container"><div className="highlight-bar">{bucketsFiltered.map((b) => <div key={`${b.display}-${b.time}`} className="highlight-item" style={computeItemStyle(b.time)} title={b.best ? `${b.display} ${b.best}` : b.display} onClick={(e) => { e.preventDefault(); onTimeJump?.(b.time); }}><div className="highlight-chip" style={computeTipStyle(b)} /></div>)}</div></div> : null}</Card>;
+  return <Card className="watch-highlights rounded-none border-x-0 border-t-0 px-3 py-2 shadow-none" style={cardStyle}>{bucketsFiltered.length > 0 ? <div className="highlight-container"><div className="highlight-bar">{bucketsFiltered.map((b) => <div key={`${b.display}-${b.time}`} className="highlight-item" style={{ marginLeft: `${Math.round((b.time / video.duration) * 100)}%` }} title={b.best ? `${b.display} ${b.best}` : b.display} onClick={(e) => { e.preventDefault(); onTimeJump?.(b.time); }}><div className="highlight-chip" style={computeTipStyle(b)} /></div>)}</div></div> : null}</Card>;
 }

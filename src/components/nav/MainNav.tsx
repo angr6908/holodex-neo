@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { json2csv } from "json-2-csv";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import {
   mdiCheck,
   mdiClose,
@@ -38,6 +37,24 @@ import { POPOVER_MOTION_CLASS, useAnimatedPresence } from "@/lib/useAnimatedPres
 import * as icons from "@/lib/icons";
 import { openUserMenu } from "@/lib/navigation-events";
 
+const MUSICDEX_PATH = "M12 3V13.55A4 4 0 1 0 14 17V7H19V3H12Z";
+
+function MusicdexIcon({ className }: { className?: string }) {
+  const id = useId();
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="3" y1="2" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#5DA2F2" />
+          <stop offset="0.55" stopColor="#F06292" />
+          <stop offset="1" stopColor="#FF3A81" />
+        </linearGradient>
+      </defs>
+      <path fill={`url(#${id})`} d={MUSICDEX_PATH} />
+    </svg>
+  );
+}
+
 export function MainNav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -54,10 +71,17 @@ export function MainNav() {
   const playlistRoot = useRef<HTMLDivElement | null>(null);
   const desktopSearchInput = useRef<HTMLInputElement | null>(null);
 
+  const isHomeRoute = pathname === "/";
+  const isWatchRoute = pathname.startsWith("/watch");
+  const isVideoEditRoute = pathname.startsWith("/edit/video");
+  const isSearchRoute = pathname.startsWith("/search");
+  const isExactSearchRoute = pathname === "/search";
   const showTopBar =
     !pathname.startsWith("/multiview") &&
     !pathname.startsWith("/tlclient") &&
     !pathname.startsWith("/scripteditor");
+  const showMainNavExt = !isWatchRoute && !isVideoEditRoute && !isSearchRoute;
+  const showMobileBottomNav = !isWatchRoute && !isVideoEditRoute;
   const playlistCount = app.playlist.length;
 
   useLayoutEffect(() => {
@@ -144,7 +168,7 @@ export function MainNav() {
     const hasFilters = filtersOverride.length > 0;
     if (!query && !hasFilters) {
       if (!redirectIfEmpty) return;
-      if (pathname !== "/search" || searchParams.toString())
+      if (!isExactSearchRoute || searchParams.toString())
         router.push("/search");
       setMobileSearchOpen(false);
       return;
@@ -160,10 +184,11 @@ export function MainNav() {
         value: `${query}title & desc`,
         text: query,
       });
+    const { json2csv } = await import("json-2-csv");
     const q = await json2csv(payload);
     const params = new URLSearchParams(searchParams.toString());
     params.set("q", q);
-    if (pathname === "/search" && searchParams.get("q") === q) {
+    if (isExactSearchRoute && searchParams.get("q") === q) {
       setMobileSearchOpen(false);
       return;
     }
@@ -207,8 +232,6 @@ export function MainNav() {
   }
 
   if (!showTopBar) return null;
-  const reserveHomeMobileTabs =
-    pathname === "/";
   const searchBox = (
     <form
       className="menu-search-form"
@@ -333,26 +356,7 @@ export function MainNav() {
                 rel="noopener noreferrer"
                 title="Musicdex"
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-                  <defs>
-                    <linearGradient
-                      id="musicdex-nav-gradient"
-                      x1="3"
-                      y1="2"
-                      x2="21"
-                      y2="20"
-                      gradientUnits="userSpaceOnUse"
-                    >
-                      <stop stopColor="#5DA2F2" />
-                      <stop offset="0.55" stopColor="#F06292" />
-                      <stop offset="1" stopColor="#FF3A81" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    fill="url(#musicdex-nav-gradient)"
-                    d="M12 3V13.55A4 4 0 1 0 14 17V7H19V3H12Z"
-                  />
-                </svg>
+                <MusicdexIcon className="h-5 w-5" />
                 <span className="sr-only">Musicdex</span>
               </Button>
               <Button
@@ -427,26 +431,7 @@ export function MainNav() {
               className="menu-action-btn"
               title="Musicdex"
             >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                <defs>
-                  <linearGradient
-                    id="musicdex-mobile-gradient"
-                    x1="3"
-                    y1="2"
-                    x2="21"
-                    y2="20"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop stopColor="#5DA2F2" />
-                    <stop offset="0.55" stopColor="#F06292" />
-                    <stop offset="1" stopColor="#FF3A81" />
-                  </linearGradient>
-                </defs>
-                <path
-                  fill="url(#musicdex-mobile-gradient)"
-                  d="M12 3V13.55A4 4 0 1 0 14 17V7H19V3H12Z"
-                />
-              </svg>
+              <MusicdexIcon className="h-4 w-4" />
               <span className="sr-only">Musicdex</span>
             </Button>
           </div>
@@ -483,11 +468,11 @@ export function MainNav() {
           </div>
         ) : null}
       </header>
-      {!pathname.startsWith("/watch") && !pathname.startsWith("/edit/video") && !pathname.startsWith("/search") ? (
+      {showMainNavExt ? (
         <div
           className={cn(
             "main-nav-ext pointer-events-none relative z-[90] px-3 py-2 sm:px-5",
-            reserveHomeMobileTabs && "main-nav-ext--home-tabs",
+            isHomeRoute && "main-nav-ext--home-tabs",
           )}
         >
           <div className="pointer-events-auto mx-auto max-w-[1600px]">
@@ -495,14 +480,14 @@ export function MainNav() {
           </div>
         </div>
       ) : null}
-      {!pathname.startsWith("/watch") && !pathname.startsWith("/edit/video") ? (
+      {showMobileBottomNav ? (
         <nav className="fixed inset-x-3 bottom-3 z-40 min-[960px]:hidden">
           <div className="mx-auto flex max-w-md items-center justify-between rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-2 py-2">
             <Link
               href="/"
               className={cn(
                 "flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-medium text-[color:var(--color-muted-foreground)] transition",
-                pathname === "/" &&
+                isHomeRoute &&
                   "bg-[color:var(--surface-soft)] text-[color:var(--color-foreground)]",
               )}
             >
@@ -556,7 +541,6 @@ function PlaylistPanel({
 }) {
   const app = useAppState();
   const { t } = useI18n();
-  const router = useRouter();
   const [playlistEditName, setPlaylistEditName] = useState(false);
   const [playlistLoginWarning, setPlaylistLoginWarning] = useState(false);
   const [playlistYTDialog, setPlaylistYTDialog] = useState(false);
@@ -598,8 +582,11 @@ function PlaylistPanel({
       setServerPlaylistsLoading(false);
     }
   }
+  function closePanel() {
+    onOpenChange(false);
+  }
   function commitName(value = nameInput) {
-    if (value && value.length > 0) app.setPlaylistName(value);
+    if (value) app.setPlaylistName(value);
     setPlaylistEditName(false);
   }
   async function saveActivePlaylist() {
@@ -614,7 +601,7 @@ function PlaylistPanel({
   function createNewPlaylist() {
     if (!app.userdata?.jwt) {
       openUserMenu();
-      onOpenChange(false);
+      closePanel();
       return;
     }
     if (
@@ -641,6 +628,7 @@ function PlaylistPanel({
   }
   async function downloadPlaylistCSV() {
     if (!app.playlist.length) return;
+    const { json2csv } = await import("json-2-csv");
     const csvString = await json2csv(app.playlist as any[]);
     const a = document.createElement("a");
     const timestamp = new Date().toISOString().replace("T", "_").slice(0, 19);
@@ -662,7 +650,7 @@ function PlaylistPanel({
   }
   function formatPlaylistTime(ts: string) {
     try {
-      return localizedDayjs(ts, app.settings.lang).format("l");
+      return localizedDayjs(ts).format("l");
     } catch {
       return "";
     }
@@ -863,7 +851,7 @@ function PlaylistPanel({
                 title={t("views.library.exportYtPlaylist")}
                 onClick={() => {
                   setPlaylistYTDialog(true);
-                  onOpenChange(false);
+                  closePanel();
                 }}
               >
                 <Icon icon={icons.mdiYoutube} className="h-4 w-4" />
@@ -904,7 +892,7 @@ function PlaylistPanel({
                 onClick={() => {
                   openUserMenu();
                   setPlaylistLoginWarning(false);
-                  onOpenChange(false);
+                  closePanel();
                 }}
               >
                 {t("component.mainNav.login")}
@@ -941,7 +929,7 @@ function PlaylistPanel({
                     <Link
                       href={`/watch/${video.id}?playlist=${app.playlistActive?.id || "local"}`}
                       className="relative shrink-0 overflow-hidden rounded-md"
-                      onClick={() => onOpenChange(false)}
+                      onClick={closePanel}
                     >
                       <img
                         src={getVideoThumbnails(video.id, false).default}
@@ -954,7 +942,7 @@ function PlaylistPanel({
                       <Link
                         href={`/watch/${video.id}?playlist=${app.playlistActive?.id || "local"}`}
                         className="line-clamp-2 text-xs font-medium leading-snug text-[color:var(--color-foreground)] hover:underline"
-                        onClick={() => onOpenChange(false)}
+                        onClick={closePanel}
                       >
                         {video.title || video.id}
                       </Link>

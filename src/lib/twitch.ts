@@ -30,12 +30,9 @@ function persistViewerCountCache() {
     if (typeof window === "undefined") return;
     try {
         const now = Date.now();
-        const serializable = Array.from(viewerCountCache.entries()).reduce((acc, [login, entry]) => {
-            if (now - entry.ts <= CACHE_TTL_MS) {
-                acc[login] = entry;
-            }
-            return acc;
-        }, {} as Record<string, { ts: number; value: number }>);
+        const serializable = Object.fromEntries(
+            Array.from(viewerCountCache.entries()).filter(([, entry]) => now - entry.ts <= CACHE_TTL_MS)
+        );
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
     } catch {
         // Ignore storage failures; the in-memory cache still works.

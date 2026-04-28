@@ -78,31 +78,22 @@ export function HomeOrgMultiSelect({
     return preferredOrgNames.filter((name) => available.has(name));
   }, [orgs]);
 
-  const quickSelectOptions = useMemo(() => {
-    const options = quickSelectOrgNames.map((name) => ({
+  const { quickSelectOptions, quickSelectAllOption, quickSelectOrgOptions } = useMemo(() => {
+    const quickSelectOrgOptions = quickSelectOrgNames.map((name) => ({
       key: name,
       type: "org",
       value: name,
       label: formatOrgDisplayName(name),
     }));
-    if (fallbackSelection.length === 0)
-      return [
-        {
-          key: allSelectionKey,
-          type: "all",
-          value: null as string | null,
-          label: clearSelectionLabel,
-        },
-        ...options,
-      ];
-    return options;
+    const quickSelectAllOption =
+      fallbackSelection.length === 0
+        ? { key: allSelectionKey, type: "all", value: null as string | null, label: clearSelectionLabel }
+        : null;
+    const quickSelectOptions = quickSelectAllOption
+      ? [quickSelectAllOption, ...quickSelectOrgOptions]
+      : quickSelectOrgOptions;
+    return { quickSelectOptions, quickSelectAllOption, quickSelectOrgOptions };
   }, [quickSelectOrgNames, fallbackSelection.length, clearSelectionLabel]);
-
-  const quickSelectAllOption =
-    quickSelectOptions.find((option) => option.type === "all") || null;
-  const quickSelectOrgOptions = quickSelectOptions.filter(
-    (option) => option.type === "org",
-  );
 
   const filteredOrgs = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -144,53 +135,32 @@ export function HomeOrgMultiSelect({
     return () => {
       window.removeEventListener("keydown", handleKeydown);
       window.removeEventListener("pointerdown", handlePointerDown);
-      unlockPageScroll();
+      setBodyScrollLock(false);
     };
   });
 
-  function handleTriggerClick() {
-    if (inline && isOpen) {
-      closeDialog();
-      return;
+  function setBodyScrollLock(lock: boolean) {
+    if (inline || typeof document === "undefined" || !document.body) return;
+    if (lock && !bodyScrollLocked.current) {
+      if (typeof window === "undefined") return;
+      const html = document.documentElement;
+      const body = document.body;
+      previousHtmlOverflow.current = html.style.overflow;
+      previousBodyOverflow.current = body.style.overflow;
+      previousBodyPaddingRight.current = body.style.paddingRight;
+      const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
+      bodyScrollLocked.current = true;
+    } else if (!lock && bodyScrollLocked.current) {
+      const html = document.documentElement;
+      const body = document.body;
+      html.style.overflow = previousHtmlOverflow.current;
+      body.style.overflow = previousBodyOverflow.current;
+      body.style.paddingRight = previousBodyPaddingRight.current;
+      bodyScrollLocked.current = false;
     }
-    openDialog();
-  }
-
-  function lockPageScroll() {
-    if (
-      inline ||
-      bodyScrollLocked.current ||
-      typeof window === "undefined" ||
-      typeof document === "undefined" ||
-      !document.body
-    )
-      return;
-    const html = document.documentElement;
-    const body = document.body;
-    previousHtmlOverflow.current = html.style.overflow;
-    previousBodyOverflow.current = body.style.overflow;
-    previousBodyPaddingRight.current = body.style.paddingRight;
-    const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
-    bodyScrollLocked.current = true;
-  }
-
-  function unlockPageScroll() {
-    if (
-      inline ||
-      !bodyScrollLocked.current ||
-      typeof document === "undefined" ||
-      !document.body
-    )
-      return;
-    const html = document.documentElement;
-    const body = document.body;
-    html.style.overflow = previousHtmlOverflow.current;
-    body.style.overflow = previousBodyOverflow.current;
-    body.style.paddingRight = previousBodyPaddingRight.current;
-    bodyScrollLocked.current = false;
   }
 
   async function openDialog() {
@@ -199,31 +169,14 @@ export function HomeOrgMultiSelect({
       selectedNames.length ? [...selectedNames] : [...fallbackSelection],
     );
     setIsOpen(true);
-    if (!inline) lockPageScroll();
+    if (!inline) setBodyScrollLock(true);
   }
 
   function closeDialog() {
     applySelection(draftSelectedNames);
     setIsOpen(false);
     setSearch("");
-    if (!inline) unlockPageScroll();
-  }
-
-  function isSelected(name: string) {
-    return workingSelectedNames.includes(name);
-  }
-
-  function isQuickSelected(option: { type: string; value: string | null }) {
-    if (option.type === "all") return workingSelectedNames.length === 0;
-    return isSelected(option.value as string);
-  }
-
-  function toggleQuickSelect(option: { type: string; value: string | null }) {
-    if (option.type === "all") {
-      clearSelection();
-      return;
-    }
-    toggleName(option.value as string);
+    if (!inline) setBodyScrollLock(false);
   }
 
   function toggleName(name: string) {
@@ -331,10 +284,10 @@ export function HomeOrgMultiSelect({
                       type="button"
                       className={cn(
                         "settings-check-chip select-card-chip-compact",
-                        isQuickSelected(quickSelectAllOption) &&
+                        workingSelectedNames.length === 0 &&
                           "settings-check-chip-selected",
                       )}
-                      onClick={() => toggleQuickSelect(quickSelectAllOption)}
+                      onClick={clearSelection}
                     >
                       <span className="settings-check-chip-indicator" />
                       <span className="select-card-chip-label">
@@ -354,10 +307,10 @@ export function HomeOrgMultiSelect({
                       type="button"
                       className={cn(
                         "settings-check-chip select-card-chip-compact",
-                        isQuickSelected(option) &&
+                        workingSelectedNames.includes(option.value as string) &&
                           "settings-check-chip-selected",
                       )}
-                      onClick={() => toggleQuickSelect(option)}
+                      onClick={() => toggleName(option.value as string)}
                     >
                       <span className="settings-check-chip-indicator" />
                       <span className="select-card-chip-label">
@@ -380,7 +333,7 @@ export function HomeOrgMultiSelect({
                     type="button"
                     className={cn(
                       "settings-check-chip select-card-chip-compact",
-                      isSelected(org.name) && "settings-check-chip-selected",
+                      workingSelectedNames.includes(org.name) && "settings-check-chip-selected",
                     )}
                     onClick={() => toggleName(org.name)}
                   >
@@ -412,7 +365,7 @@ export function HomeOrgMultiSelect({
           className={resolvedButtonClass}
           aria-haspopup={inline ? "listbox" : "dialog"}
           aria-expanded={isOpen ? "true" : "false"}
-          onClick={handleTriggerClick}
+          onClick={() => (inline && isOpen ? closeDialog() : openDialog())}
         >
           {iconOnly ? (
             <Icon

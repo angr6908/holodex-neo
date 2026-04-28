@@ -1,4 +1,4 @@
-export function PlaceholderOverlay({ showOnlyOnHover = false }: { width?: number; height?: number; showOnlyOnHover?: boolean }) {
+export function PlaceholderOverlay({ showOnlyOnHover = false }: { showOnlyOnHover?: boolean }) {
   return (
     <div className={`placeholder-overlay${showOnlyOnHover ? " show-on-hover" : ""}`}>
       <div className="placeholder-content">

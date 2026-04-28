@@ -34,15 +34,18 @@ export function MultiviewVideoCellsProvider({ children }: { children: React.Reac
   const [cellMap, setCellMap] = useState<Map<string, MultiviewVideoCellHandle>>(() => new Map());
 
   const registerCell = useCallback((id: string, cell: MultiviewVideoCellHandle) => {
+    const key = String(id);
     setCellMap((previous) => {
+      if (previous.get(key) === cell) return previous;
       const next = new Map(previous);
-      next.set(String(id), cell);
+      next.set(key, cell);
       return next;
     });
     return () => {
       setCellMap((previous) => {
+        if (previous.get(key) !== cell) return previous;
         const next = new Map(previous);
-        if (next.get(String(id)) === cell) next.delete(String(id));
+        next.delete(key);
         return next;
       });
     };
@@ -63,4 +66,16 @@ export function useRegisterMultiviewVideoCell(id: string, cell: MultiviewVideoCe
 
 export function useMultiviewVideoCells() {
   return useContext(MultiviewVideoCellsContext)?.cells ?? [];
+}
+
+export function useOrderedMultiviewVideoCells(layout: ReadonlyArray<{ i: string | number }>) {
+  const registeredCells = useMultiviewVideoCells();
+
+  return useMemo(() => {
+    const cellsById = new Map<string, MultiviewVideoCellHandle>([...registeredCells].reverse().map((cell) => [cell.id, cell] as const));
+
+    return layout
+      .map((item) => cellsById.get(String(item.i)))
+      .filter((cell): cell is MultiviewVideoCellHandle => !!cell && !!cell.video);
+  }, [layout, registeredCells]);
 }

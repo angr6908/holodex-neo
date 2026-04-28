@@ -6,6 +6,16 @@ import { mdiDiscord } from "@/lib/icons";
 import { Icon } from "@/components/ui/Icon";
 import { api } from "@/lib/api";
 
+const links = [
+  { title: "X", label: "@holodex", bucket: "top", href: "https://x.com/holodex", icon: mdiTwitter, iconStyle: { background: "color-mix(in srgb, #0ea5e9 72%, #020617 28%)", color: "#f8fafc" } },
+  { title: "Discord", label: "Community", bucket: "top", href: "https://discord.gg/jctkgHBt4b", icon: mdiDiscord, iconStyle: { background: "color-mix(in srgb, #6366f1 78%, #0f172a 22%)", color: "#f8fafc" } },
+  { title: "GitHub", label: "Repository", bucket: "top", href: "https://github.com/RiceCakess/Holodex", icon: mdiGithub, iconStyle: { background: "#111827", color: "#f8fafc" } },
+  { title: "Docs", label: "HoloAPI V2", bucket: "top", href: "https://docs.holodex.net/", icon: mdiOpenInNew, iconStyle: { background: "color-mix(in srgb, #f59e0b 74%, #0f172a 26%)", color: "#f8fafc" } },
+  { title: "Extension", label: "Browser add-on", bucket: "bottom", href: "https://holodex.net/extension", icon: mdiPuzzleOutline, iconStyle: { background: "color-mix(in srgb, #10b981 74%, #0f172a 26%)", color: "#f8fafc" } },
+];
+const topLinks = links.filter((l) => l.bucket === "top");
+const bottomLinks = links.filter((l) => l.bucket === "bottom");
+
 export function TwitterFeed({ showHeader = true }: { showHeader?: boolean }) {
   const [metrics, setMetrics] = useState<any>(null);
   const elRef = useRef<HTMLDivElement | null>(null);
@@ -19,16 +29,6 @@ export function TwitterFeed({ showHeader = true }: { showHeader?: boolean }) {
       { label: "Songs", value: s.totalSongs.count || 0, delta: "\u00a0" },
     ];
   }, [s]);
-  const links = [
-    { title: "X", label: "@holodex", bucket: "top", href: "https://x.com/holodex", icon: mdiTwitter, iconStyle: { background: "color-mix(in srgb, #0ea5e9 72%, #020617 28%)", color: "#f8fafc" } },
-    { title: "Discord", label: "Community", bucket: "top", href: "https://discord.gg/jctkgHBt4b", icon: mdiDiscord, iconStyle: { background: "color-mix(in srgb, #6366f1 78%, #0f172a 22%)", color: "#f8fafc" } },
-    { title: "GitHub", label: "Repository", bucket: "top", href: "https://github.com/RiceCakess/Holodex", icon: mdiGithub, iconStyle: { background: "#111827", color: "#f8fafc" } },
-    { title: "Docs", label: "HoloAPI V2", bucket: "top", href: "https://docs.holodex.net/", icon: mdiOpenInNew, iconStyle: { background: "color-mix(in srgb, #f59e0b 74%, #0f172a 26%)", color: "#f8fafc" } },
-    { title: "Extension", label: "Browser add-on", bucket: "bottom", href: "https://holodex.net/extension", icon: mdiPuzzleOutline, iconStyle: { background: "color-mix(in srgb, #10b981 74%, #0f172a 26%)", color: "#f8fafc" } },
-  ];
-  const topLinks = links.filter((l) => l.bucket === "top");
-  const bottomLinks = links.filter((l) => l.bucket === "bottom");
-
   useEffect(() => { api.stats().then(({ data }) => setMetrics(data)).catch(() => {}); }, []);
   useEffect(() => {
     if (!metrics) return;

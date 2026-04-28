@@ -14,18 +14,14 @@ import { musicdexURL } from "@/lib/consts";
 import { videoTemporalComparator } from "@/lib/functions";
 import { filterVideo } from "@/lib/filter-videos";
 import { decodeLayout, encodeLayout, getDesktopDefaults } from "@/lib/mv-utils";
+import { readJSON } from "@/lib/storage";
 import * as icons from "@/lib/icons";
 
 const MULTIVIEW_STORAGE_KEY = "holodex-v2-multiview";
 
 function readPersistedAutoLayout() {
-  if (typeof window === "undefined") return getDesktopDefaults();
-  try {
-    const saved = JSON.parse(localStorage.getItem(MULTIVIEW_STORAGE_KEY) || "{}");
-    return Array.isArray(saved.autoLayout) ? saved.autoLayout : getDesktopDefaults();
-  } catch {
-    return getDesktopDefaults();
-  }
+  const saved = readJSON(MULTIVIEW_STORAGE_KEY, {} as any);
+  return Array.isArray(saved.autoLayout) ? saved.autoLayout : getDesktopDefaults();
 }
 
 export function WatchSideBar({ video, showSongs = true, showRelations = true, onTimeJump, className = "" }: { video: Record<string, any>; showSongs?: boolean; showRelations?: boolean; onTimeJump?: (time: number) => void; className?: string }) {
@@ -84,11 +80,7 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
     }
   }
   function addToMusicPlaylist() { window.open(`${musicdexURL}/video/${video.id}`, "_blank"); }
-  function addToPlaylist(videos: any[]) {
-    const reversed = [...videos].filter((v) => filterVideo(v, app, { hideIgnoredTopics: false }));
-    reversed.reverse();
-    reversed.forEach((v) => app.addToPlaylist(v));
-  }
+  const addToPlaylist = (videos: any[]) => [...videos].filter((v) => filterVideo(v, app, { hideIgnoredTopics: false })).reverse().forEach((v) => app.addToPlaylist(v));
   function openSimulcastLayout() { if (simulcastMultiviewLink.ok) router.push((simulcastMultiviewLink as any).url); }
 
   return <div className={className}>{showSongs && video.songcount ? <><div className="lightup flex items-center gap-2"><button type="button" className="mx-2 my-1 pr-2 text-xs uppercase tracking-[0.2em] text-slate-300" onClick={() => toggleExpansion("songs")}>{hidden.songs ? "＋" : "－"} {video.songcount} {relationI18N("songs")}</button><div className="flex-1" /><Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={() => setShowDetailed((value) => !value)}><Icon icon={mdiTimerOutline} size="sm" /></Button><Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={addToMusicPlaylist}><Icon icon={icons.mdiMusic} size="sm" /></Button></div>{!hidden.songs ? <div className="px-2 py-0"><div className="w-full">{songList.map((song: any, idx: number) => <SongItem key={song.name + song.video_id + idx} detailed={showDetailed} song={song} hoverIcon={icons.mdiPlay} style={{ width: "100%" }} onPlay={() => onTimeJump?.(song.start)} onPlayNow={() => onTimeJump?.(song.start)} />)}</div></div> : null}</> : null}{orderedRelations.map((relation) => related[relation as keyof typeof related].length ? <div key={relation}><div className="lightup flex items-center gap-2"><button type="button" className="mx-2 my-1 pr-2 text-xs uppercase tracking-[0.2em] text-slate-300" onClick={() => toggleExpansion(relation)}>{hidden[relation] ? "＋" : "－"} {related[relation as keyof typeof related].length} {relationI18N(relation)}</button><div className="flex-1" />{relation === "simulcasts" ? <Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" disabled={!simulcastMultiviewLink.ok} title={simulcastTooltip} onClick={openSimulcastLayout}><Icon icon={icons.mdiViewDashboard} size="sm" /></Button> : null}<Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={() => addToPlaylist(related[relation as keyof typeof related])}><Icon icon={icons.mdiPlaylistPlus} size="sm" /></Button></div>{!hidden[relation] ? <VideoCardList videos={related[relation as keyof typeof related]} horizontal includeChannel cols={{ lg: 12, md: 4, cols: 12, sm: 6 }} dense /> : null}</div> : null)}</div>;

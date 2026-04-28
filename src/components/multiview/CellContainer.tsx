@@ -20,16 +20,10 @@ export function CellContainer({ item, editMode: editModeProp, onSetContent, chil
     else freezeLayoutItem?.(item.i);
   }, [editMode, item.i, freezeLayoutItem, unfreezeLayoutItem]);
 
-  function setContent(content: any) {
-    if (store) {
-      store.setLayoutContentById({ id: item.i, content });
-      store.fetchVideoData();
-    }
-    onSetContent?.(item.i, content);
-  }
-  function dragEnter(ev: React.DragEvent) { setEnterTarget(ev.target); setShowDropOverlay(true); }
-  function dragLeave(ev: React.DragEvent) { if (enterTarget === ev.target) setShowDropOverlay(false); }
-  function allowDrop(ev: React.DragEvent) { ev.preventDefault(); }
+  const setContent = (content: any) => { if (store) { store.setLayoutContentById({ id: item.i, content }); store.fetchVideoData(); } onSetContent?.(item.i, content); };
+  const dragEnter = (ev: React.DragEvent) => { setEnterTarget(ev.target); setShowDropOverlay(true); };
+  const dragLeave = (ev: React.DragEvent) => { if (enterTarget === ev.target) setShowDropOverlay(false); };
+  const allowDrop = (ev: React.DragEvent) => ev.preventDefault();
   function drop(ev: React.DragEvent) {
     ev.preventDefault();
     setShowDropOverlay(false);

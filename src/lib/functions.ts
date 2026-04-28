@@ -1,4 +1,3 @@
-import { json2csv } from "json-2-csv";
 import {
   TL_LANGS,
   VIDEO_URL_REGEX,
@@ -22,17 +21,10 @@ export function resizeChannelPhoto(photoUrl: string) {
     : photoUrl;
 }
 export function getVideoThumbnails(ytVideoKey: string, useWebP = false) {
-  const base = useWebP
-    ? "https://i.ytimg.com/vi_webp"
-    : "https://i.ytimg.com/vi";
+  const base = `https://i.ytimg.com/vi${useWebP ? "_webp" : ""}/${ytVideoKey}`;
   const ext = useWebP ? "webp" : "jpg";
-  return {
-    default: `${base}/${ytVideoKey}/default.${ext}`,
-    medium: `${base}/${ytVideoKey}/mqdefault.${ext}`,
-    standard: `${base}/${ytVideoKey}/sddefault.${ext}`,
-    maxres: `${base}/${ytVideoKey}/maxresdefault.${ext}`,
-    hq720: `${base}/${ytVideoKey}/hq720.${ext}`,
-  };
+  const src = (q: string) => `${base}/${q}.${ext}`;
+  return { default: src("default"), medium: src("mqdefault"), standard: src("sddefault"), maxres: src("maxresdefault"), hq720: src("hq720") };
 }
 export function getUILang(weblang?: string) {
   const value = String(weblang || "en");
@@ -53,11 +45,12 @@ export function getYTLangFromState(state: any) {
 }
 export function getBannerImages(url: string) {
   const base = `${url.split("=")[0]}=`;
+  const crop = (w: string, c: string) => `${base}${w}-fcrop64=1,${c}-k-c0xffffffff-no-nd-rj`;
   return {
-    tablet: `${base}w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj`,
-    mobile: `${base}w960-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj`,
-    banner: `${base}w2276-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj`,
-    tv: `${base}w2560-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj`,
+    tablet: crop("w1707", "00005a57ffffa5a8"),
+    mobile: crop("w960", "32b75a57cd48a5a8"),
+    banner: crop("w2276", "00005a57ffffa5a8"),
+    tv: crop("w2560", "00005a57ffffa5a8"),
   };
 }
 const formatters: Record<string, Intl.NumberFormat> = {};
@@ -88,7 +81,7 @@ export function getLiveViewerCount(video?: Record<string, any> | null) {
   return getKnownLiveViewerCount(video) ?? 0;
 }
 export function decodeHTMLEntities(str = "") {
-  return str.split("&amp;").join("&").split("&quot;").join('"');
+  return str.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 }
 export function videoTemporalComparator(a: any, b: any) {
   if (a.available_at === b.available_at)
@@ -119,48 +112,24 @@ export function videoCodeParser(videoCode: string) {
 export function checkIOS() {
   if (typeof navigator === "undefined") return false;
   return (
-    [
-      "iPad Simulator",
-      "iPhone Simulator",
-      "iPod Simulator",
-      "iPad",
-      "iPhone",
-      "iPod",
-    ].includes(navigator.platform) ||
-    (navigator.userAgent.includes("Mac") &&
-      typeof document !== "undefined" &&
-      "ontouchend" in document)
+    /iPad|iPhone|iPod/.test(navigator.platform) ||
+    (navigator.userAgent.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document)
   );
 }
-export function forwardTransformSearchToAPIQuery(
-  obj: any[],
-  initialObject: any,
-) {
+export function forwardTransformSearchToAPIQuery(obj: any[], initialObject: any) {
   return (obj || []).reduceRight((req, item) => {
-    switch (item.type) {
-      case "title & desc":
-        req.conditions.push({ text: String(item.text || "").trim() });
-        break;
-      case "comments":
-        req.comment = [String(item.text || "").trim()];
-        break;
-      case "channel":
-        req.vch.push(item.value);
-        break;
-      case "topic":
-        req.topic.push(item.value);
-        break;
-      case "org":
-        req.org.push(item.value);
-        break;
-      default:
-        break;
-    }
+    const text = String(item.text || "").trim();
+    if (item.type === "title & desc") req.conditions.push({ text });
+    else if (item.type === "comments") req.comment = [text];
+    else if (item.type === "channel") req.vch.push(item.value);
+    else if (item.type === "topic") req.topic.push(item.value);
+    else if (item.type === "org") req.org.push(item.value);
     return req;
   }, initialObject);
 }
 
 export async function buildSearchUrl(query: any[]) {
+  const { json2csv } = await import("json-2-csv");
   return `/search?q=${encodeURIComponent(await json2csv(query))}`;
 }
 
@@ -181,32 +150,4 @@ export function localSortChannels(
     return cmp * dir;
   });
   return channels;
-}
-export function waitForElement(
-  selector: string,
-  parent: ParentNode = document.body,
-  waitTime = 90e3,
-) {
-  return new Promise<Element>((resolve, reject) => {
-    const elem = parent.querySelector(selector);
-    if (elem) {
-      resolve(elem);
-    }
-    const observer = new MutationObserver(() => {
-      const elem2 = parent.querySelector(selector);
-      if (elem2) {
-        clearTimeout(timeout);
-        observer.disconnect();
-        resolve(elem2);
-      }
-    });
-    observer.observe(parent, {
-      childList: true,
-      subtree: true,
-    });
-    const timeout = setTimeout(() => {
-      observer.disconnect();
-      return reject(new Error(`${selector} timed out`));
-    }, waitTime);
-  });
 }

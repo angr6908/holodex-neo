@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   mdiAccountOff,
@@ -12,6 +12,9 @@ import {
 import { api } from "@/lib/api";
 import { CHANNEL_TYPES } from "@/lib/consts";
 import { localSortChannels } from "@/lib/functions";
+import { readJSON, writeJSON } from "@/lib/storage";
+import { useDomElement } from "@/lib/use-dom-element";
+import { useSwipeTabs } from "@/lib/use-swipe-tabs";
 import { useAppState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
@@ -46,21 +49,7 @@ function defaultChannelsState(): ChannelsPersistedState {
 }
 
 function readChannelsState(): ChannelsPersistedState {
-  if (typeof window === "undefined") return defaultChannelsState();
-  try {
-    const raw = localStorage.getItem(CHANNELS_STORAGE_KEY);
-    return raw
-      ? { ...defaultChannelsState(), ...JSON.parse(raw) }
-      : defaultChannelsState();
-  } catch {
-    return defaultChannelsState();
-  }
-}
-
-function writeChannelsState(value: ChannelsPersistedState) {
-  try {
-    localStorage.setItem(CHANNELS_STORAGE_KEY, JSON.stringify(value));
-  } catch {}
+  return { ...defaultChannelsState(), ...readJSON(CHANNELS_STORAGE_KEY, {}) };
 }
 
 function stableGroupByOrg(channels: any[]) {
@@ -73,27 +62,14 @@ function stableGroupByOrg(channels: any[]) {
   return Array.from(orgBuckets.values()).flat();
 }
 
-function useMountedElement(id: string) {
-  const [el, setEl] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    const update = () => setEl(document.getElementById(id));
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [id]);
-  return el;
-}
-
 export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const app = useAppState();
   const { t } = useI18n();
-  const portal = useMountedElement("channels-panel-portal");
+  const portal = useDomElement("channels-panel-portal");
   const [persisted, setPersisted] = useState<ChannelsPersistedState>(() =>
     defaultChannelsState(),
   );
   const [identifier, setIdentifier] = useState(0);
-  const touchStartX = useRef<number | null>(null);
   const selectedOrgs = app.selectedHomeOrgs || [];
   const selectedOrgsKey = JSON.stringify(selectedOrgs);
   const clipLangsKey = app.settings.clipLangs.join(",");
@@ -110,7 +86,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     setPersisted(readChannelsState());
   }, []);
   useEffect(() => {
-    writeChannelsState(persisted);
+    writeJSON(CHANNELS_STORAGE_KEY, persisted);
   }, [persisted]);
   useEffect(() => {
     document.title = `${t("component.mainNav.channels")} - Holodex`;
@@ -169,13 +145,10 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     [t, category, isSingleOrg, isMultiOrg, isAllVtubers],
   );
 
-  const currentSortValue = useMemo(
-    () =>
-      sortOptions.find((opt) => opt.value === sortValue) ||
-      sortOptions.find((opt) => opt.value === defaultSort) ||
-      sortOptions[0],
-    [sortOptions, sortValue],
-  );
+  const currentSortValue =
+    sortOptions.find((opt) => opt.value === sortValue) ||
+    sortOptions.find((opt) => opt.value === defaultSort) ||
+    sortOptions[0];
   const tabOptions = useMemo(
     () => [
       { value: Tabs.VTUBER, label: t("views.channels.tabs.Vtuber") },
@@ -190,6 +163,9 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const setCategory = useCallback(
     (value: number) => setPersisted((prev) => ({ ...prev, category: value })),
     [],
+  );
+  const swipeTabs = useSwipeTabs((direction) =>
+    setCategory(Math.max(0, Math.min(3, category + direction))),
   );
   const setSort = useCallback(
     (value: string) =>
@@ -281,20 +257,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
         ? app.settings.blockedChannels || []
         : [];
 
-  function handleTouchStart(event: React.TouchEvent<HTMLElement>) {
-    touchStartX.current = event.changedTouches?.[0]?.clientX ?? null;
-  }
-
-  function handleTouchEnd(event: React.TouchEvent<HTMLElement>) {
-    if (touchStartX.current === null) return;
-    const endX = event.changedTouches?.[0]?.clientX ?? touchStartX.current;
-    const delta = endX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(delta) < 50) return;
-    if (delta > 0) setCategory(Math.max(category - 1, 0));
-    else setCategory(Math.min(category + 1, 3));
-  }
-
   const panelControls = (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-1">
@@ -350,8 +312,8 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   return (
     <section
       className="flex min-h-[70vh] flex-col"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={swipeTabs.onTouchStart}
+      onTouchEnd={swipeTabs.onTouchEnd}
       data-embedded={embedded ? "true" : undefined}
     >
       {portal ? createPortal(panelControls, portal) : null}
@@ -366,7 +328,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
             }
             groupKey={groupKey}
             cardView={cardView}
-            showDelete={category === Tabs.BLOCKED}
           />
         ) : (
           <GenericListLoader
@@ -387,7 +348,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
                 }
                 groupKey={groupKey}
                 cardView={cardView}
-                showDelete={category === Tabs.SUBBER}
               />
             )}
           </GenericListLoader>

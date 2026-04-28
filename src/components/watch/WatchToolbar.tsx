@@ -40,10 +40,7 @@ export function WatchToolbar({ video, noBackButton = false, children }: { video:
     }
     setMenuOpen((value) => !value);
   }
-  function reloadVideo() {
-    const curr = document.querySelector("[id^=\"youtube-player\"]") as HTMLIFrameElement | null;
-    if (curr?.contentWindow) curr.contentWindow.location.replace(curr.src);
-  }
+  const reloadVideo = () => { const curr = document.querySelector("[id^=\"youtube-player\"]") as HTMLIFrameElement | null; if (curr?.contentWindow) curr.contentWindow.location.replace(curr.src); };
   return (
     <div className="watch-toolbar relative z-[40] flex justify-between gap-2 border-b border-white/10 bg-slate-950/70 px-3 py-2 backdrop-blur-xl lg:px-4">
       {!noBackButton ? <Button type="button" size="icon" variant="ghost" onClick={() => router.back()}><Icon icon={mdiArrowLeft} /></Button> : null}

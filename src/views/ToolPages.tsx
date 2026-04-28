@@ -52,8 +52,7 @@ export function RelayBotPage() {
     setLoggedIn(false);
     const code = searchParams.get("code");
     if (!code) return;
-    let mode = 3;
-    if (location.hostname === "localhost") mode = 0; else if (location.hostname === "staging.holodex.net") mode = 1; else if (location.hostname === "holodex.net") mode = 2; else mode = 2;
+    const mode = location.hostname === "localhost" ? 0 : location.hostname === "staging.holodex.net" ? 1 : 2;
     api.relayBotLogin(code, mode).then(({ status, data }: any) => {
       if (status === 200) {
         setSelectedChannel(-1); setSelectedGuild(-1); setLoggedIn(true); setAccessToken(data.access_token);

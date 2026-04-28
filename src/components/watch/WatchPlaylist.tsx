@@ -15,7 +15,7 @@ export function WatchPlaylist({ value = 0, video, onInput, onPlayNext }: { value
   const app = useAppState();
   const [hasError, setHasError] = useState(false);
   const [playlist, setPlaylist] = useState<any>(undefined);
-  const videos = useMemo(() => (playlist && playlist.videos) || [], [playlist]);
+  const videos = useMemo(() => playlist?.videos || [], [playlist]);
   const playlistId = searchParams.get("playlist");
   const activePlaylist = useMemo(() => ({ ...(app.playlistActive || {}), id: app.playlistActive?.id || "local", name: app.playlistActive?.name || "Playlist", videos: app.playlist }), [app.playlistActive, app.playlist]);
 

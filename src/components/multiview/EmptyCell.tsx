@@ -11,10 +11,7 @@ import * as icons from "@/lib/icons";
 export function EmptyCell({ item, onDelete, onShowSelector, onSetChat }: { item: any; onDelete?: (id: string) => void; onShowSelector?: (id: string) => void; onSetChat?: (id: string, initAsTL: boolean) => void }) {
   const { t } = useI18n();
   const store = useOptionalMultiviewStore();
-  function setItemAsChat(initAsTL: boolean) {
-    if (store) store.setLayoutContentById({ id: item.i, content: { type: "chat", initAsTL } });
-    onSetChat?.(item.i, initAsTL);
-  }
+  const setItemAsChat = (initAsTL: boolean) => { if (store) store.setLayoutContentById({ id: item.i, content: { type: "chat", initAsTL } }); onSetChat?.(item.i, initAsTL); };
   return (
     <div className="cell-content pt-4">
       <div className="centered-btn">

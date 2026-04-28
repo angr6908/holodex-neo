@@ -151,12 +151,12 @@ const legacyThemes = [
   { sourceName: "Pavolia Reine", name: "Pavolia", id: 22, color: getMemberColor("Pavolia Reine") },
 ];
 
-const legacySourceNameSet = new Set(
+const legacySourceNames = new Set(
   legacyThemes.map((item) => item.sourceName).filter(Boolean),
 );
 
 const fullMemberThemes = OFFICIAL_MEMBER_THEMES
-  .filter((item) => !legacySourceNameSet.has(item.sourceName))
+  .filter((item) => !legacySourceNames.has(item.sourceName))
   .map((item, index) => createTheme({ name: item.name, id: 24 + index, color: item.color }));
 
 const defaultTheme = createTheme({
@@ -167,16 +167,11 @@ const defaultTheme = createTheme({
   darkBackground: DEFAULT_DARK_BG,
 });
 
-const sortThemesByName = (a, b) => a.name.localeCompare(b.name, "en", {
-  sensitivity: "base",
-  numeric: true,
-});
-
 const themeSet = [
   defaultTheme,
   ...legacyThemes.map((item) => createTheme(item)),
   ...fullMemberThemes,
-].sort(sortThemesByName);
+].sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base", numeric: true }));
 
 export function resolveThemeById(themeId) {
   const numericId = Number(themeId);

@@ -31,10 +31,9 @@ export function collides(l1: VueGridLayoutItem, l2: VueGridLayoutItem): boolean 
 }
 
 export function sortLayoutItemsByRowCol(layout: VueGridLayout): VueGridLayout {
-  return ([] as VueGridLayoutItem[]).concat(layout).sort((a, b) => {
+  return [...layout].sort((a, b) => {
     if (a.y === b.y && a.x === b.x) return 0;
-    if (a.y > b.y || (a.y === b.y && a.x > b.x)) return 1;
-    return -1;
+    return a.y > b.y || (a.y === b.y && a.x > b.x) ? 1 : -1;
   });
 }
 

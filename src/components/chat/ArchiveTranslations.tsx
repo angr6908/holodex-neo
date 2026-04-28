@@ -56,7 +56,7 @@ export function ArchiveTranslations({ video, currentTime = 0, useLocalSubtitleTo
   const dividedTLs = useMemo(() => {
     const filtered = tlHistory.filter((m: any) => !blockedNames.has(m.name));
     return filtered.map((item: any, index: number, arr: any[]) => {
-      const shouldHideAuthor = index > 0 && (!(index === 0 || index === arr.length - 1 || item.name !== arr[index - 1].name || !!item.breakpoint));
+      const shouldHideAuthor = index > 0 && index !== arr.length - 1 && item.name === arr[index - 1].name && !item.breakpoint;
       const newtime = item.timestamp + timeOffsetSeconds * 1000;
       const relativeMs = item.relativeMs + timeOffsetSeconds * 1000;
       return { ...item, shouldHideAuthor, relativeMs, timestamp: newtime };
@@ -94,11 +94,7 @@ export function ArchiveTranslations({ video, currentTime = 0, useLocalSubtitleTo
     }
   }, [curIndex, app.settings.liveTlHideSpoiler]);
 
-  function itemClass(index: number) {
-    if (index === curIndex) return "active-message";
-    if (app.settings.liveTlHideSpoiler && index > curIndex) return "hide-spoiler";
-    return "";
-  }
+  const itemClass = (index: number) => index === curIndex ? "active-message" : app.settings.liveTlHideSpoiler && index > curIndex ? "hide-spoiler" : "";
   function handleClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement;
     const link = target.closest(".tl-message") as HTMLElement | null;

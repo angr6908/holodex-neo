@@ -8,17 +8,8 @@ export type MessageRendererHandle = { scrollToBottom: () => void };
 
 export const MessageRenderer = forwardRef<MessageRendererHandle, { tlHistory?: any[]; fontSize?: number; children?: React.ReactNode }>(function MessageRenderer({ tlHistory = [], fontSize = 14, children }, ref) {
   const tlBody = useRef<HTMLDivElement | null>(null);
-  function hideAuthor(item: any, index: number) {
-    return !(index === 0
-      || index === tlHistory.length - 1
-      || item.name !== tlHistory[index - 1].name
-      || !!item.breakpoint);
-  }
-  function scrollToBottom() {
-    if (tlBody.current && Math.abs(tlBody.current.scrollTop / tlBody.current.scrollHeight) <= 0.15) {
-      tlBody.current.scrollTop = 0;
-    }
-  }
+  const hideAuthor = (item: any, index: number) => index > 0 && index < tlHistory.length - 1 && item.name === tlHistory[index - 1].name && !item.breakpoint;
+  const scrollToBottom = () => { if (tlBody.current && Math.abs(tlBody.current.scrollTop / tlBody.current.scrollHeight) <= 0.15) tlBody.current.scrollTop = 0; };
   useImperativeHandle(ref, () => ({ scrollToBottom }));
   const iosClass = checkIOS() ? "ios-safari-reverse-fix" : "";
   return (

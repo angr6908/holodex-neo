@@ -19,7 +19,7 @@ function onTouchPan({
   let panstartCalled = false;
 
   function calcMovement(event: TouchEvent): TouchPanEvent | false {
-    const touch = Array.prototype.slice.call(event.changedTouches).filter((item: Touch) => item.identifier === touchId)[0] as Touch | undefined;
+    const touch = [...event.changedTouches].find((item: Touch) => item.identifier === touchId);
     if (!touch) return false;
     (event as TouchPanEvent).deltaX = touch.screenX - startX;
     (event as TouchPanEvent).deltaY = touch.screenY - startY;
@@ -110,13 +110,7 @@ const ptrAnimatesMaterial = {
 };
 
 export function pullToRefresh(opts: any) {
-  opts = Object.assign({
-    scrollable: document.body,
-    threshold: 150,
-    onStateChange() {},
-    shouldPullToRefresh: () => true,
-    animates: ptrAnimatesMaterial,
-  }, opts);
+  opts = { scrollable: document.body, threshold: 150, onStateChange() {}, shouldPullToRefresh: () => true, animates: ptrAnimatesMaterial, ...opts };
 
   const { container, scrollable, threshold, refresh, onStateChange, animates, shouldPullToRefresh } = opts;
   let distance: number | null;

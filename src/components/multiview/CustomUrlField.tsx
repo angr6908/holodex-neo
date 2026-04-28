@@ -5,17 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Input";
 import { getVideoIDFromUrl } from "@/lib/functions";
+import { readJSON, writeJSON } from "@/lib/storage";
 import { useOptionalMultiviewStore } from "@/lib/multiview-store";
 import * as icons from "@/lib/icons";
 
-function readHistory(key: string) {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
-}
-
-function writeHistory(key: string, value: string[]) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-}
 
 export function CustomUrlField({ twitch = false, slim = false, onSuccess }: { twitch?: boolean; slim?: boolean; onSuccess?: (content: any) => void }) {
   const store = useOptionalMultiviewStore();
@@ -28,7 +21,7 @@ export function CustomUrlField({ twitch = false, slim = false, onSuccess }: { tw
   const label = twitch ? "Twitch Channel Link" : "Youtube Video Link";
   const history = useMemo(() => [...(store ? (twitch ? store.twUrlHistory : store.ytUrlHistory) : localHistory)].reverse(), [store, twitch, localHistory]);
 
-  useEffect(() => { if (!store) setLocalHistory(readHistory(localKey)); }, [store, localKey]);
+  useEffect(() => { if (!store) setLocalHistory(readJSON(localKey, [] as string[])); }, [store, localKey]);
   useEffect(() => { setUrl(""); setError(false); }, [twitch]);
 
   function addHistory(value: string) {
@@ -40,7 +33,7 @@ export function CustomUrlField({ twitch = false, slim = false, onSuccess }: { tw
       const next = prev.filter((item) => item !== value);
       next.push(value);
       while (next.length > 8) next.shift();
-      writeHistory(localKey, next);
+      writeJSON(localKey, next);
       return next;
     });
   }

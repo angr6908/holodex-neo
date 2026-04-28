@@ -1,10 +1,10 @@
 import { HomePage } from "@/views/HomePage";
 import { cookies } from "next/headers";
-import { decodeHomeState, HOME_STATE_COOKIE } from "@/lib/home-state";
+import { decodeHomeStateCookie, HOME_STATE_COOKIE } from "@/lib/cookie-codec";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const initialHomeState = decodeHomeState(
+  const initialHomeState = decodeHomeStateCookie(
     cookieStore.get(HOME_STATE_COOKIE)?.value,
   );
   return <HomePage initialHomeState={initialHomeState} />;

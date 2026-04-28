@@ -30,10 +30,6 @@ export function readWatchControlsState(): WatchControlsState {
 export function writeWatchControlsState(state: WatchControlsState) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(WATCH_STATE_KEY, JSON.stringify({
-      showTL: state.showTL,
-      showLiveChat: state.showLiveChat,
-      theaterMode: state.theaterMode,
-    }));
+    localStorage.setItem(WATCH_STATE_KEY, JSON.stringify(state));
   } catch {}
 }

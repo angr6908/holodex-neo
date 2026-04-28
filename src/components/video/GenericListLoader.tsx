@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { useI18n } from "@/lib/i18n";
 import { useAppState } from "@/lib/store";
+import { extractListPayload } from "@/lib/video-list";
 
 const CACHE_PREFIX = "gll:";
 const STATUSES = Object.freeze({ READY: 0, LOADING: 1, ERROR: 2, COMPLETED: 3 });
@@ -20,13 +21,6 @@ function readCache(cacheKey: string) {
   } catch {
     return null;
   }
-}
-
-function extractArray(result: any) {
-  if (Array.isArray(result)) return { items: result, total: null, offset: null };
-  if (!result || typeof result !== "object") return { items: [], total: null, offset: null };
-  const items = Object.values(result).find((v) => Array.isArray(v)) as any[] | undefined;
-  return { items: items || [], total: typeof result.total === "number" ? result.total : null, offset: typeof result.offset === "number" ? result.offset : null };
 }
 
 export function GenericListLoader({
@@ -76,7 +70,7 @@ export function GenericListLoader({
     setStatus(STATUSES.LOADING);
     try {
       const result = await loadFn((page - 1) * perPage, perPage);
-      const { items, total: nextTotal, offset } = extractArray(result);
+      const { items, total: nextTotal, offset } = extractListPayload(result);
       setIsLoading(false);
       setTotal(nextTotal);
       if (mode === "infinite") {

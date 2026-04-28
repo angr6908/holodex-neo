@@ -1,2 +1,1 @@
-import { ExtensionPage } from "@/views/ExtensionPage";
-export default function Page() { return <ExtensionPage />; }
+export { ExtensionPage as default } from "@/views/ExtensionPage";

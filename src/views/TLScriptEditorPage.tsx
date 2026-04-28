@@ -13,31 +13,26 @@ import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Input";
-import { Entrytr } from "@/components/tlscripteditor/Entrytr";
-import { EnhancedEntry } from "@/components/tlscripteditor/EnhancedEntry";
+import { TlEntryRow } from "@/components/tlscript/TlEntryRow";
 import { ScriptEditorExportToFile } from "@/components/tlscripteditor/ExportToFile";
 import { ImportFile } from "@/components/tlscripteditor/ImportFile";
 import * as icons from "@/lib/icons";
 import { openUserMenu } from "@/lib/navigation-events";
+import { formatTlTimestamp, getTlTextStyle } from "@/lib/tl-format";
 
 const defaultProfile = [{ Name: "Default", Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }];
 
-function formatTs(raw: number): string {
-  let timeRaw = Math.max(0, Math.floor(raw || 0));
-  let s = "";
-  const hh = Math.floor(timeRaw / 3600000); timeRaw -= hh * 3600000;
-  s += (hh < 10 ? "0" : "") + hh + ":";
-  const mm = Math.floor(timeRaw / 60000); timeRaw -= mm * 60000;
-  s += (mm < 10 ? "0" : "") + mm + ":";
-  const ss = Math.floor(timeRaw / 1000); timeRaw -= ss * 1000;
-  s += (ss < 10 ? "0" : "") + ss + ".";
-  s += timeRaw > 100 ? String(timeRaw).slice(0, 2) : timeRaw > 10 ? "0" + String(timeRaw).slice(0, 1) : "00";
-  return s;
+function EnhancedEntry({ stext = "", cc = "", oc = "", className = "", onMouseDown }: { stext?: string; cc?: string; oc?: string; className?: string; onMouseDown?: React.MouseEventHandler<HTMLSpanElement> }) {
+  return <span className={`EntryContainer2 ${className}`.trim()} style={getTlTextStyle(cc, oc)} onMouseDown={onMouseDown}>{stext}</span>;
 }
 
 function cloneProfile(profile: any[]) {
   return JSON.parse(JSON.stringify(profile));
 }
+
+const secToPx = 100;
+const secPerBar = 60;
+const barHeight = 25;
 
 export function TLScriptEditorPage() {
   const { t } = useI18n();
@@ -77,7 +72,6 @@ export function TLScriptEditorPage() {
   const [timerTime, setTimerTime] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const [barCount, setBarCount] = useState(0);
-  const [menuBool, setMenuBool] = useState(false);
   const [importPanelShow, setImportPanelShow] = useState(false);
   const [TLSetting, setTLSetting] = useState(true);
   const [inputString, setInputString] = useState("");
@@ -88,25 +82,17 @@ export function TLScriptEditorPage() {
   const [colourPick, setColourPick] = useState(0);
   const [colourTemp, setColourTemp] = useState("");
   const [editorMode, setEditorMode] = useState(false);
-  const secToPx = 100;
-  const secPerBar = 60;
-  const barHeight = 25;
 
   const profileListPicker = useMemo(() => profile.map((item, idx) => ({ name: item.Name, idx })), [profile]);
   const selected = entries[selectedEntry];
-  const timeStampStart = selected ? formatTs(selected.Time) : "00:00:00.00";
-  const timeStampEnd = selected ? formatTs(selected.Time + selected.Duration) : "00:00:00.00";
-  const textStyle = {
-    WebkitTextFillColor: profile[profileIdx]?.CC === "" ? "unset" : profile[profileIdx]?.CC,
-    WebkitTextStrokeColor: profile[profileIdx]?.OC === "" ? "unset" : profile[profileIdx]?.OC,
-    WebkitTextStrokeWidth: profile[profileIdx]?.OC === "" ? "0px" : "1px",
-  } as React.CSSProperties;
-  const textStyle2 = selected ? {
-    WebkitTextFillColor: profile[selected.Profile]?.useCC ? profile[selected.Profile].CC : "unset",
-    WebkitTextStrokeColor: profile[selected.Profile]?.useOC ? profile[selected.Profile].OC : "unset",
-    WebkitTextStrokeWidth: profile[selected.Profile]?.useOC ? "1px" : "0px",
-  } as React.CSSProperties : {};
-  const timerPrint = formatTs(timerTime);
+  const timeStampStart = selected ? formatTlTimestamp(selected.Time) : "00:00:00.00";
+  const timeStampEnd = selected ? formatTlTimestamp(selected.Time + selected.Duration) : "00:00:00.00";
+  const textStyle = getTlTextStyle(profile[profileIdx]?.CC, profile[profileIdx]?.OC);
+  const textStyle2 = selected ? getTlTextStyle(
+    profile[selected.Profile]?.useCC ? profile[selected.Profile].CC : "",
+    profile[selected.Profile]?.useOC ? profile[selected.Profile].OC : "",
+  ) : {};
+  const timerPrint = formatTlTimestamp(timerTime);
   const timelineEntries = useMemo(() => {
     const visible: Array<{ entry: any; idx: number }> = [];
     for (let i = 0; i < entries.length; i += 1) {
@@ -173,14 +159,10 @@ export function TLScriptEditorPage() {
   }
 
   function markDelete(id: any) {
-    let checkNew = transactionLog.current.filter((e) => e.id === id);
-    if (checkNew.length === 0) {
-      transactionLog.current.push({ type: "Delete", id });
-      return;
-    }
-    checkNew = checkNew.filter((e) => e.type === "Change");
+    const existing = transactionLog.current.filter((e) => e.id === id);
+    if (!existing.length) { transactionLog.current.push({ type: "Delete", id }); return; }
     transactionLog.current = transactionLog.current.filter((e) => e.id !== id);
-    if (checkNew.length !== 0) transactionLog.current.push({ type: "Delete", id });
+    if (existing.some((e) => e.type === "Change")) transactionLog.current.push({ type: "Delete", id });
   }
 
   function getEntryByID(id: any, entryList = entriesRef.current) {
@@ -461,23 +443,14 @@ export function TLScriptEditorPage() {
     setDisplayEntry(-1);
     setSelectedEntry(-1);
     entriesRef.current.forEach((entry) => markDelete(entry.id));
-
-    const importedProfiles = profileData.map((item) => ({ ...item }));
-    const importedEntries = entriesData.map((item) => ({ ...item }));
     const next: any[] = [];
     const nextProfile = cloneProfile(defaultProfile);
-    for (let i = 1; importedProfiles.length > 0; i += 1) {
-      const dt = importedProfiles.splice(0, 1)[0];
-      dt.Name = `Profile${i.toString()}`;
-      nextProfile.push(dt);
-    }
-    for (let i = 0; importedEntries.length > 0; i += 1) {
-      const dt = importedEntries.splice(0, 1)[0];
-      dt.id = `I${i.toString()}`;
-      dt.Profile += 1;
+    profileData.forEach((item, i) => nextProfile.push({ ...item, Name: `Profile${i + 1}` }));
+    entriesData.forEach((item, i) => {
+      const dt = { ...item, id: `I${i}`, Profile: item.Profile + 1 };
       next.push(dt);
       transactionLog.current.push({ type: "Add", id: dt.id });
-    }
+    });
     setProfile(nextProfile);
     setProfileIdx(0);
     entriesRef.current = next;
@@ -540,24 +513,15 @@ export function TLScriptEditorPage() {
   }
 
   function secToTimeString(secInput: number, msOutput = true, full = false): string {
-    let sec = secInput;
-    let ms = Math.floor((sec % 1) * 100).toString();
-    if (ms.length === 1) ms = `0${ms}`;
-    sec = Math.floor(sec);
-    const h = Math.floor(sec / 60 / 60);
-    sec -= h * 60 * 60;
-    const m = Math.floor(sec / 60);
-    sec -= m * 60;
-    let stamp = h.toString();
-    if (stamp.length === 1) stamp = `0${stamp}`;
-    stamp = `${stamp}:${`0${m.toString()}`.slice(-2)}:${`0${sec.toString()}`.slice(-2)}.${ms}`;
-    if (full) return msOutput ? stamp : stamp.slice(0, stamp.length - 3);
-    for (let i = 0; i < 3; i += 1) {
-      if (stamp.slice(0, 2) !== "00") break;
-      stamp = stamp.slice(3);
-    }
+    const ms = String(Math.floor((secInput % 1) * 100)).padStart(2, "0");
+    let sec = Math.floor(secInput);
+    const h = Math.floor(sec / 3600); sec -= h * 3600;
+    const m = Math.floor(sec / 60); sec -= m * 60;
+    let stamp = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}.${ms}`;
+    if (full) return msOutput ? stamp : stamp.slice(0, -3);
+    for (let i = 0; i < 3; i++) { if (stamp.slice(0, 2) !== "00") break; stamp = stamp.slice(3); }
     if (stamp[0] === "0") stamp = stamp.slice(1);
-    return msOutput ? stamp : stamp.slice(0, stamp.length - 3);
+    return msOutput ? stamp : stamp.slice(0, -3);
   }
 
   function renderTimelineCanvas(canvas: HTMLCanvasElement | null, idx: number) {
@@ -774,7 +738,6 @@ export function TLScriptEditorPage() {
     };
   }, []);
 
-
   return (
     <div className="flex h-screen max-h-screen px-3" onKeyDown={(event) => { if (event.ctrlKey && event.key.toLowerCase() === "s") { event.preventDefault(); processLog(); } }}>
       <div className="flex h-full w-full flex-col">
@@ -786,11 +749,11 @@ export function TLScriptEditorPage() {
           <Button variant="outline" size="sm" onClick={() => setImportPanelShow(true)}>{t("views.scriptEditor.menu.importFile")}</Button>
           <Button variant="outline" size="sm" onClick={continuousTime}>{t("views.scriptEditor.menu.continuousEnd")}</Button>
           <Button variant="outline" size="sm" onClick={() => { setModalMode(9); setModalNexus(true); }}>Time Shift</Button>
-          {videoData && videoData.id === "custom" ? <Button variant="outline" size="sm" onClick={() => { setModalMode(10); setModalNexus(true); setLinkInput(activeURLStream); }}>Change Custom Link</Button> : null}
+          {videoData?.id === "custom" ? <Button variant="outline" size="sm" onClick={() => { setModalMode(10); setModalNexus(true); setLinkInput(activeURLStream); }}>Change Custom Link</Button> : null}
           <Button variant="destructive" size="sm" onClick={() => { setModalMode(7); setModalNexus(true); }}>{t("views.scriptEditor.menu.clearAll")}</Button>
         </div>
 
-        <div className="flex h-full flex-row items-stretch gap-3" style={{ height: "100%" }} onClick={() => setMenuBool(false)}>
+        <div className="flex h-full flex-row items-stretch gap-3" style={{ height: "100%" }}>
           <Card className="grow overflow-hidden p-0">
             <table className="w-full border-collapse text-sm" width="auto">
               <thead onClick={() => setSelectedEntry(-1)}>
@@ -798,7 +761,7 @@ export function TLScriptEditorPage() {
               </thead>
               <tbody>
                 {entries.map((entry, index) => selectedEntry !== index ? (
-                  <Entrytr key={`entry-${index}`} time={entry.Time} duration={entry.Duration} stext={entry.SText} profileName={profile[entry.Profile]?.Name || profile[0].Name} cc={profile[entry.Profile]?.useCC ? profile[entry.Profile].CC : ""} oc={profile[entry.Profile]?.useOC ? profile[entry.Profile].OC : ""} useRealTime={videoData?.id === "custom"} realTime={entry.realTime} onClick={() => setSelectedEntry(index)} />
+                  <TlEntryRow key={`entry-${index}`} variant="editor" time={entry.Time} duration={entry.Duration} stext={entry.SText} profileName={profile[entry.Profile]?.Name || profile[0].Name} cc={profile[entry.Profile]?.useCC ? profile[entry.Profile].CC : ""} oc={profile[entry.Profile]?.useOC ? profile[entry.Profile].OC : ""} useRealTime={videoData?.id === "custom"} realTime={entry.realTime} onClick={() => setSelectedEntry(index)} />
                 ) : (
                   <Fragment key={`editing-${index}`}>
                     <tr><td>{timeStampStart}</td><td>{timeStampEnd}</td><td><select value={entry.Profile} className="h-10 w-full rounded-xl border border-white/12 bg-white/6 px-3 text-sm text-white outline-none focus:border-sky-400/70 focus:ring-2 focus:ring-sky-400/20" onChange={(event) => { const nextProfile = Number(event.target.value); setProfileIdx(nextProfile); updateEntry(index, { Profile: nextProfile }); showProfileList(); }}>{profileListPicker.map((item) => <option key={item.idx} value={item.idx} className="bg-slate-900">{item.name}</option>)}</select></td><td colSpan={2}><Input value={entry.SText} className="font-semibold" style={textStyle2} onChange={(event) => updateEntry(index, { SText: event.target.value })} /></td></tr>
@@ -812,7 +775,7 @@ export function TLScriptEditorPage() {
           {vidPlayer ? <Card className="flex h-full w-1/2 flex-col p-0"><div id="player" className="h-full w-full" /><div className="flex flex-row justify-center">{displayEntry >= 0 && displayEntry < entries.length ? <EnhancedEntry stext={entries[displayEntry].SText} cc={profile[entries[displayEntry].Profile]?.useCC ? profile[entries[displayEntry].Profile].CC : ""} oc={profile[entries[displayEntry].Profile]?.useOC ? profile[entries[displayEntry].Profile].OC : ""} /> : null}</div><div className="flex flex-row justify-center gap-2 px-4 py-3"><Button variant="outline" size="sm" onClick={timerTimeStop}><Icon icon={mdiStop} size="sm" /></Button><span>{timerPrint}</span><Button variant="outline" size="sm" onClick={timerTimeStart}><Icon icon={mdiPlay} size="sm" /></Button></div></Card> : null}
         </div>
 
-        <div onClick={() => setMenuBool(false)} onKeyDown={handleControlKeyDown}>
+        <div onKeyDown={handleControlKeyDown}>
           <div className="flex items-baseline">
             <Card className="mb-1 flex flex-col pb-[7px]">
               <Card className="relative">

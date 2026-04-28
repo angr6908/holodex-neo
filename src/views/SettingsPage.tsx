@@ -152,7 +152,4 @@ export function SettingsPage({ className = "" }: { className?: string }) {
   </div>;
 }
 
-function fieldStyle(widthPx: number) {
-  const w = Math.max(136, Math.round(widthPx));
-  return { flex: `${Math.max(1, Math.round(widthPx))} 1 0`, minWidth: `${w}px` };
-}
+const fieldStyle = (widthPx: number) => ({ flex: `${Math.max(1, Math.round(widthPx))} 1 0`, minWidth: `${Math.max(136, Math.round(widthPx))}px` });

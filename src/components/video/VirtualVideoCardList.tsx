@@ -61,7 +61,7 @@ export function VirtualVideoCardList({
             activePlaylistItem={activePlaylistItem}
             dense={dense}
             disableDefaultClick={disableDefaultClick}
-            parentPlaylistId={(playlist && playlist.id) || "local"}
+            parentPlaylistId={playlist?.id || "local"}
             {...rest}
           />
         </div>

@@ -59,9 +59,6 @@ export function InstallPrompt() {
       setDeferredPrompt(null);
     } else setIOSInstallDialog(true);
   }
-  function hideInstallPrompt() {
-    app.installPromptShown();
-  }
 
   return (
     <div>
@@ -82,7 +79,7 @@ export function InstallPrompt() {
               variant="ghost"
               size="sm"
               className="text-white/70"
-              onClick={hideInstallPrompt}
+              onClick={app.installPromptShown}
             >
               {t("component.installPrompt.notNowBtn")}
             </Button>

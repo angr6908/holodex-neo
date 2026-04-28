@@ -34,7 +34,7 @@ export function NavUserMenu() {
   const root = useRef<HTMLDivElement | null>(null);
   const allowedOAuthHost = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname.endsWith("holodex.net"));
   const avatarUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.id || "guest"}`;
-  const userTag = user ? `${user.username}` : "";
+  const userTag = user?.username ?? "";
   const userPts = `${user?.contribution_count || 0} pts`;
   const apiKey = user?.api_key || "";
   const initialQueryForCalendar = app.currentOrg.name !== "All Vtubers" ? [{ type: "org", text: app.currentOrg.name, value: app.currentOrg.name }] : false;
@@ -101,7 +101,7 @@ export function NavUserMenu() {
   async function saveUsername() {
     if (!editingUsername) return;
     setEditingUsername(false);
-    try { const res: any = await api.changeUsername(app.userdata.jwt, usernameInput); if (res && res.status === 200) app.loginVerify(); } catch (e) { console.error(e); }
+    try { const res: any = await api.changeUsername(app.userdata.jwt, usernameInput); if (res?.status === 200) app.loginVerify(); } catch (e) { console.error(e); }
   }
   function handleLogout() { setMenuOpen(false); app.logout(); router.push("/"); }
 

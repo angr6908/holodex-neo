@@ -175,11 +175,7 @@ function MultiViewContent({ routeLayout }: { routeLayout: string }) {
     return { left: "0px", top: "0px", width: `${itemPixelWidth(item)}px`, height: `${Math.round(gridRowHeight * item.h)}px`, transform: `translate3d(${itemPixelLeft(item)}px, ${Math.round(rowHeight * item.y)}px, 0)`, position: "absolute" } as React.CSSProperties;
   }
   function equalGridItemStyle(item: any) {
-    const left = Math.round(columnWidth * item.x);
-    const top = Math.round(gridRowHeight * item.y);
-    const width = Math.round(columnWidth * item.w);
-    const height = Math.round(gridRowHeight * item.h);
-    return { left: "0px", top: "0px", width: `${width}px`, height: `${height}px`, transform: `translate3d(${left}px, ${top}px, 0)`, position: "absolute" } as React.CSSProperties;
+    return { left: "0px", top: "0px", width: `${Math.round(columnWidth * item.w)}px`, height: `${Math.round(gridRowHeight * item.h)}px`, transform: `translate3d(${Math.round(columnWidth * item.x)}px, ${Math.round(gridRowHeight * item.y)}px, 0)`, position: "absolute" } as React.CSSProperties;
   }
   function pixelStyle(rect: { left: number; top: number; width: number; height: number }) {
     return { left: "0px", top: "0px", width: `${Math.round(rect.width)}px`, height: `${Math.round(rect.height)}px`, transform: `translate3d(${Math.round(rect.left)}px, ${Math.round(rect.top)}px, 0)`, position: "absolute" } as React.CSSProperties;
@@ -208,17 +204,14 @@ function MultiViewContent({ routeLayout }: { routeLayout: string }) {
       if (collisions.length) {
         let leastX = Infinity;
         let leastY = Infinity;
-        collisions.forEach((layoutItem) => {
-          if (layoutItem.x > nextItem.x) leastX = Math.min(leastX, layoutItem.x);
-          if (layoutItem.y > nextItem.y) leastY = Math.min(leastY, layoutItem.y);
+        collisions.forEach((col) => {
+          if (col.x > nextItem.x) leastX = Math.min(leastX, col.x);
+          if (col.y > nextItem.y) leastY = Math.min(leastY, col.y);
         });
         if (Number.isFinite(leastX)) layoutItem.w = Math.max(Number(layoutItem.minW ?? 1), leastX - layoutItem.x);
         if (Number.isFinite(leastY)) layoutItem.h = Math.max(Number(layoutItem.minH ?? 1), leastY - layoutItem.y);
       } else {
-        layoutItem.w = nextItem.w;
-        layoutItem.h = nextItem.h;
-        layoutItem.x = nextItem.x;
-        layoutItem.y = nextItem.y;
+        Object.assign(layoutItem, { w: nextItem.w, h: nextItem.h, x: nextItem.x, y: nextItem.y });
       }
       return compact(sourceLayout, false).map((item) => ({ ...item, i: String(item.i) }));
     }
@@ -341,13 +334,9 @@ function MultiViewContent({ routeLayout }: { routeLayout: string }) {
     setOverwriteDialog(true);
   }
   function checkStreamType(v: any) {
-    let video = v;
-    if (video.type === "placeholder") {
-      const twitchChannel = video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
-      if (!twitchChannel) return null;
-      video = { ...video, id: twitchChannel, type: "twitch" };
-    }
-    return video;
+    if (v.type !== "placeholder") return v;
+    const twitchChannel = v.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
+    return twitchChannel ? { ...v, id: twitchChannel, type: "twitch" } : null;
   }
   function handleToolbarClick(v: any) {
     const video = checkStreamType(v);
@@ -455,10 +444,9 @@ function MultiViewContent({ routeLayout }: { routeLayout: string }) {
                 </div>
               );
             })}
-            {activeInteraction ? (() => {
-              const placeholder = store.layout.find((item) => String(item.i) === activeInteraction.id);
-              return placeholder ? <div className="vue-grid-item vue-grid-placeholder cssTransforms" style={equalGridItemStyle(placeholder)} /> : null;
-            })() : null}
+            {store.layout.filter((item) => activeInteraction && String(item.i) === activeInteraction.id).map((p) => (
+              <div key="placeholder" className="vue-grid-item vue-grid-placeholder cssTransforms" style={equalGridItemStyle(p)} />
+            ))}
           </div>
         </div>
       </div>

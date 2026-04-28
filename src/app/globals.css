@@ -4,41 +4,85 @@
 @theme {
   --font-sans: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
-  --color-background: oklch(0.14 0.02 240);
-  --colorbg: oklch(0.18 0.02 240);
-  --color-foreground: oklch(0.96 0.01 240);
-  --color-card: oklch(0.19 0.02 240);
-  --color-card-foreground: oklch(0.96 0.01 240);
-  --color-popover: oklch(0.16 0.02 240);
-  --color-popover-foreground: oklch(0.96 0.01 240);
-  --color-primary: oklch(0.74 0.15 222);
-  --color-primary-foreground: oklch(0.14 0.02 240);
-  --color-secondary: oklch(0.3 0.04 245);
-  --color-secondary-foreground: oklch(0.96 0.01 240);
-  --color-muted: oklch(0.24 0.02 240);
-  --color-muted-foreground: oklch(0.76 0.02 240);
-  --color-accent: oklch(0.27 0.05 205);
-  --color-accent-foreground: oklch(0.97 0.01 240);
-  --color-destructive: oklch(0.65 0.2 25);
-  --color-border: oklch(0.28 0.02 240);
-  --color-input: oklch(0.23 0.02 240);
-  --color-ring: oklch(0.74 0.15 222);
+  --color-background: #0d1a20;
+  --colorbg: #0e1827;
+  --color-foreground: #ffffff;
+  --color-card: rgba(15, 23, 42, 0.72);
+  --color-card-foreground: #ffffff;
+  --color-popover: rgba(2, 6, 23, 0.96);
+  --color-popover-foreground: #ffffff;
+  --color-primary: #38bdf8;
+  --color-primary-foreground: #0f172a;
+  --color-secondary: #2e85b0;
+  --color-secondary-foreground: #f8fafc;
+  --color-muted: rgba(30, 41, 59, 0.82);
+  --color-muted-foreground: #94a3b8;
+  --color-accent: #34a5da;
+  --color-accent-foreground: #f8fafc;
+  --color-destructive: #ef4444;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(255, 255, 255, 0.06);
+  --color-ring: #34a5da;
   --radius: 0.75rem;
 }
 
 :root {
-  --app-body-background: #12161f;
-  --colorbg: #111827;
+  --app-body-background: #0d1a20;
+  --colorbg: #0e1827;
+  --surface-soft: rgba(255, 255, 255, 0.06);
+  --surface-soft-hover: rgba(255, 255, 255, 0.08);
+  --surface-nav: rgba(2, 6, 23, 0.78);
+  --surface-nav-solid: #040a19;
+  --surface-elevated: rgba(2, 6, 23, 0.94);
+  --overlay-backdrop: rgba(2, 6, 23, 0.74);
+  --skeleton-fill: rgba(255, 255, 255, 0.08);
+  --color-bold: #297da8;
+  --color-light: #1f597b;
+  --color-base: #0f1f33;
+  --social-mother-start: #1e1514;
+  --social-mother-mid: #121012;
+  --social-mother-end: #0b0d11;
   --scrollbar-thumb: rgb(148 163 184 / 0.55);
   --scrollbar-thumb-hover: rgb(226 232 240 / 0.78);
   --scrollbar-track: rgb(15 23 42 / 0.14);
   color-scheme: dark;
-  background-color: var(--colorbg, #111827);
+  background-color: var(--colorbg, #0e1827);
 }
 
 html[data-theme="light"] {
-  --app-body-background: #f4f6f9;
-  --colorbg: #eef2f7;
+  --app-body-background: #ebf4fb;
+  --colorbg: #f5fcff;
+  --color-background: #ebf4fb;
+  --color-foreground: #0f172a;
+  --color-card: rgba(246, 252, 255, 0.95);
+  --color-card-foreground: #0f172a;
+  --color-popover: rgba(241, 250, 255, 0.98);
+  --color-popover-foreground: #0f172a;
+  --color-primary: #38bdf8;
+  --color-primary-foreground: #0f172a;
+  --color-secondary: #8dd3f4;
+  --color-secondary-foreground: #0f172a;
+  --color-muted: rgba(195, 224, 241, 0.9);
+  --color-muted-foreground: #456680;
+  --color-accent: #5cc6f6;
+  --color-accent-foreground: #0f172a;
+  --color-destructive: #dc2626;
+  --color-border: rgba(124, 170, 201, 0.32);
+  --color-input: rgba(239, 250, 254, 0.94);
+  --color-ring: #5cc6f6;
+  --surface-soft: rgba(213, 237, 249, 0.94);
+  --surface-soft-hover: rgba(189, 223, 242, 0.98);
+  --surface-nav: rgba(231, 247, 254, 0.84);
+  --surface-nav-solid: #e8f7fe;
+  --surface-elevated: rgba(239, 250, 254, 0.98);
+  --overlay-backdrop: rgba(168, 207, 231, 0.66);
+  --skeleton-fill: rgba(168, 207, 231, 0.58);
+  --color-bold: #96dbfa;
+  --color-light: #bbe7fc;
+  --color-base: #eff9fe;
+  --social-mother-start: #fee9df;
+  --social-mother-mid: #fef1eb;
+  --social-mother-end: #ffffff;
   --scrollbar-thumb: rgb(15 23 42 / 0.72);
   --scrollbar-thumb-hover: rgb(15 23 42 / 0.84);
   --scrollbar-track: rgb(148 163 184 / 0.16);
@@ -313,19 +357,6 @@ html[data-theme=light] .channel-card:hover .channel-card-shell {
 /* ---- components/channel/ChannelImg.vue scoped ---- */
 img:hover {
   cursor: pointer;
-}
-
-/* Smooth fade-in for avatars — only animates on network download, not cache */
-.img-fade-in.img-pending {
-  opacity: 0;
-}
-
-.img-fade-in.img-pending[data-fade-ready] {
-  transition: opacity 0.3s ease;
-}
-
-.img-fade-in.loaded {
-  opacity: 1;
 }
 
 /* ---- components/channel/ChannelInfo.vue scoped ---- */
@@ -2054,28 +2085,6 @@ html[data-theme=light] .mv-avatar-badge {
   animation-fill-mode: forwards !important;
 }
 
-/* Playlist video list compact actions (from Playlist.vue) */
-.playlist-video-list .video-card-item-actions {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.playlist-video-list .video-card:hover .video-card-item-actions {
-  opacity: 1;
-}
-
-.playlist-video-list .video-card .video-card-item-actions {
-  opacity: 0.2;
-}
-
-.playlist-video-list .video-card-item-actions button {
-  padding: 1px 0 !important;
-  margin: 0 !important;
-  height: 22px !important;
-  width: 22px !important;
-  line-height: 20px;
-}
-
 /* ---- components/nav/NavUserMenu.vue  ---- */
 .nav-user-trigger {
   display: flex;
@@ -2355,14 +2364,6 @@ html[data-theme=light] .mv-avatar-badge {
 
 /* At narrow widths, shift panel left to align with viewport left edge */
 @media (max-width: 960px) {
-  .search-inline-org-select .home-org-inline-panel {
-    left: calc(-1 * var(--org-field-left, 0px) + 0.75rem) !important;
-    right: auto !important;
-    width: calc(100vw - 1.5rem) !important;
-    max-width: calc(100vw - 1.5rem) !important;
-  }
-}
-@media (max-width: 640px) {
   .search-inline-org-select .home-org-inline-panel {
     left: calc(-1 * var(--org-field-left, 0px) + 0.75rem) !important;
     right: auto !important;
@@ -2988,7 +2989,7 @@ html[data-theme=light] .mv-avatar-badge {
   gap: 0.5rem;
 }
 
-/* ---- components/tlscripteditor/EnhancedEntry.vue  ---- */
+/* ---- views/TLScriptEditorPage.tsx enhanced entry ---- */
 .EntryContainer2 {
   font-weight: bold;
   text-align: center;
@@ -2996,12 +2997,7 @@ html[data-theme=light] .mv-avatar-badge {
   word-wrap: break-word;
 }
 
-/* ---- components/tlscripteditor/Entrytr.vue  ---- */
-.EntryContainer {
-  font-weight: bold;
-}
-
-/* ---- components/tlscriptmanager/Entrytr.vue  ---- */
+/* ---- components/tlscript/TlEntryRow.tsx ---- */
 .EntryContainer {
   font-weight: bold;
 }
@@ -3393,10 +3389,6 @@ html[data-theme=light] .mv-avatar-badge {
   }
 }
 /* ---- components/video/ConnectedVideoList.vue scoped ---- */
-.select-card-chip-flow {
-  align-items: stretch !important;
-}
-
 .select-card-chip-flow > .stream-check-chip {
   width: auto;
   flex: 1 1 0;
@@ -3688,8 +3680,6 @@ html[data-theme=light] .video-watched {
 }
 
 .video-card-text-single-line {
-  min-height: 96.1875px;
-  height: 96.1875px;
 }
 
 .video-card-lines {
@@ -3725,7 +3715,7 @@ html[data-theme=light] .video-watched {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  margin-top: auto;
+  margin-top: 2px;
 }
 
 .video-card-meta > div {
@@ -3790,24 +3780,14 @@ html[data-theme=light] .video-watched {
 }
 
 .video-card-lines-single-line {
-  height: 100%;
-  justify-content: center;
-  gap: 0.4rem;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 
 .video-card-lines-single-line .video-card-title-wrap {
-  margin-top: 0 !important;
-  padding-top: 0;
-  margin-bottom: 0;
+  height: 2.5rem;
 }
 
 .video-card-lines-single-line .video-card-meta {
-  margin-top: 0;
   flex: 0 0 auto;
-  justify-content: flex-start;
-  gap: 0.26rem;
 }
 
 .video-card-lines-single-line .video-card-channel-slot {
@@ -3815,17 +3795,6 @@ html[data-theme=light] .video-watched {
   align-items: center;
   padding-top: 0;
   min-height: 0;
-}
-
-.video-card-lines-single-line .video-card-meta > div {
-  margin-bottom: 0;
-}
-
-.video-card-lines-single-line .video-card-time {
-  margin-bottom: 0;
-  transform: none;
-  min-height: 1.05rem;
-  margin-top: 0;
 }
 
 /* https://css-tricks.com/almanac/properties/w/word-break/ */
@@ -4216,14 +4185,6 @@ html[data-theme=light] .video-card-drag-preview {
   color: #42a5f5 !important;
 }
 
-.video-card-active {
-  /* primary color with opacity */
-  /* background-color: #f0629257; */
-  height: auto;
-  width: auto;
-  position: relative;
-}
-
 .video-card-active::before {
   content: "";
   background-color: color-mix(in srgb, var(--color-primary) 65%, black 35%);
@@ -4359,6 +4320,8 @@ html[data-theme=light] .video-card-drag-preview {
   overflow: visible;
   box-shadow: none;
   contain: layout style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
 }
 
 .video-grid--list {
@@ -4412,7 +4375,7 @@ html[data-theme=light] .video-card-drag-preview {
   font-size: 11px;
 }
 
-/* ---- components/watch/WatchFrame.vue  ---- */
+/* ---- views/EditVideoPage.tsx video frame ---- */
 .thumbnail {
   position: relative;
 }
@@ -4468,7 +4431,7 @@ html[data-theme=light] .video-card-drag-preview {
   border-radius: 999px;
 }
 
-/* ---- components/watch/WatchInfo.vue  ---- */
+/* ---- components/watch/WatchInfo.vue and components/watch/WatchQuickEditor.vue ---- */
 .watch-card {
   border: none !important;
   box-shadow: none !important;
@@ -4575,11 +4538,6 @@ html[data-theme=light] .video-card-drag-preview {
 }
 
 /* ---- components/watch/WatchQuickEditor.vue  ---- */
-.watch-card {
-  border: none !important;
-  box-shadow: none !important;
-}
-
 .theme--dark .striped,
 .striped {
   background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.04) 10px, rgba(255, 255, 255, 0.04) 20px);
@@ -5143,7 +5101,7 @@ html[data-theme=light] .playlist-unsaved-badge {
   min-width: max-content;
 }
 
-/* ---- views/TLClient.vue  ---- */
+/* ---- views/TLClient.vue and views/TLScriptEditor.vue ---- */
 .TopMenu {
   width: 100%;
   position: absolute;
@@ -5189,39 +5147,6 @@ html[data-theme=light] .playlist-unsaved-badge {
 }
 
 /* ---- views/TLScriptEditor.vue  ---- */
-.tl-topbar > *:not(:first-child):not(:last-child) {
-  margin: 0px 3px;
-}
-
-.tl-topbar > * {
-  border-radius: 0px;
-  text-transform: unset !important;
-}
-
-.TopMenu {
-  width: 100%;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 1;
-}
-
-.ColourButton {
-  margin-top: 19px;
-  margin-left: 5px;
-}
-
-.ProfileListCard {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-}
-
-.ChatPanelContainer {
-  display: grid;
-  grid-auto-flow: column;
-}
-
 .ControlBox {
   position: absolute;
   top: 5px;
@@ -5268,71 +5193,6 @@ html[data-theme=light] .playlist-unsaved-badge {
 /* ---- views/TLScriptManager.vue scoped ---- */
 td {
   white-space: nowrap;
-}
-
-/* ---- views/User.vue  ---- */
-#calendar:target {
-  border: 1px solid rgba(248, 113, 113, 0.5);
-}
-
-.login-provider-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  height: 2.75rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-
-.login-provider-google {
-  border: 1px solid var(--color-border);
-  background: var(--color-card);
-  color: var(--color-foreground);
-}
-
-.login-provider-google:hover {
-  border-color: #e91e8c;
-  background: color-mix(in srgb, #e91e8c 18%, var(--color-card));
-}
-
-.login-provider-discord {
-  border: 1px solid var(--color-border) !important;
-  background: var(--color-card) !important;
-  color: var(--color-foreground) !important;
-}
-
-.login-provider-discord:hover {
-  border-color: #5865F2 !important;
-  background: color-mix(in srgb, #5865F2 18%, var(--color-card)) !important;
-  color: var(--color-foreground) !important;
-}
-
-.login-google-proxy {
-  position: fixed;
-  left: -9999px;
-  top: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.login-status-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.65rem;
-  background: var(--color-card);
-  padding: 0.35rem 0.5rem;
-  font-size: 0.72rem;
-  color: var(--color-muted-foreground);
 }
 
 /* ---- views/Watch.vue  ---- */

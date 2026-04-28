@@ -45,9 +45,6 @@ export function WatchComments({ comments, video, limit = 3, hideBuckets = false,
     });
     return result.sort((a, b) => b.count - a.count);
   }, [groupedComments, comments.length, t]);
-  function handleClick(e: React.MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (target.matches(".comment-chip")) { onTimeJump?.(Number(target.getAttribute("data-time") || 0)); e.preventDefault(); }
-  }
+  const handleClick = (e: React.MouseEvent) => { const target = e.target as HTMLElement; if (target.matches(".comment-chip")) { onTimeJump?.(Number(target.getAttribute("data-time") || 0)); e.preventDefault(); } };
   return <Card className="rounded-none p-0 shadow-none"><button type="button" className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-white" onClick={() => setOpen((value) => !value)}><span>{t("component.watch.Comments.title")} ({comments.length})</span><span className="text-slate-400">{open ? "−" : "+"}</span></button>{open ? <div className="border-t border-white/10 px-4 py-4">{!hideBuckets ? <div className="mb-3 flex flex-wrap gap-2">{buckets.map((b) => <Button key={b.time} type="button" size="sm" variant={currentFilter === b.time ? "default" : "ghost"} className="ts-btn" onClick={() => setCurrentFilter(b.time)}>{b.display} ({b.count})</Button>)}</div> : null}<div className="border-t border-white/10" /><div className="caption mt-3" onClick={handleClick}>{limitComment.map((comment) => <Comment key={comment.comment_key} comment={comment} videoId={video.id} />)}</div>{shouldLimit ? <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={() => setExpanded((value) => !value)}>{expanded ? t("views.app.close_btn") : t("component.description.showMore")}</Button> : null}</div> : null}</Card>;
 }

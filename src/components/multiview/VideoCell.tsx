@@ -87,9 +87,17 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
     store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true });
   }, [content?.id]);
 
+  function handleVolumeChange(value: number) {
+    volumeRef.current = value;
+    store.setLayoutContentWithKey({ id: item.i, key: "volume", value });
+  }
+  function handlePlaybackRateChange(value: number) {
+    playbackRateRef.current = value;
+    store.setLayoutContentWithKey({ id: item.i, key: "playbackRate", value });
+  }
   function resetCell() { storeRef.current.deleteLayoutContent(item.i); }
   function deleteCell() { onDeleteRef.current?.(item.i); }
-  function refresh() { setUniqueId((value) => value + 1); storeRef.current.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true }); }
+  function refresh() { setUniqueId((v) => v + 1); storeRef.current.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true }); }
   function setEditMode(value: boolean) { storeRef.current.setLayoutContentWithKey({ id: item.i, key: "editMode", value }); }
   function setMuted(val: boolean) {
     if (val === mutedRef.current) return;
@@ -191,7 +199,7 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
             onPaused={() => onPlayPause(true)}
             onError={() => setEditMode(true)}
             onMute={setMuted}
-            onVolume={(value) => { volumeRef.current = value; store.setLayoutContentWithKey({ id: item.i, key: "volume", value }); }}
+            onVolume={handleVolumeChange}
           />
         ) : (
           <YoutubePlayer
@@ -207,9 +215,9 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
             onPaused={() => onPlayPause(true)}
             onCued={() => setEditMode(true)}
             onError={() => setEditMode(true)}
-            onPlaybackRate={(value) => { playbackRateRef.current = value; store.setLayoutContentWithKey({ id: item.i, key: "playbackRate", value }); }}
+            onPlaybackRate={handlePlaybackRateChange}
             onMute={setMuted}
-            onVolume={(value) => { volumeRef.current = value; store.setLayoutContentWithKey({ id: item.i, key: "volume", value }); }}
+            onVolume={handleVolumeChange}
           />
         )}
         <div id={`overlay-${video.id}`} style={{ fontSize: 18 }} />

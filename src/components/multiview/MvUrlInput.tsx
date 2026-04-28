@@ -18,7 +18,6 @@ export function MvUrlInput({ className = "", onSuccess }: { className?: string; 
   useEffect(() => { if (hasError) setHasError(false); }, [url]);
   useEffect(() => { if (expanded) setTimeout(() => inputRef.current?.focus(), 0); }, [expanded]);
 
-  function expand() { setExpanded(true); }
   function collapse() { setExpanded(false); setUrl(""); setHasError(false); }
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -36,7 +35,7 @@ export function MvUrlInput({ className = "", onSuccess }: { className?: string; 
   return (
     <div className={`mv-url-input flex items-center gap-1 ${className}`}>
       {!expanded ? (
-        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 shrink-0 rounded-xl" title="Add YouTube / Twitch URL" onClick={expand}>
+        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 shrink-0 rounded-xl" title="Add YouTube / Twitch URL" onClick={() => setExpanded(true)}>
           <Icon icon={mdiLinkVariant} />
         </Button>
       ) : (

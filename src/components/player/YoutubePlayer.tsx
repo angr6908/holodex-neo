@@ -140,7 +140,7 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
     } as Options & { origin: string });
     playerRef.current = player;
     videoIdRef.current = videoId;
-    player.on("ready", (event: any) => {
+    player.on("ready", () => {
       readyRef.current = true;
       if (mute) player.mute(); else player.unMute();
       retryForMengenRef.current = false;
@@ -148,15 +148,11 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
     });
     player.on("stateChange", (event: any) => {
       const target = event?.target;
-      switch (event?.data) {
-        case UNSTARTED: onUnstarted?.(target); break;
-        case PLAYING: onPlaying?.(target); break;
-        case PAUSED: onPaused?.(target); break;
-        case ENDED: onEnded?.(target); break;
-        case BUFFERING: onBuffering?.(target); break;
-        case CUED: onCued?.(target); break;
-        default: break;
-      }
+      const handlers: Record<number, ((t: unknown) => void) | undefined> = {
+        [UNSTARTED]: onUnstarted, [PLAYING]: onPlaying, [PAUSED]: onPaused,
+        [ENDED]: onEnded, [BUFFERING]: onBuffering, [CUED]: onCued,
+      };
+      handlers[event?.data]?.(target);
     });
     player.on("error", (event: any) => {
       if (!retryForMengenRef.current && String(event?.data) === "150") {

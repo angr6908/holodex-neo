@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { vueLinkifyHtml } from "@/lib/linkify";
+import linkifyHtml from "linkifyjs/html";
 
 function escapeHtml(value: string) {
   return String(value ?? "")
@@ -15,7 +15,7 @@ function escapeHtml(value: string) {
 export function TruncatedText({ html = "", text = "", lines = 5, className = "", style, renderButton }: { html?: string; text?: string; lines?: number | string; className?: string; style?: React.CSSProperties; renderButton?: (expanded: boolean) => React.ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const lineCount = useMemo(() => (html.split(/\r\n|\r|\n/).length || text.split(/\r\n|\r|\n/).length), [html, text]);
-  const linkedHtml = useMemo(() => vueLinkifyHtml(html || escapeHtml(text)), [html, text]);
+  const linkedHtml = useMemo(() => linkifyHtml(html || escapeHtml(text)), [html, text]);
   const lineLimit = Number(lines);
   const shouldTruncate = lineCount > lineLimit;
   const contentStyle = {

@@ -1,2 +1,1 @@
-import { NotFoundView } from "@/components/common/NotFoundView";
-export default function Page() { return <NotFoundView />; }
+export { NotFoundView as default } from "@/components/common/NotFoundView";

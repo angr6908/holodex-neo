@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { mdiFileTable } from "@mdi/js";
-import { json2csv } from "json-2-csv";
 import { useAppState } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
@@ -45,13 +44,14 @@ export function LibraryPage() {
       return dateA > dateB ? 1 * sortStyle.asc : -1 * sortStyle.asc;
     });
   }, [savedVideos, sortModel]);
-  const showReset = selected.length !== 0;
+  const showReset = selected.length > 0;
   function selectAll() { setSelected(savedVideosList.map((v: any) => v.id)); }
   function select(n: number) { setSelected(savedVideosList.slice(0, n).map((v: any) => v.id)); }
   function reset() { setSelected([]); }
   function deleteSelected() { setSavedVideos((current) => { const next = { ...current }; selected.forEach((id) => { delete next[id]; }); return next; }); reset(); }
   function exportSelected() { if (!selected.length) return; window.open(`https://www.youtube.com/watch_videos?video_ids=${selected.join(",")}`, "_blank", "noopener"); reset(); }
   async function downloadAsCSV() {
+    const { json2csv } = await import("json-2-csv");
     const selectedSet = new Set(selected);
     const csvString = await json2csv(savedVideosList.filter((v: any) => selectedSet.has(v.id)) as any[]);
     const a = document.createElement("a");

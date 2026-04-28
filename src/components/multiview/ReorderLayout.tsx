@@ -14,7 +14,8 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
   const [draggingIdx, setDraggingIdx] = useState(-1);
   const [draggableIconPos, setDraggableIconPos] = useState<{ left: string | number; top: string | number }>({ left: 0, top: 0 });
   const container = useRef<HTMLDivElement | null>(null);
-  const size = { width: 2 * (typeof window !== "undefined" && window.innerWidth < 640 ? 108 : 192), height: 2 * (typeof window !== "undefined" && window.innerWidth < 640 ? 192 : 108) };
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const size = { width: 2 * (isMobile ? 108 : 192), height: 2 * (isMobile ? 192 : 108) };
   const touchMoveContent = draggingIdx >= 0 ? store.layoutContent[store.layout[draggingIdx]?.i] : null;
   if (!isActive) return null;
   function getRelativePoint(touch: React.Touch) {
@@ -43,8 +44,7 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
     if (!content) return null;
     if (content.type === "chat") return <Icon icon={icons.ytChat} size="lg" />;
     if (content.video?.type === "twitch") return <Icon icon={mdiTwitch} size="lg" />;
-    if (content.type === "video") return <ChannelImg channel={content.video?.channel} noLink rounded />;
-    return null;
+    return content.type === "video" ? <ChannelImg channel={content.video?.channel} noLink rounded /> : null;
   }
   return (
     <div>

@@ -1,2 +1,1 @@
-import { TLScriptManagerPage } from "@/views/TLScriptManagerPage";
-export default function Page() { return <TLScriptManagerPage />; }
+export { TLScriptManagerPage as default } from "@/views/TLScriptManagerPage";
