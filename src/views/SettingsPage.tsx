@@ -40,7 +40,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
     { text: t("component.mainNav.home"), value: "home" },
     { text: t("component.mainNav.favorites"), value: "favorites" },
     { text: t("component.mainNav.multiview"), value: "multiview" },
-  ], [t]);
+  ] as const, [t]);
 
   const currentThemeLabel = themeOptions.find((item) => item.id === Number(themeId))?.name || "";
   const defaultOpenLabel = defaultOpenChoices.find((item) => item.value === app.settings.defaultOpen)?.text || app.settings.defaultOpen;
@@ -78,8 +78,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
 
   function checkChip(label: string, checked: boolean, onChange: (checked: boolean) => void, disabled = false, disabledClass = disabled) {
     return <label className={cn("settings-check-chip", checked && "settings-check-chip-selected", disabledClass && "settings-check-chip-disabled")}>
-      <input checked={checked} disabled={disabled} type="checkbox" className="peer sr-only" onChange={(e) => onChange(e.target.checked)} />
-      <span className="settings-check-chip-indicator" />
+      <input checked={checked} disabled={disabled} type="checkbox" className="sr-only" onChange={(e) => onChange(e.target.checked)} />
       <span>{label}</span>
     </label>;
   }
@@ -130,7 +129,24 @@ export function SettingsPage({ className = "" }: { className?: string }) {
 
         <div className="settings-field" style={topFieldStyles.defaultPage}>
           <span className="settings-field-label">{t("views.settings.defaultPage")}</span>
-          <Select value={app.settings.defaultOpen} options={defaultOpenChoices} labelKey="text" valueKey="value" placeholder="Select default page" onChange={(value) => app.patchSettings({ defaultOpen: value })} />
+          <div className="inline-flex w-fit items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-0.5">
+            {defaultOpenChoices.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                aria-pressed={app.settings.defaultOpen === opt.value}
+                className={cn(
+                  "cursor-pointer rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
+                  app.settings.defaultOpen === opt.value
+                    ? "bg-[color:var(--color-bold)] text-white"
+                    : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
+                )}
+                onClick={() => app.patchSettings({ defaultOpen: opt.value })}
+              >
+                {opt.text}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -143,7 +159,6 @@ export function SettingsPage({ className = "" }: { className?: string }) {
           {checkChip(t("views.settings.redirectModeLabel"), app.settings.redirectMode, (v) => app.patchSettings({ redirectMode: v }))}
           {checkChip(t("views.settings.darkModeLabel"), app.settings.darkMode, (v) => app.patchSettings({ darkMode: v }), app.settings.followSystemTheme, app.settings.followSystemTheme && !app.settings.darkMode)}
           {checkChip(t("views.settings.scrollModeLabel"), app.settings.scrollMode, (v) => app.patchSettings({ scrollMode: v }))}
-          {checkChip("Hide Upcoming", app.settings.hideUpcoming, (v) => app.patchSettings({ hideUpcoming: v }))}
           {checkChip("Follow System Theme", app.settings.followSystemTheme, (v) => app.patchSettings({ followSystemTheme: v }))}
           {checkChip(t("views.settings.useEnglishNameLabel"), app.settings.useEnglishName, (v) => app.patchSettings({ useEnglishName: v }))}
         </div>

@@ -28,6 +28,8 @@ type SelectProps<T> = {
   searchable?: boolean;
   searchPlaceholder?: string;
   searchFilterFn?: ((option: T, query: string) => boolean) | null;
+  placement?: "auto" | "bottom";
+  menuMaxHeight?: number;
   onChange?: (value: any, option: T) => void;
   onOpenChange?: (value: boolean) => void;
   renderTrigger?: (ctx: { selectedOption: T | null; open: boolean; selectedLabel: string }) => React.ReactNode;
@@ -51,6 +53,8 @@ export function Select<T>({
   searchable = false,
   searchPlaceholder = "Search...",
   searchFilterFn = null,
+  placement = "auto",
+  menuMaxHeight = 288,
   onChange,
   onOpenChange,
   renderTrigger,
@@ -208,7 +212,22 @@ export function Select<T>({
 
   const menuStyle = (() => {
     if (!menuPresence.present || !rect) return undefined;
-    const style: React.CSSProperties = { top: rect.bottom + 6 };
+    const gap = 6;
+    const viewportPadding = 12;
+    const preferredScrollHeight = menuMaxHeight;
+    const searchChromeHeight = searchable ? 50 : 0;
+    const preferredMenuHeight = preferredScrollHeight + searchChromeHeight;
+    const spaceBelow = window.innerHeight - rect.bottom - gap - viewportPadding;
+    const spaceAbove = rect.top - gap - viewportPadding;
+    const openAbove = placement === "auto" && spaceBelow < preferredMenuHeight && spaceAbove > spaceBelow;
+    const availableSpace = Math.max(0, openAbove ? spaceAbove : spaceBelow);
+    const scrollMaxHeight = Math.max(0, Math.min(menuMaxHeight, availableSpace - searchChromeHeight));
+    const style = {
+      maxHeight: `${scrollMaxHeight + searchChromeHeight}px`,
+      "--ui-select-menu-max-height": `${scrollMaxHeight}px`,
+    } as React.CSSProperties;
+    if (openAbove) style.bottom = window.innerHeight - rect.top + gap;
+    else style.top = rect.bottom + gap;
     if (align === "right") style.right = window.innerWidth - rect.right;
     else style.left = rect.left;
     if (matchTriggerWidth && menuWidth) style.minWidth = menuWidth;

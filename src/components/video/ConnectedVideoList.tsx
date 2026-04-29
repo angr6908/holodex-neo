@@ -108,6 +108,10 @@ export function ConnectedVideoList({
     (breakpointName === "sm" && currentGridSize > 0) ||
     (breakpointName === "xs" && currentGridSize > 0)
   );
+  const selectedHomeOrgsKey = JSON.stringify(app.selectedHomeOrgs || []);
+  const orgTargetsOverrideKey = JSON.stringify(orgTargetsOverride || []);
+  const clipLangsKey = JSON.stringify(clipLangs || []);
+  const loaderCacheKey = cacheKeyForTab(tab);
   const activeHomeOrgNames = isFavPage ? [] : app.selectedHomeOrgs || [];
   const shouldHideCollabs =
     tab !== Tabs.CLIPS &&
@@ -116,7 +120,7 @@ export function ConnectedVideoList({
   const resolvedOrgTargets = useMemo(() => {
     if (orgTargetsOverride?.length) return orgTargetsOverride;
     return activeHomeOrgNames.length ? activeHomeOrgNames : ["All Vtubers"];
-  }, [JSON.stringify(orgTargetsOverride || []), activeHomeOrgNames.join("\0")]);
+  }, [orgTargetsOverrideKey, activeHomeOrgNames.join("\0")]);
   const filterOrg = isFavPage
     ? "none"
     : resolvedOrgTargets.length > 1
@@ -125,6 +129,7 @@ export function ConnectedVideoList({
   const filterConfig = useMemo(
     () => ({
       forOrg: filterOrg,
+      forOrgs: isFavPage ? undefined : resolvedOrgTargets,
       hideCollabs: shouldHideCollabs,
       hidePlaceholder: app.settings.hidePlaceholder,
       hideMissing: app.settings.hideMissing,
@@ -132,6 +137,8 @@ export function ConnectedVideoList({
     }),
     [
       filterOrg,
+      isFavPage,
+      resolvedOrgTargets,
       shouldHideCollabs,
       app.settings.hidePlaceholder,
       app.settings.hideMissing,
@@ -192,11 +199,6 @@ export function ConnectedVideoList({
   const isLoading = isFavPage ? app.favoritesLoading : app.homeLoading;
   const hasError = isFavPage ? app.favoritesError : app.homeError;
   const showLiveLoading = isLoading || waitingForTwitchViewerCounts;
-
-  const selectedHomeOrgsKey = JSON.stringify(app.selectedHomeOrgs || []);
-  const orgTargetsOverrideKey = JSON.stringify(orgTargetsOverride || []);
-  const clipLangsKey = JSON.stringify(clipLangs || []);
-  const loaderCacheKey = cacheKeyForTab(tab);
 
   useEffect(() => {
     setPortalTarget(document.getElementById(portalName));
@@ -616,12 +618,11 @@ export function ConnectedVideoList({
                     <input
                       checked={clipLangs.includes(lang.value)}
                       type="checkbox"
-                      className="peer sr-only"
+                      className="sr-only"
                       onChange={(event) =>
                         toggleClipLang(lang.value, event.target.checked)
                       }
                     />
-                    <span className="stream-check-chip-indicator" />
                     <span>{lang.text}</span>
                   </label>
                 ))}

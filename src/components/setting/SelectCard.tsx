@@ -32,7 +32,7 @@ export function SelectCard({ title, description, showSearch, searchValue = "", s
           const label = chip.querySelector<HTMLElement>(".select-card-chip-label") || chip.querySelector<HTMLElement>("span:last-child");
           if (label) max = Math.max(max, label.scrollWidth);
         });
-        group.style.setProperty("--select-card-chip-min-width", `${Math.max(132, max + 52)}px`);
+        group.style.setProperty("--select-card-chip-min-width", `${Math.max(132, max + 24)}px`);
       });
     };
     refresh();

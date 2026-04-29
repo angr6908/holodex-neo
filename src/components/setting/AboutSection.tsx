@@ -8,8 +8,7 @@ import { useI18n } from "@/lib/i18n";
 
 export function AboutSection() {
   const { t } = useI18n();
-  return <Card id="about" className="space-y-6 border-[color:var(--color-border)] p-6">
-    <header><h2 className="text-3xl font-semibold tracking-tight text-[color:var(--color-foreground)]">{t("component.mainNav.about")}</h2></header>
+  return <div id="about" className="space-y-6">
     <div className="grid gap-6"><Card className="overflow-hidden p-0"><TwitterFeed showHeader={false} /></Card></div>
     <Card className="p-6">
       <h3 className="text-lg font-semibold text-[color:var(--color-foreground)]">{t("about.credits.title")}</h3>
@@ -32,7 +31,7 @@ export function AboutSection() {
       <Faq title={t("about.privacyPolicy")}><PrivacyPolicy /></Faq>
       <Faq title={t("about.gdpr")}><>{t("about.gdprContent")} <span className="font-normal text-[color:var(--color-foreground)]">{t("about.gdprDeletion")}</span></></Faq>
     </div></Card></div>
-  </Card>;
+  </div>;
 }
 
 function Faq({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {

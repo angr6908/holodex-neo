@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { mdiChevronDown, mdiClose, mdiDomain } from "@mdi/js";
+import { mdiChevronDown, mdiDomain } from "@mdi/js";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { SelectCard } from "@/components/setting/SelectCard";
@@ -32,6 +32,7 @@ const preferredOrgNames = [
   "VSpo",
   "Neo-Porte",
   "774inc",
+  "Varium",
   "RK Music",
   "Riot Music",
 ];
@@ -244,33 +245,6 @@ export function HomeOrgMultiSelect({
           onSearchChange={setSearch}
           onClear={clearSelection}
         >
-          {workingSelectedNames.length > 0 ? (
-            <div className="select-card-chip-flow">
-              {workingSelectedNames.map((name) => (
-                <div
-                  key={name}
-                  className="settings-check-chip settings-check-chip-selected select-card-chip-compact"
-                >
-                  <span className="settings-check-chip-indicator" />
-                  <span className="select-card-chip-label">
-                    {formatOrgDisplayName(name)}
-                  </span>
-                  <button
-                    type="button"
-                    className="select-card-chip-meta select-card-chip-remove select-card-chip-remove-btn"
-                    aria-label={`Remove ${name}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      toggleName(name);
-                    }}
-                  >
-                    <Icon icon={mdiClose} size="xs" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
           <div className="space-y-0">
             {quickSelectOptions.length > 0 ? (
               <div className="home-org-quick-select px-1 py-2">
@@ -289,7 +263,6 @@ export function HomeOrgMultiSelect({
                       )}
                       onClick={clearSelection}
                     >
-                      <span className="settings-check-chip-indicator" />
                       <span className="select-card-chip-label">
                         {quickSelectAllOption.label}
                       </span>
@@ -312,7 +285,6 @@ export function HomeOrgMultiSelect({
                       )}
                       onClick={() => toggleName(option.value as string)}
                     >
-                      <span className="settings-check-chip-indicator" />
                       <span className="select-card-chip-label">
                         {option.label}
                       </span>
@@ -337,7 +309,6 @@ export function HomeOrgMultiSelect({
                     )}
                     onClick={() => toggleName(org.name)}
                   >
-                    <span className="settings-check-chip-indicator" />
                     <span className="select-card-chip-label">
                       {formatOrgDisplayName(org.name)}
                     </span>

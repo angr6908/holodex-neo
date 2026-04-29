@@ -2828,35 +2828,10 @@ html[data-theme=light] .mv-avatar-badge {
   flex-shrink: 0;
 }
 
-.select-card .settings-check-chip-indicator,
-.select-card .stream-check-chip-indicator {
-  height: 0.75rem;
-  width: 0.75rem;
-  min-width: 0.75rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1.5px solid var(--color-muted-foreground);
-  background: transparent;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
-  pointer-events: none;
-}
-
-.select-card .peer:checked + .settings-check-chip-indicator,
-.select-card .peer:checked + .stream-check-chip-indicator {
-  border-color: currentColor;
-  background: currentColor;
-  transform: scale(1.05);
-}
-
 .select-card .settings-check-chip:hover,
 .select-card .stream-check-chip:hover {
   background: var(--color-bold);
   color: white;
-}
-
-.select-card .settings-check-chip:hover .settings-check-chip-indicator,
-.select-card .stream-check-chip:hover .stream-check-chip-indicator {
-  border-color: currentColor;
 }
 
 .select-card .settings-check-chip-selected,
@@ -2871,17 +2846,8 @@ html[data-theme=light] .mv-avatar-badge {
   color: white;
 }
 
-.select-card .settings-check-chip-selected .settings-check-chip-indicator,
-.select-card .stream-check-chip-selected .stream-check-chip-indicator {
-  border-color: currentColor;
-  background: currentColor;
-  transform: scale(1.05);
-}
-
-.select-card .settings-check-chip-selected > span:nth-of-type(2),
-.select-card .stream-check-chip-selected > span:nth-of-type(2),
-.select-card .settings-check-chip-selected .select-card-chip-label,
-.select-card .stream-check-chip-selected .select-card-chip-label {
+.select-card .settings-check-chip-selected > span:not(.select-card-chip-count),
+.select-card .stream-check-chip-selected > span:not(.select-card-chip-count) {
   color: white;
 }
 
@@ -2889,7 +2855,7 @@ html[data-theme=light] .mv-avatar-badge {
   cursor: not-allowed;
 }
 
-.select-card .settings-check-chip-disabled > span:nth-of-type(2),
+.select-card .settings-check-chip-disabled > span,
 .select-card .settings-check-chip-disabled .select-card-chip-label {
   color: var(--color-muted-foreground);
 }
@@ -2898,13 +2864,13 @@ html[data-theme=light] .mv-avatar-badge {
   background: var(--color-card);
 }
 
-.select-card .settings-check-chip-disabled:hover > span:nth-of-type(2),
+.select-card .settings-check-chip-disabled:hover > span,
 .select-card .settings-check-chip-disabled:hover .select-card-chip-label {
   color: var(--color-muted-foreground);
 }
 
-.select-card .settings-check-chip > span:nth-of-type(2),
-.select-card .stream-check-chip > span:nth-of-type(2),
+.select-card .settings-check-chip > span:not(.select-card-chip-meta),
+.select-card .stream-check-chip > span:not(.select-card-chip-meta),
 .select-card .select-card-chip-label {
   white-space: nowrap;
   min-width: 0;
@@ -3149,13 +3115,13 @@ html[data-theme=light] .mv-avatar-badge {
 
 .ui-select-menu-scroll {
   position: relative;
-  max-height: 18rem;
+  max-height: min(18rem, var(--ui-select-menu-max-height, 18rem));
   overflow: hidden;
   background: var(--colorbg);
 }
 
 .ui-select-menu-scroll .scroll-area-viewport-native {
-  max-height: 18rem;
+  max-height: min(18rem, var(--ui-select-menu-max-height, 18rem));
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
