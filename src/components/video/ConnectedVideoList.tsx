@@ -134,6 +134,7 @@ export function ConnectedVideoList({
       hidePlaceholder: app.settings.hidePlaceholder,
       hideMissing: app.settings.hideMissing,
       hideUpcoming: app.settings.hideUpcoming,
+      hideLive: app.settings.hideLive,
     }),
     [
       filterOrg,
@@ -143,6 +144,7 @@ export function ConnectedVideoList({
       app.settings.hidePlaceholder,
       app.settings.hideMissing,
       app.settings.hideUpcoming,
+      app.settings.hideLive,
     ],
   );
   const portalName = datePortalName || `date-selector${isFavPage}`;
@@ -177,6 +179,7 @@ export function ConnectedVideoList({
     return liveList;
   }, [getLiveSourceList, sortBy, twitchViewerCounts]);
   const lives = live.filter((v: any) => v.status === "live");
+  const livesVisible = app.settings.hideLive ? [] : lives;
   const upcoming = app.settings.hideUpcoming
     ? []
     : live
@@ -658,14 +661,14 @@ export function ConnectedVideoList({
         ) : (
           <>
             {showLiveLoading ? renderSkeletonList() : null}
-            {lives.length || upcoming.length ? (
+            {livesVisible.length || upcoming.length ? (
               <div>
                 {renderVideoCardList(
-                  homeViewMode === "grid" || app.settings.hideUpcoming ? lives : live,
+                  homeViewMode === "grid" || app.settings.hideUpcoming ? livesVisible : live,
                 )}
                 {homeViewMode === "grid" ? (
                   <>
-                    {lives.length && upcoming.length ? (
+                    {livesVisible.length && upcoming.length ? (
                       <div className="my-3 h-px bg-[color:var(--color-border)]" />
                     ) : null}
                     {renderVideoCardList(upcoming, {

@@ -21,6 +21,7 @@ export function DatePicker({ value = "", placeholder = "Pick a date", onChange }
   const [cursor, setCursor] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() }));
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
   const root = useRef<HTMLDivElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
   const modelValue = value || "";
 
   useEffect(() => {
@@ -32,7 +33,9 @@ export function DatePicker({ value = "", placeholder = "Pick a date", onChange }
   useEffect(() => {
     if (!open) return;
     function onPointerDown(event: PointerEvent) {
-      if (root.current && !root.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (root.current?.contains(target) || portalRef.current?.contains(target)) return;
+      setOpen(false);
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
@@ -104,6 +107,7 @@ export function DatePicker({ value = "", placeholder = "Pick a date", onChange }
       </button>
       {menuPresence.present ? createPortal(
         <div
+          ref={portalRef}
           data-state={menuPresence.state}
           data-side="bottom"
           style={menuStyle}

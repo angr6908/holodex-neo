@@ -2765,7 +2765,7 @@ html[data-theme=light] .mv-avatar-badge {
   --scroll-area-native-gap: 6px;
 }
 
-.select-card div:has(> .settings-check-chip, > .stream-check-chip):not(.select-card-chip-flow) {
+.select-card div:has(> .settings-check-chip, > .stream-check-chip):not(.select-card-chip-flow):not(.stream-check-grid) {
   display: grid;
   gap: 0.5rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--select-card-chip-min-width, 10.5rem)), 1fr));
@@ -2951,7 +2951,7 @@ html[data-theme=light] .mv-avatar-badge {
 /* ---- components/setting/VideoListFilters.vue scoped ---- */
 .stream-check-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
 }
 
@@ -3416,10 +3416,8 @@ html[data-theme=light] .mv-avatar-badge {
   max-height: none;
 }
 
-/* Make grid layout single-column to match tab button list */
 .filter-panel-filters .stream-check-grid {
-  display: flex !important;
-  flex-direction: column;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.25rem;
 }
 

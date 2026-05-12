@@ -17,6 +17,8 @@ type TopicOption = { value: string; count?: number };
 
 type VideoListFiltersProps = {
   topicFilter?: boolean;
+  liveFilter?: boolean;
+  upcomingFilter?: boolean;
   collabFilter?: boolean;
   placeholderFilter?: boolean;
   missingFilter?: boolean;
@@ -25,7 +27,7 @@ type VideoListFiltersProps = {
   className?: string;
 };
 
-export function VideoListFilters({ topicFilter = true, collabFilter = true, placeholderFilter = true, missingFilter = true, showDescriptions = true, compact = false, className = "" }: VideoListFiltersProps) {
+export function VideoListFilters({ topicFilter = true, liveFilter = true, upcomingFilter = true, collabFilter = true, placeholderFilter = true, missingFilter = true, showDescriptions = true, compact = false, className = "" }: VideoListFiltersProps) {
   const app = useAppState();
   const [topics, setTopics] = useState<TopicOption[]>([]);
   const [topicsLoading, setTopicsLoading] = useState(false);
@@ -89,12 +91,13 @@ export function VideoListFilters({ topicFilter = true, collabFilter = true, plac
       </div> : null}
     </SelectCard> : null}
 
-    {(collabFilter || placeholderFilter || missingFilter) ? <SelectCard title="Hide Streams">
-      <div className="stream-check-grid">
-        {collabFilter ? chip({ checked: app.settings.hideCollabStreams, label: "Collab Streams", onChange: (v) => app.patchSettings({ hideCollabStreams: v }) }) : null}
-        {placeholderFilter ? chip({ checked: app.settings.hidePlaceholderStreams, label: "Placeholder Streams", onChange: (v) => app.patchSettings({ hidePlaceholderStreams: v }) }) : null}
-        {missingFilter ? chip({ checked: app.settings.hideMissingStreams, label: "Missing Streams", onChange: (v) => app.patchSettings({ hideMissingStreams: v }) }) : null}
-        {missingFilter ? chip({ checked: app.settings.hideUpcoming, label: "Upcoming Streams", onChange: (v) => app.patchSettings({ hideUpcoming: v }) }) : null}
+    {(liveFilter || upcomingFilter || collabFilter || placeholderFilter || missingFilter) ? <SelectCard title="Hide Streams">
+      <div className="stream-check-grid grid grid-cols-2 gap-2" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+        {liveFilter ? chip({ checked: app.settings.hideLive, label: "Live", onChange: (v) => app.patchSettings({ hideLive: v }) }) : null}
+        {upcomingFilter ? chip({ checked: app.settings.hideUpcoming, label: "Upcoming", onChange: (v) => app.patchSettings({ hideUpcoming: v }) }) : null}
+        {collabFilter ? chip({ checked: app.settings.hideCollabStreams, label: "Collab", onChange: (v) => app.patchSettings({ hideCollabStreams: v }) }) : null}
+        {placeholderFilter ? chip({ checked: app.settings.hidePlaceholderStreams, label: "Placeholder", onChange: (v) => app.patchSettings({ hidePlaceholderStreams: v }) }) : null}
+        {missingFilter ? chip({ checked: app.settings.hideMissingStreams, label: "Missing", onChange: (v) => app.patchSettings({ hideMissingStreams: v }) }) : null}
       </div>
     </SelectCard> : null}
   </div>;

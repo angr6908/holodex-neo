@@ -48,6 +48,7 @@ export type Settings = {
   hidePlaceholder: boolean;
   hideMissing: boolean;
   hideUpcoming: boolean;
+  hideLive: boolean;
   nameProperty: "name" | "english_name";
   hideCollabStreams: boolean;
   hiddenGroups: Record<string, string[]>;
@@ -228,6 +229,7 @@ function normalizeSettings(
     hidePlaceholder,
     hideMissing,
     hideUpcoming: source.hideUpcoming ?? false,
+    hideLive: source.hideLive ?? false,
     nameProperty,
     hideCollabStreams: source.hideCollabStreams ?? false,
     hiddenGroups: source.hiddenGroups || {},
@@ -314,6 +316,7 @@ function buildDefaultSettings(userLanguage = "en"): Settings {
     hidePlaceholder: false,
     hideMissing: false,
     hideUpcoming: false,
+    hideLive: false,
     nameProperty: englishNamePrefs.has(lang) ? "english_name" : "name",
     hideCollabStreams: false,
     hiddenGroups: {},
@@ -459,6 +462,7 @@ function writeBootCookie(state: State) {
       homeViewMode: state.settings.homeViewMode,
       scrollMode: state.settings.scrollMode,
       hideUpcoming: state.settings.hideUpcoming,
+      hideLive: state.settings.hideLive,
       darkMode: state.settings.darkMode,
       followSystemTheme: state.settings.followSystemTheme,
     },

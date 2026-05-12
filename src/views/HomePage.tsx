@@ -70,7 +70,7 @@ export function HomePage({
   const initialState = normalizeHomeState(initialHomeState);
   // savedHomePageState (module-level) takes priority over SSR cookie on soft-nav back.
   const [tab, setTabState] = useState<number>(
-    savedHomePageState?.tab ?? initialState?.tab ?? Tabs.LIVE_UPCOMING,
+    savedHomePageState?.tab ?? initialState?.tab ?? Tabs.ARCHIVE,
   );
   const [isFavPage, setIsFavPage] = useState(
     savedHomePageState?.isFavPage ?? initialState?.isFavPage ?? app.settings.defaultOpen === "favorites",
@@ -118,7 +118,10 @@ export function HomePage({
   const live = isFavPage ? app.favoritesLive : app.homeLive;
   const hasError = isFavPage ? app.favoritesError : app.homeError;
   const hideUpcoming = app.settings.hideUpcoming;
+  const hideLive = app.settings.hideLive;
+  const hideBothLiveUpcoming = hideLive && hideUpcoming;
   const lives = live.filter((v: any) => v.status === "live");
+  const livesVisible = hideLive ? [] : lives;
   const upcoming = hideUpcoming
     ? []
     : live.filter((v: any) => v.status === "upcoming");
@@ -278,7 +281,8 @@ export function HomePage({
     if (initialFavPage !== isFavPage) setIsFavPage(initialFavPage);
     isFavPageRef.current = initialFavPage;
     const initialVm = (savedHomePageState?.viewMode ?? initialHomeStateRef.current?.viewMode ?? "streams") as "streams" | "channels";
-    const initialTab = savedHomePageState?.tab ?? initialHomeStateRef.current?.tab ?? Tabs.LIVE_UPCOMING;
+    const rawInitialTab = savedHomePageState?.tab ?? initialHomeStateRef.current?.tab ?? Tabs.ARCHIVE;
+    const initialTab = rawInitialTab === Tabs.LIVE_UPCOMING && appRef.current.settings.hideLive && appRef.current.settings.hideUpcoming ? Tabs.ARCHIVE : rawInitialTab;
     if (savedHomePageState) {
       if (initialVm !== viewMode) setViewMode(initialVm);
       if (initialTab !== tab) setTabState(initialTab);
@@ -319,6 +323,12 @@ export function HomePage({
   useEffect(() => {
     if (isFavPage) init(false);
   }, [app.favoriteChannelIDs.size]);
+
+  useEffect(() => {
+    if (hideBothLiveUpcoming && tab === Tabs.LIVE_UPCOMING) {
+      setTab(Tabs.ARCHIVE);
+    }
+  }, [hideBothLiveUpcoming]);
 
   useEffect(() => {
     const trigger = app.reloadTrigger;
@@ -371,29 +381,35 @@ export function HomePage({
             />
             <div className="home-fave-tab-bar flex w-full items-center justify-between gap-2 overflow-visible rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--surface-nav)] px-2 py-1.5 backdrop-blur-xl">
               <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex cursor-pointer items-center rounded-xl px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition sm:text-sm",
-                    tab === Tabs.LIVE_UPCOMING
-                      ? activeTabClass
-                      : inactiveTabClass,
-                  )}
-                  onClick={() => setTab(Tabs.LIVE_UPCOMING)}
-                >
-                  {liveUpcomingHeaderSplit[1]}
-                  <span className="stream-count-chip mx-1 inline-flex h-5 items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)] sm:text-[11px]">
-                    {lives.length}
-                  </span>
-                  {!hideUpcoming ? (
-                    <>
-                      {liveUpcomingHeaderSplit[2]}
-                      <span className="stream-count-chip ml-1 inline-flex h-5 items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)] sm:text-[11px]">
-                        {upcoming.length}
-                      </span>
-                    </>
-                  ) : null}
-                </button>
+                {!hideBothLiveUpcoming ? (
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex cursor-pointer items-center rounded-xl px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition sm:text-sm",
+                      tab === Tabs.LIVE_UPCOMING
+                        ? activeTabClass
+                        : inactiveTabClass,
+                    )}
+                    onClick={() => setTab(Tabs.LIVE_UPCOMING)}
+                  >
+                    {!hideLive ? (
+                      <>
+                        {liveUpcomingHeaderSplit[1]}
+                        <span className="stream-count-chip mx-1 inline-flex h-5 items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)] sm:text-[11px]">
+                          {livesVisible.length}
+                        </span>
+                      </>
+                    ) : null}
+                    {!hideUpcoming ? (
+                      <>
+                        {hideLive ? "Upcoming" : liveUpcomingHeaderSplit[2]}
+                        <span className="stream-count-chip ml-1 inline-flex h-5 items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)] sm:text-[11px]">
+                          {upcoming.length}
+                        </span>
+                      </>
+                    ) : null}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className={cn(
@@ -472,30 +488,36 @@ export function HomePage({
             </button>
           </div>
           <div className="flex flex-col gap-1">
-            <button
-              type="button"
-              className={cn(
-                "flex cursor-pointer items-center gap-1.5 rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
-                viewMode === "streams" && tab === Tabs.LIVE_UPCOMING
-                  ? activeTabClass
-                  : inactiveTabClass,
-              )}
-              onClick={() => switchToStreams(Tabs.LIVE_UPCOMING)}
-            >
-              {liveUpcomingHeaderSplit[1]}{" "}
-              <span className="stream-count-chip inline-grid h-5 min-w-5 place-items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)]">
-                {lives.length}
-              </span>
-              {!hideUpcoming ? (
-                <>
-                  {" "}
-                  {liveUpcomingHeaderSplit[2]}{" "}
-                  <span className="stream-count-chip inline-grid h-5 min-w-5 place-items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)]">
-                    {upcoming.length}
-                  </span>
-                </>
-              ) : null}
-            </button>
+            {!hideBothLiveUpcoming ? (
+              <button
+                type="button"
+                className={cn(
+                  "flex cursor-pointer items-center gap-1.5 rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
+                  viewMode === "streams" && tab === Tabs.LIVE_UPCOMING
+                    ? activeTabClass
+                    : inactiveTabClass,
+                )}
+                onClick={() => switchToStreams(Tabs.LIVE_UPCOMING)}
+              >
+                {!hideLive ? (
+                  <>
+                    {liveUpcomingHeaderSplit[1]}{" "}
+                    <span className="stream-count-chip inline-grid h-5 min-w-5 place-items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)]">
+                      {livesVisible.length}
+                    </span>
+                  </>
+                ) : null}
+                {!hideUpcoming ? (
+                  <>
+                    {" "}
+                    {hideLive ? "Upcoming" : liveUpcomingHeaderSplit[2]}{" "}
+                    <span className="stream-count-chip inline-grid h-5 min-w-5 place-items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-1.5 text-[10px] text-[color:var(--color-muted-foreground)]">
+                      {upcoming.length}
+                    </span>
+                  </>
+                ) : null}
+              </button>
+            ) : null}
             <button
               type="button"
               className={cn(

@@ -325,20 +325,17 @@ export function MainNav() {
   return (
     <div ref={navRoot} className="fixed inset-x-0 top-0 z-[90]">
       <header className="relative z-[130] border-b border-[color:var(--color-border)] bg-[color:var(--surface-nav)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1600px] items-center gap-4 px-3 py-3 sm:px-5">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-4 px-5 py-3 sm:px-7">
           <a
             href="/"
-            className="flex shrink-0 items-center gap-3 pr-2 text-left no-underline select-none min-[960px]:pr-5"
+            className="flex shrink-0 items-center gap-2.5 pr-2 text-left no-underline select-none min-[960px]:pr-4"
             onClick={goHomeFromLogo}
           >
-            <div className="menu-logo-tile flex h-10 w-10 items-center justify-center rounded-2xl border">
-              <Logo width="22" height="22" />
-            </div>
+            <Logo width="30" height="28" />
             <div className="hidden min-w-0 text-[1.02rem] font-semibold tracking-[0.01em] text-[color:var(--color-foreground)] sm:block">
               Holodex
             </div>
           </a>
-          <div className="hidden min-[960px]:ml-1 min-[960px]:flex min-[960px]:items-center min-[960px]:gap-3" />
           <div className="hidden min-w-0 flex-1 items-center gap-3 min-[960px]:flex">
             <HomeOrgMultiSelect
               inline

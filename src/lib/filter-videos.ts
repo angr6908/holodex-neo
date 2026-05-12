@@ -1,7 +1,7 @@
 type VideoLike = { channel_id?: string; channel?: any; topic_id?: string; type?: string; status?: string; mentions?: any[] };
 export function filterVideo(v: VideoLike | null | undefined, app: any, options: any = {}) {
   if (!v || typeof v !== "object") return false;
-  const { ignoreBlock = false, hideCollabs = false, hideIgnoredTopics = true, forOrg, forOrgs, hidePlaceholder = false, hideMissing = false, hideUpcoming = false, hideGroups = false } = options;
+  const { ignoreBlock = false, hideCollabs = false, hideIgnoredTopics = true, forOrg, forOrgs, hidePlaceholder = false, hideMissing = false, hideUpcoming = false, hideLive = false, hideGroups = false } = options;
   const blockedChannels: Set<string> = app.blockedChannelIDs || new Set();
   const ignoredTopics: Set<string> = app.ignoredTopicsSet || new Set();
   const favoriteChannels: Set<string> = app.favoriteChannelIDs || new Set();
@@ -32,6 +32,7 @@ export function filterVideo(v: VideoLike | null | undefined, app: any, options: 
   if (hidePlaceholder) keep &&= v.type !== "placeholder";
   if (hideMissing) keep &&= v.status !== "missing";
   if (hideUpcoming) keep &&= v.status !== "upcoming";
+  if (hideLive) keep &&= v.status !== "live";
   if (hideGroups && validOrgs.includes(channelOrg)) keep &&= !hideViaGroup;
   return keep;
 }
