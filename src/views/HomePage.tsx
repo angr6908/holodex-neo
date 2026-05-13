@@ -70,7 +70,7 @@ export function HomePage({
   const initialState = normalizeHomeState(initialHomeState);
   // savedHomePageState (module-level) takes priority over SSR cookie on soft-nav back.
   const [tab, setTabState] = useState<number>(
-    savedHomePageState?.tab ?? initialState?.tab ?? Tabs.ARCHIVE,
+    savedHomePageState?.tab ?? initialState?.tab ?? Tabs.LIVE_UPCOMING,
   );
   const [isFavPage, setIsFavPage] = useState(
     savedHomePageState?.isFavPage ?? initialState?.isFavPage ?? app.settings.defaultOpen === "favorites",
@@ -281,7 +281,7 @@ export function HomePage({
     if (initialFavPage !== isFavPage) setIsFavPage(initialFavPage);
     isFavPageRef.current = initialFavPage;
     const initialVm = (savedHomePageState?.viewMode ?? initialHomeStateRef.current?.viewMode ?? "streams") as "streams" | "channels";
-    const rawInitialTab = savedHomePageState?.tab ?? initialHomeStateRef.current?.tab ?? Tabs.ARCHIVE;
+    const rawInitialTab = savedHomePageState?.tab ?? initialHomeStateRef.current?.tab ?? Tabs.LIVE_UPCOMING;
     const initialTab = rawInitialTab === Tabs.LIVE_UPCOMING && appRef.current.settings.hideLive && appRef.current.settings.hideUpcoming ? Tabs.ARCHIVE : rawInitialTab;
     if (savedHomePageState) {
       if (initialVm !== viewMode) setViewMode(initialVm);
