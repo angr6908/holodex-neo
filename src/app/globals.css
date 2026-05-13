@@ -3869,6 +3869,12 @@ html[data-theme=light] .video-watched {
   backdrop-filter: blur(12px);
 }
 
+.video-viewer-badge svg,
+.video-card-channel-viewers svg {
+  display: block;
+  vertical-align: middle;
+}
+
 .video-duration {
   align-items: center;
   background: color-mix(in srgb, var(--color-primary) 30%, rgba(2, 6, 23, 0.86) 70%);

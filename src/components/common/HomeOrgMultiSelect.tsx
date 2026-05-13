@@ -297,7 +297,7 @@ export function HomeOrgMultiSelect({
                 />
               </div>
             ) : null}
-            <div className="home-org-select-scroll h-[40vh] overflow-y-auto md:h-[44vh]">
+            <div className="home-org-select-scroll h-[40vh] overflow-y-auto overscroll-contain md:h-[44vh]">
               <div className="select-card-chip-flow pr-1 pt-2">
                 {filteredOrgs.map((org) => (
                   <button

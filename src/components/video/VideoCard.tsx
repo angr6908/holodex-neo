@@ -40,6 +40,25 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const titleButton = useRef<HTMLAnchorElement | null>(null);
   const titleResizeObserver = useRef<ResizeObserver | null>(null);
   const dragPreviewEl = useRef<HTMLElement | null>(null);
+  const menuShellRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!showMenu) return;
+    function onPointerDown(e: PointerEvent) {
+      if (menuShellRef.current && !menuShellRef.current.contains(e.target as Node)) setShowMenu(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") { e.preventDefault(); setShowMenu(false); (document.activeElement as HTMLElement)?.blur(); }
+    }
+    function onScroll() { setShowMenu(false); }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown, true);
+      window.removeEventListener("scroll", onScroll, { capture: true });
+    };
+  }, [showMenu]);
   useEffect(() => { if (data?.status !== "live") return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [data?.status]);
   useEffect(() => {
     let cancelled = false;
@@ -257,7 +276,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           </div>
         </div>
       </div>
-      {showMenu && typeof document !== "undefined" ? createPortal(<div className="fixed inset-0 z-[500] outline-none" tabIndex={-1} onClick={(e) => { e.stopPropagation(); setShowMenu(false); }} onContextMenu={(e) => { e.preventDefault(); setShowMenu(false); }} onKeyDown={(e) => { if (e.key === "Escape") setShowMenu(false); }}><div className="video-card-menu-shell absolute w-[260px] rounded-2xl p-2" style={contextMenuStyle()} onClick={(e) => e.stopPropagation()} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}><VideoCardMenu video={data} close={() => setShowMenu(false)} /></div></div>, document.body) : null}
+      {showMenu && typeof document !== "undefined" ? createPortal(<div ref={menuShellRef} className="video-card-menu-shell fixed z-[500] w-[260px] rounded-2xl p-2" style={contextMenuStyle()} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}><VideoCardMenu video={data} close={() => setShowMenu(false)} /></div>, document.body) : null}
       {(children || action || activePlaylistItem) ? <div className="video-card-item-actions">{activePlaylistItem ? <><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("up"); }}><Icon icon={icons.mdiChevronUp} className="h-4 w-4" /></button><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); app.removeFromPlaylist(data.id); }}><Icon icon={icons.mdiDelete} className="h-4 w-4" /></button><button type="button" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("down"); }}><Icon icon={icons.mdiChevronDown} className="h-4 w-4" /></button></> : action || children}</div> : null}
     </article>
   );

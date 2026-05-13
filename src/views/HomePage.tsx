@@ -131,9 +131,9 @@ export function HomePage({
     ).match(/(.+)([\/／・].+)/);
     return match || ["", "Live", " / Upcoming"];
   }, [t]);
-  const activeTabClass = "bg-[color:var(--color-bold)] text-white";
+  const activeTabClass = "inline-flex items-center bg-[color:var(--color-bold)] text-white";
   const inactiveTabClass =
-    "text-[color:var(--color-muted-foreground)] hover:bg-white/8 hover:text-[color:var(--color-foreground)]";
+    "inline-flex items-center text-[color:var(--color-muted-foreground)] hover:bg-white/8 hover:text-[color:var(--color-foreground)]";
 
   function currentScrollKey() {
     return scrollKeyFor(isFavPage, viewMode, tab);
@@ -385,7 +385,7 @@ export function HomePage({
                   <button
                     type="button"
                     className={cn(
-                      "inline-flex cursor-pointer items-center rounded-xl px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition sm:text-sm",
+                      "cursor-pointer rounded-xl px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition sm:text-sm",
                       tab === Tabs.LIVE_UPCOMING
                         ? activeTabClass
                         : inactiveTabClass,
@@ -459,10 +459,10 @@ export function HomePage({
             <button
               type="button"
               className={cn(
-                "flex-1 cursor-pointer rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
+                "flex-1 cursor-pointer justify-center rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
                 !isFavPage
                   ? activeTabClass
-                  : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
+                  : "inline-flex items-center text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
               )}
               onClick={switchToHome}
             >
@@ -471,10 +471,10 @@ export function HomePage({
             <button
               type="button"
               className={cn(
-                "flex-1 cursor-pointer rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
+                "flex-1 cursor-pointer justify-center rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
                 isFavPage
                   ? activeTabClass
-                  : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
+                  : "inline-flex items-center text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
               )}
               onClick={switchToFavorites}
             >
@@ -492,7 +492,7 @@ export function HomePage({
               <button
                 type="button"
                 className={cn(
-                  "flex cursor-pointer items-center gap-1.5 rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
+                  "cursor-pointer gap-1.5 rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
                   viewMode === "streams" && tab === Tabs.LIVE_UPCOMING
                     ? activeTabClass
                     : inactiveTabClass,
@@ -521,7 +521,7 @@ export function HomePage({
             <button
               type="button"
               className={cn(
-                "cursor-pointer rounded-xl px-2.5 py-2 text-left text-[0.8rem] font-medium whitespace-nowrap transition",
+                "cursor-pointer rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
                 viewMode === "streams" && tab === Tabs.ARCHIVE
                   ? activeTabClass
                   : inactiveTabClass,
@@ -533,7 +533,7 @@ export function HomePage({
             <button
               type="button"
               className={cn(
-                "cursor-pointer rounded-xl px-2.5 py-2 text-left text-[0.8rem] font-medium whitespace-nowrap transition",
+                "cursor-pointer rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
                 viewMode === "streams" && tab === Tabs.CLIPS
                   ? activeTabClass
                   : inactiveTabClass,
@@ -545,7 +545,7 @@ export function HomePage({
             <button
               type="button"
               className={cn(
-                "cursor-pointer rounded-xl px-2.5 py-2 text-left text-[0.8rem] font-medium whitespace-nowrap transition",
+                "cursor-pointer rounded-xl px-2.5 py-2 text-[0.8rem] font-medium whitespace-nowrap transition",
                 viewMode === "channels" ? activeTabClass : inactiveTabClass,
               )}
               onClick={switchToChannels}

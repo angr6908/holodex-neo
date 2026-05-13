@@ -728,11 +728,14 @@ function PlaylistPanel({
         }
       }
       if (isDragging) {
+        const dragEndTime = Date.now();
         document.addEventListener(
           "click",
           (ce) => {
-            ce.stopPropagation();
-            ce.preventDefault();
+            if (Date.now() - dragEndTime < 150) {
+              ce.stopPropagation();
+              ce.preventDefault();
+            }
           },
           { capture: true, once: true },
         );
@@ -897,7 +900,7 @@ function PlaylistPanel({
             </div>
           ) : null}
           {playlistCount ? (
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div className="flex flex-col gap-0.5 p-1.5">
                 {app.playlist.map((video: any, idx: number) => (
                   <div
@@ -974,7 +977,7 @@ function PlaylistPanel({
               <div className="border-t border-[color:var(--color-border)] px-3 pb-1 pt-2 text-[10px] font-medium uppercase tracking-widest text-[color:var(--color-muted-foreground)]">
                 {t("views.playlist.page-heading")}
               </div>
-              <div className="max-h-[160px] overflow-y-auto">
+              <div className="max-h-[160px] overflow-y-auto overscroll-contain">
                 <div className="px-1 pb-1">
                   {serverPlaylists.map((pl) => (
                     <button
