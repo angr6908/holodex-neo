@@ -2,6 +2,11 @@
 
 A remake of the Holodex frontend, migrating from legacy Vue 2 to Next.js 16.
 
+### Holodex Nano: Minimal & Vanilla Shadcn Frontend (Recommended)
+GitHub Repo: [holodex-nano](https://github.com/angr6908/holodex-nano)
+
+Demo: https://nano.001920.xyz
+
 ### Demo
 https://001920.xyz
 
