@@ -1,9 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/cn";
+import { cn, getBreakpoint } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
-import { useMemo } from "react";
-
+import { useState } from "react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 export function SkeletonCardList({
   count,
   expectedSize = 24,
@@ -23,74 +25,62 @@ export function SkeletonCardList({
   [key: string]: any;
 }) {
   const app = useAppState();
-  const keyBase = useMemo(() => Date.now(), []);
+  const [keyBase] = useState(() => Date.now());
   const itemCount = Number(count ?? expectedSize);
   const width =
     app.windowWidth ||
     (typeof window !== "undefined" ? window.innerWidth : 1440);
   const isFlat = horizontal || denseList;
-  const cssCols = isFlat ? { xs: 1, sm: 1, md: 1, lg: 1, xl: 1 } : cols;
-  const colSize = isFlat ? 1 : width < 600 ? cols.xs : width < 960 ? cols.sm : width < 1264 ? cols.md : width < 1904 ? cols.lg : cols.xl;
+  const colSize = isFlat ? 1 : cols[getBreakpoint(width)];
   const gridStyle = {
-    "--video-grid-columns": colSize,
-    "--video-grid-xs": cssCols.xs,
-    "--video-grid-sm": cssCols.sm,
-    "--video-grid-md": cssCols.md,
-    "--video-grid-lg": cssCols.lg,
-    "--video-grid-xl": cssCols.xl,
+    gridTemplateColumns: `repeat(${colSize}, minmax(0, 1fr))`,
   } as React.CSSProperties;
 
   return (
-    <div className="py-0" style={{ position: "relative" }}>
+    <div className="relative py-0">
       <div
         className={cn(
-          "video-skeleton-grid",
-          (dense || isFlat) && "video-skeleton-grid--compact",
-          isFlat && "video-skeleton-grid--list",
+          "grid gap-x-1 gap-y-1.5",
+          isFlat && "overflow-hidden rounded-xl border border-border gap-y-0 empty:border-0",
         )}
         style={gridStyle}
       >
         {Array.from({ length: itemCount }).map((_, index) => (
-          <div key={`${index}-${keyBase + index}`} className="video-skeleton-item">
+          <div key={`${index}-${keyBase + index}`} className={cn("min-w-0 overflow-visible bg-transparent shadow-none", isFlat && "border-border [&:not(:last-child)]:border-b")}>
             {denseList ? (
-              <div className="flex items-center gap-2 px-2" style={{ height: 48 }}>
-                <div className="h-7 w-7 shrink-0 animate-pulse rounded-full bg-[color:var(--skeleton-fill)]" />
+              <div className="flex h-12 items-center gap-2 px-2">
+                <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
                 <div className="min-w-0 flex-1">
-                  <div className="h-3 w-3/4 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
+                  <Skeleton className="h-3 w-3/4" />
                 </div>
-                <div className="h-3 w-16 shrink-0 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-3 w-12 shrink-0 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
+                <Skeleton className="h-3 w-16 shrink-0" />
+                <Skeleton className="h-3 w-12 shrink-0" />
               </div>
             ) : horizontal ? (
-              <div className="flex items-center" style={{ minHeight: 84 }}>
-                <div className="m-1.5 h-[72px] w-[128px] shrink-0 animate-pulse rounded-lg bg-[color:var(--skeleton-fill)]" />
+              <div className="flex min-h-[84px] items-center">
+                <Skeleton className="m-1.5 h-[72px] w-[128px] shrink-0 rounded-lg" />
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-2">
-                  <div className="h-3.5 w-4/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                  <div className="h-3 w-2/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
+                  <Skeleton className="h-3.5 w-4/5" />
+                  <Skeleton className="h-3 w-2/5" />
                 </div>
               </div>
             ) : (
-              <div className="video-skeleton-card">
-                <div style={{ position: "relative", width: "100%", paddingBottom: "56.25%" }}>
-                  <div className="absolute inset-0 animate-pulse bg-[color:var(--skeleton-fill)]" style={{ borderRadius: "1rem 1rem 0 0" }} />
-                </div>
+              <Card className="gap-0 overflow-hidden rounded-2xl border-border p-0 shadow-none">
+                <AspectRatio ratio={16 / 9} className="w-full">
+                  <Skeleton className="size-full rounded-t-[1rem] rounded-b-none" />
+                </AspectRatio>
                 <div
-                  className="flex items-start"
-                  style={{
-                    padding: "0.5rem 0.625rem",
-                    gap: "0.625rem",
-                    minHeight: 88,
-                    borderTop: "1px solid color-mix(in srgb, var(--color-border, rgba(255,255,255,0.07)) 72%, transparent 28%)",
-                  }}
+                  className="flex min-h-[88px] items-start px-[0.625rem] py-2 gap-[0.625rem]"
+                  style={{ borderTop: "1px solid color-mix(in srgb, var(--color-border, rgba(255,255,255,0.07)) 72%, transparent 28%)" }}
                 >
-                  {includeAvatar ? <div className="h-[48px] w-[48px] shrink-0 animate-pulse rounded-full bg-[color:var(--skeleton-fill)]" /> : null}
+                  {includeAvatar ? <Skeleton className="h-[48px] w-[48px] shrink-0 rounded-full" /> : null}
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5">
-                    <div className="h-3.5 w-11/12 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                    <div className="h-3 w-3/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                    <div className="h-2.5 w-2/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
+                    <Skeleton className="h-3.5 w-11/12" />
+                    <Skeleton className="h-3 w-3/5" />
+                    <Skeleton className="h-2.5 w-2/5" />
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         ))}

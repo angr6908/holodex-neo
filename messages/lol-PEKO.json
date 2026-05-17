@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Very very sorry!",
+      "textBeforeTwitter": "Could not load content. Check peko ",
+      "textAfterTwitter": " or report this via peko ",
+      "aboutPage": "About page peko",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Refresh peko",
+      "hardRefreshTip": "Tip: Hard Refresh/Clear Cache: peko"
+    },
+    "channelList": {
+      "signInToFavorite": "Sign in to suki peko",
+      "unfavoriteAllInGroup": "Not suki everybody",
+      "favoriteAllInGroup": "Everybody suki peko",
+      "enableGroupDisplay": "Show channerus from this group on the Home page peko",
+      "disableGroupDisplay": "Hide channerus from this group from the Home page peko"
+    },
+    "channelInfo": {
+      "stats": "Stattz",
+      "videoCount": "{arg0} Video",
+      "clipCount": "{n} Kirinuki",
+      "subscriberCount": "{n} Sabusukuraiba-",
+      "subscriberNA": "Subscriber count unavailable peko",
+      "totalViews": "Saisei count",
+      "inactiveChannel": "This channeru is no longer active peko."
+    },
+    "channelSocials": {
+      "addToFavorites": "Feibaritto",
+      "removeFromFavorites": "No Feibaritto",
+      "unblock": "No block this",
+      "block": "Block this channeru's content across Holodex peko",
+      "blocked": "brokku ok"
+    },
+    "mainNav": {
+      "home": "Ho-mu",
+      "favorites": "Feibaritto",
+      "channels": "Channeru",
+      "about": "About peko",
+      "library": "Raiburari",
+      "settings": "Settei",
+      "login": "Rogu inn",
+      "logout": "Rogu auto",
+      "MugenClips": "MugenClips peko<sup>beta peko</sup>",
+      "accountSettings": "Accounto settei",
+      "music": "Musikku",
+      "multiview": "MaruchiView",
+      "points": "pointo",
+      "playlist": "Purei list"
+    },
+    "videoCard": {
+      "clips": "{n} Kirinuki",
+      "watching": "{arg0} nin miteru",
+      "liveNow": "Raibu Now",
+      "openInBackground": "hiraku in Background peko",
+      "edit": "Editto",
+      "copiedToClipboard": "Link copied to clipboard peko.",
+      "copyLink": "Copy Holodex Link peko",
+      "premiere": "Premiar",
+      "googleCalendar": "google calendar ni tuika",
+      "totalTLs": "Total live chat TLs peko",
+      "totalSongs": "Total timestamped songs peko",
+      "tlPresence": "Active translator in last 30 mins peko",
+      "uncertainPlaceholder": "Start time is not officially confirmed, actual start time may vary peko.",
+      "typeScheduledYT": "yoyaku raibu",
+      "typeExternalStream": "gaibu raibu",
+      "typeEventPlaceholder": "evento",
+      "openClient": "hiraku TL Client peko",
+      "openScriptEditor": "hiraku Script Editor peko",
+      "popoutChat": "Popout YouTube Chat peko",
+      "uploadScript": "Upload TL Script peko",
+      "removeFromPlaylist": "Remove from playlist peko"
+    },
+    "videoDescription": {
+      "description": "setumei"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Show Less peko",
+      "showMore": "MOTTO"
+    },
+    "watch": {
+      "streamingFor": "Raibu for {arg0}",
+      "nextUpInMugen": "NEXT!!",
+      "loadingVideo": "Loading bideo peko",
+      "Comments": {
+        "title": "komments",
+        "all": "ALL"
+      }
+    },
+    "search": {
+      "searchLabel": "Saach",
+      "type": {
+        "channel": "channeru",
+        "topic": "topic peko",
+        "org": "soshiki",
+        "titledesc": "titoru/setumei",
+        "title": "taitoru",
+        "description": "description peko",
+        "comments": "komments",
+        "videourl": "bideo url peko"
+      },
+      "placeholder": "sagasu raibus, kirinukis, channerus peko",
+      "clear": "Clear peko",
+      "loading": "Loading.. peko.",
+      "typeTwoCharacters": "Type 2 characters peko",
+      "noChannelsFound": "No channerus found peko",
+      "noTopicsFound": "No topics found peko",
+      "noOrganizationsFound": "No organizations found peko",
+      "noResultsFound": "No results found peko",
+      "searchChannels": "sagasu channerus peko",
+      "filterByTopicOrgChannel": "Filter by Topic, Org, channeru .. peko.",
+      "topicOrgChannelPlaceholder": "Topic, org, or channeru peko",
+      "toggleSearch": "Toggle sagasu peko",
+      "organizations": "Organizations peko",
+      "searchOrganizations": "sagasu organizations peko",
+      "quickSelect": "Quick Select peko",
+      "allVtubers": "All VTubers peko",
+      "selectedOrgCount": "{count} orgs peko",
+      "additionalOrgCount": "{count} more peko",
+      "unset": "Unset peko"
+    },
+    "relatedVideo": {
+      "clipsLabel": "kirinuki",
+      "simulcastsLabel": "simulcasts peko",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "hiraku all Simulcasts in Multiview peko",
+          "error": {
+            "layoutBuildFailure": "An error occurred while creating the Multiview link. Please file a bug report for this on GitHub or via the Discord peko.",
+            "noDefaultLayout": "Multiview does not have a layout for peko {videoCount} bideos peko.",
+            "noSimulcasts": "There are no simulcasts for this bideo peko."
+          }
+        }
+      },
+      "refersLabel": "refers peko",
+      "sourcesLabel": "soosu",
+      "songsLabel": "song",
+      "recommendationsLabel": "rikomendo",
+      "sameSourceClips": "From the same raibus peko"
+    },
+    "paginateLoad": {
+      "newer": "Newer peko",
+      "older": "more old"
+    },
+    "music": {
+      "clearPlaylist": "cliar",
+      "trendingForOrg": "Torendingu fowa {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "New Songu",
+      "weeklyTopPlaysHeader": "Weekly Top Plays peko",
+      "trending": "Torendingu"
+    },
+    "songList": {
+      "songTitle": "Taitoru",
+      "songCoveredBy": "Covered by peko",
+      "songDuration": "Dureision",
+      "sangOnTime": "Sang on peko"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Monthly Top Plays for peko {arg0}",
+      "weeklyTopForOrg": "Weekly Top Plays for peko {arg0}"
+    },
+    "installPrompt": {
+      "title": "Install Holodex peko",
+      "callToAction": "Watching bideos on Holodex works best when added to home screen peko",
+      "notNowBtn": "NO NOW!!!",
+      "installBtn": "Instol",
+      "iOS": {
+        "popup": "iOS ni holodex instol",
+        "afterExportIcon": "then 'Add to Home Screen peko",
+        "beforeExportIcon": "tappu"
+      }
+    },
+    "media": {
+      "remove": "rimubu"
+    },
+    "comment": {
+      "close": "Peklose",
+      "readMore": "read moar"
+    },
+    "reportDialog": {
+      "title": "riport",
+      "collabing": "This channel maybe collabing with {org} member or your feibaritto peko. Can off this in settings peko",
+      "comments": "What do next?",
+      "success": "Send repolt thanks you!!!",
+      "consider": "Maybe use firutaa and throw away this repolt peko.",
+      "reasons": {
+        "0": "Bideo taggu machigai peko",
+        "1": "Abunai low quality / misurido content peko",
+        "2": "Org no derivative guideline yabai or dame peko",
+        "3": "ader",
+        "4": "Bideo topic machigai peko",
+        "5": "Channel mention machigai peko",
+        "6": "This {arg0} wa {arg1} no mono janai peko"
+      },
+      "applyChanges": "Change OK peko",
+      "selectAll": "All erabu peko",
+      "deselectAll": "All erabanai peko",
+      "adjustMentionedChannels": "Mention channel naosu peko",
+      "addMentionedChannels": "Mention channel add peko",
+      "searchMentionedChannels": "Mention suru VTuber sagasu peko",
+      "commentLanguagesOk": "* English / Japanese / Traditional Chinese OK peko",
+      "specificChannelWarningBody1": "Holodex wa normal TL quality fight no referee janai peko. Small problem nara YouTube de clipper or translator ni feedback kudasai peko.",
+      "specificChannelWarningBody2": "If bideo TL is super yabai and misunderstanding big, Holodex maybe remove or escalate peko.",
+      "specificChannelWarningBody3": "If no want see channel, use block channel button here or on channel page peko.",
+      "specificChannelWarningTitle": "Note: dislike or disagree dake de report shinai de peko.",
+      "topicUnsetPlaceholder": "New topic suggest peko (empty de unset)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Because of how your internet browser works, some browsers with strict peko <b>Third Party Cookie peko</b> policies, or those blocking peko <kbd>YouTube.com peko</kbd> cookies may find it difficult to log into / use Youtube chat peko. <br /><br /> You can fix this by whitelisting peko <kbd>Youtube.com peko</kbd> in Third Party Cookie blockers, or decreasing your cookie security / privacy level for peko <kbd>Holodex.net peko</kbd>. <br /><br /> We included some websites that provide more information on how to do this peko.",
+      "dialogTitle": "holodex in youtube chatto",
+      "alertText": "Your browser privacy settei is making it impossible to log-in to Youtube chat. Click here for more info peko",
+      "neverShowAgain": "Never Show Alert Again peko"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "eksport playrisut",
+        "new-playlist": "new pleylist",
+        "rename-playlist": "name change",
+        "reset-unsaved": "risett this",
+        "delete-playlist": "pleylisto sakuzyo",
+        "clear-playlist": "Pleylisto clear"
+      },
+      "save-error-not-logged-in": "You need to be logged in to save playlists peko",
+      "unnamed-playlist": "Unnamed Playlist peko",
+      "video-count": "{count} bideos peko",
+      "next-video": "Next bideo peko",
+      "error-loading": "Error loading playlist, does it exist peko?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Event data provided by peko {arg0} from: peko {arg1}",
+      "datasourceCredit": "Event data fetched from peko {arg0} datasource peko.",
+      "botCredit": "Event data provided via peko {arg0} datasource, created by peko {arg1}.",
+      "streamPageBtn": "Stream Pej",
+      "eventPageBtn": "Event Page peko",
+      "scheduledEvent": "Scheduled peko",
+      "editorCredit": "Event setup by Holodex editor peko {arg0}.",
+      "creditTitleText": "CREJITTZ:"
+    },
+    "calendar": {
+      "liveCalendar": "Live calendar peko (iCal)",
+      "favoritesCalendar": "Feibaritto calendar peko (iCal)",
+      "favoritesLoginRequired": "Login needed for feibaritto calendar feed peko."
+    },
+    "form": {
+      "required": "Required peko",
+      "invalidUrl": "Invalid URL peko",
+      "invalidTime": "Invalid time peko",
+      "error": "Some error occurred peko.",
+      "never": "never peko",
+      "new": "New peko",
+      "existing": "Existing peko",
+      "channel": "channeru peko",
+      "submit": "Submit peko",
+      "certainty": {
+        "certain": "Certain peko",
+        "likely": "Likely peko"
+      },
+      "placeholder": {
+        "editorBadge": "Editor peko",
+        "title": "Placeholder raibu peko",
+        "description": "Create or update scheduled placeholders with the migrated form flow peko.",
+        "success": "Successfully added Placeholder raibu peko",
+        "authError": "You're not a valid Holodex Editor, or your discord-generated placeholder creation link has expired peko",
+        "editingAs": "Editing as peko {user} from peko {guild} Discord. Your session expires: peko {expiresIn}. Please refresh if it is about to expire peko.",
+        "notEditor": "You are not an editor or token has expired, please login or generate a new token using our bot peko.",
+        "editorCreditName": "Editor Credit Name peko",
+        "editorCreditHint": "Use a different name when being publicly credited peko.",
+        "placeholderId": "Placeholder ID (11 characters) peko",
+        "placeholderIdInput": "Placeholder ID peko",
+        "videoTitle": "bideo Title peko",
+        "japaneseVideoTitle": "Japanese bideo Title peko",
+        "sourceLink": "Source Link peko",
+        "sourceLinkHint": "e.g. URL to Twitter schedule or Twitch channeru peko",
+        "thumbnailImage": "Thumbnail Image peko",
+        "eventType": "Event Type peko",
+        "certainty": "Certainty peko",
+        "timezone": "Timezone peko",
+        "date": "Date peko",
+        "time": "Time peko",
+        "duration": "Duration peko",
+        "durationHint": "Guess a duration in minutes peko",
+        "submitModification": "Submit Placeholder Modification peko",
+        "create": "Create new Placeholder peko",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "None peko",
+      "ok": "OK peko"
+    },
+    "common": {
+      "actions": "Actions peko",
+      "chat": "Chat peko",
+      "close": "tojiru peko",
+      "collapse": "Collapse peko",
+      "confirm": "Confirm peko",
+      "language": "Language peko",
+      "moreActions": "More actions peko",
+      "or": "or peko",
+      "processing": "Processing.. peko.",
+      "remove": "Remove peko",
+      "save": "Save peko"
+    },
+    "pagination": {
+      "nextPage": "Next page peko",
+      "previousPage": "Previous page peko"
+    },
+    "userMenu": {
+      "apiKey": "API key peko",
+      "googleLinkUnavailable": "Google linking is unavailable peko.",
+      "googleSignInUnavailable": "Google sign-in is unavailable peko.",
+      "icalFeed": "iCal feed peko",
+      "link": "Link peko",
+      "linkGoogle": "Link Google peko",
+      "linkedAccounts": "Linked accounts peko",
+      "manualOAuthInstructions": "If automatic sign-in did not complete, paste the redirected URL below peko.",
+      "pasteRedirectUrl": "Paste redirected URL peko",
+      "userAvatar": "User avatar peko"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "video",
+      "clips": "kirinuki",
+      "music": "Musik",
+      "collabs": "Corabo",
+      "about": "About peko"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Doroku",
+        "group": "guruppu",
+        "recentUpload": "Recent Upload peko",
+        "videoCount": "video caunt",
+        "clipCount": "kirinuki caunt",
+        "org": "soshiki"
+      },
+      "tabs": {
+        "Vtuber": "Vtuber peko",
+        "Subber": "kirinuki man",
+        "Favorites": "feibarittu",
+        "Blocked": "brokku ok"
+      },
+      "favoritesAreEmpty": "NO FEIBARITTU!",
+      "blockedAreEmpty": "No brokku.",
+      "sort": {
+        "newestFirst": "Newest first peko",
+        "oldestFirst": "Oldest first peko"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Live / Future",
+      "recentVideosHeading": "saikin no video",
+      "noStreams": "No live or upcoming raibus at the moment peko",
+      "recentVideoToggles": {
+        "all": "all",
+        "official": "Arcaib",
+        "subber": "kirinuki"
+      },
+      "liveLabel": "Live peko",
+      "upcomingLabel": "Future",
+      "controls": {
+        "sortBy": "Sort By peko",
+        "viewers": "Viewers peko",
+        "latest": "motto new",
+        "uploadedBefore": "Uploaded Before peko",
+        "pickDate": "Pick a date peko",
+        "clipLanguages": "See kirinukis in these Languages: peko"
+      },
+      "apiError": "Could not load bideos peko."
+    },
+    "library": {
+      "savedVideosTitle": "Saved bideos peko",
+      "createYtPlaylistButton": "Create YT Playlist ( peko{arg0})",
+      "deleteFromLibraryButton": "kesu ( peko{arg0})",
+      "deleteConfirmation": "Delete {arg0} video is ok?",
+      "deleteConfirmationOK": "Yes delete",
+      "deleteConfirmationCancel": "No no no",
+      "selectionReset": "risett",
+      "selectionSelectAll": "all select",
+      "emptyLibrary": "VIDEO NO!",
+      "exportSelected": "Export Selected ( peko{arg0})",
+      "exportYtPlaylist": "Youtube playlist",
+      "exportCsv": "csv",
+      "selectionSelect50": "50 select",
+      "exportYTExplanation": "The youtube playlist created by this feature is peko <b>unlisted peko</b> and may be deleted by Youtube peko. <br /> Because Youtube's feature incompleteness, you need to do the following to save the peko <b>unlisted peko</b> Youtube playlist to your account peko.",
+      "exportYTHeading": "Saving Youtube Playlist Instructions peko",
+      "exportYTInstructions": "<b class=\"red--text\">Step 1 peko</b>: Play the youtube playlist, and change the player UI into mini-player peko. <br /><br /> <b class=\"red--text\">Step 2 peko</b>: Pick any bideo and add it to the Queue peko. <br /><br /> <b class=\"red--text\">Step 3 peko</b>: The Playlist is now save-able. Click save to save it peko.",
+      "sort": {
+        "dateaddedEarliestFirst": "Date Added to Library, earliest first peko",
+        "dateaddedLatestFirst": "Date Added to Library, latest first peko",
+        "dateuploadedLatestFirst": "Upload date, latest first peko",
+        "dateuploadedEarliestFirst": "Upload date, earliest first peko"
+      }
+    },
+    "notFound": {
+      "title": "Content not found peko",
+      "back": "home go"
+    },
+    "search": {
+      "sort": {
+        "newest": "motto new",
+        "oldest": "Oldest peko",
+        "longest": "Longest peko"
+      },
+      "type": {
+        "all": "all",
+        "official": "Oficial",
+        "clip": "kirinuki peko"
+      },
+      "unsupportedQuery": "Currently searching kirinukis by peko <kbd>Topic peko</kbd> and peko <kbd>Organization peko</kbd> is not supported. No peko <b>kirinukis peko</b> will show up peko.",
+      "sortByLabel": "Sort By peko",
+      "typeDropdownLabel": "Type peko",
+      "searching": "Searching.. peko.",
+      "useSearchBar": "Use the sagasu bar to find raibus, kirinukis, or channerus peko."
+    },
+    "settings": {
+      "title": "Settei",
+      "darkModeLabel": "Yami modo",
+      "darkModeMsg": "Raito mode or Yami modo",
+      "redirectModeLabel": "hiraku on YouTube peko",
+      "redirectModeMsg": "Clicking on bideo thumbnails will hiraku it in YouTube, clicking the bideo title will hiraku on Holodex peko",
+      "useEnglishNameLabel": "Engish nemu use",
+      "useEnglishNameMsg": "VTuber chaneru use Engish nemu",
+      "hideVideoThumbnailsLabel": "Samune no show",
+      "hideVideoThumbnailsMsg": "Video samune no show, so smartphone load time short, no long scroll",
+      "pushNotificationLabel": "Push Notifications (Coming Soon) peko",
+      "pushNotificationMsg": "Enable push notification for favorited channerus peko",
+      "autoplayVideoLabel": "Video play auto",
+      "autoplayVideoMsg": "Enable automatic playback of bideos peko",
+      "scrollModeLabel": "Scroll Mode peko",
+      "scrollModeMsg": "Use scroll/tap to turn pages peko",
+      "resetAllSettings": "Reset All settei/Data peko",
+      "resetAllSettingsWarning": "You will lose all data. Continue peko?",
+      "clipLanguageSelection": "See kirinukis in these Languages: peko",
+      "tlLanguageSelection": "See live-chat TL in these languages peko",
+      "defaultPage": "Default Page peko",
+      "defaultPageMsg": "hiraku this page by default when visiting holodex.net, or clicking on the logo top left peko.",
+      "videoFeedSettings": "bideo Feed settei peko",
+      "siteNavigationSettings": "Site/Navigation peko",
+      "languageSettings": "Ranguige",
+      "gridSizeLabel": "Grid Size peko",
+      "gridSizeMsg": "Change thumbnail/bideo grid size on Home/suki page peko",
+      "gridSize": {
+        "0": "Big",
+        "1": "Not big, not small",
+        "2": "Small peko"
+      },
+      "hideCollabStreamsLabel": "Corabo stream no show",
+      "hideCollabStreamsMsg": "Hide collab raibus from your suki feed peko",
+      "hidePlaceholderStreams": "Hide Placeholder raibus peko",
+      "hidePlaceholderStreamsMsg": "Hide scheduled placeholder entries that do not yet have a playable raibu page peko",
+      "hideMissingStreams": "Hide Missing raibus peko",
+      "hideMissingStreamsMsg": "Hide bideos that are unavailable or missing required Holodex metadata peko",
+      "ignoredTopicsLabel": "No see",
+      "ignoredTopicsMsg": "Hide bideos with these topics from the Home and suki pages peko",
+      "theme": "Tema",
+      "moreSettings": "More settei peko",
+      "systemOptions": "System Options peko",
+      "followSystemThemeLabel": "Follow System Theme peko",
+      "languageOverrideActive": "Language override is active for peko {language}. Click to clear it peko.",
+      "filters": {
+        "blockedTopics": "No see",
+        "blockedTopicsDescription": "Hide bideos with these topics from the Home and suki pages peko",
+        "searchTopics": "sagasu topics peko",
+        "clearBlockedTopics": "Clear blocked topics peko",
+        "hideStreams": "Hide raibus peko",
+        "collab": "Collab peko",
+        "placeholder": "Placeholder peko",
+        "missing": "Missing peko"
+      },
+      "defaultTheme": "Default peko"
+    },
+    "app": {
+      "update_available": "UPDATE OK",
+      "update_btn": "Update peko",
+      "close_btn": "Peklose",
+      "check_about_page": "Visit the About page to see new changes peko",
+      "nowSupportsMultiOrg": "Tip: You can change the organization here peko!",
+      "loginCallToAction": "Login shite feibaritto set peko."
+    },
+    "about": {
+      "add_my_channel": "channeru Request peko"
+    },
+    "watch": {
+      "theaterMode": "Theater Mode (alt + t) peko",
+      "mentionIconLabel": "MENTIONS peko",
+      "chat": {
+        "loading": "CHATTO ROODO NOW...",
+        "hideTLBtn": "NO TL",
+        "showTLBtn": "TL OK",
+        "TLSettingsTitle": "TL settei",
+        "showSubtitle": "Show Subtitle peko",
+        "expandTL": "Expand TLdex peko",
+        "tlStart": "Start of Messages peko",
+        "StickBottomSettingLabel": "Stick Bottom peko",
+        "StickBottomSettingsDesc": "TL box placed below Youtube Chat peko",
+        "showVerifiedMessages": "nice peopl show ok",
+        "showModeratorMessages": "supana show ok",
+        "showVtuberMessages": "Show Vtuber Messages peko",
+        "showLocalTime": "Show Local Times peko",
+        "tlFontSize": "Font size",
+        "tlWindowSize": "TL Box Size (%), leave as 0% for automatic peko",
+        "retryBtn": "Try agen",
+        "status": {
+          "reconnecting": "Conectting agen...",
+          "reconnectFailed": "Conect is fail",
+          "notLive": "Strim still not start. Can comment 15 miniut befor stream start",
+          "connectedToChat": "Is conect",
+          "disconnectedToChat": "connect down"
+        },
+        "archiveNeedExtension": "Archive chat does not work without the peko {arg0} extension or other third party extensions peko.",
+        "hideSpoiler": "Hide Spoiler peko",
+        "archiveNeedExtensionAfter": " to view archived TL chat peko.",
+        "archiveNeedExtensionBefore": "Install the browser extension peko",
+        "editBlockedList": "Edit blocked list peko",
+        "manageBlockedTranslators": "Manage blocked translator names peko.",
+        "membersOnlyTl": "Members-only TL chat is unavailable peko.",
+        "noBlockedNames": "No blocked names peko.",
+        "tuneTlBehavior": "Tune live translation behavior and layout peko.",
+        "ytChatLabel": "YouTube chat peko"
+      },
+      "removeFromPlaylist": "Remove bideo from current playlist peko",
+      "saveToPlaylist": "Save bideo to current playlist peko",
+      "likeOnYoutube": "Like bideo oan Yuchubu",
+      "uploadPanel": {
+        "title": "Upload Script peko",
+        "usernameText": "TL will be uploaded under username peko",
+        "usernameChange": "Change peko",
+        "tlLang": "TL Language peko",
+        "headerStart": "Staato",
+        "headerEnd": "End peko",
+        "headerText": "Text peko",
+        "cancelBtn": "No no no",
+        "okBtn": "Ok peko",
+        "notifTextErr": "UNABLE TO PARSE THE FILE (FILE CORRUPTED?) peko",
+        "notifTextParsing": "Parsing file.. peko.",
+        "notifTextErrExt": "Unrecognized file extension peko.",
+        "subtitleFile": "Subtitle file peko"
+      },
+      "reloadVideoFrame": "Reload bideo frame peko"
+    },
+    "favorites": {
+      "promptForAction": "Create a list of suki vtubers and see their latest kirinukis and lives on this page peko.",
+      "manageFavorites": "feibaritt manegi",
+      "close": "Peklose",
+      "showall": "all show"
+    },
+    "editor": {
+      "needlogin": "You'll need to login to make edits to Holodex bideo and song metadata peko.",
+      "changeTopic": {
+        "title": "topikku change",
+        "info": "All users can assign topic to bideos, but only editors and admins can remove and change the topic once set peko.",
+        "button": "Se-bu (5-bun matte)",
+        "unset": "Unset peko",
+        "inputPlaceholder": "Topic (leave empty to unset) peko",
+        "saveTopic": "Save Topic peko"
+      },
+      "channelMentions": {
+        "title": "channel mension",
+        "addSuccess": "channeru mention added peko.",
+        "deleteSuccess": "channeru mention removed peko.",
+        "tagsTitle": "Mentioned channerus peko"
+      },
+      "sources": {
+        "title": "Sources/kirinukis (in development) peko"
+      }
+    },
+    "login": {
+      "apikeyMsg": "You can use API key to query Holodex API programmatically. Only one key per account. After getting a new key, the old key will expire within 0-24 hours peko.",
+      "apikeyNew": "NEW API GIVE ME!!!!!!!",
+      "ownedYtChannel": "Owned Youtube channeru peko",
+      "futureYtcOwnerMessage": "In the future, we plan on providing more services to channeru owners like editing metadata for their\n                    own bideos peko.",
+      "linkAcc": "anoder accaunt link",
+      "apikeyResetConfirm1": "Are you sure you want to reset your API Key peko?",
+      "apikeyResetConfirm2": "The old API key will have 0-24 hours before expiring. Really reset peko?",
+      "apikeyResetNvm": "Something happund?",
+      "with": {
+        "0": "Googooru de login peko",
+        "1": "Disucodo de login peko",
+        "2": "Twitter de login peko"
+      },
+      "twitterMsg": {
+        "0": "Due to Twitter API policy change, Twitter Login is likely to no longer work after Feb 9th peko.",
+        "1": "You are only using Twitter Login at the moment. We strongly recommend linking a different login method now to prevent lockout. (on different devices or after a browser wipe) peko.",
+        "2": "If you are failing to log into Holodex user via Twitter account (and have not bound any other login methods), please contact us on Twitter DMs or Discord for support peko."
+      },
+      "username": "Username peko",
+      "usernameBtn": {
+        "0": "Henko peko",
+        "1": "Yes",
+        "2": "Save peko"
+      },
+      "loggingIn": "Logging in.. peko."
+    },
+    "multiview": {
+      "confirmOverwrite": "Overwrite current layout peko?",
+      "confirmOverwriteYes": "Yes",
+      "permalink": "paamarink",
+      "presets": "purisettz",
+      "addframe": "waku add",
+      "muteAll": "Urusai ne",
+      "unmuteAll": "No Urusai",
+      "muteOthers": "Mute Others peko",
+      "muteOthersDetail": "Mute all but one raibu peko",
+      "autoLayoutTip": "Click on a channeru to start watching using auto layout mode peko",
+      "createLayoutTip": "Create your own layout by adding a cell, or using a preset peko",
+      "openToolbarTip": "hiraku the toolbar to start using multiview peko",
+      "archiveSync": "Archive Sync peko",
+      "preset": {
+        "shareOnDiscord": "Have a cool layout to share? Use the share button and let us know on our peko <a href=\"https://discord.gg/jctkgHBt4b\">Discord server peko</a>!",
+        "custom": "my laiauto",
+        "toggleAutoLayout": "Toggle use layout in auto peko",
+        "remove": "Deret",
+        "desktop": "Pasokon",
+        "mobile": "Mobair",
+        "autoLayout": "AutoLeiauto",
+        "noPresets": "No presets available peko"
+      },
+      "presetEditor": {
+        "title": "Leiauto hozon",
+        "name": "Nemu",
+        "autoLayout": "Use layout in auto mode peko"
+      },
+      "video": {
+        "selectLive": "See raibu",
+        "addCustomVideo": "Add Custom bideo peko",
+        "twitchChannelLink": "Twitch channeru Link peko",
+        "youtubeVideoLink": "YouTube bideo Link peko",
+        "noHistory": "No history peko",
+        "addUrl": "Add URL peko",
+        "addUrlShort": "Add peko",
+        "urlPlaceholder": "Paste a YouTube or Twitch URL peko",
+        "urlPlaceholderShort": "URL peko"
+      },
+      "fullScreen": "Fullscreen peko",
+      "mediaControls": "Media Controls peko",
+      "mediaControlsEmpty": "bideos being played will appear here peko",
+      "editAutoLayout": "Oto reiouto ejito",
+      "changeLayout": "Reiouto change",
+      "done": "Ogey",
+      "hints": "Hint peko",
+      "presetsHint": "hiraku presets menu to switch layouts and configure auto layout peko",
+      "mediaControlsHint1": "Media Contororu use streaming mute and sync (",
+      "mediaControlsHint2": ") peko",
+      "dragDropHint": "Drag and drop raibus from toolbar to cells to organize raibus peko",
+      "reorderHint": "Use Reorder Layout menu to change bideo/chat positions peko",
+      "reorderLayout": "Reorder Layout peko",
+      "reorderLayoutDetail": "Drag and drop icons to the desired position peko",
+      "sync": {
+        "nothingToSync": "Nothing to sync, please hiraku two overlapping archives (eg. collab raibus) peko",
+        "syncSettings": "Sync settei peko",
+        "syncSettingsDetail": "bideos are synced based on the raibu start time, and can desync due to mid raibu technical issues or deleted portions. Use offsets to manually align bideos peko"
+      },
+      "syncLabel": "Sync peko",
+      "collapseToolbar": "Collapse toolbar peko",
+      "deleteCell": "kesu cell peko",
+      "fillEmptyCells": "Fill empty cells with current bideos peko",
+      "openNavigation": "hiraku navigation peko",
+      "shareLayout": "Share layout peko"
+    },
+    "mugen": {
+      "welcome": "Welcome to MugenClips! Everyone on this page is seeing the same randomly selected English Hololive kirinuki. Watch along and chat with Hololive fans from across the world. If you skip ahead and want to be re-sync'd with everyone, please refresh the page peko."
+    },
+    "playlist": {
+      "playlist-is-modified": "NO SAVE",
+      "item-last-updated": "Last Updated: peko",
+      "login-prompt": "Login to save playlists and have more than one playlist peko",
+      "new-playlist-btn-label": "Motto new pleylisto",
+      "page-heading": "Omae no pleylisto:",
+      "page-instruction": "Click a playlist to set it as active peko.",
+      "change-loss-warning": "You will lose unsaved changes. Continue peko?"
+    },
+    "extension": {
+      "title": "Holodeksu Purasu Eksutenshon",
+      "features": "Ficha",
+      "featureset": {
+        "one": "Enables Archive Live chat on Watch and Multiview peko",
+        "two": "Allows liking bideos from Holodex watch page peko",
+        "three": "Fixes memory leak in Youtube's live chat peko",
+        "four": "Fixes experimental flags on Youtube player (Like disabling multiple raibus, waiting room thumbnail not showing) and more peko!"
+      },
+      "chromeWebstore": "Chrome Web Store peko",
+      "downloadSourceCode": "Download source code peko",
+      "firefoxAddons": "Firefox Add-ons peko",
+      "firefoxExtension": "Firefox extension peko",
+      "githubDownload": "GitHub download peko",
+      "installFromGithubPrefix": "Install from peko ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "sagasu archives peko",
+          "channels": "hiraku channerus peko",
+          "clips": "Find kirinukis peko",
+          "live": "Check live raibus peko"
+        },
+        "getItOnPrefix": "Get it on peko ",
+        "getItOnSuffix": ".",
+        "title": "Raycast extension peko"
+      },
+      "raycastStore": "Raycast Store peko"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menu peko",
+        "setting": "TLDex Room settei peko",
+        "loadVideo": "Show bideo peko",
+        "unloadVideo": "Hide bideo peko",
+        "loadChat": "Add YT Chat to Broadcast TL peko",
+        "unloadChat": "Detach from YT Chat peko"
+      },
+      "tlControl": {
+        "enterBtn": "Enter peko",
+        "prefix": "Prefix peko",
+        "suffix": "Suffix peko",
+        "fontColour": "Font Colour peko",
+        "outlineColour": "Outline Colour peko",
+        "localPrefix": "Language Tag in Chat peko",
+        "addProfile": "Add Profile peko",
+        "removeProfile": "Remove Profile peko",
+        "shiftUp": "Shift Profile Up peko",
+        "shiftDown": "Shift Profile Down peko",
+        "showSetting": "settei peko",
+        "hideSetting": "Hide peko",
+        "currentProfileSettings": "Current profile [ peko{name}] settei peko",
+        "inputPlaceholder": "Type translation text peko"
+      },
+      "addProfilePanel": {
+        "title": "Add New Profile peko",
+        "inputLabel": "Profile Name peko"
+      },
+      "settingPanel": {
+        "title": "settei peko",
+        "mainStreamLink": "Main raibu Link peko",
+        "collabLink": "Collab Links peko",
+        "findVideo": "Find bideo peko"
+      },
+      "removeProfileTitle": "Confirm remove profile peko",
+      "loadChatPanel": {
+        "title": "Load Chat peko",
+        "inputLabel": "raibu Link peko"
+      },
+      "unloadChatTitle": "Unload ALL active chat peko?",
+      "pangram": "The quick brown fox jumps over the lazy dog peko",
+      "cancelBtn": "No no no",
+      "okBtn": "Ok peko",
+      "shortcuts": {
+        "changeProfiles": "Change profiles peko",
+        "or": "or peko",
+        "quickSwitchDefaultProfile": "Quick switch to default profile peko",
+        "quickSwitchProfileRange": "Profiles 0-9 peko",
+        "quickSwitchProfiles": "Quick switch profiles peko",
+        "whileTyping": "While typing in the TL box: peko"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Save peko",
+        "continuousEnd": "Make Time Continuous (change end) peko",
+        "clearAll": "kesu Script peko",
+        "exportFile": "Export File peko",
+        "importFile": "Import File peko",
+        "editorMode": "Editor Mode peko",
+        "changeCustomLink": "Change custom link peko",
+        "timeShift": "Time shift peko"
+      },
+      "table": {
+        "headerStart": "Staato",
+        "headerEnd": "End peko",
+        "headerProfile": "Profile peko",
+        "headerText": "Text peko",
+        "setAsStart": "Set as start peko",
+        "shiftCurrentTime": "Shift to current time peko",
+        "deleteEntry": "kesu entry peko"
+      },
+      "loadVideoPanel": {
+        "title": "Load bideo peko",
+        "inputLabel": "raibu Link peko"
+      },
+      "setStartTitle": "Set selected entry as start, all the previous entries will be deleted peko.",
+      "importFile": {
+        "overwriteBtn": "Overwrite peko"
+      },
+      "editorModePanel": {
+        "activateMode": "Activate Editor Mode peko",
+        "deactivateMode": "Deactivate Editor Mode peko",
+        "roleWarning": "You don't have enough privilege peko",
+        "filterTranslator": "Filter translator peko"
+      },
+      "timeShift": {
+        "offset": "Offset peko",
+        "seconds": "seconds peko",
+        "secondsShort": "sec peko",
+        "timeOffset": "Time offset peko"
+      }
+    },
+    "tlManager": {
+      "title": "Script Manager peko",
+      "headerID": "bideo ID peko",
+      "headerEntries": "Entries peko",
+      "download": "Download peko",
+      "delete": "Deret",
+      "deleteTitle": "kesu Entries peko",
+      "langPick": "Ranguige",
+      "changeCustomLink": "Change custom link peko",
+      "changeStreamLink": "Change raibu link peko",
+      "description": "Manage translation scripts, export data, and clean up custom links peko.",
+      "entriesCount": "{count} entries peko",
+      "importFromMchad": "Import from MChad peko",
+      "importMchad": {
+        "claimAllArchives": "Claim all archives peko",
+        "claimSuccess": "Claimed archives peko.",
+        "entryLength": "{count} entries peko",
+        "foundId": "Found room ID: peko {id}",
+        "login": "Log in peko",
+        "missingCredentials": "Enter room name and password peko.",
+        "noArchives": "No archives found peko.",
+        "password": "Password peko",
+        "roomName": "Room name peko"
+      },
+      "newLink": "New link peko",
+      "noScriptsFound": "No translation scripts found for this page peko.",
+      "noTitle": "No title peko",
+      "videoTitle": "bideo title peko"
+    },
+    "relayBot": {
+      "addSubscription": "Add subscription peko",
+      "blacklist": "Blacklist peko",
+      "botMissing": "The bot is not in this server peko.",
+      "channelsFor": "channerus for peko {name}",
+      "description": "Relay live translations from YouTube channerus or bideos into Discord peko.",
+      "inviteBot": "Invite bot peko",
+      "loginDiscord": "Log in with Discord peko",
+      "noBlacklistEntries": "No blacklist entries peko.",
+      "noSubscriptionsConfigured": "No subscriptions configured peko.",
+      "noWhitelistEntries": "No whitelist entries peko.",
+      "notOk": "Failed peko",
+      "ok": "OK peko",
+      "relaySubscription": "Relay subscription peko",
+      "relayTL": "Relay TL peko",
+      "saved": "Saved peko.",
+      "saving": "Saving.. peko.",
+      "sendingTrigger": "Sending.. peko.",
+      "serverNotShown": "Only servers where you can manage the bot are shown peko.",
+      "servers": "Servers peko",
+      "settingFor": "settei for peko {name}",
+      "subscribedChannel": "Subscribed channeru peko",
+      "title": "Relay Bot peko",
+      "translatorName": "Translator name peko",
+      "whitelist": "Whitelist peko",
+      "youtubeChannel": "YouTube channeru peko",
+      "youtubeLinkChannelVideo": "YouTube channeru or bideo link peko"
+    }
+  },
+  "time": {
+    "soon": "will start",
+    "diff_future_date": "Starts peko {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Put song",
+      "update": "Update peko",
+      "permission": "You need to be an 'Editor' user level or higher to update or kesu existing songs. Please contact us on peko <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord peko</a> to notify editors of issues / abuse, or apply to become an editor peko.",
+      "titles": {
+        "addSong": "Song Metadata: Add a new Song peko",
+        "songList": "Song List : peko {arg0}",
+        "help": "HERUPU"
+      },
+      "itunesLookupPlaceholder": "(Optional) Lookup on iTunes peko",
+      "moveRight2s": "Move right 2s peko",
+      "testEnd": "Test listen starting at 3 seconds before the end peko.",
+      "setToCurrentTime": "Set to current time ( peko{arg0})",
+      "moveLeft2s": "Move left 2s peko",
+      "trackNameInput": "Music namae",
+      "originalArtistInput": "Originaru Artist",
+      "testStart": "Test the start peko",
+      "startInput": "Staato",
+      "endInput": "Duration in seconds: (end @ peko {arg0})",
+      "inheritItunesMusic": "Set Duration via iTunes: peko {arg0}",
+      "listenOnAppleMusic": "Listen on Apple Music peko",
+      "pickItunesResult": "Pick either iTunes result peko",
+      "playFromHere": "Play from here peko",
+      "timestampEditorHint": "Use relative timestamps to line music up with the bideo peko."
+    },
+    "exitMode": "Exit Edit Mode peko",
+    "enterMode": "Edit bideo peko"
+  },
+  "about": {
+    "quicklinks": "Quick Links peko",
+    "discordBtn": "Holodex Discord peko",
+    "faq": {
+      "title": "F●Q!!!",
+      "ytchatHeader": "My Youtube Chat is not logged in peko!",
+      "ytchatContent": "Please disable the browser security feature known as 3rd Party Cookies blocking, or whitelist this website and youtube.com to allow 3rd Party Cookies peko.",
+      "ytchatFirefox": "Firefox instructions, other browsers may be similar peko.",
+      "autoplayHeader": "AutoPlay not wolk!",
+      "autoplayContent": "Please google how to enable autoplay for your browser peko.",
+      "musicPlayer": "Music Player doesn't work well on Mobile Devices peko!",
+      "musicPlayerContent": "For most iOS devices, you cannot turn off the screen or tojiru Safari while playing Holodex music. This restriction may or may not apply to Android devices (depends on device). Please give us feedback on discord if you have any idea how to produce a better playback system peko.",
+      "videoLinkage": "How do I make sure that bideos are linked properly to vtubers peko?",
+      "videoLinkageContent": "All information is parsed from the bideo description. If you are clipping a raibu, please make sure to link the official raibu. If you are clipping fan made content (eg. from bilibili), just make sure to link the official youtube channerus of relevant vtubers. If you do not link any vtuber channerus, then we will not show that kirinuki on holodex, as all kirinukis require linkage to a vtuber known to holodex peko.",
+      "quitHolodex": "I'm a subber and I would like to have my channeru removed from Holodex peko\r\n",
+      "quitHolodexContent": "Sad to see you go :(, please let me know if there's any issue I can help you with. If you would still like to have it removed, please send us a message on Discord peko.",
+      "favorite": {
+        "title": "Favolite is what?",
+        "Contents": {
+          "0": "suki are a way to stay on top of your suki vtubers, you can add your suki channerus by clicking the heart icon on the peko",
+          "1": "page. Please note that favoriting subbers is currently not supported, but you should still consider subscribing and supporting them in other ways peko!"
+        },
+        "disappear": {
+          "title": "My suki list disappeared / I cannot suki peko"
+        },
+        "contents": {
+          "0": "Please make sure you are logged in and visit the channerus suki tab to force a refresh peko."
+        }
+      },
+      "mobile": {
+        "title": "Is there an Android/iOS app for Holodex peko?",
+        "content": {
+          "summary": "We are working on it! In the mean time, please use the \"Add to Home\" feature on your browser. We have tuned it a lot to behave like an app peko",
+          "android": {
+            "0": "Android Chrome: Navigate to the site, click the three dots peko",
+            "1": "on the top right and find \"Add to Home Screen\" peko."
+          },
+          "ios": {
+            "0": "iOS Safari: Navigate to the site on your phone, click the square with arrow pointing up peko",
+            "1": "at the bottom of safari, and click \"Add to Home Screen\" peko"
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "MogenClips is what?",
+        "contents": {
+          "0": "MugenClips, or infinite kirinukis, is a watch along party where people on the site can watch a constantly rotating variety of kirinukis uploaded by the many community translation channerus peko"
+        }
+      },
+      "subber": {
+        "title": "I'm a subber and can't find my channeru or kirinukis on Holodex peko",
+        "contents": {
+          "0": "Please check on the channerus page to see if you are listed as a subber, if not please fill out peko",
+          "1": "this form peko",
+          "2": ", and we will add you manually. If you are already on the list, please make sure your bideo descriptions have the correct youtube source/channeru links peko."
+        }
+      },
+      "feedback": {
+        "title": "I have feedback/want to contribute to this project peko",
+        "contents": {
+          "0": "All help and ideas are welcome! The UI and Backend are both available for contribution, although only the UI is hiraku source currently. Please contact us on discord to gain access to backend source, or simply chat about your ideas peko."
+        }
+      },
+      "support": {
+        "title": "How do I support Holodex peko?",
+        "contents": {
+          "0": "Our self-hosted server is a 28-core 60GB RAM machine that take about $60 USD / mo to run, and we're looking to expanding more and more in our feature set, so we've started a peko <a href=\"https://ko-fi.com/holodex\">Ko-fi peko</a> to cover Server costs. (We also have a peko <a href=\"https://www.patreon.com/holodex\">Patreon peko</a>, but we like the Ko-fi better.) peko<br /><br />You can also support Holodex by giving us feedback and supportive messages on twitter, helping us translate via peko <a href=\"https://crwd.in/holodex\">Crowdin peko</a>, as well as contributing to our data store of songs. Even timing a raibu for funny parts, and commenting that on the original raibu is great help peko!"
+        }
+      }
+    },
+    "privacyPolicy": "Privacy Policy peko",
+    "gdpr": "GDPR and my data peko",
+    "gdprContent": "A Googuru Anareeticu cookie isu used to track pageveeyoos for our anareeticaru purposes. After rogin, we assoseatu your sociaru media account usernemu and ID wiz your favorites. Dis data may incurude your Emairu (for Googuru), Discordu ID, or Tweetah handeru respecturuvury.",
+    "gdprDeletion": "For deletion of your user data, please contact us on discord peko!",
+    "feedback": "Feedback/Bug Reports peko",
+    "feedbackHtml": "You can create an issue in the peko <a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Issue Tracker peko </a> or find the Holodex team on Discord peko <br /> <br /> Reddit: peko <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess peko </a>",
+    "credits": {
+      "title": "CREJITTZ",
+      "contents": {
+        "0": "I would like to give big thanks to the peko",
+        "1": "team for their work on peko",
+        "2": "Also to all the subbers for helping the overseas bros! Please check them out peko!",
+        "3": "This is a fan made website and the content found on this website is owned by Cover corp and its partners. The site follows the guidelines set forth by Cover corp in their peko",
+        "4": "Derivative Work License Agreement peko"
+      }
+    },
+    "changelog": {
+      "title": "Changelog peko"
+    },
+    "news": {
+      "title": "New"
+    },
+    "bookmarklet": {
+      "title": "Bookmarklets peko",
+      "description": "Drag these bookmarklets to your bookmark bar to hiraku YouTube watch page in Holodex easily: peko",
+      "openYoutube": "hiraku YouTube in Holodex peko"
+    },
+    "links": {
+      "browserAddon": "Browser add-on peko",
+      "community": "Community peko",
+      "docs": "Docs peko",
+      "extension": "Extension peko",
+      "repository": "Repository peko"
+    },
+    "privacy": {
+      "content": {
+        "intro": "This page explains what data Holodex handles and how third-party services are used peko."
+      },
+      "firstParty": {
+        "title": "Holodex data peko",
+        "collection": "Holodex stores the account identifiers, suki, settei, playlists, and editor actions needed to provide site features peko.",
+        "voluntary": "Most account data is created only when you sign in or use account features peko.",
+        "access": "You can access or update your user settei from your account menu peko.",
+        "limitedUse": "Holodex uses Google user data only for sign-in and account linking features peko.",
+        "noPosting": "Holodex does not post to your linked accounts peko.",
+        "revoking": "You can revoke third-party account access from the provider account settei peko.",
+        "changes": "This policy may change when site features or provider requirements change peko."
+      },
+      "links": {
+        "google": "Google Privacy Policy peko",
+        "twitch": "Twitch Privacy Notice peko"
+      },
+      "thirdParty": {
+        "title": "Third-party services peko",
+        "analyticsTitle": "Analytics peko",
+        "analyticsBody": "Holodex may use analytics to understand site usage and reliability peko.",
+        "analyticsUse": "Analytics data is used to improve performance, navigation, and stability peko.",
+        "embedsTitle": "Embedded players and chat peko",
+        "embedsBody": "YouTube and Twitch embeds are provided by those services and may use their own cookies and account state peko.",
+        "linksIntro": "See these provider policies for details: peko",
+        "choicesTitle": "Your choices peko",
+        "choicesBody": "You can block third-party cookies or sign out of linked providers, though some embedded features may stop working peko.",
+        "contactTitle": "Contact peko",
+        "contactBody": "Contact the Holodex team through Discord or GitHub for privacy questions peko.",
+        "commitment": "Holodex only asks for the access needed to run its features peko."
+      }
+    },
+    "stats": {
+      "lastMonth": "last month peko",
+      "songs": "songs peko",
+      "subbers": "subbers peko",
+      "videos": "bideos peko",
+      "vtubers": "VTubers",
+      "yesterday": "yesterday peko"
+    },
+    "youtubeTerms": {
+      "before": "Use of embedded YouTube features is subject to the peko ",
+      "link": "YouTube Terms of Service peko",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Request Type: peko",
+    "Types": {
+      "AddVtuber": "Add a Vtuber ▶️ for Holodex to track the channeru and kirinukis peko.",
+      "AddClipper": "Add a clipping/subbing channeru to Holodex peko",
+      "ModifyExistingInfo": "Modify existing channeru information peko",
+      "DeleteChannel": "kesu my channeru peko"
+    },
+    "DirectContactDisclaimer": "Feel free to leave your discord id, email or twitter. In case you need to be contacted (this info will stay private) so we can provide feedback. Only holodex administrators will see this information peko.",
+    "DirectContactLabel": "Contact Method (optional) peko",
+    "TwitterHandle": "This channeru's Twitter Handle (optional) peko",
+    "VtuberGroupLabel": "VTuber Group (optional) peko",
+    "VtuberGroupHint": "Which org / group does this vtuber belong to peko?",
+    "ChannelLanguageLabel": "channeru's main language peko",
+    "EnglishNameHint": "Provide an English name if the channeru name is not in English. Follow name-order conventions from the native locale of this vtuber (Natsuiro Matsuri), or a preferred EN brand name (Elu the Elf, Emma★August) peko.",
+    "EnglishNameLabel": "English channeru Name peko",
+    "Comments": "komments",
+    "CommentsHint": "Other comments you'd like to tell us peko.",
+    "VtuberRequirementText": "A minimum of 15K subscribers is required for independents. Vtubers as part of existing orgs will be accepted peko. <br /><br />New Orgs will be created depending on the average subscriber count peko.<br /><br />Twitch streamers must have an official YouTube channeru to be indexed peko.<br /><br /><strong>Any  mention of \"Past-Lives\" / alternate identities will automatically be  rejected peko.</strong>",
+    "ClipperRequirementText": "For clippers, it must be at least 2 months old and post regularly, or post more than 20 kirinukis in one month. Spamming of short kirinukis every day, posting only short &lt;1min kirinukis, or using unflattering thumbnails will all count against the channeru. Content quality might be judged as well peko. <br /><br />It's important to note that clippers should cite their sources via channeru links, @Youtube channeru mentions, and bideo links. Overciting (e.g. Linking to everyone at Nijisanji) creates work for Holodex editors, and underciting (no links) will make kirinukis hidden peko. <br /><br /> Holodex contains algorithms to detect overciting and correct them automatically, but it may not always work perfectly. Clippers who overcite may be removed from platform to reduce noise peko.",
+    "DeletionRequirementText": "Deletion should only be requested if you are the channeru owner(s), please provide contact information so we can verify this peko.",
+    "PageTitle": "Holodex channeru Request peko",
+    "ChannelURLErrorFeedback": "Must be peko https://www.youtube.com/channel/UC_____ or peko https://www.youtube.com/@_____",
+    "ChannelURLLabel": "channeru URL peko",
+    "SelectLanguage": "Select language peko",
+    "ChannelURLExample": "Example: peko https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, email, or other contact method peko",
+    "TwitterExample": "Example: @holodex peko",
+    "TwitterPlaceholder": "@username peko",
+    "VtuberGroupPlaceholder": "Group or organization name peko"
+  }
+}

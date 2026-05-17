@@ -1,50 +1,187 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { useMemo, useState, type MouseEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Comment } from "@/components/video/Comment";
 import { formatDuration } from "@/lib/time";
-import { useI18n } from "@/lib/i18n";
-
+import { useTranslations } from "next-intl";
 const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
+const BUCKET_THRESHOLD_SECONDS = 10;
 
-export function WatchComments({ comments, video, limit = 3, hideBuckets = false, defaultExpanded = true, onTimeJump }: { comments: any[]; video: Record<string, any>; limit?: number; hideBuckets?: boolean; defaultExpanded?: boolean; onTimeJump?: (time: number) => void }) {
-  const { t } = useI18n();
+type WatchComment = {
+  comment_key: string | number;
+  message?: string;
+  [key: string]: unknown;
+};
+
+type CommentWithTimes = WatchComment & {
+  times: number[];
+};
+
+type WatchCommentsVideo = {
+  id?: string;
+  duration?: number;
+};
+
+type CommentBucket = {
+  count: number;
+  display: string;
+  time: number;
+};
+
+type WatchCommentsProps = {
+  comments: WatchComment[];
+  video: WatchCommentsVideo;
+  limit?: number;
+  hideBuckets?: boolean;
+  defaultExpanded?: boolean;
+  onTimeJump?: (time: number) => void;
+};
+
+function parseCommentTimes(message = "", duration: number) {
+  COMMENT_TIMESTAMP_REGEX.lastIndex = 0;
+
+  const times = new Set<number>();
+  let match = COMMENT_TIMESTAMP_REGEX.exec(message);
+
+  while (match !== null) {
+    const hours = Number(match[1] ?? 0);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3]);
+    const time = hours * 3600 + minutes * 60 + seconds;
+
+    if (time < duration) {
+      times.add(time);
+    }
+
+    match = COMMENT_TIMESTAMP_REGEX.exec(message);
+  }
+
+  return Array.from(times);
+}
+
+function buildCommentBuckets(comments: CommentWithTimes[], allLabel: string): CommentBucket[] {
+  const times = comments.flatMap((comment) => comment.times).sort((a, b) => a - b);
+  const result: CommentBucket[] = [{ time: -1, count: comments.length, display: allLabel }];
+  let currentBucket = 0;
+  let bucket: number[] = [];
+
+  times.forEach((time, index) => {
+    if (time - currentBucket <= BUCKET_THRESHOLD_SECONDS && index !== times.length - 1) {
+      bucket.push(time);
+      return;
+    }
+
+    if (time - currentBucket <= BUCKET_THRESHOLD_SECONDS) {
+      bucket.push(time);
+    }
+
+    if (bucket.length > 1) {
+      const median = bucket[Math.floor(bucket.length / 2)];
+      result.push({ time: median, count: bucket.length, display: formatDuration(median * 1000) });
+    }
+
+    currentBucket = time;
+    bucket = [time];
+  });
+
+  return result.sort((a, b) => b.count - a.count);
+}
+
+export function WatchComments({
+  comments,
+  video,
+  limit = 3,
+  hideBuckets = false,
+  defaultExpanded = true,
+  onTimeJump,
+}: WatchCommentsProps) {
+  const t = useTranslations();
   const [currentFilter, setCurrentFilter] = useState(-1);
   const [expanded, setExpanded] = useState(false);
   const [open, setOpen] = useState(defaultExpanded);
-  const groupedComments = useMemo(() => comments.map((c: any) => {
-    let match = COMMENT_TIMESTAMP_REGEX.exec(c.message);
-    const times = new Set<number>();
-    while (match !== null) {
-      const hr = match[1]; const min = match[2]; const sec = match[3];
-      const time = Number(hr ?? 0) * 3600 + Number(min) * 60 + Number(sec);
-      if (time < video.duration) times.add(time);
-      match = COMMENT_TIMESTAMP_REGEX.exec(c.message);
+
+  const groupedComments = useMemo(
+    () => comments.map((comment) => ({ ...comment, times: parseCommentTimes(comment.message, video.duration || 0) })),
+    [comments, video.duration],
+  );
+
+  const filteredComments = useMemo(() => {
+    if (currentFilter < 0) {
+      return [...groupedComments].sort((a, b) => b.times.length - a.times.length);
     }
-    return { ...c, times: Array.from(times) };
-  }), [comments, video.duration]);
-  const filteredComments = useMemo(() => currentFilter < 0 ? [...groupedComments].sort((a, b) => b.times.length - a.times.length) : groupedComments.filter((c) => c.times.find((time: number) => Math.abs(currentFilter - time) <= 10)).sort((a, b) => a.times.length - b.times.length), [currentFilter, groupedComments]);
+
+    return groupedComments
+      .filter((comment) => comment.times.some((time) => Math.abs(currentFilter - time) <= BUCKET_THRESHOLD_SECONDS))
+      .sort((a, b) => a.times.length - b.times.length);
+  }, [currentFilter, groupedComments]);
+
   const shouldLimit = !!limit && filteredComments.length > limit;
-  const limitComment = shouldLimit && !expanded ? filteredComments.slice(0, limit) : filteredComments;
-  const buckets = useMemo(() => {
-    const arr: number[] = [];
-    groupedComments.forEach((c: any) => arr.push(...c.times));
-    arr.sort((a, b) => a - b);
-    const result: any[] = [{ time: -1, count: comments.length, display: `${t("component.watch.Comments.all")}` }];
-    let currentBucket = 0; let subBucket: number[] = [];
-    arr.forEach((time, index) => {
-      if (time - currentBucket <= 10 && index !== arr.length - 1) { subBucket.push(time); return; }
-      if (time - currentBucket <= 10) subBucket.push(time);
-      if (subBucket.length > 1) {
-        const median = subBucket[Math.floor(subBucket.length / 2)];
-        result.push({ time: median, count: subBucket.length, display: formatDuration(median * 1000) });
-      }
-      currentBucket = time; subBucket = [time];
-    });
-    return result.sort((a, b) => b.count - a.count);
-  }, [groupedComments, comments.length, t]);
-  const handleClick = (e: React.MouseEvent) => { const target = e.target as HTMLElement; if (target.matches(".comment-chip")) { onTimeJump?.(Number(target.getAttribute("data-time") || 0)); e.preventDefault(); } };
-  return <Card className="rounded-none p-0 shadow-none"><button type="button" className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-white" onClick={() => setOpen((value) => !value)}><span>{t("component.watch.Comments.title")} ({comments.length})</span><span className="text-slate-400">{open ? "−" : "+"}</span></button>{open ? <div className="border-t border-white/10 px-4 py-4">{!hideBuckets ? <div className="mb-3 flex flex-wrap gap-2">{buckets.map((b) => <Button key={b.time} type="button" size="sm" variant={currentFilter === b.time ? "default" : "ghost"} className="ts-btn" onClick={() => setCurrentFilter(b.time)}>{b.display} ({b.count})</Button>)}</div> : null}<div className="border-t border-white/10" /><div className="caption mt-3" onClick={handleClick}>{limitComment.map((comment) => <Comment key={comment.comment_key} comment={comment} videoId={video.id} />)}</div>{shouldLimit ? <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={() => setExpanded((value) => !value)}>{expanded ? t("views.app.close_btn") : t("component.description.showMore")}</Button> : null}</div> : null}</Card>;
+  const visibleComments = shouldLimit && !expanded ? filteredComments.slice(0, limit) : filteredComments;
+
+  const buckets = useMemo(
+    () => buildCommentBuckets(groupedComments, t("component.watch.Comments.all")),
+    [groupedComments, t],
+  );
+
+  function handleCommentClick(event: MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+
+    if (!target.matches(".comment-chip")) return;
+
+    onTimeJump?.(Number(target.getAttribute("data-time") || 0));
+    event.preventDefault();
+  }
+
+  return (
+    <Card className="rounded-none p-0 shadow-none">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger
+          render={
+            <Button type="button" variant="ghost" className="h-auto w-full justify-between rounded-none px-4 py-3 text-left text-sm font-medium" />
+          }
+        >
+          {t("component.watch.Comments.title")} ({comments.length})
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Separator />
+          <div className="px-4 py-4">
+            {!hideBuckets ? (
+              <ToggleGroup
+                value={[String(currentFilter)]}
+                onValueChange={(value) => {
+                  if (value[0]) setCurrentFilter(Number(value[0]));
+                }}
+                className="mb-3 flex-wrap justify-start gap-2"
+              >
+                {buckets.map((bucket) => (
+                  <ToggleGroupItem key={bucket.time} value={String(bucket.time)} size="sm" className="text-[11px]">
+                    {bucket.display} ({bucket.count})
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            ) : null}
+
+            <Separator />
+
+            <div className="caption mt-3" onClick={handleCommentClick}>
+              {visibleComments.map((comment) => (
+                <Comment key={comment.comment_key} comment={comment} videoId={video.id || ""} />
+              ))}
+            </div>
+
+            {shouldLimit ? (
+              <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={() => setExpanded((value) => !value)}>
+                {expanded ? t("views.app.close_btn") : t("component.description.showMore")}
+              </Button>
+            ) : null}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
 }

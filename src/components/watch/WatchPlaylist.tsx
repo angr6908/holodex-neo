@@ -2,22 +2,28 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Separator } from "@/components/ui/separator";
 import { VirtualVideoCardList } from "@/components/video/VirtualVideoCardList";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
+import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
 
 export function WatchPlaylist({ value = 0, video, onInput, onPlayNext }: { value?: number; currentTime?: number; video: any; onInput?: (index: number) => void; onPlayNext?: (payload: { video: any }) => void }) {
   const searchParams = useSearchParams();
   const app = useAppState();
+  const t = useTranslations();
   const [hasError, setHasError] = useState(false);
   const [playlist, setPlaylist] = useState<any>(undefined);
   const videos = useMemo(() => playlist?.videos || [], [playlist]);
   const playlistId = searchParams.get("playlist");
-  const activePlaylist = useMemo(() => ({ ...(app.playlistActive || {}), id: app.playlistActive?.id || "local", name: app.playlistActive?.name || "Playlist", videos: app.playlist }), [app.playlistActive, app.playlist]);
+  const activePlaylistName = !app.playlistActive?.id && app.playlistActive?.name === "Unnamed Playlist"
+    ? t("component.playlist.unnamed-playlist")
+    : app.playlistActive?.name || t("component.playlist.unnamed-playlist");
+  const activePlaylist = useMemo(() => ({ ...(app.playlistActive || {}), id: app.playlistActive?.id || "local", name: activePlaylistName, videos: app.playlist }), [app.playlistActive, app.playlist, activePlaylistName]);
 
   function updateCurrentIndex(nextPlaylist = playlist) {
     const currentId = video?.id;
@@ -66,20 +72,20 @@ export function WatchPlaylist({ value = 0, video, onInput, onPlayNext }: { value
       <Card className="rounded-none p-0 shadow-none">
         {playlist ? (
           <>
-            <div className="flex items-start justify-between gap-3 px-4 py-4">
+            <CardHeader className="flex items-start justify-between gap-3 px-4 py-4">
               <div>
-                <div className="text-base font-semibold text-white">{playlist.name}</div>
-                <div className="pt-1 text-sm text-slate-400">{value + 1}/{videos.length}</div>
+                <CardTitle className="text-base font-semibold leading-normal text-white">{playlist.name}</CardTitle>
+                <CardDescription className="pt-1 text-sm text-slate-400">{value + 1}/{videos.length}</CardDescription>
               </div>
-              <Button type="button" size="icon" title="Next video" onClick={nextVideo}>
-                <Icon icon={icons.mdiArrowLeft} className="rotate-180" />
+              <Button type="button" size="icon" title={t("component.playlist.next-video")} onClick={nextVideo}>
+                <icons.ArrowLeft className="size-5 rotate-180" />
               </Button>
-            </div>
-            <div className="border-t border-white/10" />
+            </CardHeader>
+            <Separator className="bg-white/10" />
             <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} height={`${Math.min(videos.length, 6) * 102}px`} />
           </>
         ) : null}
-        {hasError ? <div className="px-4 py-4 text-sm text-rose-300">Error loading playlist, does it exist?</div> : null}
+        {hasError ? <div className="px-4 py-4 text-sm text-rose-300">{t("component.playlist.error-loading")}</div> : null}
       </Card>
     </div>
   );

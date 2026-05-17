@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoCard } from "@/components/video/VideoCard";
-import { cn } from "@/lib/cn";
-
+import { cn } from "@/lib/utils";
 export function VirtualVideoCardList({
   playlist,
   includeChannel,
@@ -34,7 +34,6 @@ export function VirtualVideoCardList({
   height?: string;
   [key: string]: any;
 }) {
-  const root = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const videos = useMemo(() => playlist?.videos || [], [playlist]);
 
@@ -44,12 +43,15 @@ export function VirtualVideoCardList({
   }, [activeIndex]);
 
   return (
-    <div ref={root} style={{ overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", height: pageMode ? undefined : height }}>
+    <ScrollArea
+      className="[&>[data-slot=scroll-area-viewport]]:overscroll-contain"
+      style={{ height: pageMode ? undefined : height }}
+    >
       {videos.map((video: any, index: number) => (
         <div
           key={`${video.id || "video"}-${index}`}
           ref={(el) => { itemRefs.current[index] = el; }}
-          className={cn("virtual-video-list-item", index === activeIndex && "video-card-active")}
+          className={cn("relative px-1 py-1.5", index === activeIndex && "before:pointer-events-none before:absolute before:-inset-px before:rounded before:bg-primary/15 before:content-['']")}
         >
           <VideoCard
             video={video}
@@ -66,6 +68,6 @@ export function VirtualVideoCardList({
           />
         </div>
       ))}
-    </div>
+    </ScrollArea>
   );
 }

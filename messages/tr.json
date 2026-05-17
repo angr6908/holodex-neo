@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Gomennüzgünüz!",
+      "textBeforeTwitter": "İçerik alınırken bir sorun oluştu, lütfen Twitter'ı kontrol edin ",
+      "textAfterTwitter": "veya hatayı ",
+      "aboutPage": "Hakkında Sayfası",
+      "afterAboutPageHyperlink": " üzerinden şikayet edin.",
+      "refresh": "Yenile",
+      "hardRefreshTip": "İpucu: zorla yenile/önbelleği temizle:"
+    },
+    "channelList": {
+      "signInToFavorite": "Favorilere eklemek için giriş yapın",
+      "unfavoriteAllInGroup": "Tüm grubu favorilerden çıkar",
+      "favoriteAllInGroup": "Tüm grubu favorilere ekle",
+      "enableGroupDisplay": "Bu gruptaki kanalları Ana sayfada göster",
+      "disableGroupDisplay": "Bu gruptaki kanalları Ana sayfadan gizle"
+    },
+    "channelInfo": {
+      "stats": "İstatistikler",
+      "videoCount": "{arg0} Video",
+      "clipCount": "{n} Klip",
+      "subscriberCount": "{n} Abone",
+      "subscriberNA": "Abone sayısı mevcut değil",
+      "totalViews": "Toplam izlenme",
+      "inactiveChannel": "Bu kanal artık aktif değil."
+    },
+    "channelSocials": {
+      "addToFavorites": "Favorilere ekle",
+      "removeFromFavorites": "Favorilerden çıkar",
+      "unblock": "Kanal engelini kaldır",
+      "block": "Kanal içeriğini Holodex genelinde engelle",
+      "blocked": "Engellenenler"
+    },
+    "mainNav": {
+      "home": "Ana Sayfa",
+      "favorites": "Favoriler",
+      "channels": "Kanallar",
+      "about": "Hakkında",
+      "library": "Kütüphane",
+      "settings": "Ayarlar",
+      "login": "Giriş",
+      "logout": "Çıkış",
+      "MugenClips": "MugenClips<sup>beta</sup>",
+      "accountSettings": "Hesap ayarları",
+      "music": "Müzik",
+      "multiview": "Çoklu İzleme",
+      "points": "puan",
+      "playlist": "Listeler"
+    },
+    "videoCard": {
+      "clips": "{n} Klip",
+      "watching": "{arg0} İzleyici",
+      "liveNow": "Şu an canlı",
+      "openInBackground": "Arka planda aç",
+      "edit": "Düzenle",
+      "copiedToClipboard": "Bağlantı panoya kopyalandı.",
+      "copyLink": "Holodex Bağlantısını Kopyala",
+      "premiere": "İLK GÖSTERİM",
+      "googleCalendar": "Google Takvim'e Ekle",
+      "totalTLs": "Toplam canlı sohbet çevirileri",
+      "totalSongs": "Zaman damgalı toplam şarkı",
+      "tlPresence": "Son 30 dakikada aktif çevirmen",
+      "uncertainPlaceholder": "Başlangıç zamanı resmi değildir, asıl başlangıç zamanı değişebilir.",
+      "typeScheduledYT": "Planlı Yayın",
+      "typeExternalStream": "Harici Yayın",
+      "typeEventPlaceholder": "Planlı Etkinlik",
+      "openClient": "Çeviri İstrmcisini Aç",
+      "openScriptEditor": "Senaryo Editörünü Aç",
+      "popoutChat": "YouTube Sohbetini Ayrı Pencerede Aç",
+      "uploadScript": "Çeviri Senaryosu Yükle",
+      "removeFromPlaylist": "Oynatma listesinden kaldır"
+    },
+    "videoDescription": {
+      "description": "Açıklama"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Daha az",
+      "showMore": "Daha çok"
+    },
+    "watch": {
+      "streamingFor": "{arg0} süredir yayında",
+      "nextUpInMugen": "Sonraki",
+      "loadingVideo": "Video yükleniyor",
+      "Comments": {
+        "title": "Yorumlar",
+        "all": "Tümü"
+      }
+    },
+    "search": {
+      "searchLabel": "Arama",
+      "type": {
+        "channel": "kanal",
+        "topic": "konu",
+        "org": "organizasyon",
+        "titledesc": "başlık/açıklama",
+        "title": "başlık",
+        "description": "açıklama",
+        "comments": "yorumlar",
+        "videourl": "video URL'si"
+      },
+      "placeholder": "Yayın, klip ve kanal ara",
+      "clear": "Temizle",
+      "loading": "Yükleniyor...",
+      "typeTwoCharacters": "2 karakter yazın",
+      "noChannelsFound": "Kanal bulunamadı",
+      "noTopicsFound": "Konu bulunamadı",
+      "noOrganizationsFound": "Organizasyon bulunamadı",
+      "noResultsFound": "Sonuç bulunamadı",
+      "searchChannels": "Kanal ara",
+      "filterByTopicOrgChannel": "Konu, organizasyon, kanal ile filtrele ...",
+      "topicOrgChannelPlaceholder": "Konu, organizasyon veya kanal",
+      "toggleSearch": "Aramayı aç/kapat",
+      "organizations": "Organizasyonlar",
+      "searchOrganizations": "Organizasyon ara",
+      "quickSelect": "Hızlı seç",
+      "allVtubers": "Tüm VTuber'lar",
+      "selectedOrgCount": "{count} org",
+      "additionalOrgCount": "{count} daha",
+      "unset": "Ayarlanmamış"
+    },
+    "relatedVideo": {
+      "clipsLabel": "klipler",
+      "simulcastsLabel": "eş zamanlı yayınlar",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Tüm eş zamanlı yayınları Multiview'de aç",
+          "error": {
+            "layoutBuildFailure": "Multiview bağlantısı oluşturulurken hata oluştu. Lütfen bu hatayı GitHub veya Discord üzerinden bildirin.",
+            "noDefaultLayout": "Multiview'de {videoCount} video için düzen yok.",
+            "noSimulcasts": "Bu video için eş zamanlı yayın yok."
+          }
+        }
+      },
+      "refersLabel": "ilgili",
+      "sourcesLabel": "kaynaklar",
+      "songsLabel": "şarkılar",
+      "recommendationsLabel": "önerilenler",
+      "sameSourceClips": "Aynı yayınlardan"
+    },
+    "paginateLoad": {
+      "newer": "Daha yeni",
+      "older": "Daha eski"
+    },
+    "music": {
+      "clearPlaylist": "Temizle",
+      "trendingForOrg": "{arg0} için trendler"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Son şarkılar",
+      "weeklyTopPlaysHeader": "Haftanın en çok dinlenenleri",
+      "trending": "Trendler"
+    },
+    "songList": {
+      "songTitle": "Başlık",
+      "songCoveredBy": "Söyleyen",
+      "songDuration": "Süre",
+      "sangOnTime": "Söylenme tarihi"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "{arg0} Ayın En Çok Dinlenenleri",
+      "weeklyTopForOrg": "{arg0} Haftanın En Çok Dinlenenleri"
+    },
+    "installPrompt": {
+      "title": "Holodex'i Yükle",
+      "callToAction": "Holodex'te video izlemek en iyi ana ekrana eklenince çalışır",
+      "notNowBtn": "Şimdi değil",
+      "installBtn": "Yükle",
+      "iOS": {
+        "popup": "Holodex'i iOS'e yükle",
+        "afterExportIcon": "sonra 'Ana Ekrana Ekle'",
+        "beforeExportIcon": "Basınız"
+      }
+    },
+    "media": {
+      "remove": "Kaldır"
+    },
+    "comment": {
+      "close": "Kapat",
+      "readMore": "Daha fazla"
+    },
+    "reportDialog": {
+      "title": "Şikayet et",
+      "collabing": "Kanal, bir {org} üyesi veya favorilerinizden biri ile collab yapıyor olabilir. Bu özelliği ayarlardan kapatabilirsiniz",
+      "comments": "Holodex nasıl bir eylemde bulunmalı?",
+      "success": "Şikayer gönderildi, teşekkürler!",
+      "consider": "Filtreyi kullanıp bu şikayeti bırakmayı göz önünde bulundurun.",
+      "reasons": {
+        "0": "Video yanlış işaretlendi",
+        "1": "Tehlikeli derecede Düşük Kaliteli/Yanıltıcı İçerik",
+        "2": "Organizasyonun türemiş çalışma projelerini ihlal ediyor veya uygunsuz",
+        "3": "Diğer",
+        "4": "Yanlış video konusu",
+        "5": "Yanlış kanal bahsetmesi",
+        "6": "Bu {arg0} {arg1}'e ait değil"
+      },
+      "applyChanges": "Değişiklikleri uygula",
+      "selectAll": "Tümünü seç",
+      "deselectAll": "Seçimi kaldır",
+      "adjustMentionedChannels": "Bahsedilen kanalları düzenle",
+      "addMentionedChannels": "Bahsedilen kanalları ekle",
+      "searchMentionedChannels": "Bahsedilecek VTuber ara",
+      "commentLanguagesOk": "* İngilizce / Japonca / Geleneksel Çince OK",
+      "specificChannelWarningBody1": "Holodex sıradan çeviri kalitesi anlaşmazlıklarında hakemlik yapmaz. Küçük sorunlar için YouTube'da clipper'a veya çevirmene geri bildirim bırakın.",
+      "specificChannelWarningBody2": "Bir video tehlikeli şekilde yanlış çevrilmişse ve ciddi yanlış anlaşılmaya yol açabilecekse, Holodex videoyu kaldırabilir veya konuyu üst seviyeye taşıyabilir.",
+      "specificChannelWarningBody3": "Bir kanalı görmeyi bırakmak için bu penceredeki veya kanal sayfasındaki kanal engelleme düğmesini kullanın.",
+      "specificChannelWarningTitle": "Not: lütfen yalnızca bu kanalı sevmediğiniz veya ona katılmadığınız için şikayet etmeyin.",
+      "topicUnsetPlaceholder": "Yeni konu öner (kaldırmak için boş bırak)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Tarayıcınızın çalışma şeklinden dolayı, katı <b>Üçüncü Taraf Çerezleri</b> politikalarına sahip veya <kbd>YouTube.com</kbd> çerezlerini engelleyen tarayıcılar Youtube sohbetinin erişimini/kullanımını zor bulabilirler. <br /><br /> Bu durumu <kbd>Youtube.com</kbd>''u Üçüncü Taraf Çerezi Engelleyicilerden kaldırarak veya <kbd>Holodex.net</kbd> için çerez güvenliği/ gizlilik seviyesini düşürerek düzeltebilirsiniz. <br /><br />Bunu nasıl yapacağınızı açıklayan bazı siteleri ekledik.",
+      "dialogTitle": "Holodex'te Youtube Sohbetini Kullanma",
+      "alertText": "Tarayıcı gizlilik ayarlarınız, Youtube Sohbetine girişi imkansız yapmakta. Daha çok bilgi için tıklayınız",
+      "neverShowAgain": "Bir daha uyarıyı gösterme"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Oynatma Listesini Dışa Aktar",
+        "new-playlist": "Yeni Oynatma Listesi",
+        "rename-playlist": "Oynatma Listesini Yeniden Adlandır",
+        "reset-unsaved": "Kaydedilmemiş Değişiklikleri Sıfırla",
+        "delete-playlist": "Oynatma Listesini Sil",
+        "clear-playlist": "Oynatma Listesini Temizle"
+      },
+      "save-error-not-logged-in": "Oynatma listelerini kaydetmek için oturum açmanız gerekir",
+      "unnamed-playlist": "Adsız oynatma listesi",
+      "video-count": "{count} video",
+      "next-video": "Sonraki video",
+      "error-loading": "Oynatma listesi yüklenirken hata oluştu, var mı?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Etkinlik bilgisi {arg1}'den {arg0} tarafından temin edilmiştir",
+      "datasourceCredit": "Etkinlik bilgisi {arg0} kaynağından alındı.",
+      "botCredit": "Etkinlik bilgisi {arg0} kaynağından alındı, {arg1} tarafından oluşturuldu.",
+      "streamPageBtn": "Yayın Sayfası",
+      "eventPageBtn": "Etkinlik Sayfası",
+      "scheduledEvent": "Programlı",
+      "editorCredit": "Etkinlik {arg0} Holodex editörü tarafından kuruldu.",
+      "creditTitleText": "Teşekkürler:"
+    },
+    "calendar": {
+      "liveCalendar": "Canlı yayın takvimi (iCal)",
+      "favoritesCalendar": "Favoriler takvimi (iCal)",
+      "favoritesLoginRequired": "Favoriler takvimi akışını kullanmak için giriş yapmak gerekir."
+    },
+    "form": {
+      "required": "Zorunlu",
+      "invalidUrl": "Geçersiz URL",
+      "invalidTime": "Geçersiz saat",
+      "error": "Bir hata oluştu.",
+      "never": "asla",
+      "new": "Yeni",
+      "existing": "Mevcut",
+      "channel": "Kanal",
+      "submit": "Gönder",
+      "certainty": {
+        "certain": "Kesin",
+        "likely": "Muhtemel"
+      },
+      "placeholder": {
+        "editorBadge": "Editör",
+        "title": "Yer tutucu yayın",
+        "description": "Zamanlanmış yer tutucuları yeni form akışıyla oluşturun veya güncelleyin.",
+        "success": "Yer tutucu yayın başarıyla eklendi",
+        "authError": "Geçerli bir Holodex Editörü değilsiniz veya Discord tarafından oluşturulan yer tutucu oluşturma bağlantınızın süresi doldu",
+        "editingAs": "{guild} Discord'undan {user} olarak düzenliyorsunuz. Oturum süreniz: {expiresIn}. Süresi dolmak üzereyse lütfen yenileyin.",
+        "notEditor": "Editör değilsiniz veya token süresi doldu. Lütfen giriş yapın ya da botumuzu kullanarak yeni bir token oluşturun.",
+        "editorCreditName": "Editör kredi adı",
+        "editorCreditHint": "Herkese açık olarak farklı bir adla gösterilmek için başka bir ad kullanın.",
+        "placeholderId": "Yer tutucu ID (11 karakter)",
+        "placeholderIdInput": "Yer tutucu ID",
+        "videoTitle": "Video başlığı",
+        "japaneseVideoTitle": "Japonca video başlığı",
+        "sourceLink": "Kaynak bağlantısı",
+        "sourceLinkHint": "örn. Twitter program URL'si veya Twitch kanalı",
+        "thumbnailImage": "Küçük resim",
+        "eventType": "Etkinlik türü",
+        "certainty": "Kesinlik",
+        "timezone": "Saat dilimi",
+        "date": "Tarih",
+        "time": "Saat",
+        "duration": "Süre",
+        "durationHint": "Süreyi dakika olarak tahmin edin",
+        "submitModification": "Yer tutucu değişikliğini gönder",
+        "create": "Yeni yer tutucu oluştur",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Yok",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "İşlemler",
+      "chat": "Sohbet",
+      "close": "Kapat",
+      "collapse": "Daralt",
+      "confirm": "Onayla",
+      "language": "Dil",
+      "moreActions": "Diğer işlemler",
+      "or": "veya",
+      "processing": "İşleniyor...",
+      "remove": "Kaldır",
+      "save": "Kaydet"
+    },
+    "pagination": {
+      "nextPage": "Sonraki sayfa",
+      "previousPage": "Önceki sayfa"
+    },
+    "userMenu": {
+      "apiKey": "API anahtarı",
+      "googleLinkUnavailable": "Google bağlama kullanılamıyor.",
+      "googleSignInUnavailable": "Google ile giriş kullanılamıyor.",
+      "icalFeed": "iCal akışı",
+      "link": "Bağla",
+      "linkGoogle": "Google'ı bağla",
+      "linkedAccounts": "Bağlı hesaplar",
+      "manualOAuthInstructions": "Otomatik giriş tamamlanmadıysa yönlendirilen URL'yi aşağıya yapıştırın.",
+      "pasteRedirectUrl": "Yönlendirilen URL'yi yapıştır",
+      "userAvatar": "Kullanıcı avatarı"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Videolar",
+      "clips": "Klipler",
+      "music": "Müzik",
+      "collabs": "Collablar",
+      "about": "Hakkında"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Aboneler",
+        "group": "Grup",
+        "recentUpload": "Son Yükleme",
+        "videoCount": "Video Sayısı",
+        "clipCount": "Klip Sayısı",
+        "org": "Organizayson"
+      },
+      "tabs": {
+        "Vtuber": "VTuber",
+        "Subber": "Altyazıcı",
+        "Favorites": "Favoriler",
+        "Blocked": "Engellenenler"
+      },
+      "favoritesAreEmpty": "Hiç favoriniz yok!",
+      "blockedAreEmpty": "Engellediğiz kanal yok.",
+      "sort": {
+        "newestFirst": "Önce en yeni",
+        "oldestFirst": "Önce en eski"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Canlı / Yakında",
+      "recentVideosHeading": "Son Videolar",
+      "noStreams": "Şu an Canlı veya Yakında olan yayın yok",
+      "recentVideoToggles": {
+        "all": "Tümü",
+        "official": "Arşiv",
+        "subber": "Klipler"
+      },
+      "liveLabel": "Canlı",
+      "upcomingLabel": "Yakında",
+      "controls": {
+        "sortBy": "Sıralama türü",
+        "viewers": "İzleyiciler",
+        "latest": "En yeni",
+        "uploadedBefore": "Şundan önce yüklendi",
+        "pickDate": "Tarih seç",
+        "clipLanguages": "Klipleri şu dillerde görüntüle:"
+      },
+      "apiError": "Videolar yüklenemedi."
+    },
+    "library": {
+      "savedVideosTitle": "Kaydedilen Videolar",
+      "createYtPlaylistButton": "YT Oynatma Listesi Oluştur ({arg0})",
+      "deleteFromLibraryButton": "SİL ({arg0})",
+      "deleteConfirmation": "{arg0} tane videoyu silmek istediğinize emin misiniz?",
+      "deleteConfirmationOK": "SİL",
+      "deleteConfirmationCancel": "İptal",
+      "selectionReset": "Sıfırla",
+      "selectionSelectAll": "Tümünü seç",
+      "emptyLibrary": "Kaydedilmiş videonuz yok!",
+      "exportSelected": "SEÇİLENLERİ DIŞARI AKTAR ({arg0})",
+      "exportYtPlaylist": "Youtube Oynatma Listesi",
+      "exportCsv": "CSV Dosyası",
+      "selectionSelect50": "50 tane seç",
+      "exportYTExplanation": "Bu özellik ile oluşturulan oynatma listesi <b>liste dışıdır</b> ve Youtube tarafından silinebilir. <br /> Youtube'un özellik eksiklerinden dolayı, liste dışı olan oynatma listesini hesabınıza kaydetmek için aşağıdaki adımları uygulamanız gerekmektedir.",
+      "exportYTHeading": "Youtube Oynatma Listesi Kaydetme Talimatları",
+      "exportYTInstructions": "<b class=\"red--text\">Adım 1</b>: Youtube oynatma listesini oynatıp \"Mini oynatıcı\" moduna geçin.<br /><br /> <b class=\"red--text\">Adım 2</b>: Herhangi bir videoyu oynatma sırasına ekleyin <br /><br /> <b class=\"red--text\">Adım 3</b>: Oynatma listesi artık Kaydedilebilir. Kaydetmek için kaydete basın.",
+      "sort": {
+        "dateaddedEarliestFirst": "Kütüphaneye ekleme tarihi, önce en eski",
+        "dateaddedLatestFirst": "Kütüphaneye ekleme tarihi, önce en yeni",
+        "dateuploadedLatestFirst": "Yükleme tarihi, önce en yeni",
+        "dateuploadedEarliestFirst": "Yükleme tarihi, önce en eski"
+      }
+    },
+    "notFound": {
+      "title": "İçerik bulunamadı",
+      "back": "Ana sayfaya dön"
+    },
+    "search": {
+      "sort": {
+        "newest": "En yeni",
+        "oldest": "En eski",
+        "longest": "En uzun"
+      },
+      "type": {
+        "all": "Tümü",
+        "official": "Resmi",
+        "clip": "Klip"
+      },
+      "unsupportedQuery": "<kbd>Konu</kbd> ve <kbd>Organizasyon</kbd> ile arama şu an desteklenmemektedir. Hiçbir <b>clip</b> gösterilmeyecek.",
+      "sortByLabel": "Sıralama türü",
+      "typeDropdownLabel": "İçerik türü",
+      "searching": "Aranıyor...",
+      "useSearchBar": "Yayın, klip veya kanal bulmak için arama çubuğunu kullanın."
+    },
+    "settings": {
+      "title": "Tercihler",
+      "darkModeLabel": "Koyu tema",
+      "darkModeMsg": "Temayı açık mod ve karanlık mod arasında değiştirir",
+      "redirectModeLabel": "Youtube'da aç",
+      "redirectModeMsg": "Video küçük resimlerine tıklamak videoyu Youtube'da açar, video başlıklarına tıklamak videoyu Holodex'te açar",
+      "useEnglishNameLabel": "İngilizce isimleri kullan",
+      "useEnglishNameMsg": "VTuber kanalları için yerelleştirilmiş isimleri kullan",
+      "hideVideoThumbnailsLabel": "Video Küçük Resimlerini Sakla",
+      "hideVideoThumbnailsMsg": "Video küçük resimlerini saklar, yüklenme hızını arttırır ve mobil cihazlarda daha az kaydırma",
+      "pushNotificationLabel": "Push Bildirimler (Yakında)",
+      "pushNotificationMsg": "Favori kanallar için Push Bildirimleri etkinleştirir",
+      "autoplayVideoLabel": "Video Otomatik Oynat",
+      "autoplayVideoMsg": "Videoların otomatik oynatılmasını etkinleştirir",
+      "scrollModeLabel": "Kaydırma Modu",
+      "scrollModeMsg": "Sayfa çevirmek için kaydırmayı kullanın",
+      "resetAllSettings": "Tüm ayarları/bilgileri sıfırla",
+      "resetAllSettingsWarning": "Tüm verilerinizi kaybedeceksiniz. Devam edilsin mi?",
+      "clipLanguageSelection": "Klipleri şu dillerde görüntüle:",
+      "tlLanguageSelection": "Canlı-sohbet çevirilerini bu dilde görüntüle",
+      "defaultPage": "Varsayılan sayfa",
+      "defaultPageMsg": "Holodex.net'i ziyaret ederken veya sol-üst köşedeki Logoya tıklarken açılacak olan site",
+      "videoFeedSettings": "Video Akışı Ayaraları",
+      "siteNavigationSettings": "Site/Navigasyon",
+      "languageSettings": "Dil",
+      "gridSizeLabel": "Küçük Resim/Izgara Büyüklüğü",
+      "gridSizeMsg": "Ana sayfa/favoriler sayfasında küçük resim/video ızgarası büyüklüğünü değiştir.",
+      "gridSize": {
+        "0": "Büyük",
+        "1": "Orta",
+        "2": "Küçük"
+      },
+      "hideCollabStreamsLabel": "Collab yayınları sakla",
+      "hideCollabStreamsMsg": "Collab yayınları favoriler sayfanızdan saklar",
+      "hidePlaceholderStreams": "Yer Tutucu Yayınları Gizle",
+      "hidePlaceholderStreamsMsg": "Henüz oynatılabilir bir stream sayfası olmayan planlanmış placeholder kayıtlarını gizle",
+      "hideMissingStreams": "Kayıp Yayınları Gizle",
+      "hideMissingStreamsMsg": "Kullanılamayan veya gerekli Holodex meta verileri eksik olan videoları gizle",
+      "ignoredTopicsLabel": "Yok Sayılan Konular",
+      "ignoredTopicsMsg": "Ana Sayfadan ve Favorilerden seçili konulara sahip videolar kaldırılır",
+      "theme": "Tema",
+      "moreSettings": "Daha Fazla Ayar",
+      "systemOptions": "Sistem seçenekleri",
+      "followSystemThemeLabel": "Sistem temasını takip et",
+      "languageOverrideActive": "{language} için dil geçersiz kılması aktif. Temizlemek için tıklayın.",
+      "filters": {
+        "blockedTopics": "Yok Sayılan Konular",
+        "blockedTopicsDescription": "Ana Sayfadan ve Favorilerden seçili konulara sahip videolar kaldırılır",
+        "searchTopics": "Konu ara",
+        "clearBlockedTopics": "Yok sayılan konuları temizle",
+        "hideStreams": "Streamleri gizle",
+        "collab": "İş birliği",
+        "placeholder": "Yer tutucu",
+        "missing": "Eksik"
+      },
+      "defaultTheme": "Varsayılan"
+    },
+    "app": {
+      "update_available": "Bir güncelleme mevcut",
+      "update_btn": "Güncelle",
+      "close_btn": "Kapat",
+      "check_about_page": "Değişiklikleri görüntülemek için Hakkında sayfasını ziyaret edin",
+      "nowSupportsMultiOrg": "İpucu: Organizasyonu buradan değiştirebilirsiniz!",
+      "loginCallToAction": "Favorilerinizi seçmek için Giriş Yapın."
+    },
+    "about": {
+      "add_my_channel": "Kanal Talebi"
+    },
+    "watch": {
+      "theaterMode": "Tiyatro Modu (alt + t)",
+      "mentionIconLabel": "Söz edilenler",
+      "chat": {
+        "loading": "Sohbet yükleniyor...",
+        "hideTLBtn": "Çevirileri gizle",
+        "showTLBtn": "Çevirileri göster",
+        "TLSettingsTitle": "Çeviri Ayarları",
+        "showSubtitle": "Altyazıyı göster",
+        "expandTL": "TLdex'i genişlet",
+        "tlStart": "Mesajların başı",
+        "StickBottomSettingLabel": "Alta Yapıştır",
+        "StickBottomSettingsDesc": "Altyazı kutusunu Youtube Sohbetinin altına yerleştir",
+        "showVerifiedMessages": "Doğrulanmış Mesajları Göster",
+        "showModeratorMessages": "Moderatör Mesajlarını Göster",
+        "showVtuberMessages": "Vtuber Mesajlarını Görüntüle",
+        "showLocalTime": "Yerel saatleri göster",
+        "tlFontSize": "Yazı Tipi Büyüklüğü",
+        "tlWindowSize": "Çeviri kutusu büyüklüğü (%), otomatik için %0 olarak bırakın",
+        "retryBtn": "Yeniden Dene",
+        "status": {
+          "reconnecting": "Otomatik Yeniden Bağlanıyor...",
+          "reconnectFailed": "Yeniden bağlanılamadı",
+          "notLive": "Yayın daha canlı değil, lütfen yayın başladıktan 15 dakika sonra tekrar deneyin.",
+          "connectedToChat": "Bağlandı",
+          "disconnectedToChat": "Bağlantı kesildi"
+        },
+        "archiveNeedExtension": "Arşiv sohbeti {arg0} eklentisi veya diğer üçüncü taraf eklentileri olmadan çalışmaz.",
+        "hideSpoiler": "Spoiler'ı Gizle",
+        "archiveNeedExtensionAfter": " arşivlenmiş TL sohbetini görüntülemek için.",
+        "archiveNeedExtensionBefore": "Tarayıcı eklentisini yükleyin",
+        "editBlockedList": "Engel listesini düzenle",
+        "manageBlockedTranslators": "Engellenen çevirmen adlarını yönet.",
+        "membersOnlyTl": "Üyelere özel TL sohbeti kullanılamıyor.",
+        "noBlockedNames": "Engellenen ad yok.",
+        "tuneTlBehavior": "Canlı çeviri davranışını ve düzenini ayarla.",
+        "ytChatLabel": "YouTube sohbeti"
+      },
+      "removeFromPlaylist": "Videoyu mevcut oynatma listesinden çıkar",
+      "saveToPlaylist": "Videoyu mevcut oynatma listesine ekle",
+      "likeOnYoutube": "Videoyu Youtube'da beğen",
+      "uploadPanel": {
+        "title": "Senaryo Yükle",
+        "usernameText": "Çeviri şu kullanıcı adı altında yüklencek",
+        "usernameChange": "Değiştir",
+        "tlLang": "Çeviri Dili",
+        "headerStart": "Başlangıç",
+        "headerEnd": "Bitiş",
+        "headerText": "Metin",
+        "cancelBtn": "İptal",
+        "okBtn": "Tamam",
+        "notifTextErr": "DOSYA AYRIŞTIRILAMADI (BOZUK DOSYA?)",
+        "notifTextParsing": "Dosya ayrıştırılıyor...",
+        "notifTextErrExt": "Tanınamayan dosya uzantısı.",
+        "subtitleFile": "Altyazı dosyası"
+      },
+      "reloadVideoFrame": "Video karesini yeniden yükle"
+    },
+    "favorites": {
+      "promptForAction": "Favori VTuberlarının bir listesini oluştur ve en son kliplerini ve yayınlarını bu sayfada görüntüle",
+      "manageFavorites": "Favorileri Yönet",
+      "close": "Kapat",
+      "showall": "Tümünü Göster"
+    },
+    "editor": {
+      "needlogin": "Holodex video ve şarkı üst verilerini düzenlemek için Giriş Yapmanız gerekektedir.",
+      "changeTopic": {
+        "title": "Yayın konusunu değiştir",
+        "info": "Tüm kullanıcılar video konularını ayarlayabilir, ancak Sadece Editörler ve Adminler ayarlanmış bir konuyu değiştirebilir veya silebilir.",
+        "button": "Kaydet (Etkili olması 5 dakika kadar süre alabilir)",
+        "unset": "Ayarlanmamış",
+        "inputPlaceholder": "Konu (kaldırmak için boş bırak)",
+        "saveTopic": "Konuyu kaydet"
+      },
+      "channelMentions": {
+        "title": "Kanal bahsetmeleri",
+        "addSuccess": "Kanal bahsetmesi eklendi.",
+        "deleteSuccess": "Kanal bahsetmesi kaldırıldı.",
+        "tagsTitle": "Bahsedilen kanallar"
+      },
+      "sources": {
+        "title": "Kaynaklar/Klipler (geliştirme aşamasında)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "API anahtarını Holodex API'ını programsal olarak sorgulamak için kullanabilirsiniz. Her hesap sadece bir anahtara sahip olabilir. Yeni bir anahtar alındıktan sonra, eski anahtar 0-24 saat içinde geçersiz olacaktır.",
+      "apikeyNew": "Yeni API anahtarı al",
+      "ownedYtChannel": "Sahip olunan Youtube kanalı",
+      "futureYtcOwnerMessage": "Gelecekte, kanal sahiplerine kendi videolarının üst verilerini düzenleme gibi daha fazla hizmet eklemeyi planlıyoruz.",
+      "linkAcc": "Başka bir hesap bağla",
+      "apikeyResetConfirm1": "API Anahtarınızı sıfırlamak istediğinizden emin misiniz?",
+      "apikeyResetConfirm2": "Eski API Anahtarınız'ın süresi dolmadan önce 0-24 saati olacaktır. Gerçekten sıfırlansın mı?",
+      "apikeyResetNvm": "İlginç birşey olmadı.",
+      "with": {
+        "0": "Google ile giriş yap",
+        "1": "Discord ile giriş yap",
+        "2": "Twitter ile giriş yap"
+      },
+      "twitterMsg": {
+        "0": "Twitter API politikası değişimi nedeniyle, 9 Şubat sonrası Twitter Girişi büyük ihtimalle çalışmayacaktır.",
+        "1": "Şu an sadece Twitter Girişi kullanıyorsunuz. Farklı bir cihazda veya tarayıcıyı sıfırlayınca hesabı kaybetmemeniz için başka bir giriş yöntemi bağlamanızı şiddetle tavsiye ederiz.",
+        "2": "Eğer Holodex'e Twitter hesabınız üzerinden giriş yapamıyorsanız (ve farklı bir giriş yönteni bağlamadıysanız) lütfen bize Twitter DM'lerinden veya Discorddan ulaşın."
+      },
+      "username": "Kullanıcı Adı",
+      "usernameBtn": {
+        "0": "Değiştir",
+        "1": "Onayla",
+        "2": "Kaydet"
+      },
+      "loggingIn": "Giriş yapılıyor..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Geçerli düzen sıfırlansın mı?",
+      "confirmOverwriteYes": "Onayla",
+      "permalink": "Sınırsız bağlantı",
+      "presets": "Düzenler",
+      "addframe": "Hücre Ekle",
+      "muteAll": "Tümünün Sesini Kapat",
+      "unmuteAll": "Tümünün Sesini Aç",
+      "muteOthers": "Diğerlerini Sustur",
+      "muteOthersDetail": "Bir yayın dışındaki yayınları sustur",
+      "autoLayoutTip": "Oto düzen modunu kullanmak için bir kanala tıklayın",
+      "createLayoutTip": "Hücre ekleyerek veya önceden ayarlanmış düzen kullanarak kendi düzeninizi oluşturun",
+      "openToolbarTip": "Çoklu izlemeye başlamak için araç çubuğunu açın",
+      "archiveSync": "Arşiv senkronizasyonu",
+      "preset": {
+        "shareOnDiscord": "Paylaşmak istediğin harika bir düzenin mi var? Paylaş butonunu kullanıp <a href=\"https://discord.gg/jctkgHBt4b\">Discord sunucumuzda</a> bizimle paylaş!",
+        "custom": "Düzenlerim",
+        "toggleAutoLayout": "Düzeni otomatik modda kullanmayı aç/kapat",
+        "remove": "Sil",
+        "desktop": "Masaüstü",
+        "mobile": "Mobil",
+        "autoLayout": "OtoDüzen",
+        "noPresets": "Kullanılabilir ön ayar yok"
+      },
+      "presetEditor": {
+        "title": "Düzeni kaydet",
+        "name": "İsim",
+        "autoLayout": "Düzeni otomatik modda kullanın"
+      },
+      "video": {
+        "selectLive": "Yayın seç",
+        "addCustomVideo": "Özel Video Ekle",
+        "twitchChannelLink": "Twitch kanal bağlantısı",
+        "youtubeVideoLink": "YouTube video bağlantısı",
+        "noHistory": "Geçmiş yok",
+        "addUrl": "URL ekle",
+        "addUrlShort": "Ekle",
+        "urlPlaceholder": "YouTube veya Twitch URL'si yapıştır",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Tam Ekran",
+      "mediaControls": "Medya Kontrolleri",
+      "mediaControlsEmpty": "Oynatılan videolar burada gözükür",
+      "editAutoLayout": "Oto-düzeni değiştir",
+      "changeLayout": "Düzeni değiştir",
+      "done": "Bitti",
+      "hints": "İpuçları",
+      "presetsHint": "Ön ayarlar menüsünü açarak seçili düzeni değiştirin veya otomatik kullanılacak düzenleri seçin",
+      "mediaControlsHint1": "Medya kontrollerini kullanarak yayınların seslerini kapatın veya yayınları senkronize (",
+      "mediaControlsHint2": ") edin",
+      "dragDropHint": "Hücreleri organize etmek için yayınları araç çubuğundan sürükleyip bırakın",
+      "reorderHint": "Video/sohbet pozisyonlarını değiştirmek için Düzeni Sırala menüsünü kullanabilirsiniz",
+      "reorderLayout": "Düzeni Sırala",
+      "reorderLayoutDetail": "Simgeleri istenilen pozisyonlara sürükleyip bırakın",
+      "sync": {
+        "nothingToSync": "Senkronize edilecek bir şey yok. Lütfen örtüşen iki tane arşiv açın (ör. collab yayınları)",
+        "syncSettings": "Senkronizasyon Ayarları",
+        "syncSettingsDetail": "Videolar yayının başlama zamanına göre senkronize edilir ve yayın sırası teknik aksaklıklar veya silinmiş kısımlar nedeniyle desenkronize olabilir. Videoları el ile hizalamak için offsetleri kullanın"
+      },
+      "syncLabel": "Senkronize et",
+      "collapseToolbar": "Araç çubuğunu daralt",
+      "deleteCell": "Hücreyi sil",
+      "fillEmptyCells": "Boş hücreleri geçerli videolarla doldur",
+      "openNavigation": "Navigasyonu aç",
+      "shareLayout": "Düzeni paylaş"
+    },
+    "mugen": {
+      "welcome": "MugenClips'e Hoşgeldiniz! Bu sayfadaki herkes sizinle aynı rastgele seçilmiş klipleri görür. Dünya çapındaki Hololive hayranlarıyla birlikte izleyin ve sohbet edin. İleriye atlar ve herkesle tekrardan eşitlenmek isterseniz, lütfen sayfayı yenileyin."
+    },
+    "playlist": {
+      "playlist-is-modified": "Kaydedilmedi",
+      "item-last-updated": "Son Güncellenme:",
+      "login-prompt": "Birden fazla oynatma listesine sahip olabilmek ve listeleri kaydedebilmek için Giriş Yapın",
+      "new-playlist-btn-label": "Yeni Oynatma Listesi oluştur",
+      "page-heading": "Oynatma Listeleriniz:",
+      "page-instruction": "Etkin olarak seçmek istediğiniz oynatma listesine tıklayın.",
+      "change-loss-warning": "Kaydedilmemiş değişiklikleri kaybedeceksiniz. Devam edilsin mi?"
+    },
+    "extension": {
+      "title": "Holodex Plus Uzantısı",
+      "features": "Özellikler",
+      "featureset": {
+        "one": "Watch ve Multiview'de arşiv canlı sohbetini etkinleştirir",
+        "two": "Holodex izleme sayfasından videoları beğenmenizi sağlar",
+        "three": "YouTube canlı sohbetindeki bellek sızıntısını düzeltir",
+        "four": "YouTube oynatıcısındaki deneysel bayrakları düzeltir; birden fazla yayının devre dışı kalması, bekleme odası küçük resminin görünmemesi ve daha fazlası."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Kaynak kodu indir",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Firefox uzantısı",
+      "githubDownload": "GitHub indirmesi",
+      "installFromGithubPrefix": "Şuradan yükle: ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Arşivlerde ara",
+          "channels": "Kanalları aç",
+          "clips": "Klip bul",
+          "live": "Canlı yayınları kontrol et"
+        },
+        "getItOnPrefix": "Buradan edin: ",
+        "getItOnSuffix": ".",
+        "title": "Raycast uzantısı"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menü",
+        "setting": "TLDex Odası Ayarları",
+        "loadVideo": "Videoyu Göster",
+        "unloadVideo": "Videoyu gizle",
+        "loadChat": "Yayın Çevirisine YT Chat'ini Ekle",
+        "unloadChat": "YT Sohbetinden ayır"
+      },
+      "tlControl": {
+        "enterBtn": "Gir",
+        "prefix": "Önek",
+        "suffix": "Sonek",
+        "fontColour": "Yazı Rengi",
+        "outlineColour": "Anahat Rengi",
+        "localPrefix": "Sohbette dil etiketi",
+        "addProfile": "Profil Ekle",
+        "removeProfile": "Profili Kaldır",
+        "shiftUp": "Profili Yukarı Kayır",
+        "shiftDown": "Profili Aşağı Kayır",
+        "showSetting": "Ayar",
+        "hideSetting": "Gizle",
+        "currentProfileSettings": "Geçerli profil [{name}] ayarları",
+        "inputPlaceholder": "Çeviri metnini yaz"
+      },
+      "addProfilePanel": {
+        "title": "Yeni Profil Ekle",
+        "inputLabel": "Profil Adı"
+      },
+      "settingPanel": {
+        "title": "Ayar",
+        "mainStreamLink": "Ana Yayın Bağlantısı",
+        "collabLink": "Collab Bağlantıları",
+        "findVideo": "Video bul"
+      },
+      "removeProfileTitle": "Profil kaldırmayı onayla",
+      "loadChatPanel": {
+        "title": "Sohbeti Yükle",
+        "inputLabel": "Akış Bağlantısı"
+      },
+      "unloadChatTitle": "TÜM aktif sohbet kaldırılsın mı?",
+      "pangram": "Pijamalı hasta yağız şoföre çabucak güvendi.",
+      "cancelBtn": "İptal",
+      "okBtn": "Tamam",
+      "shortcuts": {
+        "changeProfiles": "Profilleri değiştir",
+        "or": "veya",
+        "quickSwitchDefaultProfile": "Varsayılan profile hızlı geç",
+        "quickSwitchProfileRange": "Profiller 0-9",
+        "quickSwitchProfiles": "Profiller arasında hızlı geç",
+        "whileTyping": "TL kutusuna yazarken:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Kaydet",
+        "continuousEnd": "Zamanı sürekli yap (bitişi değiştir)",
+        "clearAll": "Senaryoyu Sil",
+        "exportFile": "Dosyayı Dışa Aktar",
+        "importFile": "Dosyayı İçe Aktar",
+        "editorMode": "Düzenleyici Kipi",
+        "changeCustomLink": "Özel bağlantıyı değiştir",
+        "timeShift": "Zaman kaydırma"
+      },
+      "table": {
+        "headerStart": "Başlangıç",
+        "headerEnd": "Bitiş",
+        "headerProfile": "Profil",
+        "headerText": "Metin",
+        "setAsStart": "Başlangıç olarak ayarla",
+        "shiftCurrentTime": "Geçerli zamana getir",
+        "deleteEntry": "Girdiyi sil"
+      },
+      "loadVideoPanel": {
+        "title": "Videoyu Yükle",
+        "inputLabel": "Akış Bağlantısı"
+      },
+      "setStartTitle": "Seçili girdiyi başlangıç yap; önceki tüm girdiler silinecek.",
+      "importFile": {
+        "overwriteBtn": "Üzerine Yaz"
+      },
+      "editorModePanel": {
+        "activateMode": "Editör Modunu Etkinleştir",
+        "deactivateMode": "Editör Modunu Devre Dışı Bırak",
+        "roleWarning": "Yeterli ayrıcalığa sahip değilsiniz",
+        "filterTranslator": "Çevirmen filtrele"
+      },
+      "timeShift": {
+        "offset": "Ofset",
+        "seconds": "saniye",
+        "secondsShort": "sn",
+        "timeOffset": "Zaman ofseti"
+      }
+    },
+    "tlManager": {
+      "title": "Senaryo yöneticisi",
+      "headerID": "Video kimliği",
+      "headerEntries": "Kayıtlar",
+      "download": "İndir",
+      "delete": "Sil",
+      "deleteTitle": "Kayıtları sil",
+      "langPick": "Dil",
+      "changeCustomLink": "Özel bağlantıyı değiştir",
+      "changeStreamLink": "Yayın bağlantısını değiştir",
+      "description": "Çeviri senaryolarını yönetin, verileri dışa aktarın ve özel bağlantıları temizleyin.",
+      "entriesCount": "{count} kayıt",
+      "importFromMchad": "MChad'den içe aktar",
+      "importMchad": {
+        "claimAllArchives": "Tüm arşivleri sahiplen",
+        "claimSuccess": "Arşivler sahiplenildi.",
+        "entryLength": "{count} kayıt",
+        "foundId": "Oda ID'si bulundu: {id}",
+        "login": "Giriş yap",
+        "missingCredentials": "Oda adını ve şifreyi girin.",
+        "noArchives": "Arşiv bulunamadı.",
+        "password": "Şifre",
+        "roomName": "Oda adı"
+      },
+      "newLink": "Yeni bağlantı",
+      "noScriptsFound": "Bu sayfa için çeviri senaryosu bulunamadı.",
+      "noTitle": "Başlık yok",
+      "videoTitle": "Video başlığı"
+    },
+    "relayBot": {
+      "addSubscription": "Abonelik ekle",
+      "blacklist": "Engel listesi",
+      "botMissing": "Bot bu sunucuda değil.",
+      "channelsFor": "{name} kanalları",
+      "description": "YouTube kanallarından veya videolarından canlı çevirileri Discord'a aktar.",
+      "inviteBot": "Botu davet et",
+      "loginDiscord": "Discord ile giriş yap",
+      "noBlacklistEntries": "Engel listesinde kayıt yok.",
+      "noSubscriptionsConfigured": "Yapılandırılmış abonelik yok.",
+      "noWhitelistEntries": "İzin listesinde kayıt yok.",
+      "notOk": "Başarısız",
+      "ok": "OK",
+      "relaySubscription": "Aktarım aboneliği",
+      "relayTL": "TL aktar",
+      "saved": "Kaydedildi.",
+      "saving": "Kaydediliyor...",
+      "sendingTrigger": "Gönderiliyor...",
+      "serverNotShown": "Yalnızca botu yönetebildiğiniz sunucular gösterilir.",
+      "servers": "Sunucular",
+      "settingFor": "{name} ayarları",
+      "subscribedChannel": "Abone olunan kanal",
+      "title": "Aktarım Botu",
+      "translatorName": "Çevirmen adı",
+      "whitelist": "İzin listesi",
+      "youtubeChannel": "YouTube kanalı",
+      "youtubeLinkChannelVideo": "YouTube kanalı veya video bağlantısı"
+    }
+  },
+  "time": {
+    "soon": "yakında",
+    "diff_future_date": " {arg0} ({arg1}) başlıyor",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Ekle",
+      "update": "Güncelle",
+      "permission": "Var olan müzikleri güncellemek veya silmek için \"Editör\" ya da daha üst bir seviye olmalısınız. Editörlere hataları/kötüye kullanmaları bildirmek veya editör olmaya başvurmak için lütfen <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord</a> üzerinden bizimle iletişime geçin.",
+      "titles": {
+        "addSong": "Müzik Üst Verisi: Yeni bir Şarkı ekle",
+        "songList": "Şarkı Listesi : {arg0}",
+        "help": "Rehber"
+      },
+      "itunesLookupPlaceholder": "(İsteğe bağlı) iTunes'ta arama yap",
+      "moveRight2s": "Sağa 2sn hareket ettir",
+      "testEnd": "Sondan 3sn önce başlayarak test dinle",
+      "setToCurrentTime": "Geçerli zamana ayarla ({arg0})",
+      "moveLeft2s": "Sola 2sn hareket ettir",
+      "trackNameInput": "Parça ismi",
+      "originalArtistInput": "Orijinal Sanatçı",
+      "testStart": "Başı test et",
+      "startInput": "Başlangıc",
+      "endInput": "Saniye olarak süre: (bitiş {arg0})",
+      "inheritItunesMusic": "Süreyi iTunes ile Ayarla: {arg0}",
+      "listenOnAppleMusic": "Apple Music'te dinle",
+      "pickItunesResult": "iTunes sonuçlarından birini seç",
+      "playFromHere": "Buradan oynat",
+      "timestampEditorHint": "Müziği videoyla hizalamak için göreli zaman damgaları kullanın."
+    },
+    "exitMode": "Düzenleme modundan çık",
+    "enterMode": "Düzenle"
+  },
+  "about": {
+    "quicklinks": "Hızlı Bağlantılar",
+    "discordBtn": "Holodex Discord'u",
+    "faq": {
+      "title": "SSS",
+      "ytchatHeader": "Youtube Sohbetime giriş yapılmadı!",
+      "ytchatContent": "Lütfen Üçüncü Taraf Çerez engelleme adındaki Tarayıcı güvenlik özelliğini devre dışı bırakın veya bu siteyi ve youtube.com'u izin verilenler listesine ekleyin.",
+      "ytchatFirefox": "Firefox talimatları, diğer tarayıcılar benzer olabilir.",
+      "autoplayHeader": "Otomatik Oynatma çalışmıyor!",
+      "autoplayContent": "Lütfen tarayıcınızda otomatik oynatmayı nasıl etkinleştireceğinizi google'da aratın.",
+      "musicPlayer": "Müzik Oynatıcısı mobil cihazlarda iyi çalışmıyor!",
+      "musicPlayerContent": "Çoğu iOS cihazında, Holodex müzik çalarken ekranı kapatamaz veya Safari'den çıkamazsınız. Bu kısıtlamalar cihaza bağlı olarak Android cihazlarda da geçerli olabilir veya olmayabilir. Daha iyi bir çalma sistemi için fikirleriniz varsa lütfen bize geri bildirim verin.",
+      "videoLinkage": "Videolarımın VTuberlara uygun olarak bağlantılı olduğundan nasıl emin olurum?",
+      "videoLinkageContent": "Tüm bilgiler açıklama kısmından ayrıştırılır. Eğer bir yayının klipliyorsanız, lütfen asıl yayının bağlantısını eklediğinizden emin olun. Eğer fan yapımı içeriği klipliyorsanız (ör. bilibili), ilgili VTuberların kanallarını eklediğinizden emin olun. Eğer hiç bir kanalı eklemezseniz, tüm kliplerin Holodexe bilinen bir VTubera bağlı olması gerektiğinden, klipi Holodexte göstermeyiz.",
+      "quitHolodex": "Ben bir altyazıcıyım ve Kanalımın Holodexten kaldırılmasını istiyorum",
+      "quitHolodexContent": "Gitmeni gördüğüme üzüldüm :(, lütfen yardım edebileceğim bir sorun varsa bilmeme izin ver. Eğer hala kanalının kaldırılmasını istiyorsan, lütfen Discord üzerinden bize bir mesaj gönder.",
+      "favorite": {
+        "title": "Favoriler nelerdir?",
+        "Contents": {
+          "0": "Favoriler, favori Vtuberlarınızla takipte kalmanın bir yoludur.",
+          "1": "sayfasında bulunan kalp simgesine tıklayarak favori kanallarınızı seçebilirsiniz. Altyazıcıları favorilere eklemek şu an desteklenmemekte olsa da, yine de onlara abone olmayı ve diğer yollarla desteklemeyi unutmayın!"
+        },
+        "disappear": {
+          "title": "Favori listem kayboldu / Favori ekleyemiyorum"
+        },
+        "contents": {
+          "0": "Lütfen giriş yaptığınızdan emin olun ve yenileme zorlamak için Kanallar > Favoriler sayfasını ziyaret edin."
+        }
+      },
+      "mobile": {
+        "title": "Holodex'in bir Android/iOS uygulaması var mı?",
+        "content": {
+          "summary": "Üzerinde çalışıyoruz! Biz bu özelliği eklerken, tarayıcınızdaki \"Ana Ekrana Ekle\" özelliğini kullanabilirsiniz. Bu özelliğin bir uygulama gibi davranması için bir çok değişiklik yaptık.",
+          "android": {
+            "0": "Android Chrome: Siteye girin, sağ üstteki üç noktaya",
+            "1": "tıklayın ve \"Ana Ekrana Ekle\"yi seçin."
+          },
+          "ios": {
+            "0": "iOS Safari: Siteye girin, Safarinin en altındaki yukarı oklu kareye",
+            "1": "tıklayın ve \"Ana Ekrana Ekle\"yi seçin"
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "MugenClips nedir?",
+        "contents": {
+          "0": "MugenClips veya sonsuz klipler, çok sayıda topluluk çeviri kanalı tarafından yüklenen kliplerin sürekli döndürüldüğü bir birlikle izleme partisidir"
+        }
+      },
+      "subber": {
+        "title": "Ben bir altyazıcıyım ama kanalımı Holodex'te bulamıyorum.",
+        "contents": {
+          "0": "Lütfen Kanallar sayfasında kanalınızın altyazıcı olarak listelendiğini kontrol edin, eğer değilse lütfen",
+          "1": "bu formu doldurun",
+          "2": "ki sizi manuel olarak ekleyelim. Eğer zaten listede varsanız, lütfen video açıklamalarınızın doğru video/kanal linklerine sahip olduğundan emin olun."
+        }
+      },
+      "feedback": {
+        "title": "Bu projeye geri bildirimde/katkıda bulunmak istiyorum.",
+        "contents": {
+          "0": "Tüm yardım ve fikirlere açığız! Hem Arayüzümüz hem de Backend'imiz katkıda bulunmaya açık olmasına rağmen şu anda sadece Arayüzümüz açık kaynaklıdır. Backend'imize erişim sağlamak için lütfen Discord üzerinden bizimle iletişime geçin veya fikirlerimiz hakkında sohbet edin."
+        }
+      },
+      "support": {
+        "title": "Holodex'e nasıl destek olabilirim?",
+        "contents": {
+          "0": "Kendi kendine barındırılan sunucumuz, çalıştırması aylık yaklaşık 60$ USD tutan, 28 çekirdeğe ve 60GB ram'e sahip bir makine. Özelliklerimizi daha da genişletmeyi iple çekiyoruz ve bu yüzden sunucu ücretlerini kaplamak için bir <a href=\"https://ko-fi.com/holodex\">Ko-Fi</a> başlattık. (<a href=\"https://www.patreon.com/holodex\">Patreon</a>'umuz da var ama Ko-Fi tercihimiz.) <br /><br />Holodex'i desteklemek için ayrıca Twitter'dan bize geri bildirim ve destekleyici mesajlar gönderebilir, <a href=\"https://crwd.in/holodex\">Crowdin</a> üzerinden çevirilerimize yardımcı olabilir veya şarkı veri depomuza katkıda bulunabilirsiniz. Bir yayının komik kısımlarını bulup asıl yayının yorumlarına eklemek bile büyük bir yardım!"
+        }
+      }
+    },
+    "privacyPolicy": "Gizlilik Politikası",
+    "gdpr": "GVKY ve verilerim",
+    "gdprContent": "Analitik amaçlarımız için sayfa görüntülemelerini takip etmek için bir Google Analitics çerezi kullanıyoruz. Girişten sonra, sosyal medya hesabı kullanıcı adınızı ve ID'nizi favorilerinizle ilişkilendiriyoruz. Bu verilere her biri ayrı olarak Email adresiniz (Google için), Discord ID'niz veya Twitter kullanıcı adınız dahil olabilir.",
+    "gdprDeletion": "Kullanıcı verilerinizin silinmesi için, lütfen bizimle discord üzerinden iletişime geçin!",
+    "feedback": "Geri Bildirim/Hata raporu",
+    "feedbackHtml": "<a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Issue Tracker </a> üzerinde bir Issue oluşturabilir veya Holodex takımını Discord üzerinden bulabilirsiniz. <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Teşekkürler",
+      "contents": {
+        "0": "Özellikle",
+        "1": "takımına teşekkürler; çalışmaları:",
+        "2": "Ayrıca overseas bro'lara yardım eden tüm altyazıcılara teşekkürlerimi iletmek istiyorum. Lütfen onlara bir göz atın!",
+        "3": "Bu web sitesi fan yapımıdır ve sitede bulunan içerikler Cover corp ve ortaklarına aittir. Bu site Cover corp tarafından ortaya konulan yönergelere uymaktadır:",
+        "4": "Türetilmiş Çalışma Lisans Sözleşmesi"
+      }
+    },
+    "changelog": {
+      "title": "Değişiklikler"
+    },
+    "news": {
+      "title": "Haberler"
+    },
+    "bookmarklet": {
+      "title": "Yer imcikleri",
+      "description": "Bir YouTube izleme sayfasını Holodex'te kolayca açabilmek için bu yer imciklerini yer imi çubuğunuza sürükleyin:",
+      "openYoutube": "YouTube'u Holodex'te aç"
+    },
+    "links": {
+      "browserAddon": "Tarayıcı eklentisi",
+      "community": "Topluluk",
+      "docs": "Belgeler",
+      "extension": "Eklenti",
+      "repository": "Depo"
+    },
+    "privacy": {
+      "content": {
+        "intro": "Bu sayfa Holodex'in hangi verileri işlediğini ve üçüncü taraf hizmetlerin nasıl kullanıldığını açıklar."
+      },
+      "firstParty": {
+        "title": "Holodex verileri",
+        "collection": "Holodex, site özelliklerini sağlamak için gereken hesap kimliklerini, favorileri, ayarları, oynatma listelerini ve editör eylemlerini saklar.",
+        "voluntary": "Hesap verilerinin çoğu yalnızca giriş yaptığınızda veya hesap özelliklerini kullandığınızda oluşturulur.",
+        "access": "Kullanıcı ayarlarınızı hesap menünüzden görüntüleyebilir veya güncelleyebilirsiniz.",
+        "limitedUse": "Holodex, Google kullanıcı verilerini yalnızca giriş yapmak ve hesap bağlamak için kullanır.",
+        "noPosting": "Holodex, bağlı hesaplarınıza gönderi yapmaz.",
+        "revoking": "Üçüncü taraf hesap erişimini sağlayıcının hesap ayarlarından iptal edebilirsiniz.",
+        "changes": "Site özellikleri veya sağlayıcı gereksinimleri değişirse bu politika da değişebilir."
+      },
+      "links": {
+        "google": "Google Gizlilik Politikası",
+        "twitch": "Twitch Gizlilik Bildirimi"
+      },
+      "thirdParty": {
+        "title": "Üçüncü taraf hizmetler",
+        "analyticsTitle": "Analiz",
+        "analyticsBody": "Holodex, site kullanımı ve güvenilirliğini anlamak için analiz kullanabilir.",
+        "analyticsUse": "Analiz verileri performansı, gezinmeyi ve kararlılığı iyileştirmek için kullanılır.",
+        "embedsTitle": "Gömülü oynatıcılar ve sohbet",
+        "embedsBody": "YouTube ve Twitch gömmeleri bu hizmetler tarafından sağlanır ve kendi çerezleri ile hesap durumlarını kullanabilir.",
+        "linksIntro": "Ayrıntılar için bu sağlayıcı politikalarına bakın:",
+        "choicesTitle": "Seçenekleriniz",
+        "choicesBody": "Üçüncü taraf çerezlerini engelleyebilir veya bağlı sağlayıcılardan çıkış yapabilirsiniz, ancak bazı gömülü özellikler çalışmayı durdurabilir.",
+        "contactTitle": "İletişim",
+        "contactBody": "Gizlilik soruları için Discord veya GitHub üzerinden Holodex ekibiyle iletişime geçin.",
+        "commitment": "Holodex yalnızca özelliklerini çalıştırmak için gereken erişimi ister."
+      }
+    },
+    "stats": {
+      "lastMonth": "geçen ay",
+      "songs": "şarkılar",
+      "subbers": "altyazıcılar",
+      "videos": "videolar",
+      "vtubers": "VTubers",
+      "yesterday": "dün"
+    },
+    "youtubeTerms": {
+      "before": "Gömülü YouTube özelliklerinin kullanımı ",
+      "link": "YouTube Hizmet Şartları'na",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Talep Türü:",
+    "Types": {
+      "AddVtuber": "Holodex'in kanalını ve kliplerini takip etmesi için bir Vtuber ▶️ ekle.",
+      "AddClipper": "Holodex'e bir klip/altyazı kanalı ekle",
+      "ModifyExistingInfo": "Var olan kanal bilgilerini düzenle",
+      "DeleteChannel": "Kanalımı sil"
+    },
+    "DirectContactDisclaimer": "Geri bildirim sağlamak için letişime geçmemiz gerekirse size ulaşabilmemiz için e-postanızı, discord idnizi veya twitter hesabınızı (bu bilgiler gizli kalacak) bırakmaktan çekinmeyin. Sadece holodex yöneticileri bu bilgileri görebilecek.",
+    "DirectContactLabel": "İletişim Bilgileri (isteğe bağlı)",
+    "TwitterHandle": "Kanalın Twitter Tanıtıcısı (isteğe bağlı)",
+    "VtuberGroupLabel": "VTuber Grubu (isteğe bağlı)",
+    "VtuberGroupHint": "Bu vtuber hangi organizasyona / gruba bağlı?",
+    "ChannelLanguageLabel": "Kanalın ana dili",
+    "EnglishNameHint": "Kanal ismi İngilizce değilse İngilizce bir kanal ismi ekleyin. Sözü geçen VTuber'ın yerel isim sırası kurallarını takip edin (Natsuiro Matsuri) veya tercih edilen İngilizce marka ismini kullanın (Elu the Elf, Emma★August).",
+    "EnglishNameLabel": "İngilizce Kanal İsmi",
+    "Comments": "Yorumlar",
+    "CommentsHint": "Bize iletmek istediğin diğer yorumlar.",
+    "VtuberRequirementText": "Bağımsız kanallar için en az 15 bin abone gerekir. Mevcut organizasyonlara bağlı VTuber'lar kabul edilir. <br /><br />Yeni organizasyonlar ortalama abone sayısına göre oluşturulur.<br /><br />Twitch yayıncılarının indekslenebilmesi için resmi bir YouTube kanalı olmalıdır.<br /><br /><strong>\"Past lives\" veya alternatif kimliklerden herhangi bir şekilde bahsedilmesi otomatik olarak reddedilir.</strong>",
+    "ClipperRequirementText": "Clipper kanalları en az 2 aylık olmalı ve düzenli paylaşım yapmalı ya da bir ay içinde 20'den fazla klip paylaşmalıdır. Her gün kısa klip spamlemek, yalnızca 1 dakikadan kısa klipler paylaşmak veya olumsuz küçük resimler kullanmak kanal değerlendirmesinde eksi sayılır. İçerik kalitesi de değerlendirilebilir. <br /><br />Clipper'ların kaynaklarını kanal bağlantıları, @YouTube kanal etiketleri ve video bağlantılarıyla belirtmesi önemlidir. Aşırı kaynak göstermek (ör. Nijisanji'deki herkese bağlantı vermek) Holodex editörlerine ek iş çıkarır; eksik kaynak göstermek (bağlantı yok) kliplerin gizlenmesine neden olur. <br /><br />Holodex aşırı kaynak göstermeyi algılayıp otomatik düzeltmek için algoritmalar içerir, ancak her zaman kusursuz çalışmayabilir. Sık sık aşırı kaynak gösteren clipper'lar gürültüyü azaltmak için platformdan kaldırılabilir.",
+    "DeletionRequirementText": "Silme sadece kanal sahibi/sahipleri tarafından talep edilmeli, lütfen bunu doğrulamamız için iletişim bilgisi sağlayın.",
+    "PageTitle": "Holodex Kanal Talebi",
+    "ChannelURLErrorFeedback": "https://www.youtube.com/channel/UC_____ veya https://www.youtube.com/@_____ biçiminde olmalıdır",
+    "ChannelURLLabel": "Kanal URL'si",
+    "SelectLanguage": "Dil seç",
+    "ChannelURLExample": "Örnek: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, e-posta veya başka bir iletişim yöntemi",
+    "TwitterExample": "Örnek: @holodex",
+    "TwitterPlaceholder": "@kullanıcıadı",
+    "VtuberGroupPlaceholder": "Grup veya organizasyon adı"
+  }
+}

@@ -5,6 +5,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
   const { path } = await context.params;
   const target = new URL(`${API_BASE_URL}/statics/${(path || []).join("/")}`);
   target.search = new URL(request.url).search;
+  if (path?.[0] === "channelImg") return Response.redirect(target, 307);
   const upstream = await fetch(target, { headers: { Origin: API_BASE_URL, Referer: `${API_BASE_URL}/` } });
   const headers = new Headers(upstream.headers);
   headers.delete("content-encoding");

@@ -1,6 +1,5 @@
 import { Content, LayoutItem, decodeLayout, generateContentId, sortLayout } from "@/lib/mv-utils";
-
-export interface DecodedPreset {
+interface DecodedPreset {
   id: string;
   layout: LayoutItem[];
   content: Record<string, Content>;
@@ -9,7 +8,7 @@ export interface DecodedPreset {
   [key: string]: any;
 }
 
-export interface MultiviewLayoutStoreLike {
+interface MultiviewLayoutStoreLike {
   layout: LayoutItem[];
   layoutContent: Record<string, Content>;
   activeVideos: any[];
@@ -27,27 +26,21 @@ export interface MultiviewLayoutStoreLike {
   fetchVideoData: (options?: { refreshLive?: boolean }) => Promise<void>;
 }
 
-export function decodedAutoLayout(store: MultiviewLayoutStoreLike) {
-  return store.autoLayout
-    .filter((layout): layout is string => !!layout)
-    .map((preset) => ({ id: preset, ...decodeLayout(preset) }));
-}
+const decodedAutoLayout = (store: MultiviewLayoutStoreLike) =>
+  store.autoLayout.filter((l): l is string => !!l).map((p) => ({ id: p, ...decodeLayout(p) }));
 
-export function isPreset(store: MultiviewLayoutStoreLike, currentLayout = store.layout, isMobile = false): boolean {
-  const toCompare = isMobile
-    ? store.decodedMobilePresets
-    : (decodedAutoLayout(store) as DecodedPreset[]).concat(store.decodedDesktopPresets);
-  const comparable = toCompare.filter((preset) => preset.layout.length === currentLayout.length);
-  if (comparable.length === 0) return false;
+const getPresets = (store: MultiviewLayoutStoreLike, isMobile: boolean) =>
+  isMobile ? store.decodedMobilePresets : (decodedAutoLayout(store) as DecodedPreset[]).concat(store.decodedDesktopPresets as DecodedPreset[]);
+
+const findPresetForCount = (presets: DecodedPreset[], target: number) =>
+  presets.find((p) => p.videoCellCount === target) ?? presets.find((p) => p.videoCellCount >= target);
+
+function isPreset(store: MultiviewLayoutStoreLike, currentLayout = store.layout, isMobile = false): boolean {
+  const comparable = getPresets(store, isMobile).filter((p) => p.layout.length === currentLayout.length);
+  if (!comparable.length) return false;
   const clone = [...currentLayout].sort(sortLayout);
-  return comparable.some((preset) => {
-    for (let i = 0; i < currentLayout.length; i += 1) {
-      const presetCell = preset.layout[i];
-      const layoutCell = clone[i];
-      if (presetCell.x !== layoutCell.x || presetCell.y !== layoutCell.y || presetCell.w !== layoutCell.w || presetCell.h !== layoutCell.h) return false;
-    }
-    return true;
-  });
+  return comparable.some((preset) =>
+    preset.layout.every((c, i) => c.x === clone[i].x && c.y === clone[i].y && c.w === clone[i].w && c.h === clone[i].h));
 }
 
 export function setMultiview(store: MultiviewLayoutStoreLike, { layout, content, mergeContent = false, hintAdd = false, fillVideo = null }: { layout: LayoutItem[]; content: Record<string, Content>; mergeContent?: boolean; hintAdd?: boolean; fillVideo?: any }) {
@@ -124,54 +117,35 @@ export function tryFillVideo(store: MultiviewLayoutStoreLike, video: any) {
   if (emptyCells.length) addVideoWithId(store, video, emptyCells[0].i);
 }
 
-function clonePresetLayout(preset: DecodedPreset): DecodedPreset {
-  return JSON.parse(JSON.stringify(preset));
-}
-
 export function addVideoAutoLayout(store: MultiviewLayoutStoreLike, video: any, isMobile: boolean, onConflict: (layout: DecodedPreset) => void) {
-  const presets = isMobile ? store.decodedMobilePresets : decodedAutoLayout(store) as DecodedPreset[];
-  const targetCount = store.activeVideos.length + 1;
-  const newLayout = presets.find((p) => p.videoCellCount === targetCount) ?? presets.find((p) => p.videoCellCount >= targetCount);
+  const newLayout = findPresetForCount(isMobile ? store.decodedMobilePresets : decodedAutoLayout(store), store.activeVideos.length + 1);
   if (!newLayout) return;
-  const clonedLayout = clonePresetLayout(newLayout);
+  const cloned = structuredClone(newLayout);
   if (!store.layout.length || isPreset(store, store.layout, isMobile)) {
-    setMultiview(store, { ...clonedLayout, mergeContent: true, hintAdd: true, fillVideo: video });
-    return;
+    setMultiview(store, { ...cloned, mergeContent: true, hintAdd: true, fillVideo: video });
+  } else {
+    onConflict({ ...cloned, fillVideo: video });
   }
-  onConflict({ ...clonedLayout, fillVideo: video });
 }
 
 export function addCellAutoLayout(store: MultiviewLayoutStoreLike, isMobile: boolean) {
-  const presets = isMobile ? store.decodedMobilePresets : decodedAutoLayout(store) as DecodedPreset[];
-  const targetCount = store.nonChatCellCount + 1;
-  const newLayout = presets.find((p) => p.videoCellCount === targetCount) ?? presets.find((p) => p.videoCellCount >= targetCount);
-  if (newLayout) {
-    const clonedLayout = clonePresetLayout(newLayout);
-    if (!store.layout.length || isPreset(store, store.layout, isMobile)) {
-      setMultiview(store, { ...clonedLayout, mergeContent: true, hintAdd: false });
-      return;
-    }
+  const newLayout = findPresetForCount(isMobile ? store.decodedMobilePresets : decodedAutoLayout(store), store.nonChatCellCount + 1);
+  if (newLayout && (!store.layout.length || isPreset(store, store.layout, isMobile))) {
+    setMultiview(store, { ...structuredClone(newLayout), mergeContent: true, hintAdd: false });
+  } else {
+    store.addLayoutItem();
   }
-  store.addLayoutItem();
 }
 
 export function deleteVideoAutoLayout(store: MultiviewLayoutStoreLike, id: string, isMobile: boolean) {
-  if (isPreset(store, store.layout, isMobile) && store.layoutContent[id]?.type !== "chat") {
-    if (store.nonChatCellCount === 1) {
-      store.reset();
-      return;
-    }
-    const presets = isMobile ? store.decodedMobilePresets : decodedAutoLayout(store) as DecodedPreset[];
-    const targetCount = store.nonChatCellCount - 1;
-    const newLayout = presets.find((p) => p.videoCellCount === targetCount);
-    if (!newLayout) {
-      store.removeLayoutItem(id);
-      return;
-    }
-    const clonedLayout = clonePresetLayout(newLayout);
-    store.deleteLayoutContent(id);
-    setMultiview(store, { ...clonedLayout, mergeContent: true });
-  } else {
+  if (!(isPreset(store, store.layout, isMobile) && store.layoutContent[id]?.type !== "chat")) {
     store.removeLayoutItem(id);
+    return;
   }
+  if (store.nonChatCellCount === 1) { store.reset(); return; }
+  const presets = isMobile ? store.decodedMobilePresets : decodedAutoLayout(store);
+  const newLayout = presets.find((p) => p.videoCellCount === store.nonChatCellCount - 1);
+  if (!newLayout) { store.removeLayoutItem(id); return; }
+  store.deleteLayoutContent(id);
+  setMultiview(store, { ...structuredClone(newLayout), mergeContent: true });
 }

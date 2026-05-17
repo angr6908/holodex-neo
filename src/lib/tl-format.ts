@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-
 export function getTlTextStyle(cc = "", oc = "", strokeWidth = "1px"): CSSProperties {
   return {
     WebkitTextFillColor: cc === "" ? "unset" : cc,
@@ -9,34 +8,40 @@ export function getTlTextStyle(cc = "", oc = "", strokeWidth = "1px"): CSSProper
 }
 
 export function downloadTextFile(filename: string, contents: string): void {
-  const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([contents], { type: "text/plain" })), download: filename });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
+  link.download = filename;
   link.click();
   link.remove();
 }
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
 
 export function formatTlTimestamp(raw: number): string {
   let ms = Math.max(0, Math.floor(raw || 0));
   const hh = Math.floor(ms / 3600000); ms -= hh * 3600000;
   const mm = Math.floor(ms / 60000); ms -= mm * 60000;
   const ss = Math.floor(ms / 1000); ms -= ss * 1000;
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(hh)}:${p(mm)}:${p(ss)}.${p(Math.floor(ms / 10))}`;
+  return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}.${pad2(Math.floor(ms / 10))}`;
 }
 
 function isSrtTimestamp(testString: string): boolean {
   const [hStr, mStr, smStr] = testString.split(":");
   if (!smStr) return false;
-  const hrs = Number.parseInt(hStr, 10), mins = Number.parseInt(mStr, 10);
+  const hrs = Number.parseInt(hStr, 10);
+  const mins = Number.parseInt(mStr, 10);
   if (Number.isNaN(hrs) || Number.isNaN(mins) || mins > 60) return false;
   const [secStr, msStr] = smStr.split(",");
   if (!msStr) return false;
-  const secs = Number.parseInt(secStr, 10), ms = Number.parseInt(msStr, 10);
+  const secs = Number.parseInt(secStr, 10);
+  const ms = Number.parseInt(msStr, 10);
   return !Number.isNaN(secs) && secs <= 60 && !Number.isNaN(ms) && ms <= 1000;
 }
 
 export function isSrtTimestampRange(timeString: string): boolean {
   const timeSplit = timeString.split("-->");
-  return timeSplit.length === 2 && isSrtTimestamp(timeSplit[0].trim()) && isSrtTimestamp(timeSplit[1].trim());
+  if (timeSplit.length !== 2) return false;
+  return isSrtTimestamp(timeSplit[0].trim()) && isSrtTimestamp(timeSplit[1].trim());
 }
 
 type SrtCue = {
@@ -45,20 +50,20 @@ type SrtCue = {
   duration: number;
 };
 
-export type TlImportProfile = {
+type TlImportProfile = {
   Name: string;
   CC: string;
   OC: string;
 };
 
-export type TlImportEntry = {
+type TlImportEntry = {
   text: string;
   startTime: number;
   duration: number;
   profileIndex: number;
 };
 
-export type TlImportParseResult = {
+type TlImportParseResult = {
   profiles: TlImportProfile[];
   entries: TlImportEntry[];
 };
@@ -307,19 +312,18 @@ export function parseSrtCues(dataFeed: string): SrtCue[] {
   return cues;
 }
 
-export function parseSrtTimestamp(targetString: string): number {
+function parseSrtTimestamp(targetString: string): number {
   const [hhmm, ms] = targetString.split(",");
   const [h, m, s] = hhmm.split(":").map(Number);
   return h * 3600000 + m * 60000 + s * 1000 + Number(ms);
 }
 
-export function stringifyTlExportTime(time: number, mode: boolean): string {
+function stringifyTlExportTime(time: number, srtSeparator: boolean): string {
   const h = Math.floor(time / 3600000);
   const m = Math.floor((time % 3600000) / 60000);
   const s = Math.floor((time % 60000) / 1000);
   const ms = time % 1000;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(h)}:${pad(m)}:${pad(s)}${mode ? "," : "."}${ms}`;
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}${srtSeparator ? "," : "."}${ms}`;
 }
 
 export function buildTlAssExport(entries: any[], profile: any[]): string {

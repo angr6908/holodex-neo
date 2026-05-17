@@ -1,17 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { mdiEyeOffOutline, mdiEyeOutline } from "@mdi/js";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
+import { EyeOff, Eye } from "@/lib/icons";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Item } from "@/components/ui/item";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelInfo } from "@/components/channel/ChannelInfo";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { ChannelCard } from "@/components/channel/ChannelCard";
 import { useAppState } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
-
+import { cn, getBreakpoint } from "@/lib/utils";
 export function ChannelList({
   channels,
   cardView = false,
@@ -27,20 +29,11 @@ export function ChannelList({
   groupKey?: string;
   loading?: boolean;
 }) {
-  const { t } = useI18n();
-  const router = useRouter();
+  const t = useTranslations();
   const app = useAppState();
   const isXs = app.windowWidth <= 420;
-  const colSize =
-    app.windowWidth < 600
-      ? 1
-      : app.windowWidth < 960
-        ? 2
-        : app.windowWidth < 1264
-          ? 3
-          : app.windowWidth < 1904
-            ? 4
-            : 5;
+  const bpCols = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 };
+  const colSize = bpCols[getBreakpoint(app.windowWidth)];
   const gridStyle = {
     "--channel-grid-columns": colSize,
   } as React.CSSProperties;
@@ -96,19 +89,6 @@ export function ChannelList({
     app.patchSettings({ hiddenGroups });
   }
 
-  function activateChannel(channelId: string, event?: React.MouseEvent | React.KeyboardEvent) {
-    if (!channelId) return;
-    const target = event?.target;
-    if (target instanceof Element && target.closest("a,button,input,textarea,select")) return;
-    if (event && "preventDefault" in event) event.preventDefault();
-    if (event && "stopPropagation" in event) event.stopPropagation();
-    if (event && "metaKey" in event && (event.metaKey || event.ctrlKey || event.shiftKey)) {
-      window.open(`/channel/${channelId}`, "_blank", "noopener");
-      return;
-    }
-    router.push(`/channel/${channelId}`);
-  }
-
   if (cardView) {
     if (grouped) {
       return (
@@ -118,7 +98,7 @@ export function ChannelList({
               <div className="px-2 py-3 text-xl font-medium tracking-tight text-[color:var(--color-foreground)]">
                 {group.title}
               </div>
-              <div className="channel-card-grid" style={gridStyle}>
+              <div className="grid grid-cols-[repeat(var(--channel-grid-columns,1),minmax(140px,1fr))] gap-x-1 gap-y-[0.35rem]" style={gridStyle}>
                 {group.items.map((channel: any, itemIndex: number) => (
                   <div
                     key={`${channel.id || "channel"}-${index}-${itemIndex}`}
@@ -134,7 +114,7 @@ export function ChannelList({
       );
     }
     return (
-      <div className="channel-card-grid" style={gridStyle}>
+      <div className="grid grid-cols-[repeat(var(--channel-grid-columns,1),minmax(140px,1fr))] gap-x-1 gap-y-[0.35rem]" style={gridStyle}>
         {(channels || []).map((channel, index) => (
           <div
             key={`${channel.id || "channel"}-${index}`}
@@ -151,15 +131,19 @@ export function ChannelList({
     return (
       <div className="space-y-3">
         {channelsByGroup.map((group, index) => (
-          <details
+          <Collapsible
             key={`list-group-${index}`}
-            open
-            className="channel-list-container"
+            defaultOpen
+            className="overflow-hidden rounded-xl border border-border"
           >
-            <summary className="flex cursor-pointer list-none justify-between gap-3 px-4 py-3">
-              <div className="flex-1 text-lg font-medium tracking-tight text-[color:var(--color-foreground)]">
+            <div className="flex justify-between gap-3 px-4 py-3">
+              <CollapsibleTrigger
+                render={
+                  <Button type="button" variant="ghost" className="h-auto flex-1 justify-start p-0 text-left text-lg font-medium tracking-tight hover:bg-transparent" />
+                }
+              >
                 {group.title}
-              </div>
+              </CollapsibleTrigger>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -175,11 +159,7 @@ export function ChannelList({
                     toggleGroupDisplay(group);
                   }}
                 >
-                  <Icon
-                    icon={group.hide ? mdiEyeOffOutline : mdiEyeOutline}
-                    size="sm"
-                    className={group.hide ? "text-rose-400" : "text-slate-400"}
-                  />
+                  {group.hide ? <EyeOff className={cn("size-4", group.hide ? "text-rose-400" : "text-slate-400")} /> : <Eye className={cn("size-4", group.hide ? "text-rose-400" : "text-slate-400")} />}
                 </Button>
                 <Button
                   variant="outline"
@@ -197,60 +177,48 @@ export function ChannelList({
                     toggleFavoriteAll(index);
                   }}
                 >
-                  <Icon
-                    icon={icons.mdiHeart}
-                    size="sm"
-                    className={
-                      group.allFavorited && app.isLoggedIn
+                  <icons.Heart className={cn("size-4", group.allFavorited && app.isLoggedIn
                         ? "text-rose-400"
-                        : "text-slate-400"
-                    }
-                  />
+                        : "text-slate-400")} />
                   {t("views.search.type.all")}
                 </Button>
               </div>
-            </summary>
-            {group.items.map((channel: any, index2: number) => (
-              <div key={`${channel.id || "channel"}-${index}-${index2}`}>
-                <div className="channel-list-divider" />
-                <div
-                  style={{ opacity: channel.inactive ? 0.5 : 1 }}
-                >
-                  {channel ? (
-                    <div
-                      role="link"
-                      tabIndex={0}
-                      className="flex cursor-pointer items-start gap-3 px-4 py-3 no-underline hover:bg-white/5"
-                      onClick={(event) => activateChannel(channel.id, event)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") activateChannel(channel.id, event);
-                      }}
-                    >
-                      <div className="shrink-0">
-                        <ChannelImg channel={channel} size={55} />
-                      </div>
-                      <ChannelInfo
-                        channel={channel}
-                        includeVideoCount={includeVideoCount}
-                        style={{ width: "80px" }}
-                      >
-                        {isXs ? (
-                          <ChannelSocials
-                            channel={channel}
-                            className="justify-start p-0"
-                            showDelete
-                          />
+            </div>
+            <CollapsibleContent>
+              {group.items.map((channel: any, index2: number) => (
+                <div key={`${channel.id || "channel"}-${index}-${index2}`}>
+                  <Separator />
+                  <div
+                    style={{ opacity: channel.inactive ? 0.5 : 1 }}
+                  >
+                    {channel ? (
+                      <Item className="flex items-start gap-3 rounded-none px-4 py-3 hover:bg-white/5">
+                        <div className="shrink-0">
+                          <ChannelImg channel={channel} size={55} />
+                        </div>
+                        <ChannelInfo
+                          channel={channel}
+                          includeVideoCount={includeVideoCount}
+                          style={{ width: "80px" }}
+                        >
+                          {isXs ? (
+                            <ChannelSocials
+                              channel={channel}
+                              className="justify-start p-0"
+                              showDelete
+                            />
+                          ) : null}
+                        </ChannelInfo>
+                        {!isXs ? (
+                          <ChannelSocials channel={channel} showDelete />
                         ) : null}
-                      </ChannelInfo>
-                      {!isXs ? (
-                        <ChannelSocials channel={channel} showDelete />
-                      ) : null}
-                    </div>
-                  ) : null}
+                      </Item>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </details>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         ))}
       </div>
     );
@@ -258,21 +226,13 @@ export function ChannelList({
 
   if ((channels || []).length > 0) {
     return (
-      <div className="channel-list-container">
+      <div className="overflow-hidden rounded-xl border border-border">
         {(channels || []).map((channel, index) => (
           <div key={`${channel.id || "channel"}-${index}`}>
-            {index > 0 ? <div className="channel-list-divider" /> : null}
+            {index > 0 ? <Separator /> : null}
             <div style={{ opacity: channel.inactive ? 0.5 : 1 }}>
               {channel ? (
-                <div
-                  role="link"
-                  tabIndex={0}
-                  className="flex cursor-pointer items-start gap-3 px-4 py-3 no-underline hover:bg-white/5"
-                  onClick={(event) => activateChannel(channel.id, event)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") activateChannel(channel.id, event);
-                  }}
-                >
+                <Item className="flex items-start gap-3 rounded-none px-4 py-3 hover:bg-white/5">
                   <div className="shrink-0">
                     <ChannelImg channel={channel} size={55} />
                   </div>
@@ -291,7 +251,7 @@ export function ChannelList({
                   {!isXs ? (
                     <ChannelSocials channel={channel} showDelete />
                   ) : null}
-                </div>
+                </Item>
               ) : null}
             </div>
           </div>
@@ -302,16 +262,16 @@ export function ChannelList({
 
   if (loading) {
     return (
-      <div className="channel-list-container">
+      <div className="overflow-hidden rounded-xl border border-border">
         {Array.from({ length: 12 }, (_, i) => i + 1).map((i) => (
           <div key={i}>
-            {i > 1 ? <div className="channel-list-divider" /> : null}
+            {i > 1 ? <Separator /> : null}
             <div className="flex items-start gap-3 px-4 py-3">
-              <div className="h-[55px] w-[55px] shrink-0 animate-pulse rounded-full bg-[color:var(--skeleton-fill)]" />
+              <Skeleton className="h-[55px] w-[55px] shrink-0 rounded-full" />
               <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
-                <div className="h-4 w-3/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-3 w-2/5 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
-                <div className="h-3 w-1/3 animate-pulse rounded bg-[color:var(--skeleton-fill)]" />
+                <Skeleton className="h-4 w-3/5" />
+                <Skeleton className="h-3 w-2/5" />
+                <Skeleton className="h-3 w-1/3" />
               </div>
             </div>
           </div>

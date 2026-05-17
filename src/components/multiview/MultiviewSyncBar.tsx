@@ -3,24 +3,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import throttle from "lodash-es/throttle";
-import { mdiFastForward10, mdiLinkVariant, mdiPause, mdiPlaySpeed, mdiRewind10 } from "@mdi/js";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Dialog } from "@/components/ui/Dialog";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
+import { toast } from "sonner";
+import { FastForward, Link, Pause, Gauge } from "@/lib/icons";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { dayjs, formatDuration } from "@/lib/time";
 import { encodeLayout } from "@/lib/mv-utils";
-import { useI18n } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
+import { cn } from "@/lib/utils";
 import * as icons from "@/lib/icons";
 
 const availablePlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 export function MultiviewSyncBar({ className = "" }: { className?: string }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const store = useMultiviewStore();
   const cells = useOrderedMultiviewVideoCells(store.layout);
@@ -32,7 +35,6 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
   const [timeTooltipLeft, setTimeTooltipLeft] = useState<string | number>(0);
   const [timeTooltipText, setTimeTooltipText] = useState("");
   const [showConfiguration, setShowConfiguration] = useState(false);
-  const [doneCopy, setDoneCopy] = useState(false);
   const lastSyncTimeMillis = useRef(Date.now());
   const currentTsRef = useRef(0);
   const pausedRef = useRef(true);
@@ -248,26 +250,24 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
     const offsetArr = overlapVideos.map((v: any) => offsets[v.id] ?? 0);
     if (offsetArr.find((offset: any) => Number(offset))) params.append("offsets", offsetArr.join(","));
     navigator.clipboard?.writeText(`${window.origin}/multiview/${layoutParam}${params.toString() ? `?${params.toString()}` : ""}`).then(() => {
-      setDoneCopy(true);
-      setTimeout(() => setDoneCopy(false), 1400);
+      toast.success(t("component.videoCard.copiedToClipboard"));
     });
   }
 
   return (
-    <div className={`sync-bar flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-2 ${className}`}>
-      <div className="mr-2 flex w-[120px] flex-col items-center" style={{ height: "100%" }}>
+    <Card className={cn("sticky bottom-0 flex h-[100px] w-full flex-row items-center justify-center gap-0 rounded-2xl border-white/10 bg-white/5 p-2 text-inherit shadow-[0_11px_15px_-7px_rgba(0,0,0,0.2),0_24px_38px_3px_rgba(0,0,0,0.14),0_9px_46px_8px_rgba(0,0,0,0.12)]", className)}>
+      <div className="mr-2 flex h-full w-[120px] flex-col items-center">
         {minTs ? <div className="text-center text-body-2">{currentDuration} / {totalDuration}</div> : null}
-        <div className="flex items-center justify-between"><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current - 10)}><Icon icon={mdiRewind10} size="sm" /></Button><Button variant="ghost" size="icon" onClick={() => setPaused(!paused)}><Icon icon={paused ? icons.mdiPlay : mdiPause} size="lg" /></Button><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current + 10)}><Icon icon={mdiFastForward10} size="sm" /></Button></div>
-        <div className="flex items-center"><Button variant="ghost" size="icon" onClick={() => setShowConfiguration(!showConfiguration)}><Icon icon={icons.mdiCog} size="sm" /></Button><label className="relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl text-slate-300 hover:bg-white/8"><Icon icon={mdiPlaySpeed} size="sm" /><select value={playbackRate} className="absolute inset-0 cursor-pointer opacity-0" onChange={(event) => setPlaybackRate(Number(event.target.value))}>{availablePlaybackRates.map((rate) => <option key={rate} value={rate}>{rate}</option>)}</select></label><Button variant="ghost" size="icon" onClick={onShareClick}><Icon icon={mdiLinkVariant} size="sm" /></Button></div>
+        <div className="flex items-center justify-between"><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current - 10)}><FastForward className="size-4" /></Button><Button variant="ghost" size="icon" onClick={() => setPaused(!paused)}>{paused ? <icons.Play className="size-6" /> : <Pause className="size-6" />}</Button><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current + 10)}><FastForward className="size-4" /></Button></div>
+        <div className="flex items-center"><Button variant="ghost" size="icon" onClick={() => setShowConfiguration(!showConfiguration)}><icons.Settings className="size-4" /></Button><Select value={String(playbackRate)} onValueChange={(value) => setPlaybackRate(Number(value))}><SelectTrigger className="h-10 w-10 rounded-xl border-0 bg-transparent p-0 text-slate-300 shadow-none hover:bg-white/8 [&>svg:last-child]:hidden"><Gauge className="size-4" /><SelectValue className="sr-only" /></SelectTrigger><SelectContent>{availablePlaybackRates.map((rate) => <SelectItem key={rate} value={String(rate)}>{rate}</SelectItem>)}</SelectContent></Select><Button variant="ghost" size="icon" onClick={onShareClick}><Link className="size-4" /></Button></div>
       </div>
-      <div className="grow self-start" style={{ position: "relative" }}>
-        <div className="time-tooltip-wrapper"><div style={{ display: hovering ? undefined : "none", marginLeft: timeTooltipLeft }} className="time-tooltip">{timeTooltipText}</div></div>
-        <div className="progressSlider pr-2"><div>{!hasVideosToSync ? t("views.multiview.sync.nothingToSync") : null}</div><div style={{ position: "relative", display: hasVideosToSync ? undefined : "none" }}><div className="slider-container" onMouseEnter={() => setHovering(true)} onMouseMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); onMouseOverThrottled(event.clientX, rect.x, event.currentTarget.clientWidth); }} onMouseLeave={() => setHovering(false)}><input type="range" min="0" max="100" value={currentProgress} className="sync-slider" step="0.01" onWheel={(event) => (event.currentTarget as HTMLInputElement).blur()} onInput={(event) => onSliderInputThrottled.current?.(Number((event.target as HTMLInputElement).value))} onChange={(event) => setTime(getTimeForPercent(Number(event.target.value)))} /></div>{splitProgressBarData.map((video: any, index: number) => (
+      <div className="relative grow self-start">
+        <div className="absolute top-[-30px] z-[5] ml-8 w-[calc(100%-40px)]"><div style={{ display: hovering ? undefined : "none", marginLeft: timeTooltipLeft }} className="inline-block -translate-x-1/2 -translate-y-1/2 whitespace-pre rounded bg-black p-1 text-center text-white opacity-70">{timeTooltipText}</div></div>
+        <div className="h-[90px] overflow-y-scroll overflow-x-hidden pr-2"><div>{!hasVideosToSync ? t("views.multiview.sync.nothingToSync") : null}</div><div className={cn("relative", !hasVideosToSync && "hidden")}><div className="sticky left-8 top-0 z-[5] -mt-[90px] h-[90px] w-[calc(100%-32px)] border-0" onMouseEnter={() => setHovering(true)} onMouseMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); onMouseOverThrottled(event.clientX, rect.x, event.currentTarget.clientWidth); }} onMouseLeave={() => setHovering(false)}><Slider min={0} max={100} value={[currentProgress]} step={0.01} className="h-full w-full opacity-70 [&_[data-slot=slider-range]]:bg-transparent [&_[data-slot=slider-thumb]]:h-[90px] [&_[data-slot=slider-thumb]]:w-[3px] [&_[data-slot=slider-thumb]]:rounded-none [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]]:opacity-80 [&_[data-slot=slider-thumb]]:ring-0 [&_[data-slot=slider-track]]:h-full [&_[data-slot=slider-track]]:bg-transparent" onWheel={(event) => (event.currentTarget as HTMLElement).blur()} onValueChange={(value) => onSliderInputThrottled.current?.(Array.isArray(value) ? value[0] : value)} onValueCommitted={(value) => setTime(getTimeForPercent(Array.isArray(value) ? value[0] : value))} /></div>{splitProgressBarData.map((video: any, index: number) => (
           <div key={`${video.id || "video"}-${index}`} className="my-1 flex items-center"><ChannelImg channel={video.channel} size={24} className="px-1" noLink /><div className="flex"><div style={{ zIndex: 1, marginLeft: `${(video.offset * 100).toFixed(2)}%`, width: `${(video.width * 100).toFixed(2)}%`, height: 8, background: `linear-gradient(to right, var(--color-secondary) 0%, var(--color-secondary) ${(currentProgressByVideo[video.id] || 0)}%, rgba(255,255,255,0.08) ${(currentProgressByVideo[video.id] || 0)}%, rgba(255,255,255,0.08) 100%)` }} className="rounded-full bg-[color:var(--color-secondary)]" /></div></div>
         ))}</div></div>
       </div>
-      <Dialog open={showConfiguration} className="max-w-lg p-0" onOpenChange={setShowConfiguration}><Card className="space-y-5 p-5"><div className="text-lg font-semibold text-white">{t("views.multiview.sync.syncSettings")}</div><div className="text-sm text-slate-200">{t("views.multiview.sync.syncSettingsDetail")} {overlapVideos.map((video: any, index: number) => <div key={`${video.id || "video"}-${index}`} className="my-3 flex justify-between gap-3"><ChannelImg channel={video.channel} size={40} noLink /><div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}>-0.5</Button><Input value={offsets[video.id] || "0"} className="w-24" type="number" onChange={(event) => setOffset(video.id, +event.target.value)} /><span className="text-xs text-slate-400">sec</span><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}>+0.5</Button></div></div>)}</div></Card></Dialog>
-      {doneCopy ? <div className="fixed bottom-4 left-1/2 z-[120] -translate-x-1/2 rounded-2xl border border-emerald-400/30 bg-emerald-500/20 px-4 py-3 text-sm text-white backdrop-blur">{t("component.videoCard.copiedToClipboard")}</div> : null}
-    </div>
+      <Dialog open={showConfiguration} onOpenChange={setShowConfiguration}><DialogContent className="max-w-lg p-0"><Card className="space-y-5 p-5"><div className="text-lg font-semibold text-white">{t("views.multiview.sync.syncSettings")}</div><div className="text-sm text-slate-200">{t("views.multiview.sync.syncSettingsDetail")} {overlapVideos.map((video: any, index: number) => <div key={`${video.id || "video"}-${index}`} className="my-3 flex justify-between gap-3"><ChannelImg channel={video.channel} size={40} noLink /><div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}>-0.5</Button><Input value={offsets[video.id] || "0"} className="w-24" type="number" onChange={(event) => setOffset(video.id, +event.target.value)} /><span className="text-xs text-slate-400">sec</span><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}>+0.5</Button></div></div>)}</div></Card></DialogContent></Dialog>
+    </Card>
   );
 }

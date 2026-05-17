@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Gomenasorry!",
+      "textBeforeTwitter": "Hiba történt a tartalmak visszakeresése során, kérlek nézd a Twittert ",
+      "textAfterTwitter": " vagy jelentsd itt:",
+      "aboutPage": "Az oldalról",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Frissítés",
+      "hardRefreshTip": "Tipp: kényszerített frissítés/gyorsítótár törlése:"
+    },
+    "channelList": {
+      "signInToFavorite": "Jelentkezz be, hogy hozzáadj kedvenceket",
+      "unfavoriteAllInGroup": "Minden csoport eltávolítása kedvencek közül",
+      "favoriteAllInGroup": "Minden csoport kedvencek közé helyezése",
+      "enableGroupDisplay": "Csatornák megjelenítése ezen csoportból a kezdőlapon",
+      "disableGroupDisplay": "Csatornák elrejtése ezen csoportból a kezdőlapon"
+    },
+    "channelInfo": {
+      "stats": "Statisztikák",
+      "videoCount": "{arg0} Videó",
+      "clipCount": "{n} Klip",
+      "subscriberCount": "{n} Feliratkozó",
+      "subscriberNA": "Feliratkozók száma nem elérhető",
+      "totalViews": "Megtekintések",
+      "inactiveChannel": "Ez a csatorna már nem aktív."
+    },
+    "channelSocials": {
+      "addToFavorites": "Hozzáadás kedvencekhez",
+      "removeFromFavorites": "Eltávolítás kedvencek közül",
+      "unblock": "Csatorna tiltásának feloldása",
+      "block": "Csatorna tiltása Holodexen",
+      "blocked": "Letiltva"
+    },
+    "mainNav": {
+      "home": "Kezdőlap",
+      "favorites": "Kedvencek",
+      "channels": "Csatornák",
+      "about": "Információ",
+      "library": "Könyvtár",
+      "settings": "Beállítások",
+      "login": "Bejelentkezés",
+      "logout": "Kijelentkezés",
+      "MugenClips": "MugenClips<sup>béta</sup>",
+      "accountSettings": "Fiók beállításai",
+      "music": "Zene",
+      "multiview": "MultiView",
+      "points": "pont",
+      "playlist": "Lejátszási lista"
+    },
+    "videoCard": {
+      "clips": "{n} Klip",
+      "watching": "{arg0} néző",
+      "liveNow": "Élőben",
+      "openInBackground": "Megnyitás a háttérben",
+      "edit": "Szerkesztés",
+      "copiedToClipboard": "Vágólapra másolva.",
+      "copyLink": "Holodex link másolása",
+      "premiere": "Bemutató",
+      "googleCalendar": "Hozzáadás a Google naptárhoz",
+      "totalTLs": "Összes élő chat fordítás",
+      "totalSongs": "Időbélyegzett dalok száma",
+      "tlPresence": "Aktív fordító az utolsó 30 percben",
+      "uncertainPlaceholder": "A kezdés időpontja nincs hivatalosan megerősítve, eltérhet a valóságtól.",
+      "typeScheduledYT": "Beütemezett stream",
+      "typeExternalStream": "Külső Stream",
+      "typeEventPlaceholder": "Beütemezett esemény",
+      "openClient": "Fordító kliens megnyitása",
+      "openScriptEditor": "Script szerkesztő megnyitása",
+      "popoutChat": "Felugró ablak YouTube chat",
+      "uploadScript": "Fordítás script feltöltése",
+      "removeFromPlaylist": "Eltávolítás a lejátszási listáról"
+    },
+    "videoDescription": {
+      "description": "Leírás"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Kevesebb megjelenítése",
+      "showMore": "Továbbiak megjelenítése"
+    },
+    "watch": {
+      "streamingFor": "Streamelve {arg0}",
+      "nextUpInMugen": "Következik",
+      "loadingVideo": "Videó betöltése",
+      "Comments": {
+        "title": "Hozzászólások",
+        "all": "Összes"
+      }
+    },
+    "search": {
+      "searchLabel": "Keresés",
+      "type": {
+        "channel": "csatorna",
+        "topic": "téma",
+        "org": "szervezet",
+        "titledesc": "cím/leírás",
+        "title": "cím",
+        "description": "leírás",
+        "comments": "hozzászólások",
+        "videourl": "videó URL"
+      },
+      "placeholder": "Streamek, klipek, csatornák keresése",
+      "clear": "Törlés",
+      "loading": "Betöltés...",
+      "typeTwoCharacters": "Írj be 2 karaktert",
+      "noChannelsFound": "Nem található csatorna",
+      "noTopicsFound": "Nem található téma",
+      "noOrganizationsFound": "Nem található szervezet",
+      "noResultsFound": "Nincs találat",
+      "searchChannels": "Csatornák keresése",
+      "filterByTopicOrgChannel": "Szűrés téma, szervezet, csatorna szerint ...",
+      "topicOrgChannelPlaceholder": "Téma, szervezet vagy csatorna",
+      "toggleSearch": "Keresés váltása",
+      "organizations": "Szervezetek",
+      "searchOrganizations": "Szervezetek keresése",
+      "quickSelect": "Gyors kijelölés",
+      "allVtubers": "Összes VTuber",
+      "selectedOrgCount": "{count} szervezet",
+      "additionalOrgCount": "{count} további",
+      "unset": "Nincs beállítva"
+    },
+    "relatedVideo": {
+      "clipsLabel": "klipek",
+      "simulcastsLabel": "közvetítések",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Összes párhuzamos adás megnyitása Multiview-ban",
+          "error": {
+            "layoutBuildFailure": "Hiba történt a Multiview link létrehozásakor. Kérjük, jelentsd GitHubon vagy Discordon.",
+            "noDefaultLayout": "A Multiview-nak nincs elrendezése {videoCount} videóhoz.",
+            "noSimulcasts": "Ehhez a videóhoz nincs párhuzamos adás."
+          }
+        }
+      },
+      "refersLabel": "utal",
+      "sourcesLabel": "források",
+      "songsLabel": "dalok",
+      "recommendationsLabel": "ajánlott",
+      "sameSourceClips": "Ugyan abból a streamből"
+    },
+    "paginateLoad": {
+      "newer": "Újabbak",
+      "older": "Régebbiek"
+    },
+    "music": {
+      "clearPlaylist": "Törlés",
+      "trendingForOrg": "Népszerű {arg0}-tól/től"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Legújabb dalok",
+      "weeklyTopPlaysHeader": "Heti legjátszottabbak",
+      "trending": "Legnépszerűbb"
+    },
+    "songList": {
+      "songTitle": "Cím",
+      "songCoveredBy": "Előadó",
+      "songDuration": "Hossz",
+      "sangOnTime": "Énekelve"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Havi legjátszottabbak {arg0}-tól/től",
+      "weeklyTopForOrg": "Heti legjátszottabbak {arg0}-tól/től"
+    },
+    "installPrompt": {
+      "title": "Holodex telepítése",
+      "callToAction": "Videók nézése Holodexen akkor a legjobb ha a kezdőlaphoz vannak adva",
+      "notNowBtn": "Most nem",
+      "installBtn": "Telepítés",
+      "iOS": {
+        "popup": "Holodex telepítése iOS-re",
+        "afterExportIcon": "majd 'Hozzáadás a kezdőképernyőhöz'",
+        "beforeExportIcon": "Érintés"
+      }
+    },
+    "media": {
+      "remove": "Eltávolítás"
+    },
+    "comment": {
+      "close": "Bezárás",
+      "readMore": "Bővebben"
+    },
+    "reportDialog": {
+      "title": "Bejelentés",
+      "collabing": "Ez a csatorna vendégszerepelhet egy {org} tagnál vagy a kedvenceiddel. Kikapcsolhatod ezt a funkciót a beállításokban",
+      "comments": "Mit kéne a Holodexnek tennie?",
+      "success": "Visszajelzés elküldve. Köszönjük!",
+      "consider": "Gondold át a szűrő használatát és ezen jelentés elvetését",
+      "reasons": {
+        "0": "Rosszul címkézett videó",
+        "1": "Veszélyesen alacsony minőség/Félrevezető tartalom",
+        "2": "Megsérti az oldal irányelveit vagy nem ide illő",
+        "3": "Egyéb",
+        "4": "Helytelen videó téma",
+        "5": "Helytelen csatornanév",
+        "6": "Ezen {arg0} nem tartozik {arg1}-ba/be"
+      },
+      "applyChanges": "Változtatások alkalmazása",
+      "selectAll": "Összes kijelölése",
+      "deselectAll": "Kijelölés törlése",
+      "adjustMentionedChannels": "Említett csatornák módosítása",
+      "addMentionedChannels": "Említett csatornák hozzáadása",
+      "searchMentionedChannels": "Említendő VTuberek keresése",
+      "commentLanguagesOk": "* Angol / japán / hagyományos kínai OK",
+      "specificChannelWarningBody1": "A Holodex nem dönt el szokványos fordításminőségi vitákat. Kisebb problémáknál adj visszajelzést a clippernek vagy fordítónak YouTube-on.",
+      "specificChannelWarningBody2": "Ha egy videó veszélyesen félre van fordítva és komoly félreértést okozhat, a Holodex eltávolíthatja vagy továbbíthatja az ügyet.",
+      "specificChannelWarningBody3": "Ha nem szeretnél látni egy csatornát, használd a csatorna tiltása gombot ebben az ablakban vagy a csatorna oldalán.",
+      "specificChannelWarningTitle": "Megjegyzés: kérlek, ne jelents csak azért, mert nem kedveled ezt a csatornát vagy nem értesz vele egyet.",
+      "topicUnsetPlaceholder": "Új téma javaslata (hagyd üresen az eltávolításhoz)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Mert ilyenek a böngészők, néhány amelynek működése szigorú a <b>Harmadik féltől származó cookiekkal</b>, vagy amelyek tiltják a <kbd>YouTube.com</kbd> cookiekat, nehézségeket okozhatnak a bejelentkezéssel / Youtube chat használatával. <br /><br /> Ez ellen tehetsz ha fehérlistára teszed a <kbd>Youtube.com</kbd>-ot a harmadik fél cookie blokkolókban, vagy lejjebb véve a cookie védelmet / biztonsági szintet a <kbd>Holodex.net</kbd>-nek. <br /><br /> Hagytunk pár oldalt, amely több információt nyújt arról, hogy hogyan csinálhatod ezt.",
+      "dialogTitle": "Youtube chat használata Holodex-en",
+      "alertText": "A böngésződ biztonsági beállításai lehetetlenné teszik a bejelentkezést Youtube chathez. Kattints ide több infóért",
+      "neverShowAgain": "Ne mutassa többet"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Lejátszási lista exportálása",
+        "new-playlist": "Új lejátszási lista",
+        "rename-playlist": "Lejátszási lista átnevezése",
+        "reset-unsaved": "Mentetlen változtatások visszaállítása",
+        "delete-playlist": "Lejátszási lista törlése",
+        "clear-playlist": "Lejátszási lista kiürítése"
+      },
+      "save-error-not-logged-in": "A lejátszási lista mentéséhez be kell lépned a fiókodba",
+      "unnamed-playlist": "Névtelen lejátszási lista",
+      "video-count": "{count} videó",
+      "next-video": "Következő videó",
+      "error-loading": "Hiba a lejátszási lista betöltésekor. Létezik?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Esemény adat {arg0} által: {arg1}",
+      "datasourceCredit": "Esemény adat elhozva {arg0} adatforrásból.",
+      "botCredit": "Esemény adat {arg0} adatforrásból biztosítva, {arg1} által készítve.",
+      "streamPageBtn": "Stream oldal",
+      "eventPageBtn": "Esemény oldal",
+      "scheduledEvent": "Beütemezve",
+      "editorCredit": "Holodex szerkesztő által állított esemény {arg0}.",
+      "creditTitleText": "Közreműködők:"
+    },
+    "calendar": {
+      "liveCalendar": "Élő naptár (iCal)",
+      "favoritesCalendar": "Kedvencek naptára (iCal)",
+      "favoritesLoginRequired": "A kedvencek naptárának használatához be kell jelentkezned."
+    },
+    "form": {
+      "required": "Kötelező",
+      "invalidUrl": "Érvénytelen URL",
+      "invalidTime": "Érvénytelen idő",
+      "error": "Hiba történt.",
+      "never": "soha",
+      "new": "Új",
+      "existing": "Meglévő",
+      "channel": "Csatorna",
+      "submit": "Beküldés",
+      "certainty": {
+        "certain": "Biztos",
+        "likely": "Valószínű"
+      },
+      "placeholder": {
+        "editorBadge": "Szerkesztő",
+        "title": "Helyőrző stream",
+        "description": "Ütemezett helyőrző streamek létrehozása vagy frissítése az új űrlapfolyamattal.",
+        "success": "Helyőrző stream sikeresen hozzáadva",
+        "authError": "Nem vagy érvényes Holodex-szerkesztő, vagy a Discord által generált helyőrző-létrehozási linked lejárt",
+        "editingAs": "Szerkesztés {user} néven a(z) {guild} Discordból. A munkamenet lejár: {expiresIn}. Frissíts, ha hamarosan lejár.",
+        "notEditor": "Nem vagy szerkesztő, vagy a token lejárt. Jelentkezz be, vagy generálj új tokent a botunkkal.",
+        "editorCreditName": "Szerkesztői kredit neve",
+        "editorCreditHint": "Használj más nevet, ha nyilvánosan más néven szeretnél szerepelni.",
+        "placeholderId": "Helyőrző ID (11 karakter)",
+        "placeholderIdInput": "Helyőrző ID",
+        "videoTitle": "Videó címe",
+        "japaneseVideoTitle": "Japán videó címe",
+        "sourceLink": "Forráslink",
+        "sourceLinkHint": "pl. Twitter-menetrend URL vagy Twitch-csatorna",
+        "thumbnailImage": "Bélyegkép",
+        "eventType": "Esemény típusa",
+        "certainty": "Bizonyosság",
+        "timezone": "Időzóna",
+        "date": "Dátum",
+        "time": "Idő",
+        "duration": "Időtartam",
+        "durationHint": "Becsült időtartam percben",
+        "submitModification": "Helyőrző módosítás beküldése",
+        "create": "Új helyőrző létrehozása",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Nincs",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "Műveletek",
+      "chat": "Csevegés",
+      "close": "Bezárás",
+      "collapse": "Összecsukás",
+      "confirm": "Megerősítés",
+      "language": "Nyelv",
+      "moreActions": "További műveletek",
+      "or": "vagy",
+      "processing": "Feldolgozás...",
+      "remove": "Eltávolítás",
+      "save": "Mentés"
+    },
+    "pagination": {
+      "nextPage": "Következő oldal",
+      "previousPage": "Előző oldal"
+    },
+    "userMenu": {
+      "apiKey": "API-kulcs",
+      "googleLinkUnavailable": "A Google összekapcsolása nem érhető el.",
+      "googleSignInUnavailable": "A Google-bejelentkezés nem érhető el.",
+      "icalFeed": "iCal hírfolyam",
+      "link": "Összekapcsolás",
+      "linkGoogle": "Google összekapcsolása",
+      "linkedAccounts": "Összekapcsolt fiókok",
+      "manualOAuthInstructions": "Ha az automatikus bejelentkezés nem fejeződött be, illeszd be alább az átirányított URL-t.",
+      "pasteRedirectUrl": "Átirányított URL beillesztése",
+      "userAvatar": "Felhasználói avatar"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Videók",
+      "clips": "Klipek",
+      "music": "Zene",
+      "collabs": "Vendégként",
+      "about": "Leírás"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Feliratkozó",
+        "group": "Csoport",
+        "recentUpload": "Új feltöltések",
+        "videoCount": "Videók száma",
+        "clipCount": "Klipek száma",
+        "org": "Szervezet"
+      },
+      "tabs": {
+        "Vtuber": "VTuber",
+        "Subber": "Fordítók",
+        "Favorites": "Kedvencek",
+        "Blocked": "Letiltva"
+      },
+      "favoritesAreEmpty": "Még nincsenek kedvenceid!",
+      "blockedAreEmpty": "Még egy csatornát sem blokkoltál.",
+      "sort": {
+        "newestFirst": "Legújabb elöl",
+        "oldestFirst": "Legrégebbi elöl"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Élő / Hamarosan",
+      "recentVideosHeading": "Legújabb videók",
+      "noStreams": "Nincs élő vagy bejelentett stream jelenleg",
+      "recentVideoToggles": {
+        "all": "Összes",
+        "official": "Korábbi streamek",
+        "subber": "Klipek"
+      },
+      "liveLabel": "Élő",
+      "upcomingLabel": "Hamarosan",
+      "controls": {
+        "sortBy": "Rendezés",
+        "viewers": "Nézők",
+        "latest": "Legújabb",
+        "uploadedBefore": "Feltöltve ez előtt",
+        "pickDate": "Dátum kiválasztása",
+        "clipLanguages": "Klipek megjelenítése az alábbi nyelveken:"
+      },
+      "apiError": "Nem sikerült betölteni a videókat."
+    },
+    "library": {
+      "savedVideosTitle": "Mentett videók",
+      "createYtPlaylistButton": "YT lejátszási lista létrehozása ({arg0})",
+      "deleteFromLibraryButton": "Törlés ({arg0})",
+      "deleteConfirmation": "Biztos szeretnéd törölni ezt a(z) {arg0} videót?",
+      "deleteConfirmationOK": "Törlés",
+      "deleteConfirmationCancel": "Mégse",
+      "selectionReset": "Visszaállítás",
+      "selectionSelectAll": "Összes kijelölése",
+      "emptyLibrary": "Még nincsenek mentett videóid!",
+      "exportSelected": "Kiválasztottak exportálása ({arg0})",
+      "exportYtPlaylist": "Youtube lejátszási lista",
+      "exportCsv": "CSV fájl",
+      "selectionSelect50": "50 kijelölése",
+      "exportYTExplanation": "A youtube lejátszási lista amit ezzel a funkcióval hoztak létre <b>listázatlan</b> és törölve lehetett a Youtube által. <br/>A youtube funkciójának befejezetlensége miatt az alábbiakat kell megcsinálnod, hogy elmentsd a <b>listázatlan</b> Youtube lejátszási listát a profilodon.",
+      "exportYTHeading": "Youtube lejátszási lista mentés útmutató",
+      "exportYTInstructions": "<b class=\"red--text\">1. lépés</b>: Indítsd el a lejátszási listát és tedd minilejátszóba a méretét. <br /><br /> <b class=\"red--text\">2. lépés</b>: Válassz bármilyen videót és tedd várólistába. <br /><br /> <b class=\"red--text\">3. lépés</b>: A lejátszási lista most már menthető. Nyomj mentést, hogy elmentsd.",
+      "sort": {
+        "dateaddedEarliestFirst": "Könyvtárhoz adás dátuma, korábbiak előbb",
+        "dateaddedLatestFirst": "Könyvtárhoz adás dátuma, későbbiek előbb",
+        "dateuploadedLatestFirst": "Feltöltés dátuma, későbbiek előbb",
+        "dateuploadedEarliestFirst": "Feltöltés dátuma, korábbiak előbb"
+      }
+    },
+    "notFound": {
+      "title": "Tartalom nem található",
+      "back": "Vissza a főoldalra"
+    },
+    "search": {
+      "sort": {
+        "newest": "Legújabb",
+        "oldest": "Legrégibb",
+        "longest": "Leghosszabb"
+      },
+      "type": {
+        "all": "Összes",
+        "official": "Hivatalos",
+        "clip": "Klip"
+      },
+      "unsupportedQuery": "Jelenleg klipek keresése <kbd>Téma</kbd> és <kbd>Szervezet</kbd> által nem támogatott. Nem lesznek <b>klipek</b> előhozva.",
+      "sortByLabel": "Rendezés",
+      "typeDropdownLabel": "Típus",
+      "searching": "Keresés...",
+      "useSearchBar": "Használd a keresősávot streamek, klipek vagy csatornák kereséséhez."
+    },
+    "settings": {
+      "title": "Beállítások",
+      "darkModeLabel": "Sötét mód",
+      "darkModeMsg": "Átváltja az oldal témáját világos módról sötét módra.",
+      "redirectModeLabel": "Megnyitás a YouTube-on",
+      "redirectModeMsg": "A videó indeképére kattintva a Youtube-on nyitja meg, a videó címére kattintva a Holodex-en nyitja meg.",
+      "useEnglishNameLabel": "Angol vtuber nevek",
+      "useEnglishNameMsg": "A vtuberek csatornáinak nevei angolul lesznek megjelenítve",
+      "hideVideoThumbnailsLabel": "Videó indexképek elrejtése",
+      "hideVideoThumbnailsMsg": "Elrejti a indexképeket, gyorsabb betöltést eredményez és kevesebb tekerést mobilon.",
+      "pushNotificationLabel": "Értesítések (Hamarosan)",
+      "pushNotificationMsg": "Értesítések engedélyezése a kedvenc csatornáidtól",
+      "autoplayVideoLabel": "Videók automatikus lejátszása",
+      "autoplayVideoMsg": "Videók automatikus visszajátszásának bekapcsolása",
+      "scrollModeLabel": "Görgő mód",
+      "scrollModeMsg": "Görgetés/érintés használata lapozáshoz",
+      "resetAllSettings": "Minden beállítás/adat alaphelyzetbe állítása",
+      "resetAllSettingsWarning": "Minden adatod el fog veszni. Folytatod?",
+      "clipLanguageSelection": "Klipek megjelenítése az alábbi nyelveken:",
+      "tlLanguageSelection": "Élő chatek fordítása az alábbi nyelveken",
+      "defaultPage": "Alapértelmezett oldal",
+      "defaultPageMsg": "Ennek az oldalnak megnyitása alapértelmezettként a Holodex.net meglátogatásakor, vagy a bal fenti logóra kattintáskor.",
+      "videoFeedSettings": "Videó beállítások",
+      "siteNavigationSettings": "Oldal navigáció",
+      "languageSettings": "Nyelv",
+      "gridSizeLabel": "Indexkép mérete",
+      "gridSizeMsg": "Az indexkép méretének változtatása a Főoldalon/Kedvenceknél",
+      "gridSize": {
+        "0": "Nagy",
+        "1": "Közepes",
+        "2": "Kicsi"
+      },
+      "hideCollabStreamsLabel": "Vendégkénti streamek elrejtése",
+      "hideCollabStreamsMsg": "Vendégkénti streamek elrejtése a kedvencek közül",
+      "hidePlaceholderStreams": "Tervezett streamek elrejtése",
+      "hidePlaceholderStreamsMsg": "Az olyan ütemezett placeholder bejegyzések elrejtése, amelyekhez még nincs lejátszható streamoldal",
+      "hideMissingStreams": "Hiányzó streamek elrejtése",
+      "hideMissingStreamsMsg": "A nem elérhető vagy szükséges Holodex-metaadatokat nélkülöző videók elrejtése",
+      "ignoredTopicsLabel": "Figyelmen kívül hagyott témák",
+      "ignoredTopicsMsg": "Elrejti a Kezdőlapból és a Kedvencekből a videókat ebben a témában",
+      "theme": "Téma",
+      "moreSettings": "További beállítások",
+      "systemOptions": "Rendszerbeállítások",
+      "followSystemThemeLabel": "Rendszertéma követése",
+      "languageOverrideActive": "{language} nyelvi felülírás aktív. Kattints a törléshez.",
+      "filters": {
+        "blockedTopics": "Figyelmen kívül hagyott témák",
+        "blockedTopicsDescription": "Elrejti a Kezdőlapból és a Kedvencekből a videókat ebben a témában",
+        "searchTopics": "Témák keresése",
+        "clearBlockedTopics": "Ignorált témák törlése",
+        "hideStreams": "Streamek elrejtése",
+        "collab": "Kollab",
+        "placeholder": "Helyőrző",
+        "missing": "Hiányzó"
+      },
+      "defaultTheme": "Alapértelmezett"
+    },
+    "app": {
+      "update_available": "Frissítés elérhető",
+      "update_btn": "Frissítés",
+      "close_btn": "Bezárás",
+      "check_about_page": "Látogasd meg az Információ oldalt, hogy lásd a változásokat",
+      "nowSupportsMultiOrg": "Tipp: Itt tudod megváltoztatni az ügynökséget!",
+      "loginCallToAction": "Jelentkezz be, hogy kedvenceket állíts."
+    },
+    "about": {
+      "add_my_channel": "Csatorna igénylés"
+    },
+    "watch": {
+      "theaterMode": "Mozi mód (alt + t)",
+      "mentionIconLabel": "EMLÍTÉSEK",
+      "chat": {
+        "loading": "Chat betöltése...",
+        "hideTLBtn": "Fordítások elrejtése",
+        "showTLBtn": "Fordítások megjelenítése",
+        "TLSettingsTitle": "Fordítás beállítások",
+        "showSubtitle": "Feliratok megjelenítése",
+        "expandTL": "TLdex kiterjesztése",
+        "tlStart": "Üzenetek kezdete",
+        "StickBottomSettingLabel": "Alulra rögzítés",
+        "StickBottomSettingsDesc": "A fordító doboz Youtube chat alá helyezése",
+        "showVerifiedMessages": "Igazolt felhasználók üzeneteinek megjelenítése",
+        "showModeratorMessages": "Moderátor üzenetek megjelenítése",
+        "showVtuberMessages": "Vtuber üzenetek megjelenítése",
+        "showLocalTime": "Helyi idők mutatása",
+        "tlFontSize": "Betű méret",
+        "tlWindowSize": "Fordító mérete (%), 0%-on automatikus",
+        "retryBtn": "Újra",
+        "status": {
+          "reconnecting": "Újracsatlakozás...",
+          "reconnectFailed": "Nem tudtunk visszacsatlakozni",
+          "notLive": "Még nem indult el az adás, kérlek próbáld újra amikor a stream 15 percre van indulástól",
+          "connectedToChat": "Csatlakozva",
+          "disconnectedToChat": "Lecsatlakozva"
+        },
+        "archiveNeedExtension": "Az archive chat nem működik a {arg0} bővítménnyel vagy más harmadik féltől származó bővítményekkel.",
+        "hideSpoiler": "Spoiler elrejtése",
+        "archiveNeedExtensionAfter": " az archivált TL chat megtekintéséhez.",
+        "archiveNeedExtensionBefore": "Telepítsd a böngészőbővítményt",
+        "editBlockedList": "Tiltólista szerkesztése",
+        "manageBlockedTranslators": "Tiltott fordítónevek kezelése.",
+        "membersOnlyTl": "A csak tagoknak szóló TL chat nem érhető el.",
+        "noBlockedNames": "Nincsenek tiltott nevek.",
+        "tuneTlBehavior": "Az élő fordítás viselkedésének és elrendezésének finomhangolása.",
+        "ytChatLabel": "YouTube-chat"
+      },
+      "removeFromPlaylist": "Videó eltávolítása a lejátszási listából",
+      "saveToPlaylist": "Videó mentése a lejátszási listába",
+      "likeOnYoutube": "Hüvelykujj Youtubeon",
+      "uploadPanel": {
+        "title": "Script feltöltése",
+        "usernameText": "A fordítás felhasználónév alatt lesz feltöltve",
+        "usernameChange": "Megváltoztatás",
+        "tlLang": "Fordítás nyelve",
+        "headerStart": "Kezdet",
+        "headerEnd": "Vége",
+        "headerText": "Szöveg",
+        "cancelBtn": "Mégsem",
+        "okBtn": "OK",
+        "notifTextErr": "NEM SIKERÜLT ELEMEZNI A FÁJLT (A FÁJL KORRUPT?)",
+        "notifTextParsing": "Fájl elemzése...",
+        "notifTextErrExt": "A fájlkiterjesztés nem felismerhető",
+        "subtitleFile": "Feliratfájl"
+      },
+      "reloadVideoFrame": "Videókeret újratöltése"
+    },
+    "favorites": {
+      "promptForAction": "Készíts egy listát a kedvenc vtuberjeidről és láthatod az legújabb klipjeiket és adásaikat ezen az oldalon.",
+      "manageFavorites": "Kedvencek kezelése",
+      "close": "Bezárás",
+      "showall": "Összes megjelenítése"
+    },
+    "editor": {
+      "needlogin": "Be kell jelentkezned, hogy Holodex videókat és dal metaadatokat szerkessz.",
+      "changeTopic": {
+        "title": "Stream téma megváltoztatása",
+        "info": "Minden felhasználó hozzáadhat témát a videókhoz, de csak a szerkesztők és adminok tudják eltávolítani és megváltoztatni utána.",
+        "button": "Mentés (Igénybe vehet 5 percet)",
+        "unset": "Nincs beállítva",
+        "inputPlaceholder": "Téma (hagyd üresen a törléshez)",
+        "saveTopic": "Téma mentése"
+      },
+      "channelMentions": {
+        "title": "Csatorna említések",
+        "addSuccess": "Csatornaemlítés hozzáadva.",
+        "deleteSuccess": "Csatornaemlítés eltávolítva.",
+        "tagsTitle": "Említett csatornák"
+      },
+      "sources": {
+        "title": "Források/Klipek (készülőben)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "Az API kulcsot a Holodex API programozott lekérdezéséhez használhatod. Csak egy kulcs felhasználónként! Miután új kulcsot kaptál, a régi lejár 0-24 órán belül.",
+      "apikeyNew": "Új API kulcs kérése",
+      "ownedYtChannel": "Birtokolt Youtube csatorna",
+      "futureYtcOwnerMessage": "A jövőben tervezünk több funkciót biztosítani csatorna tulajdonosoknak, mint például metaadatok szerkesztése a saját videóikhoz.",
+      "linkAcc": "Másik fiók hozzáadása",
+      "apikeyResetConfirm1": "Biztos vissza szeretnéd újraállítani az API kulcsod?",
+      "apikeyResetConfirm2": "A régi API kulcs lejár 0-24 órán belül. Biztos visszaállítod?",
+      "apikeyResetNvm": "Semmi érdekes nem történt.",
+      "with": {
+        "0": "Bejelentkezés Google fiókkal",
+        "1": "Bejelentkezés Discorddal",
+        "2": "Bejelentkezés Twitter fiókkal"
+      },
+      "twitterMsg": {
+        "0": "A Twitter API irányelvek változások miatt a bejelentkezés Twitterrel előreláthatólag nem fog működni február 9.-e után.",
+        "1": "Jelenleg csak Twitter bejelentkezést használsz. Erősen ajánljuk, hogy más bejelentkezési módot is állíts, hogy megelőzzük a fiókból való kizárást. (Más eszközökön vagy böngésző törlés után)",
+        "2": "Ha nem tudsz belépni Holodex fiókodba Twitter felhasználóval (valamint nincs más bejelentkezési módot beállítva) kérlek keress minket Twitteren privát üzenetben vagy Discordon segítségért."
+      },
+      "username": "Felhasználónév",
+      "usernameBtn": {
+        "0": "Megváltoztatás",
+        "1": "Megerősítés",
+        "2": "Mentés"
+      },
+      "loggingIn": "Bejelentkezés..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Felülírod a meglévő elrendezést?",
+      "confirmOverwriteYes": "Megerősítés",
+      "permalink": "Permalink",
+      "presets": "Előrendezések",
+      "addframe": "Cella hozzáadása",
+      "muteAll": "Minden némítása",
+      "unmuteAll": "Minden némítás visszavonása",
+      "muteOthers": "Többi némítása",
+      "muteOthersDetail": "Minden streamet -kivéve egyet- némít",
+      "autoLayoutTip": "Kattints egy csatornára, hogy elkezdd nézni auto elrendezéssel",
+      "createLayoutTip": "Készítsd el a saját elrendezésed több cella hozzáadásával, vagy egy előrendezés használatával",
+      "openToolbarTip": "Nyisd meg az eszköztárat a MultiView használatához",
+      "archiveSync": "Archív szinkronizáció",
+      "preset": {
+        "shareOnDiscord": "Van egy jópofa elrendezésed? Használd a megosztás gombot és mutasd meg a <a href=\"https://discord.gg/jctkgHBt4b\"> Discord szerverünkön</a>!",
+        "custom": "Elrendezéseim",
+        "toggleAutoLayout": "Auto-rendezés bekapcsolása",
+        "remove": "Törlés",
+        "desktop": "Asztali",
+        "mobile": "Mobil",
+        "autoLayout": "Auto-kiosztás",
+        "noPresets": "Nincs elérhető előbeállítás"
+      },
+      "presetEditor": {
+        "title": "Elrendezés mentése",
+        "name": "Név",
+        "autoLayout": "Elrendezés használata auto módban"
+      },
+      "video": {
+        "selectLive": "Élő adás kiválasztása",
+        "addCustomVideo": "Videó hozzáadása linkel",
+        "twitchChannelLink": "Twitch-csatorna linkje",
+        "youtubeVideoLink": "YouTube-videó linkje",
+        "noHistory": "Nincs előzmény",
+        "addUrl": "URL hozzáadása",
+        "addUrlShort": "Hozzáadás",
+        "urlPlaceholder": "Illessz be egy YouTube- vagy Twitch-URL-t",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Teljes képernyő",
+      "mediaControls": "Média vezérlők",
+      "mediaControlsEmpty": "A lejátszott videók itt fognak megjelenni",
+      "editAutoLayout": "Auto-elrendezés szerkesztése",
+      "changeLayout": "Elrendezés megváltoztatása",
+      "done": "Kész",
+      "hints": "Súgó",
+      "presetsHint": "Nyisd meg az előrendezések menüt az elrendezések váltásához és auto-elrendezés beállításához",
+      "mediaControlsHint1": "Használd a Média irányításokat, hogy némíts és összehangolj (",
+      "mediaControlsHint2": ") élő közvetítéseket",
+      "dragDropHint": "Húzz streameket az eszköztárból a cellákhoz, hogy elrendezd a streameket",
+      "reorderHint": "Használd a Kiosztás átrendezése gombot, hogy megcserélje a chat és videó pozícióját",
+      "reorderLayout": "Kiosztás átrendezése",
+      "reorderLayoutDetail": "Húzz ikonokat a kívánt pozícióba",
+      "sync": {
+        "nothingToSync": "Nincs mit szinkronba tenni, nyiss meg legalább 2 streamet (pl. vendég streameket)",
+        "syncSettings": "Szinkronizálási beállítások",
+        "syncSettingsDetail": "A videók a stream indulása ideje szerint vannak szinkronizálva, viszont a közbeni technikai gondok és/vagy törölt részletek miatt elcsúszhatnak. Használj offset-eket, hogy manuálisan állítsd a videókat"
+      },
+      "syncLabel": "Szinkron",
+      "collapseToolbar": "Eszköztár összecsukása",
+      "deleteCell": "Cella törlése",
+      "fillEmptyCells": "Üres cellák kitöltése az aktuális videókkal",
+      "openNavigation": "Navigáció megnyitása",
+      "shareLayout": "Elrendezés megosztása"
+    },
+    "mugen": {
+      "welcome": "Üdvözöllek a MugenClips-nél! Ezen az oldalon mindenki ugyan azt a véletlenszerűen kiválasztott angol Hololive klipet nézi. Együtt nézheted és chatelhetsz más Hololive rajongókkal az egész világon. Ha előretekersz és szeretnél újra egyidejűleg lenni a többiekkel, kérlek frissítsd az oldalt."
+    },
+    "playlist": {
+      "playlist-is-modified": "Nincs mentve",
+      "item-last-updated": "Legutóbb frissítve:",
+      "login-prompt": "Jelentkezz be, hogy egynél több lejátszási listád lehessen",
+      "new-playlist-btn-label": "Új lejátszási lista létrehozása",
+      "page-heading": "A lejátszási listád:",
+      "page-instruction": "Kattints egy lejátszási listára, hogy aktuálissá tedd! Mielőtt másikra váltanál, elmenteni a jobb felső sarokban levő lejátszási lista ikonban tudod.",
+      "change-loss-warning": "A mentetlen változtatások el fognak veszni. Folytatod?"
+    },
+    "extension": {
+      "title": "Holodex Plus bővítmény",
+      "features": "Funkciók",
+      "featureset": {
+        "one": "Engedélyezi az archivált live chatet a Watch és Multiview nézetekben",
+        "two": "Lehetővé teszi videók kedvelését a Holodex lejátszóoldaláról",
+        "three": "Javítja a YouTube live chat memóriaszivárgását",
+        "four": "Javít kísérleti YouTube-lejátszó beállításokat, például több stream letiltását, hiányzó várótermi bélyegképet és egyebeket."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Forráskód letöltése",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Firefox-bővítmény",
+      "githubDownload": "GitHub-letöltés",
+      "installFromGithubPrefix": "Telepítés innen: ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Archívumok keresése",
+          "channels": "Csatornák megnyitása",
+          "clips": "Klipek keresése",
+          "live": "Élő streamek ellenőrzése"
+        },
+        "getItOnPrefix": "Elérhető itt: ",
+        "getItOnSuffix": ".",
+        "title": "Raycast-bővítmény"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menü",
+        "setting": "TLDex szoba beállítások",
+        "loadVideo": "Videók mutatása",
+        "unloadVideo": "Videó elrejtése",
+        "loadChat": "YT chat és élő fordítás összevonása",
+        "unloadChat": "Lecsatolása YT chatről"
+      },
+      "tlControl": {
+        "enterBtn": "Enter",
+        "prefix": "Előtag",
+        "suffix": "Utótag",
+        "fontColour": "Betűszín",
+        "outlineColour": "Körvonal színe",
+        "localPrefix": "Nyelv tag a chaten",
+        "addProfile": "Profil hozzáadása",
+        "removeProfile": "Profil eltávolítása",
+        "shiftUp": "Profil felhúzása",
+        "shiftDown": "Profil lehúzása",
+        "showSetting": "Beállítások",
+        "hideSetting": "Elrejtés",
+        "currentProfileSettings": "Jelenlegi profil [{name}] beállításai",
+        "inputPlaceholder": "Fordítási szöveg beírása"
+      },
+      "addProfilePanel": {
+        "title": "Profil hozzáadása",
+        "inputLabel": "Profil név"
+      },
+      "settingPanel": {
+        "title": "Beállítások",
+        "mainStreamLink": "Fő stream linkje",
+        "collabLink": "Vendég stream linkek",
+        "findVideo": "Videó keresése"
+      },
+      "removeProfileTitle": "Fiók eltávolításának megerősítése",
+      "loadChatPanel": {
+        "title": "Chat betöltése",
+        "inputLabel": "Stream link"
+      },
+      "unloadChatTitle": "MINDEN aktív chatet lekapcsolsz?",
+      "pangram": "A gyors, barna róka átugrik a lusta kutya fölött",
+      "cancelBtn": "Mégsem",
+      "okBtn": "OK",
+      "shortcuts": {
+        "changeProfiles": "Profilváltás",
+        "or": "vagy",
+        "quickSwitchDefaultProfile": "Gyors váltás az alapértelmezett profilra",
+        "quickSwitchProfileRange": "Profilok 0-9",
+        "quickSwitchProfiles": "Profilok gyors váltása",
+        "whileTyping": "Gépelés közben a TL mezőben:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Mentés",
+        "continuousEnd": "Folytonossá tétel (vége megváltoztatása)",
+        "clearAll": "Script törlése",
+        "exportFile": "Fájl exportálása",
+        "importFile": "Fájl importálása",
+        "editorMode": "Szerkesztő mód",
+        "changeCustomLink": "Egyéni link módosítása",
+        "timeShift": "Időeltolás"
+      },
+      "table": {
+        "headerStart": "Kezdet",
+        "headerEnd": "Vége",
+        "headerProfile": "Profil",
+        "headerText": "Szöveg",
+        "setAsStart": "Beállítása kezdetnek",
+        "shiftCurrentTime": "Beállítás jelenlegi időre",
+        "deleteEntry": "Beviteli adatok törlése"
+      },
+      "loadVideoPanel": {
+        "title": "Videó betöltése",
+        "inputLabel": "Stream link"
+      },
+      "setStartTitle": "Kezdet a kiválaszott egységtől, az összes korábbi egység törölve lesz.",
+      "importFile": {
+        "overwriteBtn": "Felülírás"
+      },
+      "editorModePanel": {
+        "activateMode": "Szerkesztő mód aktiválása",
+        "deactivateMode": "Kilépés szerkesztő módból",
+        "roleWarning": "Nincs elegendő felhatalmazásod",
+        "filterTranslator": "Fordító szűrése"
+      },
+      "timeShift": {
+        "offset": "Eltolás",
+        "seconds": "másodperc",
+        "secondsShort": "mp",
+        "timeOffset": "Időeltolás"
+      }
+    },
+    "tlManager": {
+      "title": "Szkriptkezelő",
+      "headerID": "Videó ID",
+      "headerEntries": "Bejegyzések",
+      "download": "Letöltés",
+      "delete": "Törlés",
+      "deleteTitle": "Bejegyzések törlése",
+      "langPick": "Nyelv",
+      "changeCustomLink": "Egyéni link módosítása",
+      "changeStreamLink": "Streamlink módosítása",
+      "description": "Fordítási szkriptek kezelése, adatok exportálása és egyéni linkek tisztítása.",
+      "entriesCount": "{count} bejegyzés",
+      "importFromMchad": "Importálás MChadből",
+      "importMchad": {
+        "claimAllArchives": "Összes archívum átvétele",
+        "claimSuccess": "Archívumok átvéve.",
+        "entryLength": "{count} bejegyzés",
+        "foundId": "Szobaazonosító megtalálva: {id}",
+        "login": "Bejelentkezés",
+        "missingCredentials": "Add meg a szoba nevét és a jelszót.",
+        "noArchives": "Nem található archívum.",
+        "password": "Jelszó",
+        "roomName": "Szoba neve"
+      },
+      "newLink": "Új link",
+      "noScriptsFound": "Nem található fordítási szkript ehhez az oldalhoz.",
+      "noTitle": "Nincs cím",
+      "videoTitle": "Videó címe"
+    },
+    "relayBot": {
+      "addSubscription": "Feliratkozás hozzáadása",
+      "blacklist": "Tiltólista",
+      "botMissing": "A bot nincs ezen a szerveren.",
+      "channelsFor": "{name} csatornái",
+      "description": "Élő fordítások továbbítása YouTube-csatornákról vagy videókból Discordra.",
+      "inviteBot": "Bot meghívása",
+      "loginDiscord": "Bejelentkezés Discorddal",
+      "noBlacklistEntries": "Nincs tiltólistás bejegyzés.",
+      "noSubscriptionsConfigured": "Nincs beállított feliratkozás.",
+      "noWhitelistEntries": "Nincs engedélyezőlistás bejegyzés.",
+      "notOk": "Sikertelen",
+      "ok": "OK",
+      "relaySubscription": "Továbbítási feliratkozás",
+      "relayTL": "TL továbbítása",
+      "saved": "Mentve.",
+      "saving": "Mentés...",
+      "sendingTrigger": "Küldés...",
+      "serverNotShown": "Csak azok a szerverek jelennek meg, ahol kezelheted a botot.",
+      "servers": "Szerverek",
+      "settingFor": "{name} beállításai",
+      "subscribedChannel": "Feliratkozott csatorna",
+      "title": "Továbbító bot",
+      "translatorName": "Fordító neve",
+      "whitelist": "Engedélyezőlista",
+      "youtubeChannel": "YouTube-csatorna",
+      "youtubeLinkChannelVideo": "YouTube-csatorna vagy videólink"
+    }
+  },
+  "time": {
+    "soon": "hamarosan",
+    "diff_future_date": "Indul {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Hozzáadás",
+      "update": "Frissítés",
+      "permission": "'Editor' vagy magasabb felhasználó szintűnek kell lenned, hogy törölj vagy frissíts meglévő dalokat. Kérlek vedd fel velünk a kapcsolatot <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discordon,</a> hogy jelezd a problémát a szerkesztőinknek, vagy jelentkezz szerkesztőnek.",
+      "titles": {
+        "addSong": "Dal metaadat: Új dal hozzáadása",
+        "songList": "Dalok listája: {arg0}",
+        "help": "Útmutató"
+      },
+      "itunesLookupPlaceholder": "(Választható) Megtekintés iTunes-on",
+      "moveRight2s": "2 másodperccel jobbra mozdítás",
+      "testEnd": "Teszt hallgatás a vége előtt 3 másodperccel kezdődik.",
+      "setToCurrentTime": "Beállítás jelenlegi időre ({arg0})",
+      "moveLeft2s": "2 másodperccel balra mozdítás",
+      "trackNameInput": "Zene címe",
+      "originalArtistInput": "Eredeti előadó",
+      "testStart": "Indítás tesztelése",
+      "startInput": "Indítás",
+      "endInput": "Hossz másodpercekben: (vége @ {arg0})",
+      "inheritItunesMusic": "Időtartam beállítása iTunes-al: {arg0}",
+      "listenOnAppleMusic": "Meghallgatás Apple Musicon",
+      "pickItunesResult": "Válassz egy iTunes-találatot",
+      "playFromHere": "Lejátszás innen",
+      "timestampEditorHint": "Relatív időbélyegekkel igazítsd a zenét a videóhoz."
+    },
+    "exitMode": "Kilépés a szerkesztő módból",
+    "enterMode": "Videó szerkesztése"
+  },
+  "about": {
+    "quicklinks": "Gyors elérés",
+    "discordBtn": "Holodex Discord",
+    "faq": {
+      "title": "GYIK",
+      "ytchatHeader": "A Youtube chatem nincs bejelentkezve!",
+      "ytchatContent": "Kérlek kapcsold ki a böngésző védelem harmadik fél cookie tiltását vagy fehérlistázd az oldalt és a youtube.com-ot, hogy elérje a harmadik fél cookiekat.",
+      "ytchatFirefox": "Útmutató Firefoxhoz, más böngészőkkel hasonlóan működhet.",
+      "autoplayHeader": "Nem működik az AutoPlay!",
+      "autoplayContent": "Kérlek google-n keresd, hogyan kell a böngésződben engedélyezni az AutoPlay-t.",
+      "musicPlayer": "A Music Player nem működik rendesen mobil eszközökön!",
+      "musicPlayerContent": "A legtöbb iOS eszközön nem tudod kikapcsolni a képernyőd vagy bezárni a Safari-t miközben Holodex zenét játszol le. Ez a korlátozás érvényesülhet Android eszközökön is (eszköztől függően). Kérlek jelezz Discord-on, ha van ötleted jobb playback rendszer megoldásához.",
+      "videoLinkage": "Hogyan bizonyosodom meg róla, hogy a videók és klipek biztosan hozzá vannak kapcsolva a vtuberekhez?",
+      "videoLinkageContent": "Minden információt a leírásból szedünk. Ha klipelsz egy streamet, kérlek ne felejtsd el linkelni az eredeti streamet a leírásban. Ha egy rajongói tartalmat klipelsz, (pl. bilibili-ről), csak linkeld be az eredeti hivatalos youtube csatornát a hozzátartozó vtuberhez. Ha nem linkeled a vtuber csatornáját, akkor nem fog megjelenni a videód Holodexen, mivel minden kliphez szükséges egy link a vtuberhez aki ismert Holodexen is.",
+      "quitHolodex": "Fordító vagyok és szeretném a tartalmaim eltávolítani Holodexről.\r\n",
+      "quitHolodexContent": "Sajnáljuk, hogy elmész :(, kérlek jelezd ha van bármi probléma amivel segíthetnénk. Ha mindenképp szeretnéd eltávolíttatni, kérlek üzenj nekünk Discordon.",
+      "favorite": {
+        "title": "Mik a Kedvencek?",
+        "Contents": {
+          "0": "A Kedvencek funkció segít, hogy a kedvenc vtuberjeidet lásd elsőként, beállíthatod a kedvenc csatornáid a szívecske ikonra kattintva",
+          "1": "Kérlek vedd figyelembe, hogy fordítók kedvencekhez adni jelenleg nem támogatott, viszont más módokon feliratkozhatsz rájuk, támogathatod őket."
+        },
+        "disappear": {
+          "title": "A Kedvencek listám eltűnt / Nem tudok kedvenceket hozzáadni"
+        },
+        "contents": {
+          "0": "Kérlek bizonyosodj meg róla, hogy be vagy jelentkezve és látogass el a csatornák kedvencek oldalra, hogy erőltess egy frissítést!"
+        }
+      },
+      "mobile": {
+        "title": "Van Android/iOS Holodex app?",
+        "content": {
+          "summary": "Dolgozunk rajta! Addig is kérlek használd a \"Hozzáadás kezdőlaphoz\" funkciót a böngésződön. Arra hangoltuk, hogy nagyon úgy viselkedjen, mint egy app",
+          "android": {
+            "0": "Android Chrome: Látogass el az oldalra és nyomd meg a három pöttyöt",
+            "1": "a jobb első sarokban és keresd meg a \"Kezdőképernyőre\" lehetőséget!"
+          },
+          "ios": {
+            "0": "iOS Safari: Látogass el az oldalra a telefonodon, kattints a felfele mutató nyilas négyzetre",
+            "1": "a Safari alján, majd nyomj a \"Kezdőképernyőre\" opcióra!"
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "Mi az a MugenClips?",
+        "contents": {
+          "0": "MugenClips, avagy végtelen klipek, közösen nézhetsz klipeket másokkal egy folyamatosan változó készletből, melyeket sok különböző fordító csatorna készített és készít"
+        }
+      },
+      "subber": {
+        "title": "Fordító vagyok és nem találom a csatornám és klipjeim a Holodexen",
+        "contents": {
+          "0": "Kérlek nézd meg a Csatornák oldalon, hogy listázva vagy-e fordítóként, amennyiben nem, kérlek töltsd ki",
+          "1": "ezt a lapot",
+          "2": ", majd hozzáadunk manuálisan. Ha már a listán vagy, kérlek bizonyosodj meg róla, hogy a videóid leírása a helyes linkeket tartalmazza a youtube forráshoz/csatornához!"
+        }
+      },
+      "feedback": {
+        "title": "Lenne visszajelzésem/szeretnék segíteni a projectben",
+        "contents": {
+          "0": "Minden segítséget és ötletet szívesen fogadunk! Az UI és a Backend egyaránt elérhető, hozzájárulhatsz, viszont jelenleg csak a UI nyílt forráskódú. Kérlek vedd fel a kapcsolatot velünk Discord-on, hogy hozzáférést kapj a backend forráshoz, vagy csak chatelj az ötleteidről."
+        }
+      },
+      "support": {
+        "title": "Hogyan tudom támogatni a Holodex-et?",
+        "contents": {
+          "0": "Az általunk hosztolt szerver egy 28 magos, 60 GB RAM-os gépezet, ami havonta kb. $60 USD (19000 HUF) költséggel jár, valamint szeretnénk további funkciókkal bővíteni az oldalt, ezért indítottunk egy <a href=\"https://ko-fi.com/holodex\">Ko-fi-t</a> a szerver költségeinek fedezése érdekében. (<a href=\"https://www.patreon.com/holodex\">Patreonunk</a> is van, de a Ko-fi-t jobban szeretjük.)<br /><br />A támogatásod kifejezheted visszajelzésekkel és biztató üzenetekkel Twitteren, hozzájárulással a fordítócsapat munkáihoz <a href=\"https://crwd.in/holodex\">Crowdin-on</a>, valamint hozzátéve a dal adatbázisunk bővítésével. (Streamekből kiszerkesztve egy-egy időintervallumot) Akár csak egy stream alá kommentelve megjelölni a vicces jeleneteket is egy nagy segítség!"
+        }
+      }
+    },
+    "privacyPolicy": "Adatvédelmi irányelvek",
+    "gdpr": "GDPR és az adataim",
+    "gdprContent": "Egy Google Analytics cookiet használunk, hogy nyomon tartsuk az oldal látogatóit, kizárólag elemzési célokkal. Bejelentkezés után társítjuk a közösségi fiókod felhasználónevét és ID-jét a kedvenceiddel. Ez az adat lehet az e-mail címed (Google), Discord ID vagy a Twittered illően kezelve.",
+    "gdprDeletion": "A felhasználói adataid törléséhez kérlek vedd fel velünk a kapcsolatot Discordon!",
+    "feedback": "Visszajelzés/Hiba jelentés",
+    "feedbackHtml": "Létrehozhatsz egy ügyet a <a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Issue Tracker-en </a> vagy felkeresve a Holodex csapatot Discordon <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Közreműködők",
+      "contents": {
+        "0": "Szeretnék nagy köszönetet mondani a",
+        "1": "csapatnak a munkáikért itt:",
+        "2": "A fordítóknak szintén, akik segítik a tengerentúli nézőket! Kérlek nézd meg őket!",
+        "3": "Ez egy rajongói készítésű weboldal, a rajta talált tartalmakat a Cover corp és a partnerei birtokolják. Az oldal követi a Cover corp irányelveit a",
+        "4": "Származtatott Munkavállalói Licencszerződés szerint"
+      }
+    },
+    "changelog": {
+      "title": "Változtatások"
+    },
+    "news": {
+      "title": "Újdonságok"
+    },
+    "bookmarklet": {
+      "title": "Könyvjelzők",
+      "description": "Húzd ezeket a könyvjelzőket a könyvjelző sávodba, hogy megnyiss egy YouTube oldalt Holodexen könnyedén:",
+      "openYoutube": "YouTube megnyitása Holodexben"
+    },
+    "links": {
+      "browserAddon": "Böngészőbővítmény",
+      "community": "Közösség",
+      "docs": "Dokumentáció",
+      "extension": "Bővítmény",
+      "repository": "Tároló"
+    },
+    "privacy": {
+      "content": {
+        "intro": "Ez az oldal elmagyarázza, milyen adatokat kezel a Holodex, és hogyan használja a harmadik fél szolgáltatásait."
+      },
+      "firstParty": {
+        "title": "Holodex-adatok",
+        "collection": "A Holodex tárolja a fiókazonosítókat, kedvenceket, beállításokat, lejátszási listákat és szerkesztői műveleteket, amelyek a webhely funkcióihoz szükségesek.",
+        "voluntary": "A legtöbb fiókadat csak akkor jön létre, amikor bejelentkezel vagy fiókfunkciókat használsz.",
+        "access": "A felhasználói beállításaidat a fiókmenüdből érheted el vagy frissítheted.",
+        "limitedUse": "A Holodex a Google felhasználói adatokat csak bejelentkezéshez és fiókösszekapcsoláshoz használja.",
+        "noPosting": "A Holodex nem posztol a kapcsolt fiókjaidra.",
+        "revoking": "A harmadik fél fiókhozzáférését az adott szolgáltató fiókbeállításaiban vonhatod vissza.",
+        "changes": "Ez a szabályzat változhat, ha a webhely funkciói vagy a szolgáltatói követelmények változnak."
+      },
+      "links": {
+        "google": "Google adatvédelmi irányelvek",
+        "twitch": "Twitch adatvédelmi tájékoztató"
+      },
+      "thirdParty": {
+        "title": "Harmadik fél szolgáltatások",
+        "analyticsTitle": "Analitika",
+        "analyticsBody": "A Holodex analitikát használhat a webhely használatának és megbízhatóságának megértéséhez.",
+        "analyticsUse": "Az analitikai adatok a teljesítmény, a navigáció és a stabilitás javítására szolgálnak.",
+        "embedsTitle": "Beágyazott lejátszók és chat",
+        "embedsBody": "A YouTube és Twitch beágyazásokat ezek a szolgáltatások biztosítják, és használhatják a saját cookie-jaikat és fiókállapotukat.",
+        "linksIntro": "A részletekért nézd meg ezeknek a szolgáltatóknak a szabályzatait:",
+        "choicesTitle": "Választási lehetőségeid",
+        "choicesBody": "Blokkolhatod a harmadik fél cookie-kat vagy kijelentkezhetsz a kapcsolt szolgáltatókból, bár egyes beágyazott funkciók ettől leállhatnak.",
+        "contactTitle": "Kapcsolat",
+        "contactBody": "Adatvédelmi kérdések esetén vedd fel a kapcsolatot a Holodex csapattal Discordon vagy GitHubon.",
+        "commitment": "A Holodex csak a funkciók működéséhez szükséges hozzáférést kéri."
+      }
+    },
+    "stats": {
+      "lastMonth": "múlt hónapban",
+      "songs": "dalok",
+      "subbers": "subberek",
+      "videos": "videók",
+      "vtubers": "VTubers",
+      "yesterday": "tegnap"
+    },
+    "youtubeTerms": {
+      "before": "A beágyazott YouTube funkciók használatára vonatkoznak a ",
+      "link": "YouTube szolgáltatási feltételei",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Kérvény típusa:",
+    "Types": {
+      "AddVtuber": "Vtubert hozzáadása ▶️ a Holodexhez, hogy kövesse a csatornáját és klipjeit.",
+      "AddClipper": "Klipper/fordító csatorna hozzáadása Holodexhez",
+      "ModifyExistingInfo": "Létező csatorna információ frissítése",
+      "DeleteChannel": "Saját csatorna törlése"
+    },
+    "DirectContactDisclaimer": "Nyugodtan hagyj nekünk discord ID-t vagy e-mail címet vagy Twitter ID-t, amennyiben szükséged van visszajelzésre. Kizárólag Holodex adminisztrátorok fogják látni az elérhetőséged.",
+    "DirectContactLabel": "Elérési adat (opcionális)",
+    "TwitterHandle": "Ennek a csatornának a Twitter kezelője (opcionális)",
+    "VtuberGroupLabel": "VTuber csoport (nem kötelező)",
+    "VtuberGroupHint": "Melyik szervezethez vagy csoporthoz tartozik ez a vtuber?",
+    "ChannelLanguageLabel": "A csatorna fő nyelve",
+    "EnglishNameHint": "Amennyiben a csatorna neve nem angol, add meg angolul is. Írd át angol formába (pl. Natsuiro Matsuri) vagy pedig a csatorna által preferált angol megfelelőbe (pl. Elu the Elf, Emma★August)",
+    "EnglishNameLabel": "Angol csatornanév",
+    "Comments": "Hozzászólások",
+    "CommentsHint": "Egyéb megjegyzések, melyeket szeretnél nekünk elmondani.",
+    "VtuberRequirementText": "Legalább 15k feliratkozó szükséges önálló vtuberként. Azok a Vtuberek, akik egy létező szervezethez tartoznak, ez alól felmentésben részesülnek. <br /><br />Új szervezetek az átlag feliratkozószám alapján kerülnek hozzáadásra.<br /><br />Twitch streamerek esetében egy hivatalos YouTube csatorna szükséges.",
+    "ClipperRequirementText": "Klip készítőktől legalább egy két hónapja feltöltött vtuber klip és rendszeres feltöltést vagy 20 klip egy hónap alatt, amit igényelünk. Rövid klippek spammelése naponta, csupán rövid &lt;1 perces klippek vagy félrevezető indexképek (click-bait) használata a csatorna ellen szólnak. A tartalom minősége szintén bírálásra kerülhet. <br /><br />Fontos megjegyezni, hogy a klippereknek meg kell jelölniük az eredeti forrásuk linkekkel, @Youtube csatorna említésekkel és videó linkekkel. Túljelölgetés (pl. MINDENKIT megjelölni a Nijisanjiból) rengeteg munkát csinál a Holodex szerkesztőknek, a megjelölések kihagyása (nincsenek linkek) pedig láthatatlanná teszi a klippeket. <br /><br /> A Holodex alkalmaz olyan algoritmust, ami észleli a túljelölgetést és automatikusan kijavítja, viszont nem működhet mindig tökéletesen. Klipperek akik rendszeresen túl linkelik a klipjeiket, törlésre kerülhetnek a platformról zajcsökkentés végett.",
+    "DeletionRequirementText": "Csatorna törlést akkor kérhetsz ha te(vagy ti) vagy(tok) a csatorna tulajdonosa(i), kérlek készülj(etek) kilétet igazoló információkkal.",
+    "PageTitle": "Holodex Csatorna Kérés",
+    "ChannelURLErrorFeedback": "Muszáj https://www.youtube.com/channel/UC_____ vagy https://www.youtube.com/@_____",
+    "ChannelURLLabel": "Csatorna URL-je",
+    "SelectLanguage": "Nyelv kiválasztása",
+    "ChannelURLExample": "Példa: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, e-mail vagy más kapcsolatfelvételi mód",
+    "TwitterExample": "Példa: @holodex",
+    "TwitterPlaceholder": "@felhasználónév",
+    "VtuberGroupPlaceholder": "Csoport vagy szervezet neve"
+  }
+}

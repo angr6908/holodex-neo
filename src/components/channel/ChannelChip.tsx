@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { getChannelPhoto } from "@/lib/functions";
 import { channelDisplayName } from "@/lib/video-format";
@@ -23,58 +23,51 @@ export function ChannelChip({
   children?: (ctx: { isHover: boolean }) => React.ReactNode;
 }) {
   const app = useAppState();
-  const [isHover, setIsHover] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const channelName = channelDisplayName(channel, app.settings.nameProperty === "english_name");
+  const [open, setOpen] = useState(false);
+  const channelName = channelDisplayName(channel, app.settings.useEnglishName);
   const photo = useMemo(() => getChannelPhoto(channel?.id), [channel?.id]);
 
-  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
-
-  function handleEnter() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    if (!app.isMobile) setIsHover(true);
-  }
-
-  function handleLeave() {
-    if (app.isMobile) return;
-    closeTimer.current = setTimeout(() => setIsHover(false), closeDelay);
-  }
-
   function toggleHover() {
-    if (app.isMobile) setIsHover((value) => !value);
+    if (app.isMobile) setOpen((value) => !value);
   }
 
   return (
-    <div className="relative mr-1" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <HoverCard open={open} onOpenChange={setOpen}>
       <div
-        role="button"
-        tabIndex={0}
-        className="relative overflow-hidden rounded-full"
+        className="relative mr-1 overflow-hidden rounded-full"
         style={{ width: `${size}px`, height: `${size}px` }}
-        onClick={toggleHover}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            toggleHover();
-          }
-        }}
       >
-        <img src={photo} crossOrigin="anonymous" alt={`${channel.name}'s profile picture`} width={size} height={size} className="h-full w-full object-cover" />
-        {children ? children({ isHover }) : isHover ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/70">
-            <Button as={Link} href={`/channel/${channel.id}`} size="icon" variant="ghost">
-              <Icon icon={icons.mdiLoginVariant} />
+        <HoverCardTrigger
+          delay={0}
+          closeDelay={closeDelay}
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-full w-full rounded-full p-0 hover:bg-transparent"
+              onClick={toggleHover}
+            />
+          }
+        >
+          <img src={photo} alt={`${channel.name}'s profile picture`} width={size} height={size} decoding="async" className="h-full w-full object-cover" />
+        </HoverCardTrigger>
+        {children ? children({ isHover: open }) : open ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950/70">
+            <Button nativeButton={false}
+              render={<Link href={`/channel/${channel.id}`} />}
+              size="icon"
+              variant="ghost"
+              className="pointer-events-auto"
+            >
+              <icons.LogIn className="size-5" />
             </Button>
           </div>
         ) : null}
       </div>
-
-      {isHover ? (
-        <Card className="channel-hover-tooltip absolute left-1/2 top-full z-[80] mt-2 flex -translate-x-1/2 flex-row items-baseline gap-2 border border-white/10 px-2 py-2">
-          <ChannelSocials channel={channel} vertical hideYt hideTwitter />
-          <span className="ml-2 text-sm text-slate-300">{channelName}</span>
-        </Card>
-      ) : null}
-    </div>
+      <HoverCardContent align="center" sideOffset={8} className="z-[80] flex max-h-12 w-auto flex-row items-baseline gap-2 overflow-hidden border border-white/10 px-2 py-2">
+        <ChannelSocials channel={channel} vertical hideYt hideTwitter />
+        <span className="ml-2 text-sm text-slate-300">{channelName}</span>
+      </HoverCardContent>
+    </HoverCard>
   );
 }

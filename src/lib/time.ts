@@ -5,12 +5,64 @@ import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import isTomorrow from "dayjs/plugin/isTomorrow";
+import "dayjs/locale/en-ca";
+import "dayjs/locale/en-gb";
+import "dayjs/locale/ja";
+import "dayjs/locale/zh-tw";
+import "dayjs/locale/zh-cn";
+import "dayjs/locale/es";
+import "dayjs/locale/ms";
+import "dayjs/locale/id";
+import "dayjs/locale/ru";
+import "dayjs/locale/fr";
+import "dayjs/locale/pt-br";
+import "dayjs/locale/de";
+import "dayjs/locale/it";
+import "dayjs/locale/ko";
+import "dayjs/locale/tr";
+import "dayjs/locale/vi";
+import "dayjs/locale/hu";
+import "dayjs/locale/th";
 
 dayjs.extend(localizedFormat);
 dayjs.extend(isTomorrow);
 dayjs.extend(advancedFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const dayjsLocaleByAppLocale: Record<string, string> = {
+    "en-CA": "en-ca",
+    "en-GB": "en-gb",
+    zh: "zh-tw",
+    "zh-CN": "zh-cn",
+    "es-ES": "es",
+    pt: "pt-br",
+    "lol-UWU": "en",
+    "lol-PEKO": "en",
+};
+
+function getDayjsLocale(locale?: string): string {
+    return dayjsLocaleByAppLocale[locale || ""] || locale || "en";
+}
+
+export function formatRelativeTime(target: ReturnType<typeof dayjs>, lang?: string, now = dayjs()): string {
+    const diffMs = target.valueOf() - now.valueOf();
+    const absMs = Math.abs(diffMs);
+    const supported = Intl.RelativeTimeFormat.supportedLocalesOf([lang || "", getDayjsLocale(lang)].filter(Boolean));
+    const formatter = new Intl.RelativeTimeFormat(supported[0] || "en", { numeric: "auto" });
+    const [unit, divisor]: [Intl.RelativeTimeFormatUnit, number] =
+        absMs < 45_000 ? ["second", 1000]
+        : absMs < 45 * 60_000 ? ["minute", 60_000]
+        : absMs < 22 * 3_600_000 ? ["hour", 3_600_000]
+        : absMs < 25 * 86_400_000 ? ["day", 86_400_000]
+        : absMs < 345 * 86_400_000 ? ["month", 30 * 86_400_000]
+        : ["year", 365 * 86_400_000];
+    return formatter.format(Math.round(diffMs / divisor), unit);
+}
+
+export function configureDayjsLocale(locale?: string): void {
+    dayjs.locale(getDayjsLocale(locale));
+}
 
 const thresholds = [
     { l: "s", r: 1 },
@@ -39,28 +91,27 @@ export function formatDuration(millisecs: number): string {
     return `${negate ? "-" : ""}${hStr}${mStr}:${sStr}`;
 }
 
-export function localizedDayjs(time: string | number | Date): ReturnType<typeof dayjs> {
-    return dayjs(time);
-}
-
 export function titleTimeString(available_at: string, lang?: string): string {
-    const ts = localizedDayjs(available_at);
-    const ts1 = ts.format(`${ts.isTomorrow() ? "ddd " : ""}LT zzz`);
-    const ts2 = ts.tz("Asia/Tokyo").format(`${ts.isTomorrow() ? "ddd " : ""}LT zzz`);
-    if (ts1 === ts2) return ts1;
-    return `${ts1}\n${ts2}`;
+    const locale = getDayjsLocale(lang);
+    const ts = dayjs(available_at).locale(locale);
+    const fmt = `${ts.isTomorrow() ? "ddd " : ""}LT zzz`;
+    const ts1 = ts.format(fmt);
+    const ts2 = ts.tz("Asia/Tokyo").locale(locale).format(fmt);
+    return ts1 === ts2 ? ts1 : `${ts1}\n${ts2}`;
 }
 
-export function formatDistance(time: string | null, lang: string | undefined, $t: (key: string, args?: any) => string, allowNegative = true, now = dayjs()): string {
+export function formatDistance(time: string | null, lang: string | undefined, $t: (key: string, args?: Record<string, string | number | Date>) => string, allowNegative = true, now = dayjs()): string {
     if (!time) return "?";
-    const minutesDiff = now.diff(time, "minutes");
+    const locale = getDayjsLocale(lang);
+    const nowObj = now.locale(locale);
+    const timeObj = dayjs(time).locale(locale);
+    const minutesDiff = nowObj.diff(timeObj, "minutes");
     if (Math.abs(minutesDiff) < 1 || (!allowNegative && minutesDiff > 0)) return $t("time.soon");
-    const timeObj = localizedDayjs(time);
-    const hourDiff = now.diff(time, "hour");
-    if (hourDiff < -23) return $t("time.diff_future_date", [timeObj.format("l"), timeObj.format("LT")]);
+    const hourDiff = nowObj.diff(timeObj, "hour");
+    if (hourDiff < -23) return $t("time.diff_future_date", { arg0: timeObj.format("l"), arg1: timeObj.format("LT") });
     if (hourDiff > 23) return `${timeObj.format("l")} (${timeObj.format("LT")})`;
-    if (new Date(time) > new Date()) return $t("time.diff_future_date", [timeObj.fromNow(), timeObj.format(`${timeObj.isTomorrow() ? "ddd " : ""}LT`)]);
-    return $t("time.distance_past_date", [timeObj.fromNow()]);
+    if (timeObj.isAfter(nowObj)) return $t("time.diff_future_date", { arg0: formatRelativeTime(timeObj, lang, nowObj), arg1: timeObj.format(`${timeObj.isTomorrow() ? "ddd " : ""}LT`) });
+    return $t("time.distance_past_date", { arg0: formatRelativeTime(timeObj, lang, nowObj) });
 }
 
 export function secondsToHuman(s: number): string {

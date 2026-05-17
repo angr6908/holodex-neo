@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Gomenasorry!",
+      "textBeforeTwitter": "Đã xảy ra lỗi khi truy xuất nội dung, vui lòng kiểm tra thông báo tại Twitter ",
+      "textAfterTwitter": " hoặc báo cáo lỗi qua",
+      "aboutPage": "trang Giới thiệu",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Làm mới",
+      "hardRefreshTip": "Mẹo: tải lại mạnh/xóa bộ nhớ đệm:"
+    },
+    "channelList": {
+      "signInToFavorite": "Đăng nhập để thêm vào mục Yêu thích",
+      "unfavoriteAllInGroup": "Xoá tất cả khỏi mục Yêu thích",
+      "favoriteAllInGroup": "Thêm tất cả vào mục Yêu thích",
+      "enableGroupDisplay": "Hiển thị các kênh trong nhóm này trên trang Home",
+      "disableGroupDisplay": "Ẩn các kênh trong nhóm này khỏi trang Home"
+    },
+    "channelInfo": {
+      "stats": "Thống kê",
+      "videoCount": "{arg0} Video",
+      "clipCount": "{n} Clip",
+      "subscriberCount": "{n} người đăng kí",
+      "subscriberNA": "Số lượng người đăng kí không khả dụng",
+      "totalViews": "Tổng lượt xem",
+      "inactiveChannel": "Kênh này không còn hoạt động."
+    },
+    "channelSocials": {
+      "addToFavorites": "Thêm vào mục Yêu thích",
+      "removeFromFavorites": "Xoá khỏi mục Yêu thích",
+      "unblock": "Bỏ chặn kênh này",
+      "block": "Chặn hiển thị nội dung của kênh này trên Holodex",
+      "blocked": "Đã chặn"
+    },
+    "mainNav": {
+      "home": "Trang chủ",
+      "favorites": "Yêu thích",
+      "channels": "Kênh",
+      "about": "Giới thiệu",
+      "library": "Thư viện",
+      "settings": "Cài đặt",
+      "login": "Đăng nhập",
+      "logout": "Đăng xuất",
+      "MugenClips": "MugenClips<sup>beta</sup>",
+      "accountSettings": "Cài đặt tài khoản",
+      "music": "Nhạc",
+      "multiview": "MultiView",
+      "points": "điểm",
+      "playlist": "Danh sách phát"
+    },
+    "videoCard": {
+      "clips": "{n} Clip",
+      "watching": "{arg0} người đang xem",
+      "liveNow": "Đang trực tiếp",
+      "openInBackground": "Mở trong nền",
+      "edit": "Chỉnh sửa",
+      "copiedToClipboard": "Đã sao chép liên kết vào clipboard.",
+      "copyLink": "Sao chép liên kết Holodex",
+      "premiere": "Công chiếu",
+      "googleCalendar": "Thêm vào Google Calendar",
+      "totalTLs": "Tổng số live chat đã dịch",
+      "totalSongs": "Tổng số bài hát có mốc thời gian",
+      "tlPresence": "Những dịch giả hoạt động trong 30 phút gần nhất",
+      "uncertainPlaceholder": "Thời gian bắt đầu chưa được xác nhận chính thức; thời gian thực tế có thể thay đổi.",
+      "typeScheduledYT": "Stream đã lên lịch",
+      "typeExternalStream": "Stream từ trang khác",
+      "typeEventPlaceholder": "Sự kiện đã lên lịch",
+      "openClient": "Mở client TL",
+      "openScriptEditor": "Mở trình chỉnh sửa script",
+      "popoutChat": "Mở chat YouTube trong cửa sổ riêng",
+      "uploadScript": "Tải script TL lên",
+      "removeFromPlaylist": "Xóa khỏi playlist"
+    },
+    "videoDescription": {
+      "description": "Mô tả"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Thu gọn",
+      "showMore": "Xem thêm"
+    },
+    "watch": {
+      "streamingFor": "Đã stream trong vòng {arg0}",
+      "nextUpInMugen": "Tiếp theo",
+      "loadingVideo": "Đang tải video",
+      "Comments": {
+        "title": "Bình luận",
+        "all": "Tất cả"
+      }
+    },
+    "search": {
+      "searchLabel": "Tìm kiếm",
+      "type": {
+        "channel": "kênh",
+        "topic": "chủ đề",
+        "org": "tổ chức",
+        "titledesc": "tiêu đề/mô tả",
+        "title": "tiêu đề",
+        "description": "mô tả",
+        "comments": "bình luận",
+        "videourl": "URL video"
+      },
+      "placeholder": "Tìm stream, clip, kênh",
+      "clear": "Xóa",
+      "loading": "Đang tải...",
+      "typeTwoCharacters": "Nhập 2 ký tự",
+      "noChannelsFound": "Không tìm thấy kênh",
+      "noTopicsFound": "Không tìm thấy chủ đề",
+      "noOrganizationsFound": "Không tìm thấy tổ chức",
+      "noResultsFound": "Không tìm thấy kết quả",
+      "searchChannels": "Tìm kênh",
+      "filterByTopicOrgChannel": "Lọc theo chủ đề, tổ chức, kênh ...",
+      "topicOrgChannelPlaceholder": "Chủ đề, tổ chức hoặc kênh",
+      "toggleSearch": "Bật/tắt tìm kiếm",
+      "organizations": "Tổ chức",
+      "searchOrganizations": "Tìm tổ chức",
+      "quickSelect": "Chọn nhanh",
+      "allVtubers": "Tất cả VTuber",
+      "selectedOrgCount": "{count} tổ chức",
+      "additionalOrgCount": "thêm {count}",
+      "unset": "Chưa đặt"
+    },
+    "relatedVideo": {
+      "clipsLabel": "clip",
+      "simulcastsLabel": "phát sóng cùng thời điểm",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Mở tất cả simulcast trong Multiview",
+          "error": {
+            "layoutBuildFailure": "Đã xảy ra lỗi khi tạo liên kết Multiview. Vui lòng báo cáo lỗi này trên GitHub hoặc Discord.",
+            "noDefaultLayout": "Multiview không có bố cục cho {videoCount} video.",
+            "noSimulcasts": "Không có simulcast nào cho video này."
+          }
+        }
+      },
+      "refersLabel": "đề cập đến",
+      "sourcesLabel": "nguồn",
+      "songsLabel": "bài hát",
+      "recommendationsLabel": "đề xuất",
+      "sameSourceClips": "Đến từ cùng stream"
+    },
+    "paginateLoad": {
+      "newer": "Mới hơn",
+      "older": "Cũ hơn"
+    },
+    "music": {
+      "clearPlaylist": "Xoá tất cả",
+      "trendingForOrg": "Xu hướng cho {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Bài hát gần đây",
+      "weeklyTopPlaysHeader": "Top lượt nghe trong tuần",
+      "trending": "Xu hướng"
+    },
+    "songList": {
+      "songTitle": "Tiêu đề",
+      "songCoveredBy": "Cover bởi",
+      "songDuration": "Thời lượng",
+      "sangOnTime": "Ngày hát"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Top lượt nghe trong tháng của {arg0}",
+      "weeklyTopForOrg": "Top lượt nghe trong tuần của {arg0}"
+    },
+    "installPrompt": {
+      "title": "Cài đặt Holodex",
+      "callToAction": "Holodex đem lại trải nghiệm tốt nhất nếu bạn thêm trang vào màn hình chính",
+      "notNowBtn": "Không phải lúc này",
+      "installBtn": "Cài đặt",
+      "iOS": {
+        "popup": "Cài đặt Holodex trên iOS",
+        "afterExportIcon": "sau đó 'Thêm vào màn hình chính",
+        "beforeExportIcon": "Nhấn"
+      }
+    },
+    "media": {
+      "remove": "Xoá"
+    },
+    "comment": {
+      "close": "Đóng",
+      "readMore": "Xem thêm"
+    },
+    "reportDialog": {
+      "title": "Báo cáo",
+      "collabing": "Kênh này có thể hợp tác với một thành viên {org} hoặc với những người yêu thích của bạn. Bạn có thể tắt tính năng này thông qua cài đặt",
+      "comments": "Holodex nên thực hiện những hành động nào?",
+      "success": "Đã gửi báo cáo, cảm ơn bạn!",
+      "consider": "Hãy cân nhắc dùng bộ lọc và bỏ báo cáo này.",
+      "reasons": {
+        "0": "Video bị gắn thẻ sai",
+        "1": "Chất lượng video quá kém/Nội dung dễ gây hiểu lầm",
+        "2": "Vi phạm các nguyên tắc thực hiện tác phẩm phái sinh (Derivative Work Guidelines) của tổ chức hoặc nội dung không phù hợp",
+        "3": "Khác",
+        "4": "Chủ đề video không chính xác",
+        "5": "Kênh được nhắc đến không chính xác",
+        "6": "{arg0} này không thuộc về {arg1}"
+      },
+      "applyChanges": "Áp dụng thay đổi",
+      "selectAll": "Chọn tất cả",
+      "deselectAll": "Bỏ chọn tất cả",
+      "adjustMentionedChannels": "Điều chỉnh kênh được nhắc đến",
+      "addMentionedChannels": "Thêm kênh được nhắc đến",
+      "searchMentionedChannels": "Tìm VTuber để nhắc đến",
+      "commentLanguagesOk": "* Tiếng Anh / tiếng Nhật / tiếng Trung phồn thể OK",
+      "specificChannelWarningBody1": "Holodex không phân xử các tranh chấp thông thường về chất lượng bản dịch. Với lỗi nhỏ, hãy để lại phản hồi cho clipper hoặc dịch giả trên YouTube.",
+      "specificChannelWarningBody2": "Nếu một video bị dịch sai nghiêm trọng và có thể gây hiểu lầm lớn, Holodex có thể gỡ video đó hoặc chuyển trường hợp này lên cấp xử lý cao hơn.",
+      "specificChannelWarningBody3": "Để không nhìn thấy một kênh nữa, hãy dùng nút chặn kênh trong hộp thoại này hoặc trên trang kênh.",
+      "specificChannelWarningTitle": "Lưu ý: đừng báo cáo chỉ vì bạn không thích hoặc không đồng ý với kênh này.",
+      "topicUnsetPlaceholder": "Đề xuất chủ đề mới (để trống để bỏ đặt)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Dựa trên cách trình duyệt hoạt động, một số trình duyệt với khả năng giới hạn/chặn <b>cookies của bên thứ ba</b>, hoặc chặn cookies của <kbd>YouTube</kbd> sẽ gặp một chút khó khăn khi đăng nhập / sử dụng YouTube Chat. <br /><br /> Vấn đề này có thể được giải quyết bằng cách cho phép cookies của <kbd>YouTube</kbd> hoạt động trong trình duyệt, hoặc giảm giới hạn cookies / quyền riêng tư cho <kbd>Holodex.net</kbd>. <br /><br /> Chúng tôi có một số trang web giúp bạn có thêm thông tin và hướng dẫn chi tiết cho vấn đề này.",
+      "dialogTitle": "Sử dụng Youtube Chat trên Holodex",
+      "alertText": "Cài đặt quyền riêng tư của trình duyệt bạn đang sử dụng khiến bạn không thể đăng nhập vào Youtube Chat. Nhấn vào đây để tìm hiểu thêm",
+      "neverShowAgain": "Ngừng hiển thị các cảnh báo này"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Xuất danh sách",
+        "new-playlist": "Danh sách mới",
+        "rename-playlist": "Đổi tên danh sách",
+        "reset-unsaved": "Huỷ các thay đổi chưa được lưu",
+        "delete-playlist": "Xoá danh sách",
+        "clear-playlist": "Xoá"
+      },
+      "save-error-not-logged-in": "Bạn cần phải đăng nhập để lưu danh sách",
+      "unnamed-playlist": "Playlist chưa đặt tên",
+      "video-count": "{count} video",
+      "next-video": "Video tiếp theo",
+      "error-loading": "Lỗi khi tải playlist, playlist có tồn tại không?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Dữ liệu sự kiện được cung cấp bởi {arg0} từ: {arg1}",
+      "datasourceCredit": "Dữ liệu sự kiện được nạp từ nguồn dữ liệu {arg0}.",
+      "botCredit": "Dữ liệu sự kiện được cung cấp từ nguồn dữ liệu {arg0}, tạo bởi {arg1}.",
+      "streamPageBtn": "Trang Stream",
+      "eventPageBtn": "Trang Sự kiện",
+      "scheduledEvent": "Được lên lịch",
+      "editorCredit": "Sự kiện được cài đặt bởi Editor {arg0} của Holodex.",
+      "creditTitleText": "Nguồn:"
+    },
+    "calendar": {
+      "liveCalendar": "Lịch livestream (iCal)",
+      "favoritesCalendar": "Lịch yêu thích (iCal)",
+      "favoritesLoginRequired": "Bạn cần đăng nhập để sử dụng nguồn cấp lịch yêu thích."
+    },
+    "form": {
+      "required": "Bắt buộc",
+      "invalidUrl": "URL không hợp lệ",
+      "invalidTime": "Thời gian không hợp lệ",
+      "error": "Đã xảy ra lỗi.",
+      "never": "không bao giờ",
+      "new": "Mới",
+      "existing": "Đã có",
+      "channel": "Kênh",
+      "submit": "Gửi",
+      "certainty": {
+        "certain": "Chắc chắn",
+        "likely": "Có khả năng"
+      },
+      "placeholder": {
+        "editorBadge": "Biên tập viên",
+        "title": "Stream tạm",
+        "description": "Tạo hoặc cập nhật stream tạm đã lên lịch bằng luồng biểu mẫu mới.",
+        "success": "Đã thêm stream tạm thành công",
+        "authError": "Bạn không phải Biên tập viên Holodex hợp lệ, hoặc liên kết tạo stream tạm do Discord tạo đã hết hạn",
+        "editingAs": "Đang chỉnh sửa với tên {user} từ Discord {guild}. Phiên của bạn hết hạn: {expiresIn}. Hãy tải lại nếu phiên sắp hết hạn.",
+        "notEditor": "Bạn không phải biên tập viên hoặc token đã hết hạn. Vui lòng đăng nhập hoặc tạo token mới bằng bot của chúng tôi.",
+        "editorCreditName": "Tên ghi công biên tập viên",
+        "editorCreditHint": "Dùng tên khác khi được ghi công công khai.",
+        "placeholderId": "ID tạm (11 ký tự)",
+        "placeholderIdInput": "ID tạm",
+        "videoTitle": "Tiêu đề video",
+        "japaneseVideoTitle": "Tiêu đề video tiếng Nhật",
+        "sourceLink": "Liên kết nguồn",
+        "sourceLinkHint": "vd: URL lịch trên Twitter hoặc kênh Twitch",
+        "thumbnailImage": "Ảnh thu nhỏ",
+        "eventType": "Loại sự kiện",
+        "certainty": "Độ chắc chắn",
+        "timezone": "Múi giờ",
+        "date": "Ngày",
+        "time": "Giờ",
+        "duration": "Thời lượng",
+        "durationHint": "Ước lượng thời lượng bằng phút",
+        "submitModification": "Gửi thay đổi stream tạm",
+        "create": "Tạo stream tạm mới",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Không có",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "Thao tác",
+      "chat": "Trò chuyện",
+      "close": "Đóng",
+      "collapse": "Thu gọn",
+      "confirm": "Xác nhận",
+      "language": "Ngôn ngữ",
+      "moreActions": "Thao tác khác",
+      "or": "hoặc",
+      "processing": "Đang xử lý...",
+      "remove": "Xóa",
+      "save": "Lưu"
+    },
+    "pagination": {
+      "nextPage": "Trang tiếp theo",
+      "previousPage": "Trang trước"
+    },
+    "userMenu": {
+      "apiKey": "Khóa API",
+      "googleLinkUnavailable": "Không thể liên kết Google.",
+      "googleSignInUnavailable": "Không thể đăng nhập bằng Google.",
+      "icalFeed": "Nguồn iCal",
+      "link": "Liên kết",
+      "linkGoogle": "Liên kết Google",
+      "linkedAccounts": "Tài khoản đã liên kết",
+      "manualOAuthInstructions": "Nếu đăng nhập tự động chưa hoàn tất, hãy dán URL được chuyển hướng bên dưới.",
+      "pasteRedirectUrl": "Dán URL được chuyển hướng",
+      "userAvatar": "Ảnh đại diện người dùng"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Video",
+      "clips": "Clip",
+      "music": "Âm nhạc",
+      "collabs": "Collab",
+      "about": "Giới thiệu"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Người đăng kí",
+        "group": "Nhóm",
+        "recentUpload": "Tải lên gần đây",
+        "videoCount": "Số lượng video",
+        "clipCount": "Số lượng clip",
+        "org": "Tổ chức"
+      },
+      "tabs": {
+        "Vtuber": "VTuber",
+        "Subber": "Subber",
+        "Favorites": "Yêu thích",
+        "Blocked": "Đã chặn"
+      },
+      "favoritesAreEmpty": "Bạn chưa yêu thích kênh nào cả!",
+      "blockedAreEmpty": "Bạn không có kênh đã chặn nào.",
+      "sort": {
+        "newestFirst": "Mới nhất trước",
+        "oldestFirst": "Cũ nhất trước"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Trực tiếp / Sắp tới",
+      "recentVideosHeading": "Video gần đây",
+      "noStreams": "Không có luồng phát sóng trực tiếp hoặc luồng phát sóng sắp tới vào lúc này",
+      "recentVideoToggles": {
+        "all": "Tất cả",
+        "official": "Lưu trữ",
+        "subber": "Clip"
+      },
+      "liveLabel": "Trực tiếp",
+      "upcomingLabel": "Sắp tới",
+      "controls": {
+        "sortBy": "Sắp xếp theo",
+        "viewers": "Người xem",
+        "latest": "Mới nhất",
+        "uploadedBefore": "Tải lên trước",
+        "pickDate": "Chọn ngày",
+        "clipLanguages": "Hiển thị những clip trong các ngôn ngữ sau:"
+      },
+      "apiError": "Không thể tải video."
+    },
+    "library": {
+      "savedVideosTitle": "Video đã lưu",
+      "createYtPlaylistButton": "Tạo Youtube Playlist ({arg0})",
+      "deleteFromLibraryButton": "Xoá ({arg0})",
+      "deleteConfirmation": "Bạn có chắc chắn muốn xoá {arg0} video này không?",
+      "deleteConfirmationOK": "Xóa",
+      "deleteConfirmationCancel": "Hủy bỏ",
+      "selectionReset": "Thiết lập lại",
+      "selectionSelectAll": "Chọn tất cả",
+      "emptyLibrary": "Bạn không có video đã lưu nào!",
+      "exportSelected": "Xuất các mục được chọn ({arg0})",
+      "exportYtPlaylist": "YouTube Playlist",
+      "exportCsv": "Tệp CSV",
+      "selectionSelect50": "Chọn 50",
+      "exportYTExplanation": "Playlist Youtube được tạo bởi tính năng này sẽ <b>không công khai</b> (Unlisted) và có thể sẽ bị xoá bởi Youtube. <br /> Vì tính năng này của Youtube chưa được hoàn thiện, bạn cần phải làm những bước sau để lưu playlist Youtube <b>không công khai</b> này vào tài khoản.",
+      "exportYTHeading": "Hướng dẫn lưu Youtube Playlist",
+      "exportYTInstructions": "<b class=\"red--text\">Bước 1</b>: Mở playlist và chọn mini-player. <br /><br /> <b class=\"red--text\">Bước 2</b>: Chọn một video bất kì và thêm vào Queue. <br /><br /> <b class=\"red--text\">Bước 3</b>: Đã có thể lưu playlist. Nhấn lưu để lưu playlist.",
+      "sort": {
+        "dateaddedEarliestFirst": "Ngày được thêm vào Thư viện, cũ nhất trên cùng",
+        "dateaddedLatestFirst": "Ngày được thêm vào Thư viện, mới nhất trên cùng",
+        "dateuploadedLatestFirst": "Ngày tải lên, mới nhất trên cùng",
+        "dateuploadedEarliestFirst": "Ngày tải lên, cũ nhất trên cùng"
+      }
+    },
+    "notFound": {
+      "title": "Không tìm thấy nội dung",
+      "back": "Về trang chủ"
+    },
+    "search": {
+      "sort": {
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất",
+        "longest": "Dài nhất"
+      },
+      "type": {
+        "all": "Tất cả",
+        "official": "Chính thức",
+        "clip": "Clip"
+      },
+      "unsupportedQuery": "Tìm kiếm clip dựa trên <kbd>Chủ đề</kbd> và <kbd>Tổ chức</kbd> hiện không được hỗ trợ. Sẽ không có <b>clip</b> nào được hiển thị.",
+      "sortByLabel": "Sắp xếp theo",
+      "typeDropdownLabel": "Thể loại",
+      "searching": "Đang tìm kiếm...",
+      "useSearchBar": "Dùng thanh tìm kiếm để tìm stream, clip hoặc kênh."
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "darkModeLabel": "Chế độ Tối",
+      "darkModeMsg": "Chuyển đổi giao diện sáng và tối",
+      "redirectModeLabel": "Mở trên Youtube",
+      "redirectModeMsg": "Nhấn vào hình thu nhỏ của video sẽ mở video trên YouTube, nhấn vào tiêu đề sẽ mở video trên Holodex",
+      "useEnglishNameLabel": "Sử dụng tên tiếng Anh",
+      "useEnglishNameMsg": "Sử dụng tên tiếng Anh cho các kênh của VTuber",
+      "hideVideoThumbnailsLabel": "Ẩn hình thu nhỏ của video",
+      "hideVideoThumbnailsMsg": "Ẩn hình thu nhỏ của video để tăng tốc độ tải trang và lướt nhanh hơn trên điện thoại",
+      "pushNotificationLabel": "Thông báo (Sắp có)",
+      "pushNotificationMsg": "Bật thông báo cho những kênh yêu thích của bạn",
+      "autoplayVideoLabel": "Tự động phát video",
+      "autoplayVideoMsg": "Bật tự động phát lại các video",
+      "scrollModeLabel": "Chế độ Cuộn",
+      "scrollModeMsg": "Sử dụng thanh cuộn/nhấn để sang trang",
+      "resetAllSettings": "Đặt lại tất cả Cài đặt/Dữ liệu",
+      "resetAllSettingsWarning": "Bạn sẽ mất toàn bộ dữ liệu. Tiếp tục?",
+      "clipLanguageSelection": "Hiển thị những clip trong các ngôn ngữ sau:",
+      "tlLanguageSelection": "Hiển thị bản dịch trực tiếp trong các ngôn ngữ sau",
+      "defaultPage": "Trang mặc định",
+      "defaultPageMsg": "Mặc định mở trang này khi truy cập holodex.net hoặc khi nhấn vào biểu tượng ở góc trái trên cùng.",
+      "videoFeedSettings": "Cài đặt trang Video",
+      "siteNavigationSettings": "Trang/Điều hướng",
+      "languageSettings": "Ngôn ngữ",
+      "gridSizeLabel": "Kích cỡ của Hình thu nhỏ/Phân bố video",
+      "gridSizeMsg": "Thay đổi kích cỡ của hình thu nhỏ/phân bố video trên Trang chủ/Yêu thích",
+      "gridSize": {
+        "0": "Lớn",
+        "1": "Vừa",
+        "2": "Nhỏ"
+      },
+      "hideCollabStreamsLabel": "Ẩn Stream Collab",
+      "hideCollabStreamsMsg": "Ẩn những stream collab khỏi trang Yêu thích",
+      "hidePlaceholderStreams": "Ẩn các stream đã lên lịch",
+      "hidePlaceholderStreamsMsg": "Ẩn các mục placeholder đã lên lịch nhưng chưa có trang stream phát được",
+      "hideMissingStreams": "Ẩn stream bị thiếu",
+      "hideMissingStreamsMsg": "Ẩn video không khả dụng hoặc thiếu metadata Holodex bắt buộc",
+      "ignoredTopicsLabel": "Topic đã bỏ qua",
+      "ignoredTopicsMsg": "Ẩn các video có các topic này khỏi Trang chủ và Trang ưa thích",
+      "theme": "Giao diện",
+      "moreSettings": "Các cài đặt bổ sung",
+      "systemOptions": "Tùy chọn hệ thống",
+      "followSystemThemeLabel": "Theo giao diện hệ thống",
+      "languageOverrideActive": "Ghi đè ngôn ngữ đang bật cho {language}. Nhấp để xóa.",
+      "filters": {
+        "blockedTopics": "Topic đã bỏ qua",
+        "blockedTopicsDescription": "Ẩn các video có các topic này khỏi Trang chủ và Trang ưa thích",
+        "searchTopics": "Tìm chủ đề",
+        "clearBlockedTopics": "Xóa chủ đề đã bỏ qua",
+        "hideStreams": "Ẩn stream",
+        "collab": "Cộng tác",
+        "placeholder": "Tạm thời",
+        "missing": "Thiếu"
+      },
+      "defaultTheme": "Mặc định"
+    },
+    "app": {
+      "update_available": "Đã có bản cập nhật mới",
+      "update_btn": "Cập nhật",
+      "close_btn": "Đóng",
+      "check_about_page": "Truy cập trang Giới thiệu để đọc về các thay đổi mới",
+      "nowSupportsMultiOrg": "Mẹo: bạn có thể đổi tổ chức ở đây.",
+      "loginCallToAction": "Đăng nhập để thiết lập mục yêu thích của bạn."
+    },
+    "about": {
+      "add_my_channel": "Yêu cầu thêm kênh"
+    },
+    "watch": {
+      "theaterMode": "Chế độ Rạp chiếu phim (Alt + T)",
+      "mentionIconLabel": "ĐỀ CẬP",
+      "chat": {
+        "loading": "Đang tải Chat...",
+        "hideTLBtn": "Ẩn dịch trực tiếp",
+        "showTLBtn": "Hiện dịch trực tiếp",
+        "TLSettingsTitle": "Cài đặt dịch trực tiếp",
+        "showSubtitle": "Hiển thị phụ đề",
+        "expandTL": "Mở rộng TLdex",
+        "tlStart": "Khởi đầu tin nhắn",
+        "StickBottomSettingLabel": "Di chuyển xuống dưới",
+        "StickBottomSettingsDesc": "Đặt hộp thoại dịch trực tiếp bên dưới Youtube Chat",
+        "showVerifiedMessages": "Hiển thị tin nhắn từ các kênh Verified",
+        "showModeratorMessages": "Hiển thị tin nhắn từ Moderator",
+        "showVtuberMessages": "Hiển thị tin nhắn từ Vtuber",
+        "showLocalTime": "Hiển thị giờ tại địa phương",
+        "tlFontSize": "Cỡ chữ",
+        "tlWindowSize": "Kích thước khung dịch (%), đặt 0% để tự động điều chỉnh",
+        "retryBtn": "Thử lại",
+        "status": {
+          "reconnecting": "Tự động kết nối lại...",
+          "reconnectFailed": "Không thể kết nối lại",
+          "notLive": "Luồng phát sóng chưa bắt đầu, hãy thử lại vào khoảng 15 phút trước khi bắt đầu phát trực tiếp",
+          "connectedToChat": "Đã kết nối",
+          "disconnectedToChat": "Đã ngắt kết nối"
+        },
+        "archiveNeedExtension": "Chat từ các stream đã kết thúc sẽ không hoạt động mà không có tiện ích mở rộng {arg0} hoặc các tiện ích mở rộng từ nguồn thứ 3 khác.",
+        "hideSpoiler": "Ẩn spoiler",
+        "archiveNeedExtensionAfter": " để xem chat TL đã lưu trữ.",
+        "archiveNeedExtensionBefore": "Cài tiện ích mở rộng trình duyệt",
+        "editBlockedList": "Sửa danh sách chặn",
+        "manageBlockedTranslators": "Quản lý tên người dịch bị chặn.",
+        "membersOnlyTl": "Chat TL chỉ dành cho thành viên không khả dụng.",
+        "noBlockedNames": "Không có tên bị chặn.",
+        "tuneTlBehavior": "Điều chỉnh hành vi và bố cục bản dịch trực tiếp.",
+        "ytChatLabel": "Chat YouTube"
+      },
+      "removeFromPlaylist": "Xoá video khỏi playlist hiện tại",
+      "saveToPlaylist": "Lưu video vào playlist hiện tại",
+      "likeOnYoutube": "Thích video này trên Youtube",
+      "uploadPanel": {
+        "title": "Tải script lên",
+        "usernameText": "TL sẽ được tải lên dưới tên người dùng",
+        "usernameChange": "Thay đổi",
+        "tlLang": "Ngôn ngữ TL",
+        "headerStart": "Bắt đầu",
+        "headerEnd": "Kết thúc",
+        "headerText": "Văn bản",
+        "cancelBtn": "Hủy bỏ",
+        "okBtn": "OK",
+        "notifTextErr": "KHÔNG THỂ ĐỌC TỆP (TỆP BỊ HỎNG?)",
+        "notifTextParsing": "Đang phân tích tệp...",
+        "notifTextErrExt": "Phần mở rộng tệp không nhận dạng được.",
+        "subtitleFile": "Tệp phụ đề"
+      },
+      "reloadVideoFrame": "Tải lại khung video"
+    },
+    "favorites": {
+      "promptForAction": "Tạo một danh sách các Vtuber yêu thích để xem các clip và livestream mới nhất của họ tại trang này.",
+      "manageFavorites": "Quản lý mục Yêu thích",
+      "close": "Đóng",
+      "showall": "Hiển thị tất cả"
+    },
+    "editor": {
+      "needlogin": "Bạn cần phải đăng nhập để chỉnh sửa dữ liệu của các video và bài hát trên Holodex.",
+      "changeTopic": {
+        "title": "Thay đổi chủ đề của stream",
+        "info": "Mọi người dùng đều có thể gắn topic cho video, nhưng chỉ có Editor và Admin mới có thể xoá và thay đổi topic có sẵn.",
+        "button": "Lưu (có thể mất 5 phút mới có hiệu lực)",
+        "unset": "Chưa đặt",
+        "inputPlaceholder": "Chủ đề (để trống để bỏ đặt)",
+        "saveTopic": "Lưu chủ đề"
+      },
+      "channelMentions": {
+        "title": "Các kênh được nhắc đến",
+        "addSuccess": "Đã thêm kênh được nhắc đến.",
+        "deleteSuccess": "Đã xóa kênh được nhắc đến.",
+        "tagsTitle": "Kênh được nhắc đến"
+      },
+      "sources": {
+        "title": "Nguồn/Clip (tính năng đang được phát triển)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "Bạn có thể sử dụng khoá API để truy vấn đến API của Holodex một cách tự động. Một tài khoản chỉ được phép có một khoá. Sau khi lấy khoá mới, khoá cũ sẽ hết hạn sử dụng trong vòng 0 - 24 tiếng sau.",
+      "apikeyNew": "Lấy khoá API mới",
+      "ownedYtChannel": "Sở hữu các kênh Youtube",
+      "futureYtcOwnerMessage": "Trong tương lai, chúng tôi có kế hoạch cung cấp nhiều dịch vụ hơn cho chủ sở hữu kênh như chỉnh sửa dữ liệu cho video của riêng họ.",
+      "linkAcc": "Liên kết với tài khoản khác",
+      "apikeyResetConfirm1": "Bạn có chắc chắn muốn đặt lại khoá API của mình chứ?",
+      "apikeyResetConfirm2": "Khoá API cũ sẽ hết hạn sau khoảng 0 - 24 giờ, bạn chắc chắn muốn đặt lại chứ?",
+      "apikeyResetNvm": "Không có gì thú vị xảy ra.",
+      "with": {
+        "0": "Đăng nhập bằng Google",
+        "1": "Đăng nhập bằng Discord",
+        "2": "Đăng nhập bằng Twitter"
+      },
+      "twitterMsg": {
+        "0": "Do thay đổi chính sách API của Twitter, đăng nhập bằng Twitter có khả năng không còn hoạt động sau ngày 9 tháng 2.",
+        "1": "Hiện tại bạn chỉ đang dùng đăng nhập Twitter. Chúng tôi khuyến nghị liên kết một phương thức đăng nhập khác ngay để tránh bị khóa ngoài tài khoản (trên thiết bị khác hoặc sau khi xóa dữ liệu trình duyệt).",
+        "2": "Nếu bạn không đăng nhập được vào Holodex bằng tài khoản Twitter (và chưa liên kết phương thức đăng nhập nào khác), hãy liên hệ với chúng tôi qua DM Twitter hoặc Discord để được hỗ trợ."
+      },
+      "username": "Tên người dùng",
+      "usernameBtn": {
+        "0": "Thay đổi",
+        "1": "Xác nhận",
+        "2": "Lưu"
+      },
+      "loggingIn": "Đang đăng nhập..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Ghi đè bố cục hiện tại?",
+      "confirmOverwriteYes": "Xác nhận",
+      "permalink": "Liên kết tĩnh",
+      "presets": "Mẫu có sẵn",
+      "addframe": "Thêm ô",
+      "muteAll": "Tắt âm tất cả",
+      "unmuteAll": "Bật âm tất cả",
+      "muteOthers": "Tắt tiếng các stream khác",
+      "muteOthersDetail": "Tắt tiếng tất cả trừ một stream",
+      "autoLayoutTip": "Nhấn vào một kênh để bắt đầu xem bằng chế độ bố cục tự động",
+      "createLayoutTip": "Tự tạo bố cục của riêng mình bằng cách thêm các ô hoặc sử dụng mẫu có sẵn",
+      "openToolbarTip": "Mở thanh công cụ để bắt đầu sử dụng multiview",
+      "archiveSync": "Đồng bộ hoá archive",
+      "preset": {
+        "shareOnDiscord": "Muốn chia sẻ bố cục của mình? Hãy sử dụng nút chia sẻ và liên hệ với chúng tôi trên <a href=\"https://discord.gg/jctkgHBt4b\">Discord</a>!",
+        "custom": "Bố cục của tôi",
+        "toggleAutoLayout": "Bật/tắt sử dụng bố cục này trong chế độ tự động",
+        "remove": "Xoá",
+        "desktop": "Desktop",
+        "mobile": "Di động",
+        "autoLayout": "Tự động bố trí",
+        "noPresets": "Không có preset khả dụng"
+      },
+      "presetEditor": {
+        "title": "Lưu bố cục",
+        "name": "Tên",
+        "autoLayout": "Sử dụng bố cục này trong chế độ tự động"
+      },
+      "video": {
+        "selectLive": "Chọn livestream",
+        "addCustomVideo": "Thêm video tuỳ chọn",
+        "twitchChannelLink": "Liên kết kênh Twitch",
+        "youtubeVideoLink": "Liên kết video YouTube",
+        "noHistory": "Không có lịch sử",
+        "addUrl": "Thêm URL",
+        "addUrlShort": "Thêm",
+        "urlPlaceholder": "Dán URL YouTube hoặc Twitch",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Toàn màn hình",
+      "mediaControls": "Điều khiển",
+      "mediaControlsEmpty": "Các video đang được phát sẽ xuất hiện ở đây",
+      "editAutoLayout": "Chỉnh sửa bố cục tự động",
+      "changeLayout": "Thay đổi bố cục",
+      "done": "Hoàn tất",
+      "hints": "Gợi ý",
+      "presetsHint": "Mở menu mẫu có sẵn để thay đổi bố cục và cài đặt bố cục tự động",
+      "mediaControlsHint1": "Sử dụng Điều khiển để tắt tiếng và đồng bộ hoá (",
+      "mediaControlsHint2": ") các stream",
+      "dragDropHint": "Kéo và thả các stream từ thanh công cụ đến các ô để sắp xếp",
+      "reorderHint": "Sử dụng menu Điều chỉnh bố cục để thay đổi vị trí video và chat",
+      "reorderLayout": "Điều chỉnh bố cục",
+      "reorderLayoutDetail": "Kéo và thả biểu tượng đến vị trí thích hợp",
+      "sync": {
+        "nothingToSync": "Không có gì để đồng bộ hoá, xin hãy mở hai stream archive trùng lặp (ví dụ: collab streams)",
+        "syncSettings": "Cài đặt đồng bộ hoá",
+        "syncSettingsDetail": "Video được đồng bộ hoá dựa trên thời điểm bắt đầu stream, và có thể bị lệch đồng bộ do các vấn đề kỹ thuật xảy ra giữa stream hoặc do bị xoá mất một số phần trong stream. Dùng hiệu số để tự căn chỉnh video"
+      },
+      "syncLabel": "Đồng bộ",
+      "collapseToolbar": "Thu gọn thanh công cụ",
+      "deleteCell": "Xóa ô",
+      "fillEmptyCells": "Điền video hiện tại vào các ô trống",
+      "openNavigation": "Mở điều hướng",
+      "shareLayout": "Chia sẻ bố cục"
+    },
+    "mugen": {
+      "welcome": "Chào mừng bạn đã đến với MugenClips! Tất cả mọi người trên trang này đều đang xem cùng một clip Hololive tiếng Anh được lựa chọn ngẫu nhiên. Hãy cùng xem và trò chuyện với các fan Hololive khác trên toàn thế giới. Nếu bạn lỡ tua nhanh và muốn đồng bộ hoá lại với mọi người, xin hãy tải lại trang."
+    },
+    "playlist": {
+      "playlist-is-modified": "Chưa được lưu",
+      "item-last-updated": "Cập nhật lần cuối:",
+      "login-prompt": "Đăng nhập để lưu playlist và sở hữu nhiều hơn một playlist",
+      "new-playlist-btn-label": "Tạo một danh sách mới",
+      "page-heading": "Danh sách của bạn:",
+      "page-instruction": "Nhấp vào một playlist để chuyển nó thành trạng thái đang hoạt động.",
+      "change-loss-warning": "Các thay đổi chưa được lưu sẽ bị mất. Tiếp tục?"
+    },
+    "extension": {
+      "title": "Tiện ích Holodex Plus",
+      "features": "Tính năng",
+      "featureset": {
+        "one": "Bật live chat đã lưu trữ trên Watch và Multiview",
+        "two": "Cho phép thích video từ trang xem của Holodex",
+        "three": "Sửa lỗi rò rỉ bộ nhớ trong live chat YouTube",
+        "four": "Sửa các flag thử nghiệm trên trình phát YouTube, như tắt nhiều stream, ảnh phòng chờ không hiển thị và hơn thế nữa."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Tải mã nguồn",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Tiện ích Firefox",
+      "githubDownload": "Tải từ GitHub",
+      "installFromGithubPrefix": "Cài đặt từ ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Tìm lưu trữ",
+          "channels": "Mở kênh",
+          "clips": "Tìm clip",
+          "live": "Kiểm tra stream trực tiếp"
+        },
+        "getItOnPrefix": "Tải trên ",
+        "getItOnSuffix": ".",
+        "title": "Tiện ích Raycast"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menu",
+        "setting": "Cài đặt phòng TLDex",
+        "loadVideo": "Hiển thị video",
+        "unloadVideo": "Ẩn video",
+        "loadChat": "Thêm chat YT vào Broadcast TL",
+        "unloadChat": "Tách khỏi chat YT"
+      },
+      "tlControl": {
+        "enterBtn": "Enter",
+        "prefix": "Tiền tố",
+        "suffix": "Hậu tố",
+        "fontColour": "Màu chữ",
+        "outlineColour": "Màu viền",
+        "localPrefix": "Thẻ ngôn ngữ trong chat",
+        "addProfile": "Thêm hồ sơ",
+        "removeProfile": "Xóa hồ sơ",
+        "shiftUp": "Đưa hồ sơ lên",
+        "shiftDown": "Đưa hồ sơ xuống",
+        "showSetting": "Cài đặt",
+        "hideSetting": "Ẩn",
+        "currentProfileSettings": "Cài đặt hồ sơ hiện tại [{name}]",
+        "inputPlaceholder": "Nhập văn bản dịch"
+      },
+      "addProfilePanel": {
+        "title": "Thêm hồ sơ mới",
+        "inputLabel": "Tên hồ sơ"
+      },
+      "settingPanel": {
+        "title": "Cài đặt",
+        "mainStreamLink": "Liên kết stream chính",
+        "collabLink": "Liên kết collab",
+        "findVideo": "Tìm video"
+      },
+      "removeProfileTitle": "Xác nhận xóa hồ sơ",
+      "loadChatPanel": {
+        "title": "Tải chat",
+        "inputLabel": "Liên kết stream"
+      },
+      "unloadChatTitle": "Gỡ TẤT CẢ chat đang hoạt động?",
+      "pangram": "Chú bé quàng khăn đỏ thích ăn pizza với kiwi ở Qatar",
+      "cancelBtn": "Hủy bỏ",
+      "okBtn": "OK",
+      "shortcuts": {
+        "changeProfiles": "Đổi hồ sơ",
+        "or": "hoặc",
+        "quickSwitchDefaultProfile": "Chuyển nhanh sang hồ sơ mặc định",
+        "quickSwitchProfileRange": "Hồ sơ 0-9",
+        "quickSwitchProfiles": "Chuyển hồ sơ nhanh",
+        "whileTyping": "Khi đang nhập trong ô TL:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Lưu",
+        "continuousEnd": "Làm thời gian liên tục (đổi thời điểm kết thúc)",
+        "clearAll": "Xóa script",
+        "exportFile": "Xuất tệp",
+        "importFile": "Nhập tệp",
+        "editorMode": "Chế độ editor",
+        "changeCustomLink": "Đổi liên kết tùy chỉnh",
+        "timeShift": "Dịch thời gian"
+      },
+      "table": {
+        "headerStart": "Bắt đầu",
+        "headerEnd": "Kết thúc",
+        "headerProfile": "Hồ sơ",
+        "headerText": "Văn bản",
+        "setAsStart": "Đặt làm bắt đầu",
+        "shiftCurrentTime": "Dịch tới thời gian hiện tại",
+        "deleteEntry": "Xóa mục"
+      },
+      "loadVideoPanel": {
+        "title": "Tải video",
+        "inputLabel": "Liên kết stream"
+      },
+      "setStartTitle": "Đặt mục đã chọn làm bắt đầu; tất cả mục trước đó sẽ bị xóa.",
+      "importFile": {
+        "overwriteBtn": "Ghi đè"
+      },
+      "editorModePanel": {
+        "activateMode": "Bật chế độ editor",
+        "deactivateMode": "Tắt chế độ editor",
+        "roleWarning": "Bạn không có đủ quyền",
+        "filterTranslator": "Lọc người dịch"
+      },
+      "timeShift": {
+        "offset": "Độ lệch",
+        "seconds": "giây",
+        "secondsShort": "giây",
+        "timeOffset": "Độ lệch thời gian"
+      }
+    },
+    "tlManager": {
+      "title": "Trình quản lý script",
+      "headerID": "ID video",
+      "headerEntries": "Mục",
+      "download": "Tải xuống",
+      "delete": "Xóa",
+      "deleteTitle": "Xóa mục",
+      "langPick": "Ngôn ngữ",
+      "changeCustomLink": "Đổi liên kết tùy chỉnh",
+      "changeStreamLink": "Đổi liên kết stream",
+      "description": "Quản lý script dịch, xuất dữ liệu và dọn dẹp liên kết tùy chỉnh.",
+      "entriesCount": "{count} mục",
+      "importFromMchad": "Nhập từ MChad",
+      "importMchad": {
+        "claimAllArchives": "Nhận tất cả lưu trữ",
+        "claimSuccess": "Đã nhận lưu trữ.",
+        "entryLength": "{count} mục",
+        "foundId": "Tìm thấy ID phòng: {id}",
+        "login": "Đăng nhập",
+        "missingCredentials": "Nhập tên phòng và mật khẩu.",
+        "noArchives": "Không tìm thấy lưu trữ.",
+        "password": "Mật khẩu",
+        "roomName": "Tên phòng"
+      },
+      "newLink": "Liên kết mới",
+      "noScriptsFound": "Không tìm thấy script dịch cho trang này.",
+      "noTitle": "Không có tiêu đề",
+      "videoTitle": "Tiêu đề video"
+    },
+    "relayBot": {
+      "addSubscription": "Thêm đăng ký",
+      "blacklist": "Danh sách chặn",
+      "botMissing": "Bot không có trong máy chủ này.",
+      "channelsFor": "Kênh cho {name}",
+      "description": "Chuyển tiếp bản dịch trực tiếp từ kênh hoặc video YouTube sang Discord.",
+      "inviteBot": "Mời bot",
+      "loginDiscord": "Đăng nhập bằng Discord",
+      "noBlacklistEntries": "Không có mục nào trong danh sách chặn.",
+      "noSubscriptionsConfigured": "Chưa cấu hình đăng ký nào.",
+      "noWhitelistEntries": "Không có mục nào trong danh sách cho phép.",
+      "notOk": "Thất bại",
+      "ok": "OK",
+      "relaySubscription": "Đăng ký chuyển tiếp",
+      "relayTL": "Chuyển tiếp TL",
+      "saved": "Đã lưu.",
+      "saving": "Đang lưu...",
+      "sendingTrigger": "Đang gửi...",
+      "serverNotShown": "Chỉ hiển thị máy chủ nơi bạn có thể quản lý bot.",
+      "servers": "Máy chủ",
+      "settingFor": "Cài đặt cho {name}",
+      "subscribedChannel": "Kênh đã đăng ký",
+      "title": "Bot chuyển tiếp",
+      "translatorName": "Tên dịch giả",
+      "whitelist": "Danh sách cho phép",
+      "youtubeChannel": "Kênh YouTube",
+      "youtubeLinkChannelVideo": "Liên kết kênh hoặc video YouTube"
+    }
+  },
+  "time": {
+    "soon": "sớm",
+    "diff_future_date": "Bắt đầu {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Thêm",
+      "update": "Cập nhật",
+      "permission": "Bạn cần phải có quyền \"Editor\" hoặc cao hơn để cập nhật hoặc xoá những bài hát đã tồn tại. Xin hãy liên hệ với chúng tôi qua <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord</a> để thông báo cho các Editor khác về vấn đề này, hoặc đăng kí để trở thành một Editor.",
+      "titles": {
+        "addSong": "Song Metadata: Thêm bài hát mới",
+        "songList": "Danh sách bài hát : {arg0}",
+        "help": "Hướng dẫn"
+      },
+      "itunesLookupPlaceholder": "(Tuỳ chọn) Tìm trên iTunes",
+      "moveRight2s": "Qua phải 2 giây",
+      "testEnd": "Nghe thử bắt đầu từ 3 giây trước khi nhạc kết thúc.",
+      "setToCurrentTime": "Chọn thời gian hiện tại ({arg0})",
+      "moveLeft2s": "Qua trái 2 giây",
+      "trackNameInput": "Tên bài hát",
+      "originalArtistInput": "Nghệ sĩ gốc",
+      "testStart": "Nghe thử đoạn đầu",
+      "startInput": "Bắt đầu",
+      "endInput": "Thời lượng tính bằng giây: (kết thúc tại @ {arg0})",
+      "inheritItunesMusic": "Cài đặt thời lượng qua iTunes: {arg0}",
+      "listenOnAppleMusic": "Nghe trên Apple Music",
+      "pickItunesResult": "Chọn một kết quả iTunes",
+      "playFromHere": "Phát từ đây",
+      "timestampEditorHint": "Dùng mốc thời gian tương đối để căn nhạc với video."
+    },
+    "exitMode": "Thoát khỏi Chế độ Chỉnh sửa",
+    "enterMode": "Chỉnh sửa Video"
+  },
+  "about": {
+    "quicklinks": "Liên kết nhanh",
+    "discordBtn": "Holodex Discord",
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "ytchatHeader": "Tôi không đăng nhập được YouTube Chat!",
+      "ytchatContent": "Vui lòng tắt tính năng chặn cookies bên thứ 3 trong trình duyệt, hoặc cho phép cookies của Holodex.net và YouTube.com được hoạt động vào mục Cho phép / Whitelist.",
+      "ytchatFirefox": "Đây là hướng dẫn cho trình duyệt Firefox, những trình duyệt khác có thể tương tự.",
+      "autoplayHeader": "AutoPlay / Tự động phát không hoạt động!",
+      "autoplayContent": "Vui lòng tra cứu cách bật AutoPlay / Tự động phát cho trình duyệt của bạn như: Chrome, Firefox, Edge, Opera.",
+      "musicPlayer": "Trình phát nhạc không hoạt động tốt trên thiết bị di động!",
+      "musicPlayerContent": "Đối với hầu hết các thiết bị iOS, bạn không thể tắt màn hình hoặc đóng Safari khi đang phát nhạc Holodex. Vấn đề này có thể tồn tại trên các thiết bị Android (tùy thuộc vào thiết bị). Vui lòng phản hồi cho chúng tôi trên Discord nếu bạn có bất kỳ ý tưởng nào về cách tạo ra một hệ thống phát lại tốt hơn.",
+      "videoLinkage": "Làm cách nào để tôi có thể đảm bảo rằng các video được liên kết đúng cách với các Vtuber?",
+      "videoLinkageContent": "Tất cả mọi thông tin đều được trích từ mô tả của video. Nếu bạn clip từ một stream, xin hãy chắc chắn rằng bạn đã trích dẫn liên kết đến stream gốc. Nếu như bạn clip từ một video của fan (vd: từ bilibili), hãy chắc chắn rằng bạn có trích dẫn liên kết đến kênh Youtube chính thức của những Vtuber liên quan. Nếu như bạn không đặt bất cứ liên kết nào đến Vtuber trong phần mô tả video của mình, clip đó sẽ không được hiển thị trên Holodex, vì mọi clip đều được yêu cầu phải liên kết đến một Vtuber cụ thể trong hệ thống.",
+      "quitHolodex": "Tôi là một subber/clipper và tôi muốn gỡ bỏ kênh của mình khỏi Holodex\r\n",
+      "quitHolodexContent": "Buồn thật đấy :(, xin hãy cho tôi biết nếu bạn cần tôi giúp đỡ bất cứ thứ gì về vấn đề này. Nếu bạn vẫn muốn gỡ bỏ kênh của mình, xin hãy nhắn tin cho chúng tôi trên Discord.",
+      "favorite": {
+        "title": "Mục Yêu thích là gì?",
+        "Contents": {
+          "0": "Mục yêu thích là một cách để luôn cập nhật các Vtuber yêu thích của bạn, bạn có thể thêm các kênh yêu thích của mình bằng cách nhấp vào biểu tượng trái tim trên",
+          "1": "trang. Xin lưu ý rằng việc yêu thích subbers hiện không được hỗ trợ, nhưng bạn vẫn nên cân nhắc đăng ký và ủng hộ họ theo những cách khác!"
+        },
+        "disappear": {
+          "title": "Danh sách yêu thích của tôi biến mất rồi / Tôi không sử dụng được tính năng Yêu thích"
+        },
+        "contents": {
+          "0": "Hãy đảm bảo rằng bạn đã đăng nhập và truy cập tab yêu thích kênh để bắt buộc refresh lại trang."
+        }
+      },
+      "mobile": {
+        "title": "Có ứng dụng Holodex trên hệ điều hành Android/iOS không?",
+        "content": {
+          "summary": "Chúng tôi vẫn đang phát triển nó! Trong thời gian này, xin hãy sử dụng tính năng \"Thêm vào màn hình chính\" trên trình duyệt của bạn. Chúng tôi đã điều chỉnh nó rất nhiều để khiến nó hoạt động như một ứng dụng",
+          "android": {
+            "0": "Chrome trên Android: Điều hướng đến trang web, nhấp vào dấu ba chấm",
+            "1": "ở trên cùng bên phải và tìm \"Thêm vào Màn hình chính\"."
+          },
+          "ios": {
+            "0": "Safari trên iOS: Điều hướng đến trang web trên điện thoại của bạn, nhấp vào hình vuông có mũi tên hướng lên",
+            "1": "ở cuối Safari và nhấp vào \"Thêm vào Màn hình chính\""
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "MugenClips là gì?",
+        "contents": {
+          "0": "MugenClips hay còn gọi là clip vô hạn, là một tính năng xem cùng nhóm nơi mọi người trên trang web có thể xem liên tục nhiều clip khác nhau được tải lên bởi các kênh dịch khác nhau"
+        }
+      },
+      "subber": {
+        "title": "Tôi là subber/clipper nhưng lại không tìm thấy kênh hay clip của mình trên Holodex",
+        "contents": {
+          "0": "Vui lòng kiểm tra trên trang Kênh (Channels) để xem bạn có được liệt kê là một subber hay không, nếu không, vui lòng điền vào",
+          "1": "mẫu này",
+          "2": ", và chúng tôi sẽ thêm bạn theo cách thủ công. Nếu bạn đã có trong danh sách, vui lòng đảm bảo mô tả video của bạn có nguồn / liên kết kênh youtube chính xác."
+        }
+      },
+      "feedback": {
+        "title": "Tôi có ý kiến/muốn đóng góp cho dự án này",
+        "contents": {
+          "0": "Tất cả sự trợ giúp và ý tưởng đều được chào đón! Cả UI và Backend đều sẵn sàng tiếp nhận đóng góp, mặc dù hiện tại chỉ có UI là mã nguồn mở. Vui lòng liên hệ với chúng tôi trên Discord để có quyền truy cập vào Backend source, hoặc chỉ đơn giản là nói về về ý tưởng của bạn."
+        }
+      },
+      "support": {
+        "title": "Tôi có thể hỗ trợ Holodex như thế nào?",
+        "contents": {
+          "0": "Máy chủ của chúng tôi là một máy tính 28 lõi 60GB RAM với phí duy trì $60 USD/tháng, và chúng tôi vẫn đang tiếp tục tìm cách phát triển các tính năng của hệ thống nhiều hơn nữa, vì vậy chúng tôi đã mở <a href=\"https://ko-fi.com/holodex\">Ko-fi</a>để trang trải chi phí này. (Chúng tôi cũng có <a href=\"https://www.patreon.com/holodex\">Patreon</a>, nhưng chúng tôi thích Ko-fi hơn.)<br /><br />Bạn cũng có thể hỗ trợ Holodex bằng cách gửi cho chúng tôi phản hồi từ người dùng và các tin nhắn khích lệ trên twitter, cung cấp bản dịch tại <a href=\"https://crwd.in/holodex\">Crowdin</a>, cũng như đóng góp vào kho dữ liệu bài hát của chúng ta. Thậm chí timestamp những khoảnh khắc hài hước và gửi bình luận đó trên stream gốc cũng đã là một sự trợ giúp tuyệt vời rồi!"
+        }
+      }
+    },
+    "privacyPolicy": "Chính sách quyền riêng tư",
+    "gdpr": "GDPR và dữ liệu của tôi",
+    "gdprContent": "Google Analytics sẽ được sử dụng cho việc theo dõi lượng truy cập trang nhằm mục đích phân tích của chúng tôi. Danh sách mục Yêu thích của bạn sẽ được liên kết với tên người dùng hoặc ID tài khoản mạng xã hội mà bạn dùng để đăng nhập. Dữ liệu này có thể bao gồm email của bạn (nếu đăng nhập bằng Google), Discord ID, hoặc tên đăng nhập Twitter tuỳ thuộc vào cách thức đăng nhập của bạn.",
+    "gdprDeletion": "Để xoá mọi dữ liệu người dùng của bạn, xin hãy liên hệ với chúng tôi trên Discord!",
+    "feedback": "Phản hồi / Báo cáo lỗi",
+    "feedbackHtml": "Bạn có thể tạo một issue mới tại <a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Issue Tracker </a> hoặc liên hệ với Holodex trên Discord <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Lời cảm ơn",
+      "contents": {
+        "0": "Tôi muốn dành lời cảm ơn sâu sắc tới",
+        "1": "nhóm với thành quả của họ trên",
+        "2": "Cũng xin gửi lời cảm ơn đến tất cả các subbers đã giúp đỡ mọi người ở nước ngoài! Hãy ghé qua và cảm ơn họ!",
+        "3": "Đây là một trang web do người hâm mộ tạo ra và nội dung được tìm thấy trên trang web này thuộc sở hữu của Cover corp và các đối tác của nó. Trang web tuân theo các nguyên tắc do Cover corp đưa ra trong",
+        "4": "Thỏa thuận cấp phép trên các tác phẩm phái sinh"
+      }
+    },
+    "changelog": {
+      "title": "Các thay đổi"
+    },
+    "news": {
+      "title": "Tin tức"
+    },
+    "bookmarklet": {
+      "title": "Bookmarklet",
+      "description": "Kéo các bookmarklet bên dưới lên thanh dấu trang của bạn để mở stream từ trang Youtube bằng Holodex một cách dễ dàng:",
+      "openYoutube": "Mở YouTube trong Holodex"
+    },
+    "links": {
+      "browserAddon": "Tiện ích trình duyệt",
+      "community": "Cộng đồng",
+      "docs": "Tài liệu",
+      "extension": "Tiện ích mở rộng",
+      "repository": "Kho mã nguồn"
+    },
+    "privacy": {
+      "content": {
+        "intro": "Trang này giải thích Holodex xử lý dữ liệu nào và cách các dịch vụ bên thứ ba được sử dụng."
+      },
+      "firstParty": {
+        "title": "Dữ liệu Holodex",
+        "collection": "Holodex lưu trữ mã định danh tài khoản, mục yêu thích, cài đặt, danh sách phát và thao tác chỉnh sửa cần thiết để cung cấp các tính năng của trang.",
+        "voluntary": "Hầu hết dữ liệu tài khoản chỉ được tạo khi bạn đăng nhập hoặc sử dụng tính năng tài khoản.",
+        "access": "Bạn có thể truy cập hoặc cập nhật cài đặt người dùng từ menu tài khoản của mình.",
+        "limitedUse": "Holodex chỉ sử dụng dữ liệu người dùng Google cho tính năng đăng nhập và liên kết tài khoản.",
+        "noPosting": "Holodex không đăng bài lên các tài khoản đã liên kết của bạn.",
+        "revoking": "Bạn có thể thu hồi quyền truy cập tài khoản bên thứ ba từ cài đặt tài khoản của nhà cung cấp.",
+        "changes": "Chính sách này có thể thay đổi khi tính năng của trang hoặc yêu cầu của nhà cung cấp thay đổi."
+      },
+      "links": {
+        "google": "Chính sách quyền riêng tư của Google",
+        "twitch": "Thông báo quyền riêng tư của Twitch"
+      },
+      "thirdParty": {
+        "title": "Dịch vụ bên thứ ba",
+        "analyticsTitle": "Phân tích",
+        "analyticsBody": "Holodex có thể dùng phân tích để hiểu cách sử dụng và độ tin cậy của trang.",
+        "analyticsUse": "Dữ liệu phân tích được dùng để cải thiện hiệu suất, điều hướng và độ ổn định.",
+        "embedsTitle": "Trình phát và chat nhúng",
+        "embedsBody": "Các phần nhúng YouTube và Twitch do các dịch vụ đó cung cấp và có thể dùng cookie cùng trạng thái tài khoản riêng của họ.",
+        "linksIntro": "Xem chính sách của các nhà cung cấp này để biết chi tiết:",
+        "choicesTitle": "Lựa chọn của bạn",
+        "choicesBody": "Bạn có thể chặn cookie bên thứ ba hoặc đăng xuất khỏi các nhà cung cấp đã liên kết, dù một số tính năng nhúng có thể ngừng hoạt động.",
+        "contactTitle": "Liên hệ",
+        "contactBody": "Liên hệ đội ngũ Holodex qua Discord hoặc GitHub nếu có câu hỏi về quyền riêng tư.",
+        "commitment": "Holodex chỉ yêu cầu quyền truy cập cần thiết để vận hành các tính năng."
+      }
+    },
+    "stats": {
+      "lastMonth": "tháng trước",
+      "songs": "bài hát",
+      "subbers": "subber",
+      "videos": "video",
+      "vtubers": "VTubers",
+      "yesterday": "hôm qua"
+    },
+    "youtubeTerms": {
+      "before": "Việc sử dụng các tính năng YouTube nhúng tuân theo ",
+      "link": "Điều khoản dịch vụ của YouTube",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Loại yêu cầu:",
+    "Types": {
+      "AddVtuber": "Thêm VTuber ▶️ để Holodex theo dõi kênh và clip.",
+      "AddClipper": "Thêm kênh clip/phụ đề vào Holodex",
+      "ModifyExistingInfo": "Sửa thông tin kênh hiện có",
+      "DeleteChannel": "Xóa kênh của tôi"
+    },
+    "DirectContactDisclaimer": "Bạn có thể để lại Discord, email hoặc Twitter. Nếu chúng tôi cần liên hệ, thông tin này sẽ được giữ riêng tư và giúp chúng tôi phản hồi cho bạn. Chỉ quản trị viên Holodex thấy thông tin này.",
+    "DirectContactLabel": "Phương thức liên hệ (tùy chọn)",
+    "TwitterHandle": "Twitter của kênh này (tùy chọn)",
+    "VtuberGroupLabel": "Nhóm VTuber (tùy chọn)",
+    "VtuberGroupHint": "VTuber này thuộc tổ chức hoặc nhóm nào?",
+    "ChannelLanguageLabel": "Ngôn ngữ chính của kênh",
+    "EnglishNameHint": "Cung cấp tên tiếng Anh nếu tên kênh không phải tiếng Anh. Hãy theo thứ tự tên trong ngôn ngữ gốc của VTuber này (Natsuiro Matsuri) hoặc tên thương hiệu EN được ưu tiên (Elu the Elf, Emma★August).",
+    "EnglishNameLabel": "Tên kênh tiếng Anh",
+    "Comments": "Bình luận",
+    "CommentsHint": "Nhận xét khác bạn muốn gửi cho chúng tôi.",
+    "VtuberRequirementText": "Kênh độc lập cần tối thiểu 15 nghìn người đăng ký. VTuber thuộc các tổ chức hiện có sẽ được chấp nhận. <br /><br />Tổ chức mới sẽ được tạo tùy theo số người đăng ký trung bình.<br /><br />Streamer Twitch phải có kênh YouTube chính thức để được lập chỉ mục.<br /><br /><strong>Mọi đề cập đến \"past lives\" hoặc danh tính thay thế sẽ tự động bị từ chối.</strong>",
+    "ClipperRequirementText": "Đối với kênh clip, kênh phải tồn tại ít nhất 2 tháng và đăng đều đặn, hoặc đăng hơn 20 clip trong một tháng. Spam clip ngắn mỗi ngày, chỉ đăng clip dưới 1 phút, hoặc dùng thumbnail không thiện cảm đều sẽ bị tính bất lợi khi xét duyệt. Chất lượng nội dung cũng có thể được đánh giá. <br /><br />Clipper cần trích nguồn bằng liên kết kênh, mention @ kênh YouTube và liên kết video. Trích nguồn quá mức (ví dụ liên kết tới mọi thành viên Nijisanji) tạo thêm việc cho editor Holodex; trích nguồn thiếu (không có liên kết) sẽ khiến clip bị ẩn. <br /><br />Holodex có thuật toán phát hiện và tự động sửa trích nguồn quá mức, nhưng không phải lúc nào cũng hoàn hảo. Clipper thường xuyên trích nguồn quá mức có thể bị gỡ khỏi nền tảng để giảm nhiễu.",
+    "DeletionRequirementText": "Chỉ chủ sở hữu kênh mới nên yêu cầu xóa. Vui lòng cung cấp thông tin liên hệ để chúng tôi xác minh.",
+    "PageTitle": "Yêu cầu kênh Holodex",
+    "ChannelURLErrorFeedback": "Phải có dạng https://www.youtube.com/channel/UC_____ hoặc https://www.youtube.com/@_____",
+    "ChannelURLLabel": "URL kênh",
+    "SelectLanguage": "Chọn ngôn ngữ",
+    "ChannelURLExample": "Ví dụ: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, email hoặc phương thức liên hệ khác",
+    "TwitterExample": "Ví dụ: @holodex",
+    "TwitterPlaceholder": "@tênngườidùng",
+    "VtuberGroupPlaceholder": "Tên nhóm hoặc tổ chức"
+  }
+}

@@ -3,50 +3,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { mdiFormatListBulleted, mdiViewList } from "@mdi/js";
+import { List, LayoutDashboard, Grid2x2, LayoutGrid } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { TL_LANGS } from "@/lib/consts";
+import { ALL_VTUBERS_ORG } from "@/lib/consts";
 import { getLiveViewerCount } from "@/lib/functions";
-import { dayjs } from "@/lib/time";
-import { mdiViewComfy, mdiViewGrid, mdiViewModule } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
-import {
-  fetchTwitchViewerCounts,
-  getTwitchLogin,
-  getTwitchViewerCountFingerprint,
-  mergeTwitchViewerCountsIntoVideos,
-  readCachedTwitchViewerCounts,
-} from "@/lib/twitch";
+import { getBreakpoint } from "@/lib/utils";
+import { fetchTwitchViewerCounts, getTwitchLogin, getTwitchViewerCountFingerprint, mergeTwitchViewerCountsIntoVideos, readCachedTwitchViewerCounts } from "@/lib/twitch";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
 import { SkeletonCardList } from "@/components/video/SkeletonCardList";
 import { VideoCardList } from "@/components/video/VideoCardList";
-import { SelectCard } from "@/components/setting/SelectCard";
-import { VideoListFilters } from "@/components/setting/VideoListFilters";
-import { Button } from "@/components/ui/Button";
-import { DatePicker } from "@/components/ui/DatePicker";
-import { Icon } from "@/components/ui/Icon";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/cn";
-import { dedupeVideos, extractItems, sortVideosForTab } from "@/lib/video-list";
-
-const Tabs = Object.freeze({ LIVE_UPCOMING: 0, ARCHIVE: 1, CLIPS: 2 });
-const API_MAX_LIMIT = 100;
-type MultiOrgCacheEntry = {
-  page1: Promise<any[]>;
-  getCurrentItems: () => any[];
-  fetchMore: () => Promise<void>;
-  isExhausted: () => boolean;
-};
-const multiOrgDataCache = new Map<string, MultiOrgCacheEntry>();
-
-function sortPayloadForTab(payload: any, tab: number) {
-  if (tab !== Tabs.ARCHIVE) return payload;
-  if (Array.isArray(payload)) return sortVideosForTab(payload, true);
-  if (payload?.items && Array.isArray(payload.items))
-    return { ...payload, items: sortVideosForTab(payload.items, true) };
-  return payload;
-}
-
+import { VideoListSideControls } from "@/components/video/VideoListSideControls";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { useTranslations } from "next-intl";
+import { HOME_TABS as Tabs } from "@/lib/cookie-codec";
+import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache, sortPayloadForHomeTab } from "@/lib/home-video-loader";
 export function ConnectedVideoList({
   liveContent = null,
   isFavPage = false,
@@ -70,7 +42,7 @@ export function ConnectedVideoList({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t } = useI18n();
+  const t = useTranslations();
   const [toDate, setToDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("viewers");
   const [twitchViewerCounts, setTwitchViewerCounts] = useState<
@@ -86,45 +58,47 @@ export function ConnectedVideoList({
   const scrollMode = app.settings.scrollMode;
   const prevScrollMode = useRef(scrollMode);
   const currentGridSize = app.currentGridSize;
-  const colSizes = useMemo(
-    () =>
-      Object.fromEntries(
-        (["xs", "sm", "md", "lg", "xl"] as const).map((k, i) => [k, i + 1 + currentGridSize]),
-      ) as { xs: number; sm: number; md: number; lg: number; xl: number },
-    [currentGridSize],
-  );
-  const breakpointName = useMemo(() => {
-    const width =
-      app.windowWidth ||
-      (typeof window !== "undefined" ? window.innerWidth : 1440);
-    if (width < 600) return "xs";
-    if (width < 960) return "sm";
-    if (width < 1264) return "md";
-    if (width < 1904) return "lg";
-    return "xl";
-  }, [app.windowWidth]);
+  const colSizes = useMemo(() => ({
+    xs: 1 + currentGridSize, sm: 2 + currentGridSize, md: 3 + currentGridSize,
+    lg: 4 + currentGridSize, xl: 5 + currentGridSize,
+  }), [currentGridSize]);
+  const breakpointName = useMemo(() =>
+    getBreakpoint(app.windowWidth || (typeof window !== "undefined" ? window.innerWidth : 1440)),
+    [app.windowWidth]);
   const shouldIncludeAvatar = !(
     (breakpointName === "md" && currentGridSize > 1) ||
-    (breakpointName === "sm" && currentGridSize > 0) ||
-    (breakpointName === "xs" && currentGridSize > 0)
+    ((breakpointName === "sm" || breakpointName === "xs") && currentGridSize > 0)
   );
   const selectedHomeOrgsKey = JSON.stringify(app.selectedHomeOrgs || []);
   const orgTargetsOverrideKey = JSON.stringify(orgTargetsOverride || []);
   const clipLangsKey = JSON.stringify(clipLangs || []);
-  const loaderCacheKey = cacheKeyForTab(tab);
   const activeHomeOrgNames = isFavPage ? [] : app.selectedHomeOrgs || [];
+  const activeHomeOrgNamesKey = activeHomeOrgNames.join("\0");
+  function cacheKeyForTab(tabValue: number) {
+    return [
+      "vlx",
+      isFavPage ? "fav" : "home",
+      tabValue,
+      scrollMode ? "scroll" : "page",
+      selectedHomeOrgsKey,
+      orgTargetsOverrideKey,
+      toDate || "",
+      clipLangsKey,
+    ].join("-");
+  }
+  const loaderCacheKey = cacheKeyForTab(tab);
   const shouldHideCollabs =
     tab !== Tabs.CLIPS &&
     app.settings.hideCollabStreams &&
     (isFavPage ? true : activeHomeOrgNames.length > 0);
   const resolvedOrgTargets = useMemo(() => {
     if (orgTargetsOverride?.length) return orgTargetsOverride;
-    return activeHomeOrgNames.length ? activeHomeOrgNames : ["All Vtubers"];
-  }, [orgTargetsOverrideKey, activeHomeOrgNames.join("\0")]);
+    return activeHomeOrgNames.length ? activeHomeOrgNames : [ALL_VTUBERS_ORG];
+  }, [orgTargetsOverrideKey, activeHomeOrgNamesKey]);
   const filterOrg = isFavPage
     ? "none"
     : resolvedOrgTargets.length > 1
-      ? "All Vtubers"
+      ? ALL_VTUBERS_ORG
       : resolvedOrgTargets[0] || app.currentOrg.name;
   const filterConfig = useMemo(
     () => ({
@@ -150,58 +124,51 @@ export function ConnectedVideoList({
   const portalName = datePortalName || `date-selector${isFavPage}`;
 
   const getLiveSourceList = useCallback(
-    () =>
-      ((liveContent?.length && liveContent) ||
-        (isFavPage ? app.favoritesLive : app.homeLive)) as any[],
+    (): any[] => liveContent?.length ? liveContent : (isFavPage ? app.favoritesLive : app.homeLive),
     [liveContent, isFavPage, app.favoritesLive, app.homeLive],
   );
-  const getLiveTwitchLogins = useCallback(
-    (videos: any[]) => [
-      ...new Set(
-        (videos || [])
-          .filter((video: any) => video?.status === "live")
-          .map((video: any) => getTwitchLogin(video))
-          .filter((login): login is string => !!login),
-      ),
-    ],
-    [],
-  );
+  const getLiveTwitchLogins = useCallback((videos: any[]) =>
+    [...new Set((videos || []).filter((v) => v?.status === "live").map(getTwitchLogin).filter((x): x is string => !!x))], []);
 
   const live = useMemo(() => {
-    let liveList = mergeTwitchViewerCountsIntoVideos(
-      getLiveSourceList(),
-      twitchViewerCounts,
-    );
-    if (sortBy === "viewers")
-      liveList = [...liveList].sort(
-        (a, b) => getLiveViewerCount(b) - getLiveViewerCount(a),
-      );
-    return liveList;
+    const list = mergeTwitchViewerCountsIntoVideos(getLiveSourceList(), twitchViewerCounts);
+    return sortBy === "viewers" ? [...list].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : list;
   }, [getLiveSourceList, sortBy, twitchViewerCounts]);
   const lives = live.filter((v: any) => v.status === "live");
   const livesVisible = app.settings.hideLive ? [] : lives;
-  const upcoming = app.settings.hideUpcoming
-    ? []
-    : live
-        .filter((v: any) => v.status === "upcoming")
-        .sort((v1: any, v2: any) => {
-          if (v1.available_at !== v2.available_at) return 0;
-          if (v1.type === "placeholder" && v2.type === "placeholder") return 0;
-          return v1.type === "placeholder" ? 1 : -1;
-        });
-  const waitingForTwitchViewerCounts =
-    tab === Tabs.LIVE_UPCOMING &&
-    sortBy === "viewers" &&
-    getLiveSourceList().some(
-      (video: any) =>
-        video?.status === "live" &&
-        !!getTwitchLogin(video) &&
-        getLiveViewerCount(video) <= 0 &&
-        twitchViewerCounts[getTwitchLogin(video)!] === undefined,
-    );
+  const upcoming = app.settings.hideUpcoming ? [] : live
+    .filter((v: any) => v.status === "upcoming")
+    .sort((a: any, b: any) =>
+      a.available_at !== b.available_at || a.type === b.type ? 0 : a.type === "placeholder" ? 1 : -1);
+  const waitingForTwitchViewerCounts = tab === Tabs.LIVE_UPCOMING && sortBy === "viewers" &&
+    getLiveSourceList().some((v: any) => {
+      const login = getTwitchLogin(v);
+      return v?.status === "live" && !!login && getLiveViewerCount(v) <= 0 && twitchViewerCounts[login] === undefined;
+    });
   const isLoading = isFavPage ? app.favoritesLoading : app.homeLoading;
   const hasError = isFavPage ? app.favoritesError : app.homeError;
   const showLiveLoading = isLoading || waitingForTwitchViewerCounts;
+
+  function init(updateFavorites: boolean) {
+    if (isFavPage) {
+      if (updateFavorites) app.fetchFavorites();
+      if (app.favoriteChannelIDs.size > 0 && app.isLoggedIn) {
+        app.fetchFavoritesLive({
+          force: updateFavorites || live.length === 0,
+          minutes: 2,
+        });
+      }
+    } else if (!liveContent?.length) {
+      app.fetchHomeLive({
+        force: live.length === 0,
+        minutes: 2,
+      });
+    }
+  }
+
+  function buildTabQuery(tabValue: number): Record<string, any> {
+    return buildHomeTabQuery({ tab: tabValue, clipLangs, toDate });
+  }
 
   useEffect(() => {
     setPortalTarget(document.getElementById(portalName));
@@ -223,40 +190,21 @@ export function ConnectedVideoList({
     router.replace(`${pathname}${query ? `?${query}` : ""}${hash}`);
   }, [scrollMode, isActive, searchParams, pathname, router]);
   useEffect(() => {
-    if (!isActive || tab !== Tabs.LIVE_UPCOMING) return undefined;
+    if (!isActive || tab !== Tabs.LIVE_UPCOMING) return;
     let cancelled = false;
-    async function refreshTwitchViewerCounts() {
-      const source = getLiveSourceList();
-      const logins = getLiveTwitchLogins(source);
-      if (logins.length === 0) {
-        setTwitchViewerCounts((prev) => (Object.keys(prev).length ? {} : prev));
-        return;
-      }
+    const setIfChanged = (counts: Record<string, number>) =>
+      setTwitchViewerCounts((prev) =>
+        getTwitchViewerCountFingerprint(counts) !== getTwitchViewerCountFingerprint(prev) ? counts : prev);
+    async function refresh() {
+      const logins = getLiveTwitchLogins(getLiveSourceList());
+      if (!logins.length) { setIfChanged({}); return; }
       const counts = await fetchTwitchViewerCounts(logins);
-      if (!cancelled) {
-        setTwitchViewerCounts((prev) =>
-          getTwitchViewerCountFingerprint(counts) !==
-          getTwitchViewerCountFingerprint(prev)
-            ? counts
-            : prev,
-        );
-      }
+      if (!cancelled) setIfChanged(counts);
     }
-    const cached = readCachedTwitchViewerCounts(
-      getLiveTwitchLogins(getLiveSourceList()),
-    );
-    setTwitchViewerCounts((prev) =>
-      getTwitchViewerCountFingerprint(cached) !==
-      getTwitchViewerCountFingerprint(prev)
-        ? cached
-        : prev,
-    );
-    void refreshTwitchViewerCounts();
-    const timer = setInterval(refreshTwitchViewerCounts, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
+    setIfChanged(readCachedTwitchViewerCounts(getLiveTwitchLogins(getLiveSourceList())));
+    void refresh();
+    const timer = setInterval(refresh, 60_000);
+    return () => { cancelled = true; clearInterval(timer); };
   }, [isActive, tab, getLiveSourceList, getLiveTwitchLogins]);
 
   useEffect(() => {
@@ -275,7 +223,7 @@ export function ConnectedVideoList({
     if (previousSelectedHomeOrgsKey.current === selectedHomeOrgsKey) return;
     previousSelectedHomeOrgsKey.current = selectedHomeOrgsKey;
     if (!isActive || isFavPage) return;
-    multiOrgDataCache.clear();
+    clearHomeMultiOrgVideoCache();
     if (tab === Tabs.LIVE_UPCOMING) init(false);
   }, [selectedHomeOrgsKey, isActive, isFavPage, tab]);
 
@@ -294,7 +242,7 @@ export function ConnectedVideoList({
     if (resolvedOrgTargets.length > 1 && !isFavPage) {
       [Tabs.ARCHIVE, Tabs.CLIPS].forEach((tabVal) => {
         const key = cacheKeyForTab(tabVal);
-        startMultiOrgFetch(key, buildTabQuery(tabVal), resolvedOrgTargets);
+        ensureHomeMultiOrgVideoFetch(key, buildTabQuery(tabVal), resolvedOrgTargets, tabVal);
       });
     }
   }, [
@@ -327,133 +275,13 @@ export function ConnectedVideoList({
     }
   }
 
-  function init(updateFavorites: boolean) {
-    if (isFavPage) {
-      if (updateFavorites) app.fetchFavorites();
-      if (app.favoriteChannelIDs.size > 0 && app.isLoggedIn) {
-        app.fetchFavoritesLive({
-          force: updateFavorites || live.length === 0,
-          minutes: 2,
-        });
-      }
-    } else if (!liveContent?.length) {
-      app.fetchHomeLive({
-        force: live.length === 0,
-        minutes: 2,
-      });
-    }
-  }
-
   const displayIcon = (() => {
-    if (homeViewMode === "list") return mdiFormatListBulleted;
-    if (homeViewMode === "denseList") return mdiViewGrid;
-    if (currentGridSize === 1) return mdiViewComfy;
-    if (currentGridSize === 2) return mdiViewList;
-    return mdiViewModule;
+    if (homeViewMode === "list") return List;
+    if (homeViewMode === "denseList") return Grid2x2;
+    if (currentGridSize === 1) return LayoutDashboard;
+    if (currentGridSize === 2) return List;
+    return LayoutGrid;
   })();
-
-  function buildTabQuery(tabValue: number): Record<string, any> {
-    const inclusion = tabValue === Tabs.ARCHIVE ? "mentions,clips" : "mentions";
-    return {
-      status: tabValue === Tabs.ARCHIVE ? "past,missing" : "past",
-      type: tabValue === Tabs.ARCHIVE ? "stream" : "clip",
-      include: inclusion,
-      lang: clipLangs.join(","),
-      paginated: false,
-      ...(toDate && { to: dayjs(toDate).add(1, "day").toDate().toISOString() }),
-      max_upcoming_hours: 1,
-    };
-  }
-
-  function cacheKeyForTab(tabValue: number) {
-    return [
-      "vlx",
-      isFavPage ? "fav" : "home",
-      tabValue,
-      scrollMode ? "scroll" : "page",
-      selectedHomeOrgsKey,
-      orgTargetsOverrideKey,
-      toDate || "",
-      clipLangsKey,
-    ].join("-");
-  }
-
-  function startMultiOrgFetch(
-    cacheKey: string,
-    query: Record<string, any>,
-    orgTargets: string[],
-    tabValue = tab,
-  ) {
-    if (multiOrgDataCache.has(cacheKey)) return;
-    const baseQuery = { ...query, paginated: false };
-    const isArchive = tabValue === Tabs.ARCHIVE;
-
-    const allOrgItems: any[][] = orgTargets.map(() => []);
-    const orgOffsets: number[] = orgTargets.map(() => 0);
-    const orgExhausted: boolean[] = orgTargets.map(() => false);
-    let inflightFetch: Promise<void> | null = null;
-    let currentItems: any[] = [];
-
-    const mergeAll = () => {
-      currentItems = sortVideosForTab(dedupeVideos(allOrgItems.flat()), isArchive);
-    };
-
-    const orgPage1Promises = orgTargets.map((org, i) =>
-      api
-        .videos({ ...baseQuery, org, limit: API_MAX_LIMIT, offset: 0 })
-        .then((res: any) => {
-          allOrgItems[i] = extractItems(res.data);
-          orgOffsets[i] = API_MAX_LIMIT;
-          if (allOrgItems[i].length < API_MAX_LIMIT) orgExhausted[i] = true;
-          return allOrgItems[i];
-        })
-        .catch(() => {
-          orgExhausted[i] = true;
-          return (allOrgItems[i] = [] as any[]);
-        }),
-    );
-
-    const page1 = Promise.all(orgPage1Promises).then(() => {
-      mergeAll();
-      return currentItems;
-    });
-
-    // Fetches one more page per non-exhausted org; concurrent calls share the same batch.
-    const fetchMore = (): Promise<void> => {
-      if (inflightFetch) return inflightFetch;
-      if (orgExhausted.every(Boolean)) return Promise.resolve();
-      inflightFetch = Promise.all(
-        orgTargets.map(async (org, i) => {
-          if (orgExhausted[i]) return;
-          try {
-            const res: any = await api.videos({
-              ...baseQuery,
-              org,
-              limit: API_MAX_LIMIT,
-              offset: orgOffsets[i],
-            });
-            const items = extractItems(res.data);
-            allOrgItems[i] = [...allOrgItems[i], ...items];
-            orgOffsets[i] += API_MAX_LIMIT;
-            if (items.length < API_MAX_LIMIT) orgExhausted[i] = true;
-          } catch {
-            orgExhausted[i] = true;
-          }
-        }),
-      ).then(() => {
-        mergeAll();
-        inflightFetch = null;
-      });
-      return inflightFetch;
-    };
-
-    multiOrgDataCache.set(cacheKey, {
-      page1,
-      getCurrentItems: () => currentItems,
-      fetchMore,
-      isExhausted: () => orgExhausted.every(Boolean),
-    });
-  }
 
   function getLoadFn() {
     const query = buildTabQuery(tab);
@@ -470,7 +298,7 @@ export function ConnectedVideoList({
             }
             throw err;
           });
-        return sortPayloadForTab(res.data, tab);
+        return sortPayloadForHomeTab(res.data, tab);
       };
     }
     const orgTargets = resolvedOrgTargets;
@@ -483,22 +311,22 @@ export function ConnectedVideoList({
           limit,
           offset,
         });
-        return sortPayloadForTab(res.data, tab);
+        return sortPayloadForHomeTab(res.data, tab);
       };
     }
     // Single-org archive or multi-org: collect all pages for global endTime sort.
     const cacheKey = loaderCacheKey;
-    startMultiOrgFetch(cacheKey, query, orgTargets);
+    ensureHomeMultiOrgVideoFetch(cacheKey, query, orgTargets, tab);
     // Pre-fetch the sibling tab only for multi-org (avoids wasted single-org requests).
     if (orgTargets.length > 1) {
       [Tabs.ARCHIVE, Tabs.CLIPS].forEach((otherTab) => {
         if (otherTab === tab) return;
         const key = cacheKeyForTab(otherTab);
-        if (!multiOrgDataCache.has(key))
-          startMultiOrgFetch(key, buildTabQuery(otherTab), orgTargets, otherTab);
+        if (!hasHomeMultiOrgVideoCache(key))
+          ensureHomeMultiOrgVideoFetch(key, buildTabQuery(otherTab), orgTargets, otherTab);
       });
     }
-    const cached = multiOrgDataCache.get(cacheKey)!;
+    const cached = getHomeMultiOrgVideoCache(cacheKey)!;
     return async (offset: number, limit: number) => {
       await cached.page1;
       // Fetch more pages until we have enough items or all orgs are exhausted.
@@ -555,93 +383,18 @@ export function ConnectedVideoList({
   }
 
   const controls = (
-    <>
-      <div className="absolute top-0 right-0">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={toggleDisplayMode}
-        >
-          <Icon icon={displayIcon} />
-        </Button>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        {tab === Tabs.LIVE_UPCOMING ? (
-          <div className="flex flex-col gap-[0.45rem]">
-            <span className="filter-panel-label">Sort By</span>
-            <div className="inline-flex w-fit items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-0.5">
-              {[
-                { text: "Viewers", value: "viewers" },
-                { text: "Latest", value: "latest" },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  className={cn(
-                    "cursor-pointer rounded-lg px-2.5 py-1.5 text-[0.8rem] font-medium transition",
-                    sortBy === opt.value
-                      ? "bg-[color:var(--color-bold)] text-white"
-                      : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
-                  )}
-                  onClick={() => setSortBy(opt.value)}
-                >
-                  {opt.text}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-        {tab !== Tabs.LIVE_UPCOMING && isActive ? (
-          <div className="flex flex-col gap-[0.45rem]">
-            <span className="filter-panel-label">Uploaded Before</span>
-            <div className="filter-panel-datepicker">
-              <DatePicker
-                value={toDate ?? ""}
-                placeholder="Pick a date"
-                onChange={(value) => setToDate(value || null)}
-              />
-            </div>
-          </div>
-        ) : null}
-        {tab === Tabs.CLIPS && isActive ? (
-          <div className="filter-panel-filters">
-            <SelectCard title="Clip Languages">
-              <div className="select-card-chip-flow">
-                {TL_LANGS.map((lang) => (
-                  <label
-                    key={`${lang.value}-clip`}
-                    className={cn(
-                      "stream-check-chip",
-                      clipLangs.includes(lang.value) &&
-                        "stream-check-chip-selected",
-                    )}
-                  >
-                    <input
-                      checked={clipLangs.includes(lang.value)}
-                      type="checkbox"
-                      className="sr-only"
-                      onChange={(event) =>
-                        toggleClipLang(lang.value, event.target.checked)
-                      }
-                    />
-                    <span>{lang.text}</span>
-                  </label>
-                ))}
-              </div>
-            </SelectCard>
-          </div>
-        ) : null}
-        {tab !== Tabs.CLIPS ? (
-          <VideoListFilters
-            className="filter-panel-filters"
-            showDescriptions={false}
-            compact
-          />
-        ) : null}
-      </div>
-    </>
+    <VideoListSideControls
+      tab={tab}
+      isActive={isActive}
+      sortBy={sortBy}
+      displayIcon={displayIcon}
+      toDate={toDate}
+      clipLangs={clipLangs}
+      onSortByChange={setSortBy}
+      onToggleDisplayMode={toggleDisplayMode}
+      onToDateChange={setToDate}
+      onToggleClipLang={toggleClipLang}
+    />
   );
 
   const hideFavoritesContent =
@@ -669,7 +422,7 @@ export function ConnectedVideoList({
                 {homeViewMode === "grid" ? (
                   <>
                     {livesVisible.length && upcoming.length ? (
-                      <div className="my-3 h-px bg-[color:var(--color-border)]" />
+                      <Separator className="my-3 bg-[color:var(--color-border)]" />
                     ) : null}
                     {renderVideoCardList(upcoming, {
                       denseList: false,
@@ -708,7 +461,7 @@ export function ConnectedVideoList({
                       minHeight: "8rem",
                     }}
                   >
-                    <div className="loading-spinner-sm" aria-hidden="true" />
+                    <Spinner className="size-6 text-primary" />
                   </div>
                 </div>
               ) : null}

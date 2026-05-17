@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Maafkeun",
+      "textBeforeTwitter": "Ada kesalahan saat memuat konten, silahkan cek twitter ",
+      "textAfterTwitter": " atau laporkan hal ini melalui",
+      "aboutPage": "halaman tentang",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Segarkan",
+      "hardRefreshTip": "Tips: muat ulang paksa/hapus cache:"
+    },
+    "channelList": {
+      "signInToFavorite": "Masuk untuk menambahkan favorit",
+      "unfavoriteAllInGroup": "Unfavoritkan semua dalam grup",
+      "favoriteAllInGroup": "Favoritkan semua dalam grup",
+      "enableGroupDisplay": "Tampilkan kanal dari grup ini di halaman Beranda",
+      "disableGroupDisplay": "Sembunyikan kanal dari grup ini dari halaman Beranda"
+    },
+    "channelInfo": {
+      "stats": "Statistik",
+      "videoCount": "{arg0} Video",
+      "clipCount": "{n} Klip",
+      "subscriberCount": "{n} Subscriber",
+      "subscriberNA": "Jumlah Subscriber tidak tersedia",
+      "totalViews": "Jumlah Ditonton",
+      "inactiveChannel": "Channel ini sudah tidak aktif."
+    },
+    "channelSocials": {
+      "addToFavorites": "Tambahkan ke Favorit",
+      "removeFromFavorites": "Hapus dari Favorit",
+      "unblock": "Batalkan blokiran channel ini",
+      "block": "Blokir konten channel ini di Holodex",
+      "blocked": "Diblokir"
+    },
+    "mainNav": {
+      "home": "Beranda",
+      "favorites": "Favorit",
+      "channels": "Saluran",
+      "about": "Tentang",
+      "library": "Koleksi",
+      "settings": "Pengaturan",
+      "login": "Masuk",
+      "logout": "Keluar",
+      "MugenClips": "MugenClips<sup>beta</sup>",
+      "accountSettings": "Pengaturan Akun",
+      "music": "Musik",
+      "multiview": "MultiView",
+      "points": "poin",
+      "playlist": "Daftar putar"
+    },
+    "videoCard": {
+      "clips": "{n} Klip",
+      "watching": "{arg0} sedang menonton",
+      "liveNow": "Live Sekarang",
+      "openInBackground": "Buka di latar belakang",
+      "edit": "Ubah",
+      "copiedToClipboard": "Tautan disalin ke clipboard.",
+      "copyLink": "Salin Tautan Holodex",
+      "premiere": "PREMIER",
+      "googleCalendar": "Tambahkan ke Kalender Google",
+      "totalTLs": "Jumlah Terjemahan Obrolan",
+      "totalSongs": "Total lagu bertanda waktu",
+      "tlPresence": "Penerjemah aktif dalam 30 menit terakhir",
+      "uncertainPlaceholder": "Waktu mulai tidak terkonfirmasi secara resmi, waktu mulai sebenarnya bisa saja berbeda.",
+      "typeScheduledYT": "Stream Terjadwal",
+      "typeExternalStream": "Stream Eksternal",
+      "typeEventPlaceholder": "Acara Terjadwal",
+      "openClient": "Buka Klien TL",
+      "openScriptEditor": "Buka Editor Naskah",
+      "popoutChat": "Pindahkan YouTube Chat",
+      "uploadScript": "Unggah Naskah TL",
+      "removeFromPlaylist": "Hapus dari playlist"
+    },
+    "videoDescription": {
+      "description": "Deskripsi"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Tampilkan lebih sedikit",
+      "showMore": "Tampilkan lebih banyak"
+    },
+    "watch": {
+      "streamingFor": "Streaming selama {arg0}",
+      "nextUpInMugen": "Selanjutnya",
+      "loadingVideo": "Memuat video",
+      "Comments": {
+        "title": "Komentar",
+        "all": "Semua"
+      }
+    },
+    "search": {
+      "searchLabel": "Cari",
+      "type": {
+        "channel": "kanal",
+        "topic": "topik",
+        "org": "organisasi",
+        "titledesc": "judul/deskripsi",
+        "title": "judul",
+        "description": "deskripsi",
+        "comments": "komentar",
+        "videourl": "URL video"
+      },
+      "placeholder": "Cari stream, klip, kanal",
+      "clear": "Hapus",
+      "loading": "Memuat...",
+      "typeTwoCharacters": "Ketik 2 karakter",
+      "noChannelsFound": "Kanal tidak ditemukan",
+      "noTopicsFound": "Topik tidak ditemukan",
+      "noOrganizationsFound": "Organisasi tidak ditemukan",
+      "noResultsFound": "Hasil tidak ditemukan",
+      "searchChannels": "Cari kanal",
+      "filterByTopicOrgChannel": "Filter berdasarkan topik, organisasi, kanal ...",
+      "topicOrgChannelPlaceholder": "Topik, organisasi, atau kanal",
+      "toggleSearch": "Alihkan pencarian",
+      "organizations": "Organisasi",
+      "searchOrganizations": "Cari organisasi",
+      "quickSelect": "Pilih cepat",
+      "allVtubers": "Semua VTuber",
+      "selectedOrgCount": "{count} org",
+      "additionalOrgCount": "{count} lagi",
+      "unset": "Belum diatur"
+    },
+    "relatedVideo": {
+      "clipsLabel": "Klip",
+      "simulcastsLabel": "Siaran",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Buka semua simulcast di Multiview",
+          "error": {
+            "layoutBuildFailure": "Terjadi kesalahan saat membuat tautan Multiview. Silakan laporkan bug ini di GitHub atau Discord.",
+            "noDefaultLayout": "Multiview tidak memiliki layout untuk {videoCount} video.",
+            "noSimulcasts": "Tidak ada simulcast untuk video ini."
+          }
+        }
+      },
+      "refersLabel": "Referensi",
+      "sourcesLabel": "Sumber",
+      "songsLabel": "lagu",
+      "recommendationsLabel": "rekomendasi",
+      "sameSourceClips": "Dari siaran yang sama"
+    },
+    "paginateLoad": {
+      "newer": "Terbaru",
+      "older": "Terlama"
+    },
+    "music": {
+      "clearPlaylist": "Bersihkan",
+      "trendingForOrg": "Sedang Tren di {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Lagu Terkini",
+      "weeklyTopPlaysHeader": "Lagu Populer Mingguan",
+      "trending": "Sedang Tren"
+    },
+    "songList": {
+      "songTitle": "Judul",
+      "songCoveredBy": "Dinyanyikan oleh",
+      "songDuration": "Durasi",
+      "sangOnTime": "Dinyanyikan pada"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Lagu Populer Bulanan dari {arg0}",
+      "weeklyTopForOrg": "Lagu Populer Mingguan dari {arg0}"
+    },
+    "installPrompt": {
+      "title": "Pasang Holodex",
+      "callToAction": "Menonton video di Holodex bekerja dengan baik ketika ditambahkan ke layar beranda",
+      "notNowBtn": "Jangan Sekarang",
+      "installBtn": "Pasang",
+      "iOS": {
+        "popup": "Pasang Holodex pada iOS",
+        "afterExportIcon": "lalu \"Tambahkan ke Layar Beranda\"",
+        "beforeExportIcon": "Tekan"
+      }
+    },
+    "media": {
+      "remove": "Hapus"
+    },
+    "comment": {
+      "close": "Tutup",
+      "readMore": "Baca selengkapnya"
+    },
+    "reportDialog": {
+      "title": "Laporkan",
+      "collabing": "Channel ini mungkin sedang berkolaborasi dengan salah satu anggota {org} atau salah satu vtuber favoritmu. Kamu dapat menonaktifkan fitur ini di pengaturan",
+      "comments": "Tindakan apa yang harus Holodex lakukan?",
+      "success": "Laporan telah dikirim, Terima Kasih!",
+      "consider": "Sebaiknya gunakan filter dan batalkan laporan ini.",
+      "reasons": {
+        "0": "Tag Video salah",
+        "1": "Kualitas Rendah / Konten Menyesatkan",
+        "2": "Melanggar Pedoman Kebijakan Karya yang ditetapkan organisasi atau tidak pantas",
+        "3": "Lainnya",
+        "4": "Kesalahan topik video",
+        "5": "Kesalahan penyebutan nama channel",
+        "6": "{arg0} ini tidak ada kaitannya dengan {arg1}"
+      },
+      "applyChanges": "Terapkan perubahan",
+      "selectAll": "Pilih semua",
+      "deselectAll": "Batalkan pilihan semua",
+      "adjustMentionedChannels": "Sesuaikan channel yang disebut",
+      "addMentionedChannels": "Tambahkan channel yang disebut",
+      "searchMentionedChannels": "Cari VTuber untuk disebut",
+      "commentLanguagesOk": "* Bahasa Inggris / Jepang / Tionghoa Tradisional OK",
+      "specificChannelWarningBody1": "Holodex tidak menengahi perselisihan biasa soal kualitas terjemahan. Untuk masalah kecil, berikan masukan kepada clipper atau penerjemah di YouTube.",
+      "specificChannelWarningBody2": "Jika video diterjemahkan sangat keliru dan berpotensi menimbulkan salah paham serius, Holodex dapat menghapusnya atau meneruskan kasusnya.",
+      "specificChannelWarningBody3": "Untuk berhenti melihat suatu channel, gunakan tombol blokir channel di dialog ini atau di halaman channel.",
+      "specificChannelWarningTitle": "Catatan: jangan melapor hanya karena kamu tidak suka atau tidak setuju dengan channel ini.",
+      "topicUnsetPlaceholder": "Sarankan topik baru (biarkan kosong untuk menghapus)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Karena cara kerja browser internetmu, beberapa browser dengan kebijakan ketat <b>Cookie Pihak Ketiga</b> atau pemblokiran cookies dari <kbd>YouTube.com</kbd> akan membuat sulit untuk masuk / menggunakan chat Youtube. <br /><br /> Kamu bisa memperbaiki hal ini dengan cara whitelist <kbd>Youtube.com</kbd> dalam pemblokiran Cookie Pihak Ketiga, atau menurunkan tingkatan keamanan / privasi cookie untuk situs <kbd>Holodex.net</kbd>. <br /><br /> Kami akan mencantumkan beberapa situs yang akan memberikan informasi lebih lanjut mengenai hal ini.",
+      "dialogTitle": "Menggunakan Chat Youtube di Holodex",
+      "alertText": "Pengaturan pada privasi browser kamu membuat sulit untuk masuk pada chat Youtube. Klik disini untuk info lebih lanjut",
+      "neverShowAgain": "Jangan Pernah Tampilkan Peringatan ini Lagi"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Ekspor Playlist",
+        "new-playlist": "Playlist Baru",
+        "rename-playlist": "Ubah Nama Playlist",
+        "reset-unsaved": "Reset Perubahan yang tidak disimpan",
+        "delete-playlist": "Hapus Playlist",
+        "clear-playlist": "Bersihkan Playlist"
+      },
+      "save-error-not-logged-in": "Kamu harus masuk untuk menyimpan playlist",
+      "unnamed-playlist": "Playlist tanpa nama",
+      "video-count": "{count} video",
+      "next-video": "Video berikutnya",
+      "error-loading": "Gagal memuat playlist, apakah playlist ada?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Data acara disediakan oleh {arg0} dari: {arg1}",
+      "datasourceCredit": "Data acara diambil dari sumber data {arg0}.",
+      "botCredit": "Data acara disediakan melalui sumber data {arg0}, dibuat oleh {arg1}.",
+      "streamPageBtn": "Halaman Siaran",
+      "eventPageBtn": "Halaman Acara",
+      "scheduledEvent": "Terjadwal",
+      "editorCredit": "Persiapan Acara dibuat oleh Holodex editor {arg0}.",
+      "creditTitleText": "Kredit:"
+    },
+    "calendar": {
+      "liveCalendar": "Kalender live (iCal)",
+      "favoritesCalendar": "Kalender favorit (iCal)",
+      "favoritesLoginRequired": "Masuk diperlukan untuk menggunakan feed kalender favorit."
+    },
+    "form": {
+      "required": "Wajib",
+      "invalidUrl": "URL tidak valid",
+      "invalidTime": "Waktu tidak valid",
+      "error": "Terjadi kesalahan.",
+      "never": "tidak pernah",
+      "new": "Baru",
+      "existing": "Sudah ada",
+      "channel": "Kanal",
+      "submit": "Kirim",
+      "certainty": {
+        "certain": "Pasti",
+        "likely": "Kemungkinan"
+      },
+      "placeholder": {
+        "editorBadge": "Editor",
+        "title": "Stream placeholder",
+        "description": "Buat atau perbarui placeholder terjadwal dengan alur formulir baru.",
+        "success": "Stream placeholder berhasil ditambahkan",
+        "authError": "Kamu bukan Editor Holodex yang valid, atau tautan pembuatan placeholder dari Discord sudah kedaluwarsa",
+        "editingAs": "Mengedit sebagai {user} dari Discord {guild}. Sesi kamu berakhir: {expiresIn}. Segarkan jika hampir kedaluwarsa.",
+        "notEditor": "Kamu bukan editor atau token sudah kedaluwarsa. Silakan login atau buat token baru dengan bot kami.",
+        "editorCreditName": "Nama kredit editor",
+        "editorCreditHint": "Gunakan nama lain saat ingin dicantumkan secara publik.",
+        "placeholderId": "ID placeholder (11 karakter)",
+        "placeholderIdInput": "ID placeholder",
+        "videoTitle": "Judul video",
+        "japaneseVideoTitle": "Judul video Jepang",
+        "sourceLink": "Tautan sumber",
+        "sourceLinkHint": "mis. URL jadwal Twitter atau kanal Twitch",
+        "thumbnailImage": "Gambar thumbnail",
+        "eventType": "Jenis acara",
+        "certainty": "Kepastian",
+        "timezone": "Zona waktu",
+        "date": "Tanggal",
+        "time": "Waktu",
+        "duration": "Durasi",
+        "durationHint": "Perkirakan durasi dalam menit",
+        "submitModification": "Kirim perubahan placeholder",
+        "create": "Buat placeholder baru",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Tidak ada",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "Tindakan",
+      "chat": "Obrolan",
+      "close": "Tutup",
+      "collapse": "Ciutkan",
+      "confirm": "Konfirmasi",
+      "language": "Bahasa",
+      "moreActions": "Tindakan lainnya",
+      "or": "atau",
+      "processing": "Memproses...",
+      "remove": "Hapus",
+      "save": "Simpan"
+    },
+    "pagination": {
+      "nextPage": "Halaman berikutnya",
+      "previousPage": "Halaman sebelumnya"
+    },
+    "userMenu": {
+      "apiKey": "Kunci API",
+      "googleLinkUnavailable": "Penautan Google tidak tersedia.",
+      "googleSignInUnavailable": "Login Google tidak tersedia.",
+      "icalFeed": "Feed iCal",
+      "link": "Tautkan",
+      "linkGoogle": "Tautkan Google",
+      "linkedAccounts": "Akun tertaut",
+      "manualOAuthInstructions": "Jika login otomatis belum selesai, tempel URL pengalihan di bawah.",
+      "pasteRedirectUrl": "Tempel URL pengalihan",
+      "userAvatar": "Avatar pengguna"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Video",
+      "clips": "Klip",
+      "music": "Musik",
+      "collabs": "Kolaborasi",
+      "about": "Tentang"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Subscriber",
+        "group": "Grup",
+        "recentUpload": "Unggahan Terkini",
+        "videoCount": "Jumlah Video",
+        "clipCount": "Jumlah Klip",
+        "org": "Organisasi"
+      },
+      "tabs": {
+        "Vtuber": "VTuber",
+        "Subber": "Subber",
+        "Favorites": "Favorit",
+        "Blocked": "Diblokir"
+      },
+      "favoritesAreEmpty": "Kamu tidak memiliki favorit!",
+      "blockedAreEmpty": "Kamu tidak memblokir channel manapun.",
+      "sort": {
+        "newestFirst": "Terbaru dulu",
+        "oldestFirst": "Terlama dulu"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Live Sekarang / Akan Tayang",
+      "recentVideosHeading": "Video Terkini",
+      "noStreams": "Saat ini tidak ada siaran yang sedang berlangsung atau akan tayang",
+      "recentVideoToggles": {
+        "all": "Semua",
+        "official": "Arsip",
+        "subber": "Klip"
+      },
+      "liveLabel": "Live Sekarang",
+      "upcomingLabel": "Akan Tayang",
+      "controls": {
+        "sortBy": "Urutkan Berdasarkan",
+        "viewers": "Penonton",
+        "latest": "Terbaru",
+        "uploadedBefore": "Diunggah sebelum",
+        "pickDate": "Pilih tanggal",
+        "clipLanguages": "Melihat Klip dalam bahasa berikut:"
+      },
+      "apiError": "Tidak dapat memuat video."
+    },
+    "library": {
+      "savedVideosTitle": "Video Tersimpan",
+      "createYtPlaylistButton": "Buat YT Playlist ({arg0})",
+      "deleteFromLibraryButton": "Hapus ({arg0})",
+      "deleteConfirmation": "Apa kamu yakin ingin menghapus {arg0} video?",
+      "deleteConfirmationOK": "Hapus",
+      "deleteConfirmationCancel": "Batal",
+      "selectionReset": "Atur ulang pilihan",
+      "selectionSelectAll": "Pilih Semua",
+      "emptyLibrary": "Kamu tidak menyimpan video apapun!",
+      "exportSelected": "Ekspor yang dipilih ({arg0})",
+      "exportYtPlaylist": "Playlist YouTube",
+      "exportCsv": "Berkas CSV",
+      "selectionSelect50": "Pilih 50",
+      "exportYTExplanation": "Playlist YouTube yang dihasilkan dari fitur ini yakni <b>Tidak Publik</b> dan mungkin akan terhapus oleh YouTube. <br /> Karena fitur YouTube tidak lengkap, kamu perlu melakukan hal berikut ini untuk menyimpan Playlist YouTube<b>Tidak Publik</b> ke akun kamu.",
+      "exportYTHeading": "Panduan Menyimpan Playlist YouTube",
+      "exportYTInstructions": "<b class=\"red--text\">Langkah 1</b>: Mainkan playlist youtube, dan ubah pemutar UI menjadi mini-player. <br /><br /> <b class=\"red--text\">Langkah 2</b>: Cari video yang ingin kamu simpan lalu Tambahkan ke antrean. <br /><br /> <b class=\"red--text\">Langkah 3</b>: Playlist kini dapat disimpan. Tekan simpan untuk menyimpannya.",
+      "sort": {
+        "dateaddedEarliestFirst": "Tanggal Ditambahkan ke Koleksi, dari yang paling awal",
+        "dateaddedLatestFirst": "Tanggal Ditambahkan ke Koleksi, dari yang terbaru",
+        "dateuploadedLatestFirst": "Tanggal unggah, dari yang terbaru",
+        "dateuploadedEarliestFirst": "Tanggal unggah, dari yang paling awal"
+      }
+    },
+    "notFound": {
+      "title": "Konten tidak ditemukan",
+      "back": "Kembali ke Beranda"
+    },
+    "search": {
+      "sort": {
+        "newest": "Terbaru",
+        "oldest": "Terlama",
+        "longest": "Terlama"
+      },
+      "type": {
+        "all": "Semua",
+        "official": "Resmi",
+        "clip": "Klip"
+      },
+      "unsupportedQuery": "Saat ini mencari klip dengan <kbd>Topik</kbd> dan <kbd>Organisasi</kbd> belum dapat dilakukan. Tidak ada <b>klip</b> yang akan muncul.",
+      "sortByLabel": "Urutkan Berdasarkan",
+      "typeDropdownLabel": "Tipe",
+      "searching": "Mencari...",
+      "useSearchBar": "Gunakan bilah pencarian untuk menemukan stream, klip, atau kanal."
+    },
+    "settings": {
+      "title": "Pengaturan",
+      "darkModeLabel": "Mode Malam",
+      "darkModeMsg": "Mengubah tema dari mode siang ke mode malam",
+      "redirectModeLabel": "Buka di YouTube",
+      "redirectModeMsg": "Menekan video manapun akan membukanya di Youtube, Menekan klip dibawah video resmi akan tetap menampilkan klip yang berkaitan di Holodex",
+      "useEnglishNameLabel": "Menggunakan Nama Inggris",
+      "useEnglishNameMsg": "Menampilkan nama saluran VTuber dalam bahasa inggris",
+      "hideVideoThumbnailsLabel": "Sembunyikan Thumbnail Video",
+      "hideVideoThumbnailsMsg": "Menyembunyikan video thumbnail, membantu meningkatkan proses memuat halaman dan mempersingkat halaman pada tampilan hp",
+      "pushNotificationLabel": "Pemberitahuan notif (Akan Datang)",
+      "pushNotificationMsg": "Mengaktifkan notifikasi untuk saluran favorit",
+      "autoplayVideoLabel": "Video Putar Otomatis",
+      "autoplayVideoMsg": "Aktifkan pemutaran otomatis video",
+      "scrollModeLabel": "Mode Gulir",
+      "scrollModeMsg": "Menggulir halaman menggunakan scroll / menekan tombol.",
+      "resetAllSettings": "Reset Semua Pengaturan/Data",
+      "resetAllSettingsWarning": "Semua data kamu akan hilang. Lanjutkan?",
+      "clipLanguageSelection": "Melihat Klip dalam bahasa berikut:",
+      "tlLanguageSelection": "Melihat Terjemahan dalam bahasa ini",
+      "defaultPage": "Halaman Awal",
+      "defaultPageMsg": "Membuka halaman ini ketika kamu mengunjungi holodex.net, atau dengan menekan logo pada pojok kiri atas.",
+      "videoFeedSettings": "Pengaturan Mengenai Video",
+      "siteNavigationSettings": "Navigasi/Situs",
+      "languageSettings": "Bahasa",
+      "gridSizeLabel": "Ukuran Grid/Thumbnail",
+      "gridSizeMsg": "Mengubah ukuran grid/thumbnail video pada halaman Beranda/Favorit",
+      "gridSize": {
+        "0": "Besar",
+        "1": "Sedang",
+        "2": "Kecil"
+      },
+      "hideCollabStreamsLabel": "Sembunyikan Siaran Kolaborasi",
+      "hideCollabStreamsMsg": "Menyembunyikan siaran kolaborasi dari halaman favorit kamu",
+      "hidePlaceholderStreams": "Sembunyikan Jadwal Siaran Sementara",
+      "hidePlaceholderStreamsMsg": "Sembunyikan entri placeholder terjadwal yang belum memiliki halaman stream yang dapat diputar",
+      "hideMissingStreams": "Sembunyikan Siaran Hilang",
+      "hideMissingStreamsMsg": "Sembunyikan video yang tidak tersedia atau kehilangan metadata Holodex yang diperlukan",
+      "ignoredTopicsLabel": "Topik yang Diabaikan",
+      "ignoredTopicsMsg": "Menyembunyikan video yang berkaitan dengan topik yang dipilih dari halaman Beranda dan Favorit",
+      "theme": "Tema",
+      "moreSettings": "Pengaturan Lainnya",
+      "systemOptions": "Opsi sistem",
+      "followSystemThemeLabel": "Ikuti tema sistem",
+      "languageOverrideActive": "Override bahasa aktif untuk {language}. Klik untuk menghapusnya.",
+      "filters": {
+        "blockedTopics": "Topik yang Diabaikan",
+        "blockedTopicsDescription": "Menyembunyikan video yang berkaitan dengan topik yang dipilih dari halaman Beranda dan Favorit",
+        "searchTopics": "Cari topik",
+        "clearBlockedTopics": "Hapus topik yang diabaikan",
+        "hideStreams": "Sembunyikan stream",
+        "collab": "Kolab",
+        "placeholder": "Penanda tempat",
+        "missing": "Hilang"
+      },
+      "defaultTheme": "Bawaan"
+    },
+    "app": {
+      "update_available": "Pembaharuan tersedia",
+      "update_btn": "Perbarui",
+      "close_btn": "Tutup",
+      "check_about_page": "Kunjungi halaman Tentang untuk melihat pembaharuan",
+      "nowSupportsMultiOrg": "Tip: Kamu dapat mengubah organisasi disini!",
+      "loginCallToAction": "Masuk untuk mengatur favoritmu."
+    },
+    "about": {
+      "add_my_channel": "Mengajukan Channel"
+    },
+    "watch": {
+      "theaterMode": "Mode Teater (alt + t)",
+      "mentionIconLabel": "MENTION",
+      "chat": {
+        "loading": "Memuat Chat...",
+        "hideTLBtn": "Sembunyikan Terjemahan",
+        "showTLBtn": "Tampilkan Terjemahan",
+        "TLSettingsTitle": "Pengaturan Terjemahan",
+        "showSubtitle": "Menampilkan Takarir",
+        "expandTL": "Perluas TLdex",
+        "tlStart": "Awal Pesan",
+        "StickBottomSettingLabel": "Lekat Bawah",
+        "StickBottomSettingsDesc": "Kolom TL akan diletakkan di bawah Chat Youtube",
+        "showVerifiedMessages": "Menampilkan Pesan Pengguna yang Terverifikasi",
+        "showModeratorMessages": "Menampilkan Pesan Moderator",
+        "showVtuberMessages": "Menampilkan Pesan Vtuber",
+        "showLocalTime": "Menampilkan Waktu Lokal",
+        "tlFontSize": "Ukuran Teks",
+        "tlWindowSize": "Ukuran Kotak Terjemahan (%), biarkan 0% untuk otomatis menyesuaikan",
+        "retryBtn": "Coba lagi",
+        "status": {
+          "reconnecting": "Menghubungkan otomatis...",
+          "reconnectFailed": "Tidak dapat menghubungkan",
+          "notLive": "Saat ini Streaming belum dimulai, coba lagi nanti setelah stream 15 menit dimulai",
+          "connectedToChat": "Terhubung",
+          "disconnectedToChat": "Terputus"
+        },
+        "archiveNeedExtension": "Arsip obrolan tidak dapat bekerja tanpa ekstensi {arg0} atau ekstensi pihak ketiga lainnya.",
+        "hideSpoiler": "Sembunyikan Spoiler",
+        "archiveNeedExtensionAfter": " untuk melihat chat TL arsip.",
+        "archiveNeedExtensionBefore": "Pasang ekstensi peramban",
+        "editBlockedList": "Edit daftar blokir",
+        "manageBlockedTranslators": "Kelola nama penerjemah yang diblokir.",
+        "membersOnlyTl": "Chat TL khusus member tidak tersedia.",
+        "noBlockedNames": "Tidak ada nama yang diblokir.",
+        "tuneTlBehavior": "Atur perilaku dan tata letak terjemahan live.",
+        "ytChatLabel": "Chat YouTube"
+      },
+      "removeFromPlaylist": "Hapus video dari playlist ini",
+      "saveToPlaylist": "Simpan video ke playlist ini",
+      "likeOnYoutube": "Suka video ini di Youtube",
+      "uploadPanel": {
+        "title": "Unggah Naskah",
+        "usernameText": "TL akan diunggah di bawah nama pengguna",
+        "usernameChange": "Ubah",
+        "tlLang": "Bahasa TL",
+        "headerStart": "Mulai",
+        "headerEnd": "Akhir",
+        "headerText": "Teks",
+        "cancelBtn": "Batal",
+        "okBtn": "Oke",
+        "notifTextErr": "GAGAL MEMUAT BERKAS (BERKAS RUSAK?)",
+        "notifTextParsing": "Memuat berkas...",
+        "notifTextErrExt": "Ekstensi berkas tidak dikenali.",
+        "subtitleFile": "File subtitle"
+      },
+      "reloadVideoFrame": "Muat ulang frame video"
+    },
+    "favorites": {
+      "promptForAction": "Membuat daftar favorit vtuber dan melihat klip terbaru dan siarannya pada halaman ini.",
+      "manageFavorites": "Kelola Favorit",
+      "close": "Tutup",
+      "showall": "Tampilkan Semua"
+    },
+    "editor": {
+      "needlogin": "Kamu harus masuk untuk mengubah metadata video dan lagu di Holodex.",
+      "changeTopic": {
+        "title": "Mengubah topik siaran",
+        "info": "Semua pengguna dapat menambahkan topik pada video, tetapi hanya editor dan admin saja yang dapat mengubah dan menghapus topik ketika sudah ditetapkan sebelumnya.",
+        "button": "Simpan (Perlu waktu ±5 menit untuk berpengaruh)",
+        "unset": "Belum diatur",
+        "inputPlaceholder": "Topik (kosongkan untuk menghapus)",
+        "saveTopic": "Simpan topik"
+      },
+      "channelMentions": {
+        "title": "Mention Channel",
+        "addSuccess": "Mention kanal ditambahkan.",
+        "deleteSuccess": "Mention kanal dihapus.",
+        "tagsTitle": "Kanal yang disebut"
+      },
+      "sources": {
+        "title": "Sumber/Klip (dalam pengembangan)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "Kamu dapat menggunakan kunci API untuk Kueri Holodex API secara terprogram. Hanya satu kunci per akun. Setelah mendapat kunci baru, kunci lama akan kedaluwarsa dalam kurun 0-24 jam.'",
+      "apikeyNew": "Dapatkan Kunci API baru",
+      "ownedYtChannel": "Memiliki Channel YouTube",
+      "futureYtcOwnerMessage": "Kedepannya, kami berencana untuk menyediakan pelayanan bagi pemilik channel seperti mengubah metadata video unggahan mereka sendiri.",
+      "linkAcc": "Sambungkan akun lain",
+      "apikeyResetConfirm1": "Apa kamu yakin ingin mereset kunci API?",
+      "apikeyResetConfirm2": "Kunci API lama akan membutuhkan waktu 0-24 jam sebelum kedaluwarsa. Yakin untuk direset?",
+      "apikeyResetNvm": "Tidak terjadi apapun.",
+      "with": {
+        "0": "Masuk dengan Google",
+        "1": "Masuk dengan Discord",
+        "2": "Masuk dengan Twitter"
+      },
+      "twitterMsg": {
+        "0": "Karena perubahan kebijakan API Twitter, Masuk dengan Twitter kemungkinan tidak lagi berfungsi setelah 9 Februari.",
+        "1": "Kamu hanya memakai Twitter sebagai sarana masuk. Kami sarankan untuk mengkaitkan metode masuk lain sekarang untuk mencegah penguncian. (pada perangkat lain atau setelah penghapusan browser).",
+        "2": "Jika kamu gagal masuk ke dalam Holodex via akun Twitter (dan tidak mengkaitkan akun dengan metode masuk lainnya), mohon hubungi kami untuk mendapatkan bantuan melalui DM Twitter atau Discord."
+      },
+      "username": "Nama Pengguna",
+      "usernameBtn": {
+        "0": "Ubah",
+        "1": "Konfirmasi",
+        "2": "Simpan"
+      },
+      "loggingIn": "Sedang login..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Ubah tataletak yang sekarang?",
+      "confirmOverwriteYes": "Konfirmasi",
+      "permalink": "Buat Tautan",
+      "presets": "Preset",
+      "addframe": "Tambah Skema",
+      "muteAll": "Matikan Suara Semua Video",
+      "unmuteAll": "Nyalakan Suara Semua Video",
+      "muteOthers": "Senyapkan yang lain",
+      "muteOthersDetail": "Senyapkan semua kecuali satu siaran",
+      "autoLayoutTip": "Tekan channel untuk mulai menonton menggunakan mode tataletak otomatis",
+      "createLayoutTip": "Membuat tataletak kreasimu sendiri dengan menambahkan kolom, atau menggunakan preset",
+      "openToolbarTip": "Buka bilah alat untuk mulai menggunakan multiview",
+      "archiveSync": "Sinkronisasi Arsip",
+      "preset": {
+        "shareOnDiscord": "Punya usulan tataletak yang keren untuk dibagikan? Gunakan tombol buat tautan dan beritahu di <a href=\"https://discord.gg/jctkgHBt4b\">Server Discord</a> kami!",
+        "custom": "Tataletak Saya",
+        "toggleAutoLayout": "Nyalakan/Matikan penggunaan tataletak ini pada otomatis",
+        "remove": "Hapus",
+        "desktop": "Desktop",
+        "mobile": "Ponsel",
+        "autoLayout": "Tataletak Otomatis",
+        "noPresets": "Tidak ada preset tersedia"
+      },
+      "presetEditor": {
+        "title": "Simpan Tataletak",
+        "name": "Nama",
+        "autoLayout": "Gunakan Tataletak ini pada mode otomatis"
+      },
+      "video": {
+        "selectLive": "Pilih Siaran Langsung",
+        "addCustomVideo": "Tambah Video Lain",
+        "twitchChannelLink": "Tautan kanal Twitch",
+        "youtubeVideoLink": "Tautan video YouTube",
+        "noHistory": "Tidak ada riwayat",
+        "addUrl": "Tambah URL",
+        "addUrlShort": "Tambah",
+        "urlPlaceholder": "Tempel URL YouTube atau Twitch",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Layar Penuh",
+      "mediaControls": "Kontrol Media",
+      "mediaControlsEmpty": "Video yang diputar akan muncul disini",
+      "editAutoLayout": "Atur Tataletak Otomatis",
+      "changeLayout": "Ubah Tataletak",
+      "done": "Selesai",
+      "hints": "Petunjuk",
+      "presetsHint": "Buka menu preset untuk mengganti tataletak dan mengatur tataletak otomatis",
+      "mediaControlsHint1": "Gunakan Kontrol Media untuk menyenyapkan dan menyinkronkan (",
+      "mediaControlsHint2": ") siaran langsung",
+      "dragDropHint": "Seret dan lepas siaran dari bilah alat ke kolom skema untuk mengatur siaran",
+      "reorderHint": "Gunakan menu Tata Ulang untuk mengganti posisi video/chat",
+      "reorderLayout": "Tata Ulang",
+      "reorderLayoutDetail": "Seret dan lepas ikon ke posisi yang diinginkan",
+      "sync": {
+        "nothingToSync": "Tidak ada apapun untuk disinkronkan, mohon buka dua arsip tumpang tindih (misalnya. stream kolaborasi)",
+        "syncSettings": "Pengaturan Sinkronisasi",
+        "syncSettingsDetail": "Video disinkronkan berdasarkan waktu mulai siaran, dan dapat desinkron di tengah-tengah siaran ketika ada masalah teknis atau porsi sebagian siaran dihapus. Gunakan offset untuk menyelarasan video secara manual"
+      },
+      "syncLabel": "Sinkron",
+      "collapseToolbar": "Ciutkan toolbar",
+      "deleteCell": "Hapus sel",
+      "fillEmptyCells": "Isi sel kosong dengan video saat ini",
+      "openNavigation": "Buka navigasi",
+      "shareLayout": "Bagikan tata letak"
+    },
+    "mugen": {
+      "welcome": "Selamat datang di MugenClips! Semua orang yang berada di halaman ini melihat klip hololive bahasa inggris yang sama yang dipilih secara acak. Menonton bareng dan mengobrol sesama fans Hololive dari seluruh penjuru dunia. jika kamu mempercepat klip dan ingin mensinkronkan kembali video dengan semua orang, tekan refresh pada halaman ini."
+    },
+    "playlist": {
+      "playlist-is-modified": "Belum Disimpan",
+      "item-last-updated": "Pembaharuan Terakhir:",
+      "login-prompt": "Masuk untuk menyimpan dan memiliki lebih dari satu playlist",
+      "new-playlist-btn-label": "Buat Playlist baru",
+      "page-heading": "Playlist Kamu:",
+      "page-instruction": "Klik playlist untuk menetapkannya sebagai aktif.",
+      "change-loss-warning": "Perubahan yang belum disimpan akan hilang. Lanjutkan?"
+    },
+    "extension": {
+      "title": "Ekstensi Holodex Plus",
+      "features": "Fitur",
+      "featureset": {
+        "one": "Mengaktifkan live chat arsip di Watch dan Multiview",
+        "two": "Memungkinkan menyukai video dari halaman tonton Holodex",
+        "three": "Memperbaiki kebocoran memori di live chat YouTube",
+        "four": "Memperbaiki flag eksperimental pada pemutar YouTube, seperti menonaktifkan beberapa stream, thumbnail ruang tunggu tidak tampil, dan lainnya."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Unduh kode sumber",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Ekstensi Firefox",
+      "githubDownload": "Unduhan GitHub",
+      "installFromGithubPrefix": "Instal dari ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Cari arsip",
+          "channels": "Buka kanal",
+          "clips": "Cari klip",
+          "live": "Cek stream live"
+        },
+        "getItOnPrefix": "Dapatkan di ",
+        "getItOnSuffix": ".",
+        "title": "Ekstensi Raycast"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menu",
+        "setting": "Pengaturan ruang TLDex",
+        "loadVideo": "Tampilkan video",
+        "unloadVideo": "Sembunyikan video",
+        "loadChat": "Tambah Obrolan Youtube ke Broadcast TL",
+        "unloadChat": "Lepas dari obrolan Youtube"
+      },
+      "tlControl": {
+        "enterBtn": "Masukkan",
+        "prefix": "Awalan",
+        "suffix": "Akhiran",
+        "fontColour": "Warna Font",
+        "outlineColour": "Warna Outline",
+        "localPrefix": "Label Bahasa dalam Obrolan",
+        "addProfile": "Tambah Profil",
+        "removeProfile": "Hapus Profil",
+        "shiftUp": "Geser Profil ke Atas",
+        "shiftDown": "Geser Profil ke Bawah",
+        "showSetting": "Pengaturan",
+        "hideSetting": "Sembunyikan",
+        "currentProfileSettings": "Pengaturan profil saat ini [{name}]",
+        "inputPlaceholder": "Ketik teks terjemahan"
+      },
+      "addProfilePanel": {
+        "title": "Tambah Profil Baru",
+        "inputLabel": "Nama Profil"
+      },
+      "settingPanel": {
+        "title": "Pengaturan",
+        "mainStreamLink": "Tautan Utama Siaran",
+        "collabLink": "Tautan Kolaborasi",
+        "findVideo": "Cari video"
+      },
+      "removeProfileTitle": "Konfirmasi hapus profil",
+      "loadChatPanel": {
+        "title": "Muat Chat",
+        "inputLabel": "Tautan Siaran"
+      },
+      "unloadChatTitle": "Sembunyikan SEMUA chat aktif?",
+      "pangram": "Muharjo seorang xenofobia universal yang takut pada warga jazirah, contohnya Qatar",
+      "cancelBtn": "Batal",
+      "okBtn": "Oke",
+      "shortcuts": {
+        "changeProfiles": "Ganti profil",
+        "or": "atau",
+        "quickSwitchDefaultProfile": "Beralih cepat ke profil default",
+        "quickSwitchProfileRange": "Profil 0-9",
+        "quickSwitchProfiles": "Beralih profil cepat",
+        "whileTyping": "Saat mengetik di kotak TL:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Simpan",
+        "continuousEnd": "Jadikan Waktu Berkelanjutan (ubah akhir)",
+        "clearAll": "Hapus Naskah",
+        "exportFile": "Ekspor Berkas",
+        "importFile": "Impor Berkas",
+        "editorMode": "Mode Edit",
+        "changeCustomLink": "Ubah tautan kustom",
+        "timeShift": "Geser waktu"
+      },
+      "table": {
+        "headerStart": "Awal",
+        "headerEnd": "Akhir",
+        "headerProfile": "Profil",
+        "headerText": "Teks",
+        "setAsStart": "Atur sebagai awal",
+        "shiftCurrentTime": "Pindah ke waktu sekarang",
+        "deleteEntry": "Hapus entri"
+      },
+      "loadVideoPanel": {
+        "title": "Muat Video",
+        "inputLabel": "Tautan Siaran"
+      },
+      "setStartTitle": "Gunakan entri terpilih sebagai awal, semua entri sebelumnya akan dihapus.",
+      "importFile": {
+        "overwriteBtn": "Timpa"
+      },
+      "editorModePanel": {
+        "activateMode": "Aktifkan Mode Edit",
+        "deactivateMode": "Matikan Mode Edit",
+        "roleWarning": "Anda tidak memiliki hak",
+        "filterTranslator": "Saring penerjemah"
+      },
+      "timeShift": {
+        "offset": "Ofset",
+        "seconds": "detik",
+        "secondsShort": "dtk",
+        "timeOffset": "Offset waktu"
+      }
+    },
+    "tlManager": {
+      "title": "Pengelola skrip",
+      "headerID": "ID video",
+      "headerEntries": "Entri",
+      "download": "Unduh",
+      "delete": "Hapus",
+      "deleteTitle": "Hapus entri",
+      "langPick": "Bahasa",
+      "changeCustomLink": "Ubah tautan khusus",
+      "changeStreamLink": "Ubah tautan stream",
+      "description": "Kelola skrip terjemahan, ekspor data, dan bersihkan tautan khusus.",
+      "entriesCount": "{count} entri",
+      "importFromMchad": "Impor dari MChad",
+      "importMchad": {
+        "claimAllArchives": "Klaim semua arsip",
+        "claimSuccess": "Arsip diklaim.",
+        "entryLength": "{count} entri",
+        "foundId": "ID ruang ditemukan: {id}",
+        "login": "Login",
+        "missingCredentials": "Masukkan nama ruang dan kata sandi.",
+        "noArchives": "Arsip tidak ditemukan.",
+        "password": "Kata sandi",
+        "roomName": "Nama ruang"
+      },
+      "newLink": "Tautan baru",
+      "noScriptsFound": "Tidak ada skrip terjemahan untuk halaman ini.",
+      "noTitle": "Tanpa judul",
+      "videoTitle": "Judul video"
+    },
+    "relayBot": {
+      "addSubscription": "Tambah langganan",
+      "blacklist": "Daftar blokir",
+      "botMissing": "Bot tidak ada di server ini.",
+      "channelsFor": "Kanal untuk {name}",
+      "description": "Teruskan terjemahan live dari kanal atau video YouTube ke Discord.",
+      "inviteBot": "Undang bot",
+      "loginDiscord": "Login dengan Discord",
+      "noBlacklistEntries": "Tidak ada entri daftar blokir.",
+      "noSubscriptionsConfigured": "Belum ada langganan yang dikonfigurasi.",
+      "noWhitelistEntries": "Tidak ada entri daftar izin.",
+      "notOk": "Gagal",
+      "ok": "OK",
+      "relaySubscription": "Langganan relay",
+      "relayTL": "Relay TL",
+      "saved": "Tersimpan.",
+      "saving": "Menyimpan...",
+      "sendingTrigger": "Mengirim...",
+      "serverNotShown": "Hanya server tempat kamu dapat mengelola bot yang ditampilkan.",
+      "servers": "Server",
+      "settingFor": "Pengaturan untuk {name}",
+      "subscribedChannel": "Kanal berlangganan",
+      "title": "Bot relay",
+      "translatorName": "Nama penerjemah",
+      "whitelist": "Daftar izin",
+      "youtubeChannel": "Kanal YouTube",
+      "youtubeLinkChannelVideo": "Tautan kanal atau video YouTube"
+    }
+  },
+  "time": {
+    "soon": "segera mulai",
+    "diff_future_date": "Mulai {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Tambah",
+      "update": "Perbarui",
+      "permission": "Kamu perlu level pengguna 'Editor' atau lebih tinggi untuk memperbarui atau menghapus lagu yang sudah ada. Hubungi kami di <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord</a> untuk memberitau masalah/penyalahgunaan mengenai editor, atau mengajukan diri menjadi editor.",
+      "titles": {
+        "addSong": "Metadata Lagu: Tambahkan lagu baru",
+        "songList": "Daftar Lagu : {arg0}",
+        "help": "Bantuan"
+      },
+      "itunesLookupPlaceholder": "(Opsional) Cari di iTunes",
+      "moveRight2s": "Geser kanan 2detik",
+      "testEnd": "Uji ketepatan akhiran dimulai pada 3 detik sebelum berakhir.",
+      "setToCurrentTime": "Setel ke waktu sekarang ({arg0})",
+      "moveLeft2s": "Geser kiri 2detik",
+      "trackNameInput": "Judul Lagu",
+      "originalArtistInput": "Penyanyi Asli",
+      "testStart": "Uji awal mulai",
+      "startInput": "Mulai",
+      "endInput": "Durasi dalam detik: (berakhir pd {arg0})",
+      "inheritItunesMusic": "Setel Durasi via iTunes: {arg0}",
+      "listenOnAppleMusic": "Dengarkan di Apple Music",
+      "pickItunesResult": "Pilih salah satu hasil iTunes",
+      "playFromHere": "Putar dari sini",
+      "timestampEditorHint": "Gunakan timestamp relatif untuk menyelaraskan musik dengan video."
+    },
+    "exitMode": "Keluar dari Mode Edit",
+    "enterMode": "Edit video"
+  },
+  "about": {
+    "quicklinks": "Tautan cepat",
+    "discordBtn": "Discord Holodex",
+    "faq": {
+      "title": "Pertanyaan Umum",
+      "ytchatHeader": "Akun Youtube saya tidak login pada kolom chat!",
+      "ytchatContent": "Kamu harus mematikan fitur keamanan pada browser yang bernama Pemblokiran Cookie Pihak Ketiga, atau whitelist situs ini dan youtube.com untuk mengizinkan Cookie Pihak Ketiga.",
+      "ytchatFirefox": "Panduan Firefox, browser lain mungkin sama.",
+      "autoplayHeader": "AutoPlay tidak berfungsi!",
+      "autoplayContent": "Kamu bisa cari di internet bagaimana cara mengaktifkan autoplay pada browsermu.",
+      "musicPlayer": "Pemutar Musik tidak berfungsi dengan baik pada perangkat seluler!",
+      "musicPlayerContent": "Untuk sebagian besar perangkat iOS, kamu tidak dapat mematikan layar atau menutup Safari ketika pemutar musik Holodex sedang dimainkan. Larangan ini mungkin diterapkan atau mungkin juga tidak pada perangkat Android (tergantung pada perangkatnya). Mohon berikan saran pada kami di discord jika kamu memiliki ide mengenai bagaimana cara menghasilkan sistem pemutaran yang lebih baik.",
+      "videoLinkage": "Bagaimana cara saya memastikan video yang diunggah terhubung dengan vtuber yang berkaitan?",
+      "videoLinkageContent": "Semua informasi video diuraikan dalam deskripsi video tersebut. jika kamu mengklip siaran, pastikan untuk mencantumkan tautan video resminya. Jika kamu mengklip konten buatan fans (contohnya dari bilibili), pastikan juga untuk mencantumkan tautan channel youtube resmi vtuber yang berkaitan. Jika kamu tidak mencantumkan channelnya, maka klip tidak akan muncul di holodex, karena semua klip membutuhkan keterkaitan tautan pada vtuber yang berkaitan untuk muncul di holodex.",
+      "quitHolodex": "Saya subber dan ingin channel saya dihapus dari Holodex\\r",
+      "quitHolodexContent": "Yaaahhh :( , mohon beritahu kami jika terdapat masalah. jika kamu tetap ingin channelnya dihapus, tolong kirim pesan pada kami di Discord.",
+      "favorite": {
+        "title": "Apa itu favorit?",
+        "Contents": {
+          "0": "Favorit merupakan cara untuk membuat vtuber favoritmu menjadi bagian teratas, kamu dapat menambahkan favorit dengan menekan ikon hati pada",
+          "1": "halaman. Untuk saat ini memfavoritkan subber belum dapat dilakukan, tapi kamu tetap harus mempertimbangkan untuk mensubscribe dan mendukung mereka dengan cara lain!"
+        },
+        "disappear": {
+          "title": "Daftar favorit saya menghilang / saya tidak bisa melakukan favorit"
+        },
+        "contents": {
+          "0": "Pastikan kamu sudah masuk dan mengunjungi halaman saluran tab favorit untuk memaksa pemuatan ulang."
+        }
+      },
+      "mobile": {
+        "title": "Apakah ada aplikasi Android/iOS untuk Holodex?",
+        "content": {
+          "summary": "Kami masih mengembangkan hal itu! untuk saat ini, mohon gunakan fitur \"Tambah ke Layar Utama\" pada browser kalian. kami telah menyetelnya agar terlihat seperti aplikasi",
+          "android": {
+            "0": "Android Chrome: Kunjungi situs, klik tiga dot",
+            "1": "pada pojok kanan atas dan cari \"Tambahkan ke Layar Utama\"."
+          },
+          "ios": {
+            "0": "iOS Safari: Kunjungi situs pada ponselmu, klik kotak dengan tanda panah menunjuk ke atas",
+            "1": "pada bagian bawah safari, klik \"Tambahkan ke Layar Utama\""
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "Apa itu MugenClips?",
+        "contents": {
+          "0": "MugenClips, atau Klip tak terbatas, merupakan halaman untuk nonton bareng bersama orang lain dimana semua orang dapat menonton berbagai klip yang terus diputar yang diunggah oleh berbagai banyak channel komunitas penerjemah"
+        }
+      },
+      "subber": {
+        "title": "Saya subber dan tidak menemukan channel atau klip saya pada Holodex",
+        "contents": {
+          "0": "Silahkan cek halaman saluran untuk melihat apa kamu sudah menjadi salah satu subber disini, jika belum silahkan isi",
+          "1": "form ini",
+          "2": ", dan kami akan menambahkan kamu secara manual. Jika kamu sudah ada di dalam daftar, pastikan deskripsi video kamu memiliki sumber/channel tautan youtube yang benar."
+        }
+      },
+      "feedback": {
+        "title": "Saya punya saran/ingin berkontribusi pada projek ini",
+        "contents": {
+          "0": "Semua bantuan dan ide dipersilahkan! UI dan Backend tersedia untuk kontribusi, meskipun untuk saat ini hanya UI yang open source. Hubungi kami di discord untuk mendapatkan akses ke sumber backend, atau simpel dengan utarakan idemu di chat."
+        }
+      },
+      "support": {
+        "title": "Bagaimana cara saya membantu Holodex?",
+        "contents": {
+          "0": "Perangkat Server Hostingan kami sendiri memiliki 28-core disertai dengan 60GB RAM yang membutuhkan kisaran $60 USD (sekitar ±Rp 855.000) / bulan untuk tetap berjalan, dan kami ingin memperluas lebih banyak fitur-fitur yang akan kami sajikan nantinya, oleh karena itu kami membuka <a href=\"https://ko-fi.com/holodex\">Ko-fi</a> untuk membantu biaya jalannya server. (Kami juga memiliki <a href=\"https://www.patreon.com/holodex\">Patreon</a>, tapi kami lebih menyarankan Ko-fi.)<br /><br />Kamu juga dapat membantu Holodex dengan memberi kami pesan penyemangat dan saran pada twitter kami, membantu menerjemahkan via <a href=\"https://crwd.in/holodex\">Crowdin</a>, atau dengan berkontribusi ke penyimpanan data lagu kami. bahkan dengan memberi timestamp pada stream aslinya untuk bagian yang menarik juga sangat membantu!"
+        }
+      }
+    },
+    "privacyPolicy": "Kebijakan Privasi",
+    "gdpr": "GDPR dan data saya",
+    "gdprContent": "Cookie Google Analytics digunakan untuk melacak tampilan halaman untuk tujuan analitis kami. Setelah login, kami mengaitkan nama pengguna dan ID akun media sosial dengan favorit kamu. Data ini mungkin termasuk alamat Email (untuk Google), ID Discord, atau Twitter kamu.",
+    "gdprDeletion": "Untuk penghapusan data pengguna milikmu, mohon kontak kami di discord!",
+    "feedback": "Saran/Lapor Bug",
+    "feedbackHtml": "Kamu dapat membuat isu baru di <a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Pelacak Masalah </a> atau berbicara dengan tim Holodex di Discord <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Kredit",
+      "contents": {
+        "0": "Saya ingin mengucapkan terima kasih kepada tim",
+        "1": "atas kerja keras mereka pada",
+        "2": "Dan juga untuk semua subber yang telah membantu agan-agan! Kunjungi mereka!",
+        "3": "Ini merupakan situs buatan penggemar dan konten yang ditemukan pada situs ini dimiliki oleh perusahaan Cover dan mitranya. Situs ini mengikuti pedoman yang ditetapkan oleh perusahaan Cover mengenai",
+        "4": "Panduan Karya Turunan"
+      }
+    },
+    "changelog": {
+      "title": "Log Perubahan"
+    },
+    "news": {
+      "title": "Berita"
+    },
+    "bookmarklet": {
+      "title": "Bookmarklet",
+      "description": "Seret bookmarklet ini ke bilah penanda pada browser kamu untuk dapat menonton YouTube di Holodex secara mudah:",
+      "openYoutube": "Buka YouTube di Holodex"
+    },
+    "links": {
+      "browserAddon": "Ekstensi browser",
+      "community": "Komunitas",
+      "docs": "Dokumentasi",
+      "extension": "Ekstensi",
+      "repository": "Repositori"
+    },
+    "privacy": {
+      "content": {
+        "intro": "Halaman ini menjelaskan data apa saja yang ditangani Holodex dan bagaimana layanan pihak ketiga digunakan."
+      },
+      "firstParty": {
+        "title": "Data Holodex",
+        "collection": "Holodex menyimpan pengenal akun, favorit, setelan, daftar putar, dan tindakan editor yang diperlukan untuk menyediakan fitur situs.",
+        "voluntary": "Sebagian besar data akun hanya dibuat saat kamu masuk atau menggunakan fitur akun.",
+        "access": "Kamu bisa mengakses atau memperbarui setelan pengguna dari menu akunmu.",
+        "limitedUse": "Holodex hanya menggunakan data pengguna Google untuk fitur masuk dan penautan akun.",
+        "noPosting": "Holodex tidak memposting apa pun ke akun yang terhubung.",
+        "revoking": "Kamu bisa mencabut akses akun pihak ketiga dari setelan akun penyedia.",
+        "changes": "Kebijakan ini bisa berubah ketika fitur situs atau persyaratan penyedia berubah."
+      },
+      "links": {
+        "google": "Kebijakan Privasi Google",
+        "twitch": "Pemberitahuan Privasi Twitch"
+      },
+      "thirdParty": {
+        "title": "Layanan pihak ketiga",
+        "analyticsTitle": "Analitik",
+        "analyticsBody": "Holodex dapat menggunakan analitik untuk memahami penggunaan dan keandalan situs.",
+        "analyticsUse": "Data analitik digunakan untuk meningkatkan performa, navigasi, dan stabilitas.",
+        "embedsTitle": "Pemutar dan chat tertanam",
+        "embedsBody": "Embed YouTube dan Twitch disediakan oleh layanan tersebut dan dapat menggunakan cookie serta status akun mereka sendiri.",
+        "linksIntro": "Lihat kebijakan penyedia ini untuk detailnya:",
+        "choicesTitle": "Pilihanmu",
+        "choicesBody": "Kamu bisa memblokir cookie pihak ketiga atau keluar dari penyedia yang terhubung, meski beberapa fitur tertanam mungkin berhenti bekerja.",
+        "contactTitle": "Kontak",
+        "contactBody": "Hubungi tim Holodex melalui Discord atau GitHub untuk pertanyaan privasi.",
+        "commitment": "Holodex hanya meminta akses yang diperlukan untuk menjalankan fiturnya."
+      }
+    },
+    "stats": {
+      "lastMonth": "bulan lalu",
+      "songs": "lagu",
+      "subbers": "subber",
+      "videos": "video",
+      "vtubers": "VTubers",
+      "yesterday": "kemarin"
+    },
+    "youtubeTerms": {
+      "before": "Penggunaan fitur YouTube tertanam tunduk pada ",
+      "link": "Ketentuan Layanan YouTube",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Jenis Ajuan:",
+    "Types": {
+      "AddVtuber": "Tambah Vtuber ▶️ ke Holodex untuk memantau channel dan klip.",
+      "AddClipper": "Tambah channel clipping/subbing ke Holodex",
+      "ModifyExistingInfo": "Ubah informasi channel yang sudah ada",
+      "DeleteChannel": "Hapus channel saya"
+    },
+    "DirectContactDisclaimer": "Silahkan isi id discord, email atau twitter kamu. Jika kamu perlu dihubungi (info ini akan tetap terjaga kerahasiaannya) agar kami dapat memberikan masukan. Hanya admin holodex yang dapat melihat informasi ini.",
+    "DirectContactLabel": "Metode Kontak (opsional)",
+    "TwitterHandle": "Nama Pengguna Twitter Channel Ini (opsional)",
+    "VtuberGroupLabel": "Agensi / Grup Vtuber (opsional)",
+    "VtuberGroupHint": "Agensi / Grup mana vtuber ini berasal?",
+    "ChannelLanguageLabel": "Bahasa utama channel",
+    "EnglishNameHint": "Berikan nama dalam Bahasa Inggris jika nama channel tidak dalam Bahasa Inggris. Gunakan konvensi nama Vtuber dari bahasa aslinya (cth. 夏色まつり = Natsuiro Matsuri), atau nama EN pilihan mereka (cth. Elu the Elf, Emma★August).",
+    "EnglishNameLabel": "Nama Channel dalam Bahasa Inggris",
+    "Comments": "Komentar",
+    "CommentsHint": "Komentar lain yang ingin kamu sampaikan pada kami.",
+    "VtuberRequirementText": "Kanal independen memerlukan minimal 15 ribu subscriber. VTuber yang menjadi bagian dari organisasi yang sudah ada akan diterima. <br /><br />Organisasi baru akan dibuat berdasarkan rata-rata jumlah subscriber.<br /><br />Streamer Twitch harus memiliki kanal YouTube resmi agar dapat diindeks.<br /><br /><strong>Penyebutan \"past lives\" atau identitas alternatif apa pun akan otomatis ditolak.</strong>",
+    "ClipperRequirementText": "Untuk clipper, usia channel minimal 2 bulan dan mengunggah secara konsisten, atau mengunggah lebih dari 20 klip dalam satu bulan. Spam klip pendek setiap hari, hanya mengunggah klip pendek &lt;1 menit, atau menggunakan thumbnail yang tidak menarik semuanya akan diperhitungkan. Kualitas konten mungkin juga akan dinilai. <br /><br />Penting untuk diperhatikan bahwa clipper harus mengutip sumbernya dalam deskripsi video dengan tautan channel, mention channel @Youtube, dan tautan video. overciting (cth. Menautkan semua orang di Nijisanji) membuat pekerjaan lebih untuk editor Holodex, dan underciting (tidak ada tautan / tidak mengutip sama sekali) akan membuat klip disembunyikan. <br /><br /> Holodex berisi algoritme untuk mendeteksi overciting dan mengoreksinya secara otomatis, tetapi mungkin tidak selalu bekerja dengan sempurna. Clipper yang sering overcite akan dihapus dari platform untuk mengurangi noise.",
+    "DeletionRequirementText": "Penghapusan channel hanya dapat diajukan jika kamu adalah (salah satu) pemilik channel tersebut, mohon isi informasi kontak sehingga kami dapat memverifikasi ini.",
+    "PageTitle": "Holodex Pengajuan Channel",
+    "ChannelURLErrorFeedback": "Harus berupa https://www.youtube.com/channel/UC_____ atau https://www.youtube.com/@_____",
+    "ChannelURLLabel": "URL kanal",
+    "SelectLanguage": "Pilih bahasa",
+    "ChannelURLExample": "Contoh: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, email, atau metode kontak lain",
+    "TwitterExample": "Contoh: @holodex",
+    "TwitterPlaceholder": "@namapengguna",
+    "VtuberGroupPlaceholder": "Nama grup atau organisasi"
+  }
+}

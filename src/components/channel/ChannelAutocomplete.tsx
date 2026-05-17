@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CHANNEL_TYPES } from "@/lib/consts";
-import { Input } from "@/components/ui/Input";
-
-export function ChannelAutocomplete({ value, onChange, label = "Search Channels" }: { value?: any; onChange?: (value: any) => void; label?: string }) {
-  const [search, setSearch] = useState("");
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
+import { useTranslations } from "next-intl";
+export function ChannelAutocomplete({ value, onChange, label }: { value?: any; onChange?: (value: any) => void; label?: string }) {
+  const t = useTranslations();
+  const [search, setSearch] = useState(() => channelLabel(value));
   const [results, setResults] = useState<any[]>([]);
-  const reactId = useId();
-  const datalistId = `channel-autocomplete-${reactId.replace(/:/g, "")}`;
+
+  useEffect(() => { if (value?.id) setSearch(channelLabel(value)); }, [value]);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!search) { setResults([]); return; }
@@ -19,10 +20,55 @@ export function ChannelAutocomplete({ value, onChange, label = "Search Channels"
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
-  function handleInput(next: string) {
-    setSearch(next);
-    const match = results.find((item) => item.text === next);
-    onChange?.(match ? match.value : next);
+
+  const selectedValue = value?.id || "";
+  const options = useMemo(() => {
+    const merged = [...results];
+    if (value?.id && !merged.some((item) => item.value.id === value.id)) {
+      merged.unshift({ text: channelLabel(value), value });
+    }
+    return merged;
+  }, [results, value]);
+  const optionValues = useMemo(() => options.map((item) => item.value.id), [options]);
+  const labels = useMemo(() => new Map(options.map((item) => [item.value.id, item.text])), [options]);
+  const byId = useMemo(() => new Map(options.map((item) => [item.value.id, item.value])), [options]);
+
+  function selectChannel(next: string | null) {
+    if (!next) {
+      setSearch("");
+      onChange?.("");
+      return;
+    }
+    const channel = byId.get(next);
+    setSearch(labels.get(next) || next);
+    onChange?.(channel || next);
   }
-  return <div className="space-y-2"><Input value={search} list={datalistId} placeholder={label} onChange={(e) => handleInput(e.target.value)} /><datalist id={datalistId}>{results.map((item, index) => <option key={`${item.value.id}-${index}`} value={item.text} />)}</datalist></div>;
+
+  return (
+    <Combobox
+      items={optionValues}
+      value={selectedValue}
+      inputValue={search}
+      itemToStringLabel={(item) => labels.get(item) || item}
+      onInputValueChange={setSearch}
+      onValueChange={selectChannel}
+    >
+      <ComboboxInput placeholder={label ?? t("component.search.searchChannels")} showClear={!!selectedValue || !!search} />
+      <ComboboxContent>
+        <ComboboxEmpty>{search.trim().length < 2 ? t("component.search.typeTwoCharacters") : t("component.search.noChannelsFound")}</ComboboxEmpty>
+        <ComboboxList>
+          {(item: string, index: number) => (
+            <ComboboxItem key={item} value={item} index={index}>
+              {labels.get(item) || item}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+function channelLabel(channel: any) {
+  if (!channel?.id) return "";
+  return `${channel.english_name ? `${channel.english_name},` : ""} ${channel.name || channel.id} (${channel.id})`;
 }

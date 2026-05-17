@@ -8,7 +8,6 @@ import { useMultiviewStore } from "@/lib/multiview-store";
 import { useRegisterMultiviewVideoCell, type MultiviewVideoCellHandle } from "@/lib/multiview-video-cells";
 import { getYTLangFromState } from "@/lib/functions";
 import { useAppState } from "@/lib/store";
-
 type PlayerHandle = YoutubePlayerHandle | TwitchPlayerHandle;
 
 export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: string) => void }) {
@@ -183,13 +182,16 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
   useRegisterMultiviewVideoCell(String(item.i), content && video ? exposedCell : null);
 
   if (!content || !video) return null;
+  const youtubePlayerClass = "absolute inset-0 h-full w-full [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&>div>iframe]:absolute [&>div>iframe]:inset-0 [&>div>iframe]:h-full [&>div>iframe]:w-full";
+  const twitchPlayerClass = "absolute inset-0 h-full w-full [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full";
   return (
-    <div key={`uid-${uniqueId}`} className="cell-content video-cell">
-      <div className={`mv-frame ${editMode ? "elevation-4" : ""}`}>
+    <div key={`uid-${uniqueId}`} className="flex h-full max-h-full min-h-0 w-full grow basis-full shrink flex-col overflow-hidden">
+      <div className={`relative min-h-0 w-full flex-1 ${editMode ? "elevation-4" : ""}`}>
         {isTwitchVideo ? (
           <TwitchPlayer
             ref={player as React.Ref<TwitchPlayerHandle>}
             channel={content.id}
+            className={twitchPlayerClass}
             playsInline
             mute={muted}
             manualUpdate
@@ -206,6 +208,7 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
             ref={player as React.Ref<YoutubePlayerHandle>}
             key={content.id}
             videoId={content.id}
+            className={youtubePlayerClass}
             playerVars={{ playsinline: 1, cc_lang_pref: lang, hl: lang }}
             mute={muted}
             manualUpdate

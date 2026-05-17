@@ -21,42 +21,25 @@ export const generateContentId = () => Array.from({ length: 8 }, () => b64[Math.
 
 /**
  * Encodes a layout array and contents to a compact URI
- * @param {{layout, contents, includeVideo?}} layout and layout contents
- * @returns {string} encoded string
  */
 export function encodeLayout({ layout, contents, includeVideo = false }) {
-    const l: string[] = [];
     try {
-        layout.forEach((item) => {
-            let encodedBlock = "";
-            let invalid = false;
-            for (const key of ["x", "y", "w", "h"]) {
-                if (item[key] >= 64) {
-                    invalid = true;
-                    break;
-                }
-                encodedBlock += b64[item[key]];
-            }
-
-            if (invalid) return;
-
-            if (contents[item.i]) {
-                const {
-                    id, type, video, currentTab,
-                } = contents[item.i];
+        const parts: string[] = [];
+        for (const item of layout) {
+            if (item.x >= 64 || item.y >= 64 || item.w >= 64 || item.h >= 64) continue;
+            let block = b64[item.x] + b64[item.y] + b64[item.w] + b64[item.h];
+            const content = contents[item.i];
+            if (content) {
+                const { id, type, video, currentTab } = content;
                 if (type === "chat") {
-                    encodedBlock += `chat${currentTab || 0}`;
+                    block += `chat${currentTab || 0}`;
                 } else if (type === "video" && includeVideo) {
-                    if (video?.type === "twitch") {
-                        encodedBlock += `twitch${id}`;
-                    } else {
-                        encodedBlock += id;
-                    }
+                    block += video?.type === "twitch" ? `twitch${id}` : id;
                 }
             }
-            l.push(encodedBlock);
-        });
-        return l.join(",");
+            parts.push(block);
+        }
+        return parts.join(",");
     } catch (e) {
         console.error(e);
         return "error";
@@ -76,60 +59,43 @@ export function decodeLayout(encodedStr) {
     parts.sort(); // DO NOT TOUCH THIS LINE
     parts.forEach((str) => {
         const index = generateContentId();
-        const xywh = str.substring(0, 4);
         const idOrChat = str.substring(4, 15);
-        const isChat = idOrChat.substring(0, 4) === "chat";
-        const isTwitch = idOrChat.substring(0, 6) === "twitch";
-        const channelName = str.substring(15);
+        const isChat = idOrChat.startsWith("chat");
+        const isTwitch = idOrChat.startsWith("twitch");
 
-        const keys = ["x", "y", "w", "h"];
         const layoutItem: LayoutItem = {
-            w: 0,
-            h: 0,
-            x: 0,
-            y: 0,
+            x: b64.indexOf(str[0]),
+            y: b64.indexOf(str[1]),
+            w: b64.indexOf(str[2]),
+            h: b64.indexOf(str[3]),
             i: index,
             isDraggable: true,
             isResizable: true,
             moved: false,
         };
 
-        xywh.split("").forEach((char, keyIndex) => {
-            const num = b64.indexOf(char);
-            layoutItem[keys[keyIndex]] = num;
-        });
-        videoCellCount += 1;
         if (isChat) {
             const currentTab = idOrChat.length === 5 ? Number(idOrChat[4]) : -1;
             parsedContent[index] = {
                 type: "chat",
-                ...(currentTab >= 0) && { currentTab },
+                ...(currentTab >= 0 && { currentTab }),
             };
-            videoCellCount -= 1;
         } else if (isTwitch) {
             const twitchChannel = str.substring(10);
             parsedContent[index] = {
                 type: "video",
                 id: twitchChannel,
-                video: {
-                    id: twitchChannel,
-                    type: "twitch",
-                    channel: {
-                        name: twitchChannel,
-                    },
-                },
+                video: { id: twitchChannel, type: "twitch", channel: { name: twitchChannel } },
             };
+            videoCellCount += 1;
         } else if (idOrChat.length === 11) {
+            const channelName = str.substring(15);
             parsedContent[index] = {
                 type: "video",
                 id: idOrChat,
-                video: {
-                    id: idOrChat,
-                    channel: {
-                        name: channelName || idOrChat,
-                    },
-                },
+                video: { id: idOrChat, channel: { name: channelName || idOrChat } },
             };
+            videoCellCount += 1;
         }
         parsedLayout.push(layoutItem);
     });
@@ -201,11 +167,9 @@ export const mobilePresets = Object.freeze([
 ]);
 
 export function getDesktopDefaults() {
-    const autoLayoutDefaults = [];
-    desktopPresets.forEach((preset) => {
+    const autoLayoutDefaults: string[] = [];
+    for (const preset of desktopPresets) {
         if (preset.default) autoLayoutDefaults[preset.default] = preset.layout;
-    });
+    }
     return autoLayoutDefaults;
 }
-
-export const reorderIcon = "M2 2h8.8v8.8H2V2Zm11.3 11.3H22V22h-8.8v-8.8Zm4.6-10.9a.6.6 0 0 0-1 0l-3.9 4a.6.6 0 1 0 .9.9l3.5-3.6L21 7.3a.6.6 0 0 0 .8-1l-4-4Zm.1 10V2.8h-1.2v9.6H18ZM5.7 21.6c.3.3.7.3 1 0l3.9-4a.6.6 0 1 0-.9-.9l-3.5 3.6-3.6-3.6a.6.6 0 1 0-.9 1l4 4Zm-.2-10v9.6h1.3v-9.6H5.5Z";

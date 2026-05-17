@@ -1,15 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { mdiChevronLeft, mdiChevronRight } from "@mdi/js";
-import { LoadingOverlay } from "@/components/common/LoadingOverlay";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
-import { useI18n } from "@/lib/i18n";
+import { ChevronLeft, ChevronRight } from "@/lib/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination";
+import { Spinner } from "@/components/ui/spinner";
+import { useTranslations } from "next-intl";
 import { useAppState } from "@/lib/store";
-import { extractListPayload } from "@/lib/video-list";
-
+import { extractListPayload } from "@/lib/video-format";
 const CACHE_PREFIX = "gll:";
 const STATUSES = Object.freeze({ READY: 0, LOADING: 1, ERROR: 2, COMPLETED: 3 });
 
@@ -55,7 +54,7 @@ export function GenericListLoader({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { t } = useI18n();
+  const t = useTranslations();
   const currentPage = Number(searchParams.get("page") || 1);
   const pages = total ? Math.ceil(total / perPage) : 1;
   const pageLessMode = pageless || total === null;
@@ -134,11 +133,21 @@ export function GenericListLoader({
   }, [infiniteLoad, nextPage, runLoad, status]);
 
   function goToPage(page: number) {
+    if (page < 1) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(page));
     router.push(`${pathname}${params.toString() ? `?${params}` : ""}`);
     const jump = document.getElementById(`tjump${randomId}`);
     if (jump) window.scrollTo(0, jump.offsetTop - 100);
+  }
+  function pageHref(page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    return `${pathname}${params.toString() ? `?${params}` : ""}`;
+  }
+  function handlePageClick(event: MouseEvent<HTMLAnchorElement>, page: number, disabled = false) {
+    event.preventDefault();
+    if (!disabled) goToPage(page);
   }
 
   const visiblePages = useMemo(() => {
@@ -157,22 +166,43 @@ export function GenericListLoader({
       {children({ data, isLoading })}
       {infiniteLoad ? (
         <div ref={sentinel} key={identifier} className="flex justify-center py-4" style={{ minHeight: 100 }}>
-          <LoadingOverlay isLoading={status === STATUSES.LOADING} showError={status === STATUSES.ERROR} />
+          {status === STATUSES.LOADING ? <Spinner className="mt-8" /> : null}
+          {status === STATUSES.ERROR ? (
+            <Alert variant="destructive" className="mt-4 max-w-md">
+              <AlertDescription>{t("component.apiError.title")}</AlertDescription>
+            </Alert>
+          ) : null}
         </div>
       ) : null}
       {paginate ? (
         <div key={identifier} className="flex justify-center py-4" style={{ minHeight: 100 }}>
           {!pageLessMode ? (
-            <div className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "flex flex-wrap items-center justify-center gap-2" : "hidden"}>
-              <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}><Icon icon={mdiChevronLeft} size="sm" /></Button>
-              {visiblePages.map((pageNumber) => <Button key={`page-${pageNumber}`} variant={pageNumber === currentPage ? "default" : "outline"} size="sm" onClick={() => goToPage(pageNumber)}>{pageNumber}</Button>)}
-              <Button variant="outline" size="sm" disabled={currentPage === pages} onClick={() => goToPage(currentPage + 1)}><Icon icon={mdiChevronRight} size="sm" /></Button>
-            </div>
+            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
+	              <PaginationContent className="flex-wrap justify-center gap-2">
+	                <PaginationItem>
+	                  <PaginationLink href={pageHref(currentPage - 1)} size="sm" aria-label={t("component.pagination.previousPage")} aria-disabled={currentPage === 1} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}><ChevronLeft className="size-4" /></PaginationLink>
+	                </PaginationItem>
+	                {visiblePages.map((pageNumber) => (
+	                  <PaginationItem key={`page-${pageNumber}`}>
+	                    <PaginationLink href={pageHref(pageNumber)} size="sm" isActive={pageNumber === currentPage} onClick={(event) => handlePageClick(event, pageNumber)}>{pageNumber}</PaginationLink>
+	                  </PaginationItem>
+	                ))}
+	                <PaginationItem>
+	                  <PaginationLink href={pageHref(currentPage + 1)} size="sm" aria-label={t("component.pagination.nextPage")} aria-disabled={currentPage === pages} className={currentPage === pages ? "pointer-events-none opacity-50" : ""} onClick={(event) => handlePageClick(event, currentPage + 1, currentPage === pages)}><ChevronRight className="size-4" /></PaginationLink>
+	                </PaginationItem>
+	              </PaginationContent>
+            </Pagination>
           ) : (
-            <div className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
-              <Button className="m-2 pr-6" variant="outline" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}><Icon icon={mdiChevronLeft} size="sm" />{t("component.paginateLoad.newer")}</Button>
-              <Button className="m-2 pl-6" variant="outline" disabled={status === STATUSES.COMPLETED} onClick={() => goToPage(currentPage + 1)}>{t("component.paginateLoad.older")}<Icon icon={mdiChevronRight} size="sm" /></Button>
-            </div>
+            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
+	              <PaginationContent className="flex-wrap justify-center gap-0">
+	                <PaginationItem>
+	                  <PaginationLink href={pageHref(currentPage - 1)} size="default" aria-disabled={currentPage === 1} className={`m-2 pr-6 ${currentPage === 1 ? "pointer-events-none opacity-50" : ""}`} onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}><ChevronLeft className="size-4" />{t("component.paginateLoad.newer")}</PaginationLink>
+	                </PaginationItem>
+	                <PaginationItem>
+	                  <PaginationLink href={pageHref(currentPage + 1)} size="default" aria-disabled={status === STATUSES.COMPLETED} className={`m-2 pl-6 ${status === STATUSES.COMPLETED ? "pointer-events-none opacity-50" : ""}`} onClick={(event) => handlePageClick(event, currentPage + 1, status === STATUSES.COMPLETED)}>{t("component.paginateLoad.older")}<ChevronRight className="size-4" /></PaginationLink>
+	                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
         </div>
       ) : null}

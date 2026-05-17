@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/button";
+
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { useAppState } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import { buildSearchUrl, formatCount } from "@/lib/functions";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import { channelDisplayName, channelGroup } from "@/lib/video-format";
 import * as icons from "@/lib/icons";
 
@@ -33,8 +33,8 @@ export function ChannelInfo({
 }) {
   const router = useRouter();
   const app = useAppState();
-  const { t } = useI18n();
-  const channelName = channelDisplayName(channel, app.settings.nameProperty === "english_name");
+  const t = useTranslations();
+  const channelName = channelDisplayName(channel, app.settings.useEnglishName);
   const group = channelGroup(channel);
   const subscriberCount = channel?.subscriber_count
     ? t("component.channelInfo.subscriberCount", { n: formatCount(channel.subscriber_count, app.settings.lang) })
@@ -50,22 +50,22 @@ export function ChannelInfo({
 
   return (
     <div className={cn("min-w-0 flex-1", className)} style={style}>
-      <div style={{ alignSelf: "flex-start" }}>
-        <Link href={`/channel/${channel.id}`} className="no-decoration text-truncate">
+      <div className="self-start">
+        <Link href={`/channel/${channel.id}`} className="truncate no-underline">
           {channel.inactive ? (
-            <Button variant="ghost" size="icon" className="plain-button h-[18px] w-[18px]" title={t("component.channelInfo.inactiveChannel")}>
-              <Icon icon={icons.mdiSchool} size="sm" className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-[18px] w-[18px]" title={t("component.channelInfo.inactiveChannel")}>
+              <icons.GraduationCap className="h-5 w-5" />
             </Button>
           ) : null}
           {channelName}
         </Link>{" "}<br />
         {channel.yt_handle ? (
-          <a href={`https://youtube.com/${channel.yt_handle[0]}`} target="__blank" className="no-decoration text--org">
+          <a href={`https://youtube.com/${channel.yt_handle[0]}`} target="__blank" className="text-xs font-light text-muted-foreground no-underline opacity-70 hover:opacity-100">
             {channel.yt_handle[0]} •
           </a>
         ) : null}
         <span style={{ display: channel.org ? undefined : "none" }}>
-          <Link href={`/?${channelOrg}`} className="no-decoration text--org">
+          <Link href={`/?${channelOrg}`} className="text-xs font-light text-muted-foreground no-underline opacity-70 hover:opacity-100">
             {channel.org + (!noGroup && group ? " / " + group : "")}
           </Link>
         </span>
@@ -75,11 +75,11 @@ export function ChannelInfo({
         {includeVideoCount ? (
           <>
             {" • "}
-            {t("component.channelInfo.videoCount", [channel.video_count])}
+            {t("component.channelInfo.videoCount", { arg0: channel.video_count })}
             {channel.clip_count > 0 ? (
-              <Link href={`/channel/${channel.id}/clips`} className="no-decoration">
+              <Link href={`/channel/${channel.id}/clips`} className="no-underline">
                 {" • "}
-                <span className="text-[color:var(--color-primary)]">{t("component.channelInfo.clipCount", channel.clip_count)}</span>
+                <span className="text-[color:var(--color-primary)]">{t("component.channelInfo.clipCount", { n: channel.clip_count })}</span>
               </Link>
             ) : null}
           </>
@@ -89,9 +89,16 @@ export function ChannelInfo({
         <div className="text-sm text-[color:var(--color-muted-foreground)]">
           🏆{" "}
           {channel.top_topics.map((topic: string) => (
-            <a key={topic} className="topic-chip" onClick={(event) => { event.stopPropagation(); event.preventDefault(); void searchTopic(topic); }}>
+            <Button
+              key={topic}
+              type="button"
+              variant="outline"
+              size="xs"
+              className="mr-1 h-auto rounded-full bg-muted px-2 py-0.5 text-xs font-normal capitalize hover:border-transparent hover:bg-primary hover:text-primary-foreground"
+              onClick={(event) => { event.stopPropagation(); event.preventDefault(); void searchTopic(topic); }}
+            >
               {topic}
-            </a>
+            </Button>
           ))}
         </div>
       ) : null}

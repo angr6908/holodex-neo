@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-
 export const runtime = "nodejs";
 const API_BASE_URL = "https://holodex.net";
 

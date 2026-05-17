@@ -1,7 +1,6 @@
 import { dayjs, formatDistance, formatDuration, titleTimeString } from "@/lib/time";
-import { getChannelPhoto, getLiveViewerCount, getVideoThumbnails, decodeHTMLEntities, formatCount } from "@/lib/functions";
+import { getChannelPhoto, getLiveViewerCount, getVideoThumbnails, decodeHTMLEntities, formatCount, videoTemporalComparator } from "@/lib/functions";
 import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
-
 const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
 type ThumbnailSize = "default" | "medium" | "standard" | "maxres";
 const TWITCH_PREVIEW_HOST = "static-cdn.jtvnw.net";
@@ -12,9 +11,16 @@ const TWITCH_THUMBNAIL_SIZES: Record<ThumbnailSize, { width: number; height: num
   maxres: { width: 1920, height: 1080 },
 };
 
-export function channelDisplayName(channel: any, useEnglish = true) { return (useEnglish ? channel?.english_name : null) || channel?.name || ""; }
-export function channelGroup(channel: any) { return channel?.group || (channel?.suborg ? String(channel.suborg).slice(2) : null); }
-export function staticThumbnailPath(thumbnail: string, size: "default" | "maxres" = "default") { const n = btoa(thumbnail).replace("+", "-").replace("/", "_").replace(/=+$/, ""); return `/statics/thumbnail/${size}/${n}.jpg`; }
+export function channelDisplayName(channel: any, useEnglish = true) {
+  return (useEnglish ? channel?.english_name : null) || channel?.name || "";
+}
+export function channelGroup(channel: any) {
+  return channel?.group || (channel?.suborg ? String(channel.suborg).slice(2) : null);
+}
+function staticThumbnailPath(thumbnail: string, size: "default" | "maxres" = "default") {
+  const n = btoa(thumbnail).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  return `/statics/thumbnail/${size}/${n}.jpg`;
+}
 function isTwitchPreviewThumbnail(thumbnail: string) {
   try {
     const url = new URL(thumbnail);
@@ -40,7 +46,7 @@ function thumbnailSizeForVideo(opts: { horizontal?: boolean; colSize?: number; f
   if ((opts.colSize || 1) > 2 && (opts.colSize || 1) <= 8 && typeof window !== "undefined") return window.devicePixelRatio > 1 ? "standard" : "medium";
   return "standard";
 }
-export function thumbnailImage(thumbnail: string, size: ThumbnailSize = "default") {
+function thumbnailImage(thumbnail: string, size: ThumbnailSize = "default") {
   if (isTwitchPreviewThumbnail(thumbnail)) return resizeTwitchPreviewThumbnail(thumbnail, size);
   if (typeof btoa === "undefined") return thumbnail;
   return staticThumbnailPath(thumbnail, size === "maxres" ? "maxres" : "default");
@@ -52,10 +58,16 @@ export function linkifyVideoTimestamps(message: string, videoId: string, redirec
   const vidUrl = (redirectMode ? "https://youtu.be/" : "/watch/") + videoId;
   return sanitized.replace(COMMENT_TIMESTAMP_REGEX, (match, hr, min, sec) => {
     const time = Number(hr ?? 0) * 3600 + Number(min) * 60 + Number(sec);
-    return `<a class="comment-chip" href="${vidUrl}?t=${time}" data-time="${time}"> ${match} </a>`;
+    return `<a class="comment-chip inline-block rounded px-0.5 py-px no-underline hover:bg-primary hover:text-primary-foreground" href="${vidUrl}?t=${time}" data-time="${time}"> ${match} </a>`;
   });
 }
-export function videoTitle(video: any, useEnglish = true) { if (!video) return ""; if (video.type === "placeholder") return decodeHTMLEntities((useEnglish ? video.title ?? video.jp_name : video.jp_name ?? video.title) || ""); return decodeHTMLEntities(video.title || ""); }
+export function videoTitle(video: any, useEnglish = true) {
+  if (!video) return "";
+  if (video.type === "placeholder") {
+    return decodeHTMLEntities((useEnglish ? video.title ?? video.jp_name : video.jp_name ?? video.title) || "");
+  }
+  return decodeHTMLEntities(video.title || "");
+}
 export function videoImage(video: any, opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {}) {
   if (!video) return "";
   const thumbnailSize = thumbnailSizeForVideo(opts);
@@ -78,7 +90,7 @@ export function formattedDuration(video: any, t: any, now = Date.now()) {
   if (video.status === "upcoming" && video.duration) return t("component.videoCard.premiere");
   return video.duration ? formatDuration(video.duration * 1000) : "";
 }
-export function videoEndTimestamp(video: any) {
+function videoEndTimestamp(video: any) {
   if (!video) return 0;
   const start = video.start_actual || video.available_at || video.start_scheduled;
   const startTime = dayjs(start);
@@ -91,7 +103,31 @@ export function videoEndTimestamp(video: any) {
     return startTime.add(Number(video.duration), "second").valueOf();
   return startTime.isValid() ? startTime.valueOf() : 0;
 }
-export function videoDisplayTime(video: any) {
+export function extractItems(payload: any) {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+  return (
+    (Object.values(payload).find((value) => Array.isArray(value)) as any[]) || []
+  );
+}
+export function extractListPayload(payload: any) {
+  return {
+    items: extractItems(payload),
+    total: typeof payload?.total === "number" ? payload.total : null,
+    offset: typeof payload?.offset === "number" ? payload.offset : null,
+  };
+}
+export function dedupeVideos(videos: any[]) {
+  return Array.from(new Map((videos || []).map((video) => [video.id, video])).values());
+}
+export function sortVideosForTab(items: any[], isArchive: boolean) {
+  if (!isArchive) return [...(items || [])].sort((a, b) => videoTemporalComparator(b, a));
+  return (items || [])
+    .map((item, index) => ({ item, index, endTime: videoEndTimestamp(item), id: String(item?.id || "") }))
+    .sort((a, b) => b.endTime - a.endTime || b.id.localeCompare(a.id) || a.index - b.index)
+    .map(({ item }) => item);
+}
+function videoDisplayTime(video: any) {
   if (!video) return "";
   if (
     video.status === "past" &&
@@ -105,8 +141,13 @@ export function videoDisplayTime(video: any) {
   }
   return video.available_at || video.start_scheduled;
 }
-export function absoluteTime(video: any, lang: string) { return titleTimeString(videoDisplayTime(video), lang); }
+export function absoluteTime(video: any, lang: string) {
+  return titleTimeString(videoDisplayTime(video), lang);
+}
 export function elapsedLiveDuration(startActual: string | number | Date, now = Date.now()) {
   return formatDuration(dayjs(now).diff(dayjs(startActual)));
 }
-export function viewerCountText(video: any, lang: string) { const n = getLiveViewerCount(video); return n > 0 ? formatCount(n, lang) : ""; }
+export function viewerCountText(video: any, lang: string) {
+  const n = getLiveViewerCount(video);
+  return n > 0 ? formatCount(n, lang) : "";
+}

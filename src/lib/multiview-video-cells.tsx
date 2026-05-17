@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-
 export type MultiviewVideoCellHandle = {
   readonly id: string;
   readonly video: any;
@@ -64,7 +63,7 @@ export function useRegisterMultiviewVideoCell(id: string, cell: MultiviewVideoCe
   }, [registerCell, id, cell]);
 }
 
-export function useMultiviewVideoCells() {
+function useMultiviewVideoCells() {
   return useContext(MultiviewVideoCellsContext)?.cells ?? [];
 }
 

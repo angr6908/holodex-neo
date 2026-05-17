@@ -1,4 +1,4 @@
-export type VueGridLayoutItem = {
+type VueGridLayoutItem = {
   w: number;
   h: number;
   x: number;
@@ -15,13 +15,13 @@ export type VueGridLayoutItem = {
   [key: string]: any;
 };
 
-export type VueGridLayout = VueGridLayoutItem[];
+type VueGridLayout = VueGridLayoutItem[];
 
 export function cloneLayoutItem(layoutItem: VueGridLayoutItem): VueGridLayoutItem {
-  return JSON.parse(JSON.stringify(layoutItem));
+  return structuredClone(layoutItem);
 }
 
-export function collides(l1: VueGridLayoutItem, l2: VueGridLayoutItem): boolean {
+function collides(l1: VueGridLayoutItem, l2: VueGridLayoutItem): boolean {
   if (l1 === l2 || String(l1.i) === String(l2.i)) return false;
   if (l1.x + l1.w <= l2.x) return false;
   if (l1.x >= l2.x + l2.w) return false;
@@ -30,7 +30,7 @@ export function collides(l1: VueGridLayoutItem, l2: VueGridLayoutItem): boolean 
   return true;
 }
 
-export function sortLayoutItemsByRowCol(layout: VueGridLayout): VueGridLayout {
+function sortLayoutItemsByRowCol(layout: VueGridLayout): VueGridLayout {
   return [...layout].sort((a, b) => {
     if (a.y === b.y && a.x === b.x) return 0;
     return a.y > b.y || (a.y === b.y && a.x > b.x) ? 1 : -1;
@@ -41,7 +41,7 @@ export function getLayoutItem(layout: VueGridLayout, id: string | number): VueGr
   return layout.find((item) => String(item.i) === String(id));
 }
 
-export function getFirstCollision(layout: VueGridLayout, layoutItem: VueGridLayoutItem): VueGridLayoutItem | undefined {
+function getFirstCollision(layout: VueGridLayout, layoutItem: VueGridLayoutItem): VueGridLayoutItem | undefined {
   return layout.find((item) => collides(item, layoutItem));
 }
 
@@ -110,13 +110,12 @@ export function moveElement(
   return layout;
 }
 
-export function moveElementAwayFromCollision(
+function moveElementAwayFromCollision(
   layout: VueGridLayout,
   collidesWith: VueGridLayoutItem,
   itemToMove: VueGridLayoutItem,
   isUserAction: boolean,
 ): VueGridLayout {
-  const preventCollision = false;
   if (isUserAction) {
     const fakeItem: VueGridLayoutItem = {
       x: itemToMove.x,
@@ -126,10 +125,10 @@ export function moveElementAwayFromCollision(
       i: "-1",
     };
     if (!getFirstCollision(layout, fakeItem)) {
-      return moveElement(layout, itemToMove, undefined, fakeItem.y, preventCollision, false);
+      return moveElement(layout, itemToMove, undefined, fakeItem.y, false, false);
     }
   }
-  return moveElement(layout, itemToMove, undefined, itemToMove.y + 1, preventCollision, false);
+  return moveElement(layout, itemToMove, undefined, itemToMove.y + 1, false, false);
 }
 
 export function calcGridPosition(x: number, y: number, w: number, h: number, colWidth: number, rowHeight: number) {

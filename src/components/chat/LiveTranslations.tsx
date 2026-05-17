@@ -1,20 +1,19 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { mdiArrowExpand, mdiSubtitlesOutline } from "@mdi/js";
+import { Maximize2, Captions } from "@/lib/icons";
 import { dayjs } from "@/lib/time";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Dialog } from "@/components/ui/Dialog";
-import { Icon } from "@/components/ui/Icon";
-import { MessageRenderer, type MessageRendererHandle } from "@/components/chat/MessageRenderer";
-import { WatchSubtitleOverlay } from "@/components/watch/WatchSubtitleOverlay";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Card, CardFooter } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { MessageRenderer, WatchSubtitleOverlay, type MessageRendererHandle } from "@/components/chat/MessageRenderer";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
-
 export function LiveTranslations({
   video,
   currentTime = 0,
@@ -34,7 +33,7 @@ export function LiveTranslations({
   style?: React.CSSProperties;
   onVideoUpdate?: (obj: any) => void;
 }) {
-  const { t } = useI18n();
+  const t = useTranslations();
   const appStore = useAppState();
   const [tlHistory, setTlHistory] = useState<any[]>([]);
   const [expanded, setExpanded] = useState(false);
@@ -162,11 +161,12 @@ export function LiveTranslations({
   }
 
   return (
-    <Card className={`tl-overlay relative w-full overflow-hidden border-0 bg-transparent p-0 text-sm shadow-none ${className}`} style={style}>
+    <Card className={`box-border flex relative w-full flex-col overflow-hidden border-0 bg-transparent p-0 text-sm shadow-none ${className}`} style={style}>
       {showOverlay ? (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950/90 px-4 text-center backdrop-blur-sm">
           {isLoading ? (
-            <div className="text-sm text-slate-300">
+            <div className="inline-flex items-center gap-2 text-sm text-slate-300">
+              <Spinner className="size-4" />
               {t("views.watch.chat.loading")}
             </div>
           ) : (
@@ -197,7 +197,7 @@ export function LiveTranslations({
               title={t("views.watch.chat.showSubtitle")}
               onClick={toggleSubtitle}
             >
-              <Icon icon={mdiSubtitlesOutline} size="xs" className={showSubtitle ? "text-[color:var(--color-primary)]" : ""} />
+              <Captions className={cn("size-3.5", showSubtitle ? "text-[color:var(--color-primary)]" : "")} />
             </Button>
           ) : null}
           {!tlClient ? (
@@ -208,12 +208,13 @@ export function LiveTranslations({
               title={t("views.watch.chat.expandTL")}
               onClick={() => setExpanded(true)}
             >
-              <Icon icon={mdiArrowExpand} size="xs" />
+              <Maximize2 className="size-3.5" />
             </Button>
           ) : null}
-          <Dialog open={expanded} className="max-w-4xl p-0" onOpenChange={setExpanded}>
+          <Dialog open={expanded} onOpenChange={setExpanded}>
+            <DialogContent className="max-w-4xl p-0">
             <Card className="p-0">
-              <div id={expandedMsgId} className="flex tl-expanded">
+              <div id={expandedMsgId} className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full">
                 <MessageRenderer tlHistory={filteredMessages} fontSize={appStore.settings.liveTlFontSize}>
                   {tlHistory.length - filteredMessages.length > 0 ? (
                     <div className="text-caption">
@@ -227,12 +228,13 @@ export function LiveTranslations({
                   ) : null}
                 </MessageRenderer>
               </div>
-              <div className="flex justify-end border-t border-white/10 px-4 py-3">
+              <CardFooter className="justify-end border-t border-white/10 px-4 py-3">
                 <Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>
                   {t("views.app.close_btn")}
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
+            </DialogContent>
           </Dialog>
           <LiveTranslationsSetting />
         </div>

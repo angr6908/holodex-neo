@@ -1,22 +1,24 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { mdiArrowExpand, mdiChevronLeft, mdiChevronRight, mdiSubtitlesOutline } from "@mdi/js";
+import { Maximize2, ChevronLeft, ChevronRight, Captions } from "@/lib/icons";
 import { dayjs } from "@/lib/time";
 import { api } from "@/lib/api";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Dialog } from "@/components/ui/Dialog";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
-import { WatchSubtitleOverlay } from "@/components/watch/WatchSubtitleOverlay";
+import { WatchSubtitleOverlay } from "@/components/chat/MessageRenderer";
 import { useAppState } from "@/lib/store";
-
+import { useTranslations } from "next-intl";
 export function ArchiveTranslations({ video, currentTime = 0, useLocalSubtitleToggle = false, className = "", style, onTimeJump }: { video: Record<string, any>; currentTime?: number; useLocalSubtitleToggle?: boolean; className?: string; style?: React.CSSProperties; onTimeJump?: (time: number, a?: boolean, b?: boolean) => void }) {
   const app = useAppState();
+  const t = useTranslations();
   const [tlHistory, setTlHistory] = useState<any[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [dialog, setDialog] = useState(false);
@@ -94,7 +96,7 @@ export function ArchiveTranslations({ video, currentTime = 0, useLocalSubtitleTo
     }
   }, [curIndex, app.settings.liveTlHideSpoiler]);
 
-  const itemClass = (index: number) => index === curIndex ? "active-message" : app.settings.liveTlHideSpoiler && index > curIndex ? "hide-spoiler" : "";
+  const itemClass = (index: number) => index === curIndex ? "relative z-0 [&_.tl-message]:relative [&_.tl-message]:z-0 [&_.tl-message]:before:absolute [&_.tl-message]:before:left-0 [&_.tl-message]:before:top-[-1px] [&_.tl-message]:before:z-[-1] [&_.tl-message]:before:h-full [&_.tl-message]:before:w-full [&_.tl-message]:before:bg-primary/70 [&_.tl-message]:before:bg-cover [&_.tl-message]:before:opacity-25 [&_.tl-message]:before:content-['']" : app.settings.liveTlHideSpoiler && index > curIndex ? "hidden" : "";
   function handleClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement;
     const link = target.closest(".tl-message") as HTMLElement | null;
@@ -104,20 +106,20 @@ export function ArchiveTranslations({ video, currentTime = 0, useLocalSubtitleTo
     }
   }
 
-  const body = <div ref={bodyRef} className="archive tl-body px-1 py-0 lg:px-3" style={{ fontSize: `${app.settings.liveTlFontSize}px` }} onClick={handleClick}>{dividedTLs.map((item, index) => <div key={item.key || `${item.timestamp}${item.message}${item.name}`} data-archive-index={index} className={itemClass(index)}><ChatMessage source={item} /></div>)}</div>;
+  const body = <div ref={bodyRef} className="flex h-[calc(100%-32px)] flex-col overflow-y-auto overscroll-contain px-1 py-0 leading-[1.35] tracking-[0.0178571429em] lg:px-3" style={{ fontSize: `${app.settings.liveTlFontSize}px` }} onClick={handleClick}>{dividedTLs.map((item, index) => <div key={item.key || `${item.timestamp}${item.message}${item.name}`} data-archive-index={index} className={itemClass(index)}><ChatMessage source={item} /></div>)}</div>;
 
   return (
-    <Card className={`tl-overlay w-full border border-white/10 p-0 text-sm shadow-none ${className}`} style={style}>
+    <Card className={`box-border flex w-full flex-col border border-white/10 p-0 text-sm shadow-none ${className}`} style={style}>
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
         <div>TLdex [{liveTlLang}]</div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="-2s" onClick={() => setTimeOffsetSeconds((v) => v - 2)}><Icon icon={mdiChevronLeft} size="sm" /></Button>
-          <button type="button" className="rounded-md px-2 py-1 font-mono text-xs text-slate-300 transition hover:bg-white/8" onClick={() => setDialog(true)}>{`${timeOffsetSeconds >= 0 ? "+" : ""}${timeOffsetSeconds}s`}</button>
-          <Dialog open={dialog} className="max-w-xs p-0" onOpenChange={setDialog}><Card className="space-y-4 p-5"><div className="text-sm font-semibold text-white">Time Offset</div><label className="flex flex-col gap-2 text-sm"><span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Offset</span><div className="flex items-center gap-2"><Input value={timeOffsetSeconds} type="number" className="flex-1" onChange={(event) => setTimeOffsetSeconds(Number(event.target.value))} /><span className="text-slate-400">s</span></div></label></Card></Dialog>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="+2s" onClick={() => setTimeOffsetSeconds((v) => v + 2)}><Icon icon={mdiChevronRight} size="sm" /></Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="Show Subtitle" onClick={() => setShowSubtitle((v) => !v)}><Icon icon={mdiSubtitlesOutline} size="sm" className={showSubtitle ? "text-[color:var(--color-primary)]" : ""} /></Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="Expand TL" onClick={() => setExpanded(true)}><Icon icon={mdiArrowExpand} size="sm" /></Button>
-          <Dialog open={expanded} className="max-w-4xl p-0" onOpenChange={setExpanded}><Card className="p-0"><div id={expandedMsgId} className="flex tl-expanded">{body}</div><div className="flex justify-end border-t border-white/10 px-4 py-3"><Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>Close</Button></div></Card></Dialog>
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="-2s" onClick={() => setTimeOffsetSeconds((v) => v - 2)}><ChevronLeft className="size-4" /></Button>
+          <Button type="button" variant="ghost" size="xs" className="h-7 rounded-md px-2 py-1 font-mono text-xs text-slate-300 hover:bg-white/8 hover:text-slate-300" onClick={() => setDialog(true)}>{`${timeOffsetSeconds >= 0 ? "+" : ""}${timeOffsetSeconds}s`}</Button>
+          <Dialog open={dialog} onOpenChange={setDialog}><DialogContent className="max-w-xs p-0"><Card className="space-y-4 p-5"><div className="text-sm font-semibold text-white">{t("views.scriptEditor.timeShift.timeOffset")}</div><div className="flex flex-col gap-2 text-sm"><Label htmlFor="archive-tl-time-offset" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("views.scriptEditor.timeShift.offset")}</Label><div className="flex items-center gap-2"><Input id="archive-tl-time-offset" value={timeOffsetSeconds} type="number" className="flex-1" onChange={(event) => setTimeOffsetSeconds(Number(event.target.value))} /><span className="text-slate-400">{t("views.scriptEditor.timeShift.secondsShort")}</span></div></div></Card></DialogContent></Dialog>
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title="+2s" onClick={() => setTimeOffsetSeconds((v) => v + 2)}><ChevronRight className="size-4" /></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title={t("views.watch.chat.showSubtitle")} onClick={() => setShowSubtitle((v) => !v)}><Captions className={cn("size-4", showSubtitle ? "text-[color:var(--color-primary)]" : "")} /></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title={t("views.watch.chat.expandTL")} onClick={() => setExpanded(true)}><Maximize2 className="size-4" /></Button>
+          <Dialog open={expanded} onOpenChange={setExpanded}><DialogContent className="max-w-4xl p-0"><Card className="p-0"><div id={expandedMsgId} className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full">{body}</div><div className="flex justify-end border-t border-white/10 px-4 py-3"><Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>{t("component.common.close")}</Button></div></Card></DialogContent></Dialog>
           <LiveTranslationsSetting />
         </div>
       </div>

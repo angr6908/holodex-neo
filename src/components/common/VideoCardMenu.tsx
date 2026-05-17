@@ -1,21 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { dayjs } from "@/lib/time";
 import { useAppState } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
-import { Icon } from "@/components/ui/Icon";
-import { VideoQuickPlaylist } from "@/components/playlist/VideoQuickPlaylist";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+import { VideoQuickPlaylist } from "@/components/video/VideoQuickPlaylist";
 import { WatchQuickEditor } from "@/components/watch/WatchQuickEditor";
 import * as icons from "@/lib/icons";
-import { openUserMenu } from "@/lib/navigation-events";
+import { openUserMenu } from "@/lib/browser";
+const menuItemClass = "h-auto w-full justify-start px-2 py-1.5 font-normal whitespace-normal";
 
 export function VideoCardMenu({ video, close }: { video: any; close: () => void }) {
   const appStore = useAppState();
   const router = useRouter();
-  const { t } = useI18n();
+  const t = useTranslations();
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [doneCopy, setDoneCopy] = useState(false);
 
@@ -54,9 +58,10 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
 
   function renderGoogleCalendarButton() {
     return (
-      <button
+      <Button
         type="button"
-        className="video-card-menu-item"
+        variant="ghost"
+        className={menuItemClass}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -64,9 +69,9 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
           close();
         }}
       >
-        <Icon icon={icons.mdiCalendar} className="h-4 w-4" />
+        <icons.Calendar className="h-4 w-4" />
         {t("component.videoCard.googleCalendar")}
-      </button>
+      </Button>
     );
   }
 
@@ -76,117 +81,135 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
     <div className="space-y-1 p-1 text-sm">
       {video.type !== "placeholder" ? (
         <>
-          <a
-            target="_blank"
-            href={`https://youtu.be/${video.id}`}
-            className="video-card-menu-item"
-            onClick={(event) => { event.stopPropagation(); close(); }}
+          <Button nativeButton={false}
+            render={
+              <a
+                target="_blank"
+                href={`https://youtu.be/${video.id}`}
+                onClick={(event) => { event.stopPropagation(); close(); }}
+              />
+            }
+            variant="ghost"
+            className={menuItemClass}
           >
-            <Icon icon={icons.mdiYoutube} className="h-4 w-4" />
+            <icons.YoutubeIcon className="h-4 w-4" />
             {t("views.settings.redirectModeLabel")}
-          </a>
+          </Button>
 
           {video.status === "upcoming" ? renderGoogleCalendarButton() : null}
-          <Link
-            href={`/edit/video/${video.id}${video.type !== "stream" ? "/mentions" : "/"}`}
-            className="video-card-menu-item"
-            onClick={close}
+          <Button nativeButton={false}
+            render={
+              <Link
+                href={`/edit/video/${video.id}${video.type !== "stream" ? "/mentions" : "/"}`}
+                onClick={close}
+              />
+            }
+            variant="ghost"
+            className={menuItemClass}
           >
-            <Icon icon={icons.mdiPencil} className="h-4 w-4" />
+            <icons.Pencil className="h-4 w-4" />
             {t("component.videoCard.edit")}
-          </Link>
+          </Button>
           {video.type !== "clip" ? (
-            <Link
-              href={`/multiview/AAUY${video.id}%2CUAEYchat`}
-              className="video-card-menu-item"
-              onClick={close}
+            <Button nativeButton={false}
+              render={
+                <Link
+                  href={`/multiview/AAUY${video.id}%2CUAEYchat`}
+                  onClick={close}
+                />
+              }
+              variant="ghost"
+              className={menuItemClass}
             >
-              <Icon icon={icons.mdiViewDashboard} className="h-4 w-4" />
+              <icons.LayoutDashboard className="h-4 w-4" />
               {t("component.mainNav.multiview")}
-            </Link>
+            </Button>
           ) : null}
-          <button
-            type="button"
-            className="video-card-menu-item"
-            onClick={() => setShowPlaylist(!showPlaylist)}
-          >
-            <Icon icon={icons.mdiPlaylistPlus} className="h-4 w-4" />
-            {t("component.mainNav.playlist")}
-            <Icon icon={icons.mdiChevronRight} className={`ml-auto h-4 w-4 transition ${showPlaylist ? "rotate-90" : ""}`} />
-          </button>
-          {showPlaylist ? (
-            <div className="video-card-menu-playlist open">
+          <Collapsible open={showPlaylist} onOpenChange={setShowPlaylist}>
+            <CollapsibleTrigger
+              render={<Button type="button" variant="ghost" className={menuItemClass} />}
+            >
+              <icons.ListPlus className="h-4 w-4" />
+              {t("component.mainNav.playlist")}
+              <icons.ChevronRight className={cn("size-5", `ml-auto h-4 w-4 transition ${showPlaylist ? "rotate-90" : ""}`)} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="ml-4 border-l border-border pl-2">
               <VideoQuickPlaylist key={`${video.id}-${Date.now()}`} videoId={video.id} video={video} />
-            </div>
-          ) : null}
-          <button
+            </CollapsibleContent>
+          </Collapsible>
+          <Button
             type="button"
-            className={`video-card-menu-item ${doneCopy ? "video-card-menu-item-done" : ""}`}
+            variant={doneCopy ? "default" : "ghost"}
+            className={menuItemClass}
             onClick={(event) => {
               event.stopPropagation();
               copyLink();
               close();
             }}
           >
-            <Icon icon={icons.mdiClipboardPlusOutline} className="h-4 w-4" />
+            <icons.ClipboardPlus className="h-4 w-4" />
             {t("component.videoCard.copyLink")}
-          </button>
+          </Button>
         </>
       ) : (
         <>
           {video.status === "upcoming" ? renderGoogleCalendarButton() : null}
         </>
       )}
-      <button
+      <Button
         type="button"
-        className="video-card-menu-item"
+        variant="ghost"
+        className={menuItemClass}
         onClick={() => {
           openTlClient();
           close();
         }}
       >
-        <Icon icon={icons.mdiTypewriter} className="h-4 w-4" />
+        <icons.Pencil className="h-4 w-4" />
         {isLive || video.status === "upcoming"
           ? t("component.videoCard.openClient")
           : t("component.videoCard.openScriptEditor")}
-      </button>
+      </Button>
       {isPast ? (
-        <button
+        <Button
           type="button"
-          className="video-card-menu-item"
+          variant="ghost"
+          className={menuItemClass}
           onClick={() => {
             scriptUploadPanel();
             close();
           }}
         >
-          <Icon icon={icons.mdiClipboardArrowUpOutline} className="h-4 w-4" />
+          <icons.ClipboardCopy className="h-4 w-4" />
           {t("component.videoCard.uploadScript")}
-        </button>
+        </Button>
       ) : null}
       {isChattable ? (
-        <button
+        <Button
           type="button"
-          className="video-card-menu-item"
+          variant="ghost"
+          className={menuItemClass}
           onClick={() => {
             openChatPopout();
             close();
           }}
         >
-          <Icon icon={icons.mdiOpenInNew} className="h-4 w-4" />
+          <icons.ExternalLink className="h-4 w-4" />
           {t("component.videoCard.popoutChat")}
-        </button>
+        </Button>
       ) : null}
-      <button
+      <Button
         type="button"
-        className="video-card-menu-item"
+        variant="ghost"
+        className={menuItemClass}
         onClick={() => {
           appStore.setReportVideo(video);
           close();
         }}
       >
-        <Icon icon={icons.mdiFlag} className="h-4 w-4" />
+        <icons.Flag className="h-4 w-4" />
         {t("component.reportDialog.title")}
-      </button>
+      </Button>
       {appStore.isSuperuser ? (
         <div className="pt-1">
           <WatchQuickEditor video={video} />

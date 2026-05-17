@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Извините!",
+      "textBeforeTwitter": "Произошла ошибка при получении данных, пожалуйста, проверьте Twitter ",
+      "textAfterTwitter": " или сообщите об ошибке через",
+      "aboutPage": "О сайте",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Обновить",
+      "hardRefreshTip": "Совет: жесткая перезагрузка/очистка кеша:"
+    },
+    "channelList": {
+      "signInToFavorite": "Войдите, чтобы управлять избранным",
+      "unfavoriteAllInGroup": "Убрать всю группу из избранного",
+      "favoriteAllInGroup": "Добавить всю группу в избранное",
+      "enableGroupDisplay": "Показывать каналы из этой группы на главной странице",
+      "disableGroupDisplay": "Скрывать каналы из этой группы с главной страницы"
+    },
+    "channelInfo": {
+      "stats": "Статистика",
+      "videoCount": "{arg0} видео",
+      "clipCount": "0 клипов | {n} клип | {n} клипа | {n} клипов",
+      "subscriberCount": "0 подписчиков | {n} подписчик | {n} подписчика | {n} подписчиков",
+      "subscriberNA": "Количество подписчиков недоступно",
+      "totalViews": "0 просмотров | {n} просмотр | {n} просмотра | {n} просмотров",
+      "inactiveChannel": "Этот канал больше не активен."
+    },
+    "channelSocials": {
+      "addToFavorites": "Добавить в избранное",
+      "removeFromFavorites": "Убрать из избранного",
+      "unblock": "Разблокировать этот канал",
+      "block": "Блокировать контент этого канала во всех разделах Holodex",
+      "blocked": "Заблокированные"
+    },
+    "mainNav": {
+      "home": "Главная",
+      "favorites": "Избранное",
+      "channels": "Каналы",
+      "about": "О сайте",
+      "library": "Библиотека",
+      "settings": "Настройки",
+      "login": "Войти",
+      "logout": "Выйти",
+      "MugenClips": "MugenClips<sup>бета</sup>",
+      "accountSettings": "Настройки аккаунта",
+      "music": "Музыка",
+      "multiview": "Мультипросмотр",
+      "points": "очк.",
+      "playlist": "Плейлист"
+    },
+    "videoCard": {
+      "clips": "0 клипов | {n} клип | {n} клипа | {n} клипов",
+      "watching": "{arg0} смотрят",
+      "liveNow": "LIVE",
+      "openInBackground": "Открыть в фоне",
+      "edit": "Изменить",
+      "copiedToClipboard": "Скопировано в буфер обмена.",
+      "copyLink": "Копировать ссылку",
+      "premiere": "ПРЕМЬЕРА",
+      "googleCalendar": "Добавить в календарь Google",
+      "totalTLs": "Всего TL из live-чата",
+      "totalSongs": "Всего песен с таймкодами",
+      "tlPresence": "Активный переводчик за последние полчаса",
+      "uncertainPlaceholder": "Время начала официально не подтверждено; фактическое время может отличаться.",
+      "typeScheduledYT": "Запланированный стрим",
+      "typeExternalStream": "Внешний стрим",
+      "typeEventPlaceholder": "Запланированный ивент",
+      "openClient": "Открыть TL клиент",
+      "openScriptEditor": "Открыть редактор скрипта",
+      "popoutChat": "Открыть чат YouTube в отдельном окне",
+      "uploadScript": "Загрузить TL-скрипт",
+      "removeFromPlaylist": "Удалить из плейлиста"
+    },
+    "videoDescription": {
+      "description": "Описание"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Свернуть",
+      "showMore": "Ещё"
+    },
+    "watch": {
+      "streamingFor": "Стримит {arg0}",
+      "nextUpInMugen": "Следущее в очереди",
+      "loadingVideo": "Загрузка видео",
+      "Comments": {
+        "title": "Комментарии",
+        "all": "Все"
+      }
+    },
+    "search": {
+      "searchLabel": "Поиск",
+      "type": {
+        "channel": "канал",
+        "topic": "тема",
+        "org": "организация",
+        "titledesc": "название/описание",
+        "title": "название",
+        "description": "описание",
+        "comments": "комментарии",
+        "videourl": "URL видео"
+      },
+      "placeholder": "Искать стримы, клипы, каналы",
+      "clear": "Очистить",
+      "loading": "Загрузка...",
+      "typeTwoCharacters": "Введите 2 символа",
+      "noChannelsFound": "Каналы не найдены",
+      "noTopicsFound": "Темы не найдены",
+      "noOrganizationsFound": "Организации не найдены",
+      "noResultsFound": "Результаты не найдены",
+      "searchChannels": "Искать каналы",
+      "filterByTopicOrgChannel": "Фильтр по теме, организации, каналу ...",
+      "topicOrgChannelPlaceholder": "Тема, организация или канал",
+      "toggleSearch": "Переключить поиск",
+      "organizations": "Организации",
+      "searchOrganizations": "Искать организации",
+      "quickSelect": "Быстрый выбор",
+      "allVtubers": "Все VTuber",
+      "selectedOrgCount": "{count} орг.",
+      "additionalOrgCount": "Еще {count}",
+      "unset": "Не задано"
+    },
+    "relatedVideo": {
+      "clipsLabel": "клипы",
+      "simulcastsLabel": "связанные стримы",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Открыть все совместные трансляции в Multiview",
+          "error": {
+            "layoutBuildFailure": "При создании ссылки Multiview произошла ошибка. Сообщите об этом баге на GitHub или в Discord.",
+            "noDefaultLayout": "В Multiview нет раскладки для {videoCount} видео.",
+            "noSimulcasts": "Для этого видео нет совместных трансляций."
+          }
+        }
+      },
+      "refersLabel": "связанные видео",
+      "sourcesLabel": "источники",
+      "songsLabel": "Треки",
+      "recommendationsLabel": "рекомендации",
+      "sameSourceClips": "Из того же стрима"
+    },
+    "paginateLoad": {
+      "newer": "Новее",
+      "older": "Старее"
+    },
+    "music": {
+      "clearPlaylist": "Очистить",
+      "trendingForOrg": "Популярное от {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Новые песни",
+      "weeklyTopPlaysHeader": "Самые прослушиваемые за неделю",
+      "trending": "Популярное"
+    },
+    "songList": {
+      "songTitle": "Название",
+      "songCoveredBy": "Автор кавера",
+      "songDuration": "Длительность",
+      "sangOnTime": "Спето"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Топ {arg0} за месяц",
+      "weeklyTopForOrg": "Топ {arg0} за неделю"
+    },
+    "installPrompt": {
+      "title": "Установить Holodex",
+      "callToAction": "Просмотр видео на Holodex лучше всего работает при добавлении на домашний экран",
+      "notNowBtn": "Не Сейчас",
+      "installBtn": "Установить",
+      "iOS": {
+        "popup": "Установить Holodex на iOS",
+        "afterExportIcon": "затем 'Добавить на домашний экран'",
+        "beforeExportIcon": "Нажмите"
+      }
+    },
+    "media": {
+      "remove": "Удалить"
+    },
+    "comment": {
+      "close": "Закрыть",
+      "readMore": "Узнать больше"
+    },
+    "reportDialog": {
+      "title": "Пожаловаться",
+      "collabing": "Данный канал может коллабить с членом {org} или с каналом из вашего избранного. Вы можете отключить эту функцию в настройках",
+      "comments": "Что должен предпринять Holodex?",
+      "success": "Жалоба отправлена, спасибо!",
+      "consider": "Попробуйте использовать фильтр и отклонить эту жалобу.",
+      "reasons": {
+        "0": "Теги к видео неправильные",
+        "1": "Опасно низкое качество/Ложный контент",
+        "2": "Нарушает соглашение организации на деривативные работы или неуместно",
+        "3": "Другое",
+        "4": "Неверная тема видео",
+        "5": "Неверные упоминания каналов",
+        "6": "Этот {arg0} не относится к {arg1}"
+      },
+      "applyChanges": "Применить изменения",
+      "selectAll": "Выбрать всё",
+      "deselectAll": "Снять выбор",
+      "adjustMentionedChannels": "Изменить упомянутые каналы",
+      "addMentionedChannels": "Добавить упомянутые каналы",
+      "searchMentionedChannels": "Найти VTuber для упоминания",
+      "commentLanguagesOk": "* Английский / японский / традиционный китайский OK",
+      "specificChannelWarningBody1": "Holodex не разрешает обычные споры о качестве перевода. При мелких проблемах оставьте отзыв клипперу или переводчику на YouTube.",
+      "specificChannelWarningBody2": "Если видео опасно неправильно переведено и может вызвать серьёзное недопонимание, Holodex может удалить его или передать на дальнейшее рассмотрение.",
+      "specificChannelWarningBody3": "Чтобы перестать видеть канал, используйте кнопку блокировки канала в этом окне или на странице канала.",
+      "specificChannelWarningTitle": "Примечание: не отправляйте жалобу только потому, что вам не нравится этот канал или вы с ним не согласны.",
+      "topicUnsetPlaceholder": "Предложить новую тему (оставьте пустым, чтобы убрать)"
+    },
+    "thirdpartycookie": {
+      "explanation": "В связи с тем, как работает ваш браузер, часть браузеров со строгими политиками относительно <b>сторонних cookies</b>, и те, что блокируют cookies <kbd>YouTube.com</kbd> вы можете столкнуться с проблемами при входе/использовании чата YouTube. <br /><br /> Вы можете исправить это, включив cookie-файлы <kbd>YouTube.com</kbd> в блокировщиках сторонних cookie-файлов, или снизя строгость политики приватности для <kbd>Holodex.net</kbd>. <br /><br /> Мы добавили пару ссылок на сайты, которые объясняют, как это сделать.",
+      "dialogTitle": "Использование чата YouTube на Holodex",
+      "alertText": "Настройки конфиденциальности вашего браузера делают невозможным вход в чат YouTube. Нажмите здесь для получения дополнительной информации",
+      "neverShowAgain": "Больше не показывать предупреждение"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Экспорт плейлиста",
+        "new-playlist": "Новый плейлист",
+        "rename-playlist": "Переименовать плейлист",
+        "reset-unsaved": "Сбросить несохранённые изменения",
+        "delete-playlist": "Удалить плейлист",
+        "clear-playlist": "Очистить плейлист"
+      },
+      "save-error-not-logged-in": "Вам нужно войти в систему, чтобы сохранять плейлисты",
+      "unnamed-playlist": "Плейлист без названия",
+      "video-count": "{count} видео",
+      "next-video": "Следующее видео",
+      "error-loading": "Ошибка загрузки плейлиста. Он существует?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Данные о событии предоставлены {arg0} из: {arg1}",
+      "datasourceCredit": "Данные о событии получены из {arg0} источников данных.",
+      "botCredit": "Данные о событии предоставлены из {arg0} источников данных, создано {arg1}.",
+      "streamPageBtn": "Страница стрима",
+      "eventPageBtn": "Страница события",
+      "scheduledEvent": "Запланировано",
+      "editorCredit": "Мероприятие создано редактором Holodex {arg0}.",
+      "creditTitleText": "Благодарности:"
+    },
+    "calendar": {
+      "liveCalendar": "Календарь трансляций (iCal)",
+      "favoritesCalendar": "Календарь избранного (iCal)",
+      "favoritesLoginRequired": "Для использования календаря избранного необходимо войти."
+    },
+    "form": {
+      "required": "Обязательно",
+      "invalidUrl": "Недействительный URL",
+      "invalidTime": "Недействительное время",
+      "error": "Произошла ошибка.",
+      "never": "никогда",
+      "new": "Новый",
+      "existing": "Существующий",
+      "channel": "Канал",
+      "submit": "Отправить",
+      "certainty": {
+        "certain": "Точно",
+        "likely": "Вероятно"
+      },
+      "placeholder": {
+        "editorBadge": "Редактор",
+        "title": "Запланированный плейсхолдер",
+        "description": "Создавайте или обновляйте запланированные плейсхолдеры через новый поток формы.",
+        "success": "Запланированный плейсхолдер успешно добавлен",
+        "authError": "Вы не являетесь действительным редактором Holodex, или ссылка создания плейсхолдера, сгенерированная Discord, истекла",
+        "editingAs": "Редактирование от имени {user} из Discord {guild}. Сессия истекает: {expiresIn}. Обновите страницу, если срок скоро истечет.",
+        "notEditor": "Вы не редактор или срок действия токена истек. Войдите в аккаунт или создайте новый токен через нашего бота.",
+        "editorCreditName": "Имя редактора для указания",
+        "editorCreditHint": "Используйте другое имя, если хотите быть публично указаны под ним.",
+        "placeholderId": "ID плейсхолдера (11 символов)",
+        "placeholderIdInput": "ID плейсхолдера",
+        "videoTitle": "Название видео",
+        "japaneseVideoTitle": "Японское название видео",
+        "sourceLink": "Ссылка на источник",
+        "sourceLinkHint": "например, URL расписания в Twitter или канал Twitch",
+        "thumbnailImage": "Миниатюра",
+        "eventType": "Тип события",
+        "certainty": "Уверенность",
+        "timezone": "Часовой пояс",
+        "date": "Дата",
+        "time": "Время",
+        "duration": "Длительность",
+        "durationHint": "Оцените длительность в минутах",
+        "submitModification": "Отправить изменение плейсхолдера",
+        "create": "Создать новый плейсхолдер",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Нет",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "Действия",
+      "chat": "Чат",
+      "close": "Закрыть",
+      "collapse": "Свернуть",
+      "confirm": "Подтвердить",
+      "language": "Язык",
+      "moreActions": "Другие действия",
+      "or": "или",
+      "processing": "Обработка...",
+      "remove": "Удалить",
+      "save": "Сохранить"
+    },
+    "pagination": {
+      "nextPage": "Следующая страница",
+      "previousPage": "Предыдущая страница"
+    },
+    "userMenu": {
+      "apiKey": "API-ключ",
+      "googleLinkUnavailable": "Привязка Google недоступна.",
+      "googleSignInUnavailable": "Вход через Google недоступен.",
+      "icalFeed": "Лента iCal",
+      "link": "Привязать",
+      "linkGoogle": "Привязать Google",
+      "linkedAccounts": "Привязанные аккаунты",
+      "manualOAuthInstructions": "Если автоматический вход не завершился, вставьте ниже URL переадресации.",
+      "pasteRedirectUrl": "Вставьте URL переадресации",
+      "userAvatar": "Аватар пользователя"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Видео",
+      "clips": "Клипы",
+      "music": "Музыка",
+      "collabs": "Коллабы",
+      "about": "О канале"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Подписчики",
+        "group": "Группа",
+        "recentUpload": "Последняя загрузка",
+        "videoCount": "Количество видео",
+        "clipCount": "Количество клипов",
+        "org": "Агенства"
+      },
+      "tabs": {
+        "Vtuber": "Витуберы",
+        "Subber": "Сабберы",
+        "Favorites": "Избранное",
+        "Blocked": "Заблокированные"
+      },
+      "favoritesAreEmpty": "Вы ничего не добавили в избранное!",
+      "blockedAreEmpty": "У вас нет заблокированных каналов.",
+      "sort": {
+        "newestFirst": "Сначала новые",
+        "oldestFirst": "Сначала старые"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "LIVE / Скоро",
+      "recentVideosHeading": "Последние видео",
+      "noStreams": "В данный момент нет идущих или предстоящих стримов",
+      "recentVideoToggles": {
+        "all": "Все",
+        "official": "Архивы",
+        "subber": "Клипы"
+      },
+      "liveLabel": "LIVE",
+      "upcomingLabel": "Скоро",
+      "controls": {
+        "sortBy": "Сортировать по",
+        "viewers": "Зрители",
+        "latest": "Сначала новые",
+        "uploadedBefore": "Загружено до",
+        "pickDate": "Выбрать дату",
+        "clipLanguages": "Посмотрите клипы на этих языках:"
+      },
+      "apiError": "Не удалось загрузить видео."
+    },
+    "library": {
+      "savedVideosTitle": "Сохраненные видео",
+      "createYtPlaylistButton": "Создать YouTube плейлист ({arg0})",
+      "deleteFromLibraryButton": "Удалить ({arg0})",
+      "deleteConfirmation": "Вы уверены, что хотите удалить {arg0} видео?",
+      "deleteConfirmationOK": "Удалить",
+      "deleteConfirmationCancel": "Отмена",
+      "selectionReset": "Сброс",
+      "selectionSelectAll": "Выбрать все",
+      "emptyLibrary": "У вас нет сохраненных видео!",
+      "exportSelected": "Экспортировать выделенное ({arg0})",
+      "exportYtPlaylist": "Плейлист YouTube",
+      "exportCsv": "CSV Файл",
+      "selectionSelect50": "Выбрать 50",
+      "exportYTExplanation": "YouTube плейлист, созданный этой функцией, <b>не находится</b> в списке и может быть удален YouTube. <br /> В связи с неполнотой функционала YouTube, необходимо выполнить следующие действия, чтобы сохранить <b>не находящийся</b> на вашем YouTube аккаунте плейлист.",
+      "exportYTHeading": "Инструкция по сохранению плейлиста на YouTube",
+      "exportYTInstructions": "<b class=\"red--text\">Шаг 1</b>: Начните проигрывать YouTube плейлист, и измените режим плеера на \"Мини-проигрыватель\". <br /><br /> <b class=\"red--text\">Шаг 2</b>: Выберите любое видео и добавьте его в очередь. <br /><br /> <b class=\"red--text\">Шаг 3</b>: Теперь плейлист доступен для сохранения. Нажмите кнопку \"Сохранить\".",
+      "sort": {
+        "dateaddedEarliestFirst": "Дата добавления в библиотеку, сначала старые",
+        "dateaddedLatestFirst": "Дата добавления в библиотеку, сначала новое",
+        "dateuploadedLatestFirst": "Дата загрузки, сначала последнее",
+        "dateuploadedEarliestFirst": "Дата загрузки, сначала старое"
+      }
+    },
+    "notFound": {
+      "title": "Контент не найден",
+      "back": "Вернуться на главную"
+    },
+    "search": {
+      "sort": {
+        "newest": "Сначала новые",
+        "oldest": "Сначала старые",
+        "longest": "Длиннейшие"
+      },
+      "type": {
+        "all": "Все",
+        "official": "Официальные",
+        "clip": "Клипы"
+      },
+      "unsupportedQuery": "На данный момент поиск клипов по <kbd>теме</kbd> и <kbd>агентствам</kbd> не поддерживается. Ни одного <b>клипа</b> не выйдет в результатах.",
+      "sortByLabel": "Сортировать по",
+      "typeDropdownLabel": "Тип",
+      "searching": "Поиск...",
+      "useSearchBar": "Используйте строку поиска, чтобы найти стримы, клипы или каналы."
+    },
+    "settings": {
+      "title": "Настройки",
+      "darkModeLabel": "Ночная тема",
+      "darkModeMsg": "Изменяет тему сайта",
+      "redirectModeLabel": "Открыть на YouTube",
+      "redirectModeMsg": "Нажатие по любому видео откроет его на YouTube",
+      "useEnglishNameLabel": "Использовать английские имена",
+      "useEnglishNameMsg": "Использовать локализованные на английский имена для каналов витуберов",
+      "hideVideoThumbnailsLabel": "Скрыть миниатюры видео",
+      "hideVideoThumbnailsMsg": "Скрыть миниатюры видео — помогает сократить время загрузки и меньше листать на телефонах",
+      "pushNotificationLabel": "Пуш-уведомления (Скоро!)",
+      "pushNotificationMsg": "Включить пуш-уведомления для каналов в избранном",
+      "autoplayVideoLabel": "Автоматическое воспроизведение видео",
+      "autoplayVideoMsg": "Включить автоматическое воспроизведение видео",
+      "scrollModeLabel": "Режим прокрутки",
+      "scrollModeMsg": "Используйте прокрутку для переворачивания страниц",
+      "resetAllSettings": "Сбросить все настройки/данные",
+      "resetAllSettingsWarning": "Вы потеряете все данные. Продолжить?",
+      "clipLanguageSelection": "Посмотрите клипы на этих языках:",
+      "tlLanguageSelection": "Языки для перевода трансляций",
+      "defaultPage": "Страница по умолчанию",
+      "defaultPageMsg": "Открывать эту страницу по умолчанию при открытии holodex.net, или при нажатии на логотип сверху слева.",
+      "videoFeedSettings": "Настройки видеопотока",
+      "siteNavigationSettings": "Навигация по сайту",
+      "languageSettings": "Язык",
+      "gridSizeLabel": "Размер миниатюр/сетки",
+      "gridSizeMsg": "Изменить размер миниатюр/сетки видео на странице \"Избранное\"",
+      "gridSize": {
+        "0": "Крупный",
+        "1": "Средний",
+        "2": "Маленький"
+      },
+      "hideCollabStreamsLabel": "Скрыть коллабы",
+      "hideCollabStreamsMsg": "Скрыть стримы-коллабы из вашего избранного",
+      "hidePlaceholderStreams": "Скрыть стримы без комнат ожидания",
+      "hidePlaceholderStreamsMsg": "Скрывать запланированные placeholder-записи, у которых еще нет воспроизводимой страницы стрима",
+      "hideMissingStreams": "Скрывать отсутствующие стримы",
+      "hideMissingStreamsMsg": "Скрывать недоступные видео или видео без обязательных метаданных Holodex",
+      "ignoredTopicsLabel": "Игнорируемые темы",
+      "ignoredTopicsMsg": "Скрыть видео по этим темам на главной странице и в Избранном",
+      "theme": "Тема",
+      "moreSettings": "Дополнительные параметры",
+      "systemOptions": "Системные параметры",
+      "followSystemThemeLabel": "Использовать системную тему",
+      "languageOverrideActive": "Переопределение языка активно для {language}. Нажмите, чтобы убрать.",
+      "filters": {
+        "blockedTopics": "Игнорируемые темы",
+        "blockedTopicsDescription": "Скрыть видео по этим темам на главной странице и в Избранном",
+        "searchTopics": "Искать темы",
+        "clearBlockedTopics": "Очистить игнорируемые темы",
+        "hideStreams": "Скрывать стримы",
+        "collab": "Коллаб",
+        "placeholder": "Плейсхолдеры",
+        "missing": "Отсутствующие"
+      },
+      "defaultTheme": "По умолчанию"
+    },
+    "app": {
+      "update_available": "Доступно обновление",
+      "update_btn": "Обновить",
+      "close_btn": "Закрыть",
+      "check_about_page": "Перейдите на страницу \"О сайте\", чтобы узнать о нововведениях",
+      "nowSupportsMultiOrg": "Совет: здесь можно сменить организацию.",
+      "loginCallToAction": "Войдите, чтобы настроить своё избранное."
+    },
+    "about": {
+      "add_my_channel": "Запрос на добавление канала"
+    },
+    "watch": {
+      "theaterMode": "Театральный режим (alt + t)",
+      "mentionIconLabel": "УПОМИНАНИЯ",
+      "chat": {
+        "loading": "Загрузка чата...",
+        "hideTLBtn": "Скрыть переводы",
+        "showTLBtn": "Показывать перевод",
+        "TLSettingsTitle": "Настройки перевода",
+        "showSubtitle": "Показать субтитры",
+        "expandTL": "Развернуть TLdex",
+        "tlStart": "Начало сообщений",
+        "StickBottomSettingLabel": "Расположить снизу",
+        "StickBottomSettingsDesc": "Расположить переводы под чатом Youtube",
+        "showVerifiedMessages": "Показать сообщ. от вериф. пользователей",
+        "showModeratorMessages": "Показывать сообщения от модераторов",
+        "showVtuberMessages": "Показать сообщения от витуберов",
+        "showLocalTime": "Показывать местное время",
+        "tlFontSize": "Размер шрифта",
+        "tlWindowSize": "Размер окна с переводами (%), оставьте 0% для автонастройки",
+        "retryBtn": "Повторить",
+        "status": {
+          "reconnecting": "Переподключение...",
+          "reconnectFailed": "Не удалось подключиться",
+          "notLive": "Стрим еще не начался, пожалуйста, попробуйте еще раз, когда с начала стрима пройдет 15 минут",
+          "connectedToChat": "Подключен",
+          "disconnectedToChat": "Нет подключения"
+        },
+        "archiveNeedExtension": "Архивный чат не работает без расширения {arg0} или других сторонних расширений.",
+        "hideSpoiler": "Скрыть спойлер",
+        "archiveNeedExtensionAfter": ", чтобы просматривать архивный TL-чат.",
+        "archiveNeedExtensionBefore": "Установите расширение браузера",
+        "editBlockedList": "Изменить список блокировки",
+        "manageBlockedTranslators": "Управлять именами заблокированных переводчиков.",
+        "membersOnlyTl": "TL-чат только для участников недоступен.",
+        "noBlockedNames": "Нет заблокированных имен.",
+        "tuneTlBehavior": "Настроить поведение и раскладку живого перевода.",
+        "ytChatLabel": "Чат YouTube"
+      },
+      "removeFromPlaylist": "Удалить видео из текущего плейлиста",
+      "saveToPlaylist": "Сохранить видео в текущий плейлист",
+      "likeOnYoutube": "Лайкнуть видео на Youtube",
+      "uploadPanel": {
+        "title": "Загрузить скрипт",
+        "usernameText": "Перевод будет загружен под именем пользователя",
+        "usernameChange": "Изменить",
+        "tlLang": "Язык перевода",
+        "headerStart": "Начало",
+        "headerEnd": "Конец",
+        "headerText": "Текст",
+        "cancelBtn": "Отмена",
+        "okBtn": "OK",
+        "notifTextErr": "НЕ УДАЛОСЬ ПРОЧИТАТЬ ФАЙЛ (ФАЙЛ ПОВРЕЖДЕН?)",
+        "notifTextParsing": "Чтение файла...",
+        "notifTextErrExt": "Неизвестный тип файла.",
+        "subtitleFile": "Файл субтитров"
+      },
+      "reloadVideoFrame": "Перезагрузить кадр видео"
+    },
+    "favorites": {
+      "promptForAction": "Создайте список любимых витуберов и вы увидите их новые стримы и клипы с ними на этой странице.",
+      "manageFavorites": "Управление избранным",
+      "close": "Закрыть",
+      "showall": "Показать все"
+    },
+    "editor": {
+      "needlogin": "Вы должны войти в аккаунт для редактирования метаданных видео и песен в Holodex.",
+      "changeTopic": {
+        "title": "Изменить тему стрима",
+        "info": "Все пользователи могут назначать тему для видео, но только редакторы и администраторы могут удалять и изменять тему после установки.",
+        "button": "Сохранить (Для применения может потребоваться 5 минут)",
+        "unset": "Не задано",
+        "inputPlaceholder": "Тема (оставьте пустым, чтобы снять)",
+        "saveTopic": "Сохранить тему"
+      },
+      "channelMentions": {
+        "title": "Упомянутые каналы",
+        "addSuccess": "Упоминание канала добавлено.",
+        "deleteSuccess": "Упоминание канала удалено.",
+        "tagsTitle": "Упомянутые каналы"
+      },
+      "sources": {
+        "title": "Источники/клипы (в разработке)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "Вы можете использовать API ключ для программного доступа к Holodex API. Только один ключ на аккаунт. После получения нового ключа, старый ключ перестанет действовать через 0-24 часа.",
+      "apikeyNew": "Получить новый API ключ",
+      "ownedYtChannel": "Ваш YouTube канал",
+      "futureYtcOwnerMessage": "В будущем мы планируем предоставить больше сервисов владельцам каналов, таких как редактирование метаданных их собственных видео.",
+      "linkAcc": "Привязать другой аккаунт",
+      "apikeyResetConfirm1": "Вы уверены, что хотите сбросить свой API ключ?",
+      "apikeyResetConfirm2": "Старый API ключ перестанет работать через 0-24 часа. Точно сбросить?",
+      "apikeyResetNvm": "Ничего интересного не случилось.",
+      "with": {
+        "0": "Войти через Google",
+        "1": "Войти через Discord",
+        "2": "Войти через Twitter"
+      },
+      "twitterMsg": {
+        "0": "Из-за изменения политики API Twitter вход через Twitter, вероятно, перестанет работать после 9 февраля.",
+        "1": "Сейчас вы используете только вход через Twitter. Мы настоятельно рекомендуем привязать другой способ входа, чтобы не потерять доступ на других устройствах или после очистки браузера.",
+        "2": "Если вы не можете войти в Holodex через Twitter и не привязали другие способы входа, обратитесь к нам в DM Twitter или Discord за поддержкой."
+      },
+      "username": "Имя пользователя",
+      "usernameBtn": {
+        "0": "Изменить",
+        "1": "Подтвердить",
+        "2": "Сохранить"
+      },
+      "loggingIn": "Вход..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Перезаписать текущий макет?",
+      "confirmOverwriteYes": "Подтвердить",
+      "permalink": "Постоянная ссылка",
+      "presets": "Пресеты",
+      "addframe": "Добавить ячейку",
+      "muteAll": "Заглушить все",
+      "unmuteAll": "Включить звук всех",
+      "muteOthers": "Заглушить другие",
+      "muteOthersDetail": "Заглушить все, кроме одного стрима",
+      "autoLayoutTip": "Нажмите на канал, чтобы начать просмотр с помощью режима автораскладки",
+      "createLayoutTip": "Создайте свой собственный макет, добавив ячейку или используя пресет",
+      "openToolbarTip": "Откройте панель инструментов, чтобы начать использовать multiview",
+      "archiveSync": "Синхронизация архивов",
+      "preset": {
+        "shareOnDiscord": "У Вас есть классный макет, которым можно поделиться? Воспользуйтесь кнопкой \"Поделиться\" и дайте нам знать на нашем <a href=\"https://discord.gg/jctkgHBt4b\">Discord сервере</a>!",
+        "custom": "Мои макеты",
+        "toggleAutoLayout": "Вкл/Выкл использование макета в авторежиме",
+        "remove": "Удалить",
+        "desktop": "Для ПК",
+        "mobile": "Для мобильных",
+        "autoLayout": "АвтоМакет",
+        "noPresets": "Нет доступных пресетов"
+      },
+      "presetEditor": {
+        "title": "Сохранить макет",
+        "name": "Имя",
+        "autoLayout": "Использовать макет в авторежиме"
+      },
+      "video": {
+        "selectLive": "Выбрать трансляцию",
+        "addCustomVideo": "Добавить своё видео",
+        "twitchChannelLink": "Ссылка на канал Twitch",
+        "youtubeVideoLink": "Ссылка на видео YouTube",
+        "noHistory": "Нет истории",
+        "addUrl": "Добавить URL",
+        "addUrlShort": "Добавить",
+        "urlPlaceholder": "Вставьте URL YouTube или Twitch",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Во весь экран",
+      "mediaControls": "Управление медиа",
+      "mediaControlsEmpty": "Проигрываемые видео появятся здесь",
+      "editAutoLayout": "Изменить автораскладку",
+      "changeLayout": "Изменить макет",
+      "done": "Готово",
+      "hints": "Советы",
+      "presetsHint": "Откройте меню пресетов для переключения макетов и настройки автоматической раскладки",
+      "mediaControlsHint1": "Используйте меню \"Управление медиа\" для приглушения и синхронизации (",
+      "mediaControlsHint2": ") стримов",
+      "dragDropHint": "Перетаскивайте стримы из панели инструментов в ячейки для организации стримов",
+      "reorderHint": "Используйте меню \"Редактирование раскладки\" для изменения позиций видео/чата",
+      "reorderLayout": "Редактирование раскладки",
+      "reorderLayoutDetail": "Перетащите иконки в нужное положение",
+      "sync": {
+        "nothingToSync": "Нечего синхронизировать, откройте два одновременных архива (напр. стримы коллаба)",
+        "syncSettings": "Настройки синхронизации",
+        "syncSettingsDetail": "Видео синхронизируются на основе времени начала стрима и могут десинхронизироваться из-за технических проблем стрима, или удаленных частей. Используйте смещение для выравнивания видео вручную"
+      },
+      "syncLabel": "Синхронизировать",
+      "collapseToolbar": "Свернуть панель инструментов",
+      "deleteCell": "Удалить ячейку",
+      "fillEmptyCells": "Заполнить пустые ячейки текущими видео",
+      "openNavigation": "Открыть навигацию",
+      "shareLayout": "Поделиться раскладкой"
+    },
+    "mugen": {
+      "welcome": "Добро пожаловать в MugenClips! Все на этой странице видят один и тот же случайно отобранный клип Hololive на английском языке. Смотрите и общайтесь с фанатами Hololive со всего мира. Если вы пропустите видео, а затем захотите быть повторно синхронизированы со всеми, пожалуйста, обновите страницу."
+    },
+    "playlist": {
+      "playlist-is-modified": "Не сохранено",
+      "item-last-updated": "Последнее обновление:",
+      "login-prompt": "Войдите, чтобы сохранить плейлисты и иметь более чем один плейлист",
+      "new-playlist-btn-label": "Создать новый плейлист",
+      "page-heading": "Ваши плейлисты:",
+      "page-instruction": "Нажмите на плейлист, чтобы установить его как активный.",
+      "change-loss-warning": "Вы потеряете несохраненные изменения. Продолжить?"
+    },
+    "extension": {
+      "title": "Расширение Holodex Plus",
+      "features": "Функции",
+      "featureset": {
+        "one": "Включает архивный live-чат на страницах Watch и Multiview",
+        "two": "Позволяет ставить лайки видео со страницы просмотра Holodex",
+        "three": "Исправляет утечку памяти в live-чате YouTube",
+        "four": "Исправляет экспериментальные флаги в плеере YouTube, например отключение нескольких стримов, отсутствие миниатюры комнаты ожидания и другое."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Скачать исходный код",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Расширение Firefox",
+      "githubDownload": "Скачать с GitHub",
+      "installFromGithubPrefix": "Установить из ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Искать архивы",
+          "channels": "Открывать каналы",
+          "clips": "Находить клипы",
+          "live": "Проверять live-стримы"
+        },
+        "getItOnPrefix": "Получить в ",
+        "getItOnSuffix": ".",
+        "title": "Расширение Raycast"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Меню",
+        "setting": "Настройки комнаты TLDex",
+        "loadVideo": "Показать видео",
+        "unloadVideo": "Скрыть видео",
+        "loadChat": "Добавить YT-чат для трансляции перевода",
+        "unloadChat": "Отключиться от YT-чата"
+      },
+      "tlControl": {
+        "enterBtn": "Ввести",
+        "prefix": "Префикс",
+        "suffix": "Суффикс",
+        "fontColour": "Цвет шрифта",
+        "outlineColour": "Цвет контура",
+        "localPrefix": "Языковой тег в чате",
+        "addProfile": "Добавить профиль",
+        "removeProfile": "Удалить профиль",
+        "shiftUp": "Поднять профиль",
+        "shiftDown": "Опустить профиль",
+        "showSetting": "Настройка",
+        "hideSetting": "Скрыть",
+        "currentProfileSettings": "Настройки текущего профиля [{name}]",
+        "inputPlaceholder": "Введите текст перевода"
+      },
+      "addProfilePanel": {
+        "title": "Добавить новый профиль",
+        "inputLabel": "Имя профиля"
+      },
+      "settingPanel": {
+        "title": "Настройка",
+        "mainStreamLink": "Ссылка на основной стрим",
+        "collabLink": "Ссылки на участников коллаба",
+        "findVideo": "Найти видео"
+      },
+      "removeProfileTitle": "Подтвердить удаление профиля",
+      "loadChatPanel": {
+        "title": "Загрузить чат",
+        "inputLabel": "Ссылка на стрим"
+      },
+      "unloadChatTitle": "Выгрузить ВСЕ активные чаты?",
+      "pangram": "Съешь же ещё этих мягких французских булок, да выпей чаю",
+      "cancelBtn": "Отмена",
+      "okBtn": "OK",
+      "shortcuts": {
+        "changeProfiles": "Сменить профили",
+        "or": "или",
+        "quickSwitchDefaultProfile": "Быстро перейти к профилю по умолчанию",
+        "quickSwitchProfileRange": "Профили 0-9",
+        "quickSwitchProfiles": "Быстрое переключение профилей",
+        "whileTyping": "При вводе в поле TL:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Сохранить",
+        "continuousEnd": "Сделать время непрерывным (изменить конец)",
+        "clearAll": "Удалить скрипт",
+        "exportFile": "Экспортировать файл",
+        "importFile": "Импортировать файл",
+        "editorMode": "Режим редактора",
+        "changeCustomLink": "Изменить пользовательскую ссылку",
+        "timeShift": "Сдвиг времени"
+      },
+      "table": {
+        "headerStart": "Начало",
+        "headerEnd": "Конец",
+        "headerProfile": "Профиль",
+        "headerText": "Текст",
+        "setAsStart": "Сделать началом",
+        "shiftCurrentTime": "Сдвинуть к текущему времени",
+        "deleteEntry": "Удалить запись"
+      },
+      "loadVideoPanel": {
+        "title": "Загрузить видео",
+        "inputLabel": "Ссылка на стрим"
+      },
+      "setStartTitle": "Сделать выбранную запись началом; все предыдущие записи будут удалены.",
+      "importFile": {
+        "overwriteBtn": "Перезаписать"
+      },
+      "editorModePanel": {
+        "activateMode": "Включить режим редактора",
+        "deactivateMode": "Отключить режим редактора",
+        "roleWarning": "У вас недостаточно прав",
+        "filterTranslator": "Фильтр переводчика"
+      },
+      "timeShift": {
+        "offset": "Смещение",
+        "seconds": "секунды",
+        "secondsShort": "с",
+        "timeOffset": "Смещение времени"
+      }
+    },
+    "tlManager": {
+      "title": "Менеджер скриптов",
+      "headerID": "ID видео",
+      "headerEntries": "Записи",
+      "download": "Скачать",
+      "delete": "Удалить",
+      "deleteTitle": "Удалить записи",
+      "langPick": "Язык",
+      "changeCustomLink": "Изменить пользовательскую ссылку",
+      "changeStreamLink": "Изменить ссылку на стрим",
+      "description": "Управляйте скриптами перевода, экспортируйте данные и очищайте пользовательские ссылки.",
+      "entriesCount": "{count} записей",
+      "importFromMchad": "Импортировать из MChad",
+      "importMchad": {
+        "claimAllArchives": "Получить все архивы",
+        "claimSuccess": "Архивы получены.",
+        "entryLength": "{count} записей",
+        "foundId": "Найден ID комнаты: {id}",
+        "login": "Войти",
+        "missingCredentials": "Введите имя комнаты и пароль.",
+        "noArchives": "Архивы не найдены.",
+        "password": "Пароль",
+        "roomName": "Имя комнаты"
+      },
+      "newLink": "Новая ссылка",
+      "noScriptsFound": "Скрипты перевода для этой страницы не найдены.",
+      "noTitle": "Без названия",
+      "videoTitle": "Название видео"
+    },
+    "relayBot": {
+      "addSubscription": "Добавить подписку",
+      "blacklist": "Черный список",
+      "botMissing": "Бота нет на этом сервере.",
+      "channelsFor": "Каналы для {name}",
+      "description": "Пересылайте live-переводы из каналов или видео YouTube в Discord.",
+      "inviteBot": "Пригласить бота",
+      "loginDiscord": "Войти через Discord",
+      "noBlacklistEntries": "В черном списке нет записей.",
+      "noSubscriptionsConfigured": "Подписки не настроены.",
+      "noWhitelistEntries": "В белом списке нет записей.",
+      "notOk": "Ошибка",
+      "ok": "OK",
+      "relaySubscription": "Подписка на пересылку",
+      "relayTL": "Пересылать TL",
+      "saved": "Сохранено.",
+      "saving": "Сохранение...",
+      "sendingTrigger": "Отправка...",
+      "serverNotShown": "Показаны только серверы, где вы можете управлять ботом.",
+      "servers": "Серверы",
+      "settingFor": "Настройки для {name}",
+      "subscribedChannel": "Канал подписки",
+      "title": "Бот ретрансляции",
+      "translatorName": "Имя переводчика",
+      "whitelist": "Белый список",
+      "youtubeChannel": "Канал YouTube",
+      "youtubeLinkChannelVideo": "Ссылка на канал или видео YouTube"
+    }
+  },
+  "time": {
+    "soon": "Скоро",
+    "diff_future_date": "Начнется {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Добавить",
+      "update": "Обновить",
+      "permission": "Вы должны быть пользователем уровня 'Редактор' или выше для обновления или удаления имеющихся песен. Пожалуйста, свяжитесь с нами в <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord</a> чтобы оповестить редакторов о проблемах / злоупотреблениях, или для подачи заявки на статус редактора.",
+      "titles": {
+        "addSong": "Метаданные песни: Добавить новую песню",
+        "songList": "Список песен : {arg0}",
+        "help": "Гайд"
+      },
+      "itunesLookupPlaceholder": "(Опционально) Найти на iTunes",
+      "moveRight2s": "Сдвинуть вправо на 2 сек.",
+      "testEnd": "Протестировать конец",
+      "setToCurrentTime": "Установить на текущее время ({arg0})",
+      "moveLeft2s": "Сдвинуть влево на 2 сек.",
+      "trackNameInput": "Название песни",
+      "originalArtistInput": "Оригинальный артист",
+      "testStart": "Протестировать начало",
+      "startInput": "Начало",
+      "endInput": "Длительность в секундах: (конец @ {arg0})",
+      "inheritItunesMusic": "Установить длительность через iTunes: {arg0}",
+      "listenOnAppleMusic": "Слушать в Apple Music",
+      "pickItunesResult": "Выберите один из результатов iTunes",
+      "playFromHere": "Воспроизвести отсюда",
+      "timestampEditorHint": "Используйте относительные метки времени, чтобы синхронизировать музыку с видео."
+    },
+    "exitMode": "Выйти из режима редактирования",
+    "enterMode": "Редактировать видео"
+  },
+  "about": {
+    "quicklinks": "Быстрые ссылки",
+    "discordBtn": "Holodex Discord",
+    "faq": {
+      "title": "Часто задаваемые вопросы",
+      "ytchatHeader": "Я не авторизован в чате YouTube!",
+      "ytchatContent": "Пожалуйста, отключите функцию безопасности браузера, известную как блокирование cookies сторонних разработчиков, или добавьте этот сайт и youtube.com в белый список, чтобы разрешить сторонние куки.",
+      "ytchatFirefox": "Инструкции для Firefox, другие браузеры могут быть похожи.",
+      "autoplayHeader": "Автоматическое воспроизведение не работает!",
+      "autoplayContent": "Пожалуйста, поищите в интернете как включить автоматическое воспроизведение в вашем браузере.",
+      "musicPlayer": "Музыкальный плеер не работает хорошо на мобильных устройствах!",
+      "musicPlayerContent": "На большинстве устройств iOS во время воспроизведения музыки на Holodex вы не можете отключить экран или закрыть Safari. Это ограничение может применяться к устройствам Android (зависит от устройства). Пожалуйста, сообщите нам в discord, если у вас есть идея, как улучшить систему воспроизведения.",
+      "videoLinkage": "Как мне убедиться, что видео правильно связаны с витуберами?",
+      "videoLinkageContent": "Вся информация собирается из описания видео. Если вы делаете клипы стрима, пожалуйста, убедитесь, что вы дали ссылку на официальный стрим. Если вы делаете клипы фанатского контента (например с bilibili), просто убедитесь в том, чтобы вы дали ссылку на официальные YouTube каналы соответствующих витуберов. Если вы не оставите ссылок на какие-либо каналы витуберов, то мы не покажем этот клип на holodex, так как для всех клипов требуется привязка к витуберу, известному holodex.",
+      "quitHolodex": "Я саббер, и хочу, чтобы мой канал был удален из Holodex.",
+      "quitHolodexContent": "Нам жаль, что вы уходите :(, пожалуйста, сообщите мне, если есть какая либо проблема, с которой я бы мог вам помочь. Если вы все равно хотите, чтобы ваш канал был удален, отправьте нам сообщение в Discord.",
+      "favorite": {
+        "title": "Что такое Избранное?",
+        "Contents": {
+          "0": "Избранное - это способ отслеживать любимых витуберов, вы можете добавить свои любимые каналы, нажав на иконку с сердцем на",
+          "1": "странице. Пожалуйста, обратите внимание, что добавлять сабберов в избранное в данный момент невозможно, но вы можете подписаться и поддерживать их другим образом!"
+        },
+        "disappear": {
+          "title": "Мой список избранных исчез / Я не могу добавить в избранное"
+        },
+        "contents": {
+          "0": "Пожалуйста, убедитесь, что вы вошли в систему и посетите вкладку \"Избранное\" для принудительного обновления."
+        }
+      },
+      "mobile": {
+        "title": "Есть ли приложение Holodex для Android/iOS?",
+        "content": {
+          "summary": "Мы работаем над этим! Пока, пожалуйста, используйте функцию \"Добавить на главный экран\" в вашем браузере. Мы многое настраивали, чтобы сайт работал как приложение",
+          "android": {
+            "0": "Android Chrome: Откройте сайт, нажмите на кнопку с тремя точками",
+            "1": "вверху справа и найдите пункт «Добавить на домашний экран»."
+          },
+          "ios": {
+            "0": "iOS Safari: Откройте сайт на вашем телефоне, нажмите на квадрат со стрелкой вверх",
+            "1": "в нижней части Safari и нажмите \"Добавить на домашний экран\""
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "Что такое MugenClips?",
+        "contents": {
+          "0": "MugenClips, или бесконечные клипы, - это тусовка для совместного просмотра, где люди на сайте могут смотреть бесконечный набор различных клипов, загруженных многими каналами переводчиков"
+        }
+      },
+      "subber": {
+        "title": "Я саббер и не могу найти мой канал или клипы на Holodex",
+        "contents": {
+          "0": "Пожалуйста, проверьте на странице Каналы, чтобы увидеть, есть ли вы в списке как саббер, если нет, пожалуйста, заполните",
+          "1": "эту форму",
+          "2": ", и мы добавим вас вручную. Если вы уже в списке, пожалуйста, убедитесь, что в описании вашего видео есть правильные ссылки на исходное youtube видео или канал."
+        }
+      },
+      "feedback": {
+        "title": "У меня есть отзыв/желание внести свой вклад в этот проект",
+        "contents": {
+          "0": "Любая помощь и идеи приветствуются! Пользовательский интерфейс и бэкэнд доступны для улучшения, однако на данный момент лишь интерфейс является open source. Пожалуйста, свяжитесь с нами по discord, чтобы получить доступ к исходному коду бэкенда или просто поболтать о ваших идеях."
+        }
+      },
+      "support": {
+        "title": "Как я могу поддержать Holodex?",
+        "contents": {
+          "0": "Наш собственный сервер — это машина на 28 ядер и 60 ГБ RAM, обслуживание которой стоит около 60 USD в месяц. Мы хотим дальше расширять набор функций, поэтому открыли <a href=\"https://ko-fi.com/holodex\">Ko-fi</a>, чтобы покрывать расходы на сервер. У нас также есть <a href=\"https://www.patreon.com/holodex\">Patreon</a>, но Ko-fi нам нравится больше.<br /><br />Вы также можете поддержать Holodex отзывами и словами поддержки в Twitter, помощью с переводами через <a href=\"https://crwd.in/holodex\">Crowdin</a> и вкладом в нашу базу данных песен. Даже отметить смешные моменты стрима и оставить комментарий на оригинальном стриме — уже большая помощь."
+        }
+      }
+    },
+    "privacyPolicy": "Политика конфиденциальности",
+    "gdpr": "GDPR и мои данные",
+    "gdprContent": "Куки Google Analytics используются для отслеживания просмотров страниц в наших аналитических целях. После входа мы свяжем имя пользователя и ID с избранным. Эти данные могут включать ваш адрес электронной почты (для Google), Discord ID или имя пользователя в Twitter соответственно.",
+    "gdprDeletion": "Для удаления пользовательских данных, пожалуйста, свяжитесь с нами в Discord!",
+    "feedback": "Отзывы/Сообщения об ошибках",
+    "feedbackHtml": "Вы можете создать тикет в <a href=\"https://github.com/RiceCakess/Holodex/issues\"> трекере проблем на Github</a> или найти команду Holodex в Discord <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Благодарности",
+      "contents": {
+        "0": "Я хотел бы выразить большую благодарность",
+        "1": "команде за их работу над",
+        "2": "Также всем сабберам за помощь заграничным ребятам! Пожалуйста, ознакомьтесь с их работами!",
+        "3": "Это фанатский вебсайт, и контент, который можно найти на этом вебсайте принадлежит Cover Corp. и их партнерам. Данный вебсайт придерживается принципов, установленных Cover Corp. в их",
+        "4": "Лицензионном Соглашении на Производные Работы"
+      }
+    },
+    "changelog": {
+      "title": "Изменения"
+    },
+    "news": {
+      "title": "Новости"
+    },
+    "bookmarklet": {
+      "title": "Букмарклеты",
+      "description": "Перетащите эти букмарклеты в панель закладок, чтобы легко открывать страницу просмотра YouTube в Holodex:",
+      "openYoutube": "Открыть YouTube в Holodex"
+    },
+    "links": {
+      "browserAddon": "Расширение браузера",
+      "community": "Сообщество",
+      "docs": "Документация",
+      "extension": "Расширение",
+      "repository": "Репозиторий"
+    },
+    "privacy": {
+      "content": {
+        "intro": "На этой странице объясняется, какие данные обрабатывает Holodex и как используются сторонние сервисы."
+      },
+      "firstParty": {
+        "title": "Данные Holodex",
+        "collection": "Holodex хранит идентификаторы аккаунтов, избранное, настройки, плейлисты и действия редакторов, необходимые для работы функций сайта.",
+        "voluntary": "Большинство данных аккаунта создаётся только при входе в систему или использовании функций аккаунта.",
+        "access": "Вы можете просматривать или обновлять свои настройки пользователя через меню аккаунта.",
+        "limitedUse": "Holodex использует данные пользователя Google только для входа и привязки аккаунта.",
+        "noPosting": "Holodex не публикует ничего в ваши связанные аккаунты.",
+        "revoking": "Вы можете отозвать доступ сторонних аккаунтов в настройках аккаунта соответствующего провайдера.",
+        "changes": "Эта политика может измениться, если изменятся функции сайта или требования провайдера."
+      },
+      "links": {
+        "google": "Политика конфиденциальности Google",
+        "twitch": "Уведомление о конфиденциальности Twitch"
+      },
+      "thirdParty": {
+        "title": "Сторонние сервисы",
+        "analyticsTitle": "Аналитика",
+        "analyticsBody": "Holodex может использовать аналитику, чтобы понимать использование сайта и его надёжность.",
+        "analyticsUse": "Данные аналитики используются для улучшения производительности, навигации и стабильности.",
+        "embedsTitle": "Встроенные плееры и чат",
+        "embedsBody": "Встраиваемые элементы YouTube и Twitch предоставляются этими сервисами и могут использовать их собственные cookie и состояние аккаунта.",
+        "linksIntro": "Подробности см. в политиках этих провайдеров:",
+        "choicesTitle": "Ваш выбор",
+        "choicesBody": "Вы можете блокировать сторонние cookie или выйти из связанных провайдеров, хотя некоторые встроенные функции могут перестать работать.",
+        "contactTitle": "Контакты",
+        "contactBody": "По вопросам конфиденциальности свяжитесь с командой Holodex через Discord или GitHub.",
+        "commitment": "Holodex запрашивает только доступ, необходимый для работы своих функций."
+      }
+    },
+    "stats": {
+      "lastMonth": "в прошлом месяце",
+      "songs": "песни",
+      "subbers": "сабберы",
+      "videos": "видео",
+      "vtubers": "VTubers",
+      "yesterday": "вчера"
+    },
+    "youtubeTerms": {
+      "before": "Использование встроенных функций YouTube регулируется ",
+      "link": "Условиями использования YouTube",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Тип запроса:",
+    "Types": {
+      "AddVtuber": "Добавить витубера ▶️ в Holodex для отслеживания канала и клипов.",
+      "AddClipper": "Добавить канал клиппера в Holodex",
+      "ModifyExistingInfo": "Изменить информацию об уже добавленном канале",
+      "DeleteChannel": "Удалить мой канал"
+    },
+    "DirectContactDisclaimer": "Не стесняйтесь оставить свой id discord, email или twitter. В случае, если нам нужно будет связаться с вами (эта информация останется конфиденциальной), чтобы мы могли ответить вам на запрос. Только администраторы holodex будут видеть эту информацию.",
+    "DirectContactLabel": "Контакты (необязательно)",
+    "TwitterHandle": "Имя пользователя этого канала в Твиттере (необязательно)",
+    "VtuberGroupLabel": "Витубер-группа (необязательно)",
+    "VtuberGroupHint": "К какой организации / группе относится этот витубер?",
+    "ChannelLanguageLabel": "Основной язык канала",
+    "EnglishNameHint": "Укажите английское название, если оригинальное название канала не на английском. Соблюдайте порядок имен оригинального языка витубера (Natsuiro Matsuri), или укажите предпочтительное английское название (Elu the Elf, Emma★August).",
+    "EnglishNameLabel": "Английское название канала",
+    "Comments": "Комментарии",
+    "CommentsHint": "Другие комментарии, которые Вы хотели бы нам сообщить.",
+    "VtuberRequirementText": "Для независимых каналов требуется минимум 15 тыс. подписчиков. VTuber из существующих организаций будут приняты. <br /><br />Новые организации создаются в зависимости от среднего числа подписчиков.<br /><br />У стримеров Twitch должен быть официальный канал YouTube для индексации.<br /><br /><strong>Любое упоминание \"past lives\" или альтернативных личностей будет автоматически отклонено.</strong>",
+    "ClipperRequirementText": "Для клипперов канал должен существовать не менее 2 месяцев и регулярно публиковать контент либо выпустить более 20 клипов за один месяц. Ежедневный спам короткими клипами, публикация только клипов короче 1 минуты или использование неудачных миниатюр будет учитываться против канала. Качество контента также может оцениваться. <br /><br />Клипперы должны указывать источники через ссылки на каналы, @упоминания YouTube-каналов и ссылки на видео. Избыточное цитирование (например, ссылки на всех участников Nijisanji) создает работу для редакторов Holodex, а недостаток источников (нет ссылок) приведет к скрытию клипов. <br /><br />В Holodex есть алгоритмы для обнаружения и автоматического исправления избыточных ссылок, но они не всегда работают идеально. Клипперы, которые часто указывают слишком много источников, могут быть удалены с платформы для снижения шума.",
+    "DeletionRequirementText": "Удаление следует запрашивать только владельцам канала. Укажите контактные данные, чтобы мы могли это проверить.",
+    "PageTitle": "Запрос на добавление канала в Holodex",
+    "ChannelURLErrorFeedback": "Должно быть в формате https://www.youtube.com/channel/UC_____ или https://www.youtube.com/@_____",
+    "ChannelURLLabel": "URL канала",
+    "SelectLanguage": "Выберите язык",
+    "ChannelURLExample": "Пример: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, электронная почта или другой способ связи",
+    "TwitterExample": "Пример: @holodex",
+    "TwitterPlaceholder": "@имя_пользователя",
+    "VtuberGroupPlaceholder": "Название группы или организации"
+  }
+}

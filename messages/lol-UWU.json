@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Gomenasowwy!",
+      "textBeforeTwitter": "Thewe was an ewwow wetwieving content, pwease check twittew ",
+      "textAfterTwitter": " ow wepowt an ewwow thwough da",
+      "aboutPage": "About page uwu",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Wefwesh",
+      "hardRefreshTip": "Tip: Hawd Wefwesh/Cweaw Cache:"
+    },
+    "channelList": {
+      "signInToFavorite": "Sign in to favowite",
+      "unfavoriteAllInGroup": "Unfavowite aww in gwoup",
+      "favoriteAllInGroup": "Favowite aww in gwoup",
+      "enableGroupDisplay": "Show channews fwom dis gwoup on da home page",
+      "disableGroupDisplay": "Hide channews fwom dis gwoup fwom da home page"
+    },
+    "channelInfo": {
+      "stats": "Stats uwu",
+      "videoCount": "{arg0} Bideos",
+      "clipCount": "{n} Cwips",
+      "subscriberCount": "{n} Subscwibews",
+      "subscriberNA": "Subscwibew count unavaiwabwe",
+      "totalViews": "Totaw views",
+      "inactiveChannel": "This channyew is nyo wongew active."
+    },
+    "channelSocials": {
+      "addToFavorites": "Add to favowites",
+      "removeFromFavorites": "Remove fwom favowites",
+      "unblock": "Unbwock dis channew",
+      "block": "Bwock dis channew's content acwoss howodex",
+      "blocked": "Bwocked"
+    },
+    "mainNav": {
+      "home": "Home uwu",
+      "favorites": "Favowites",
+      "channels": "Channews",
+      "about": "About uwu",
+      "library": "Libwawy",
+      "settings": "Settings uwu",
+      "login": "Wogin",
+      "logout": "Wogout",
+      "MugenClips": "Mugencwips<sup>beta</sup>",
+      "accountSettings": "Account settings",
+      "music": "Music uwu",
+      "multiview": "Muwtiview",
+      "points": "uwu",
+      "playlist": "Pwaywist"
+    },
+    "videoCard": {
+      "clips": "{n} Cwips",
+      "watching": "{arg0} Uwuing",
+      "liveNow": "Live now",
+      "openInBackground": "Open in Backgwound",
+      "edit": "Edit uwu",
+      "copiedToClipboard": "Link copied to cwipboawd.",
+      "copyLink": "Copy howodex link",
+      "premiere": "PWEMIEWE",
+      "googleCalendar": "Add to googwe cawendaw",
+      "totalTLs": "Totaw wive chat tls",
+      "totalSongs": "Totaw timestamped songs",
+      "tlPresence": "Active twanswatow in wast 30 mins",
+      "uncertainPlaceholder": "Stawt time is nyot officiawwy confiwmed, actuaw stawt time may vawy.",
+      "typeScheduledYT": "Pwaceholder stweam",
+      "typeExternalStream": "Extewnaw stweam",
+      "typeEventPlaceholder": "uwu event desu",
+      "openClient": "Open tl cwient",
+      "openScriptEditor": "Open scwipt editow",
+      "popoutChat": "Popout youtube chat",
+      "uploadScript": "Upwoad tl scwipt",
+      "removeFromPlaylist": "Wemove fwom pwaywist"
+    },
+    "videoDescription": {
+      "description": "Descwiption"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Show less",
+      "showMore": "Show mowe"
+    },
+    "watch": {
+      "streamingFor": "Stweaming fow {arg0}",
+      "nextUpInMugen": "Next up",
+      "loadingVideo": "Woading video",
+      "Comments": {
+        "title": "Comments uwu",
+        "all": "Aww"
+      }
+    },
+    "search": {
+      "searchLabel": "Seawch",
+      "type": {
+        "channel": "channew",
+        "topic": "topic uwu",
+        "org": "owg",
+        "titledesc": "titwe/desc",
+        "title": "titwe",
+        "description": "descwiption",
+        "comments": "comments uwu",
+        "videourl": "bideo uww"
+      },
+      "placeholder": "Seawch stweams, cwips, channyews",
+      "clear": "Cweaw",
+      "loading": "Woading...",
+      "typeTwoCharacters": "Type 2 chawactews",
+      "noChannelsFound": "Nyo channyews found",
+      "noTopicsFound": "Nyo topics found",
+      "noOrganizationsFound": "Nyo owganyizations found",
+      "noResultsFound": "Nyo wesuwts found",
+      "searchChannels": "Seawch Channyews",
+      "filterByTopicOrgChannel": "Fiwtew by Topic, Owg, Channyew ...",
+      "topicOrgChannelPlaceholder": "Topic, owg, ow channyew",
+      "toggleSearch": "Toggwe seawch",
+      "organizations": "Owganyizations",
+      "searchOrganizations": "Seawch owganyizations",
+      "quickSelect": "Quick Sewect",
+      "allVtubers": "Aww VTubews",
+      "selectedOrgCount": "{count} owgs",
+      "additionalOrgCount": "{count} mowe",
+      "unset": "Unset uwu"
+    },
+    "relatedVideo": {
+      "clipsLabel": "cwips",
+      "simulcastsLabel": "simuwcasts",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Open aww Simuwcasts in Muwtiview",
+          "error": {
+            "layoutBuildFailure": "An ewwow occuwwed whiwe cweating da Muwtiview wink. Pwease fiwe a bug wepowt fow dis on GitHub ow via da Discowd.",
+            "noDefaultLayout": "Muwtiview does nyot have a wayout fow {videoCount} videos. uwu",
+            "noSimulcasts": "Thewe awe nyo simuwcasts fow dis video."
+          }
+        }
+      },
+      "refersLabel": "wefews",
+      "sourcesLabel": "souwces",
+      "songsLabel": "songs uwu",
+      "recommendationsLabel": "wecommended",
+      "sameSourceClips": "Fwom da same stweams"
+    },
+    "paginateLoad": {
+      "newer": "Newew",
+      "older": "Owdew"
+    },
+    "music": {
+      "clearPlaylist": "Cweaw",
+      "trendingForOrg": "Trends für {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Recent songs",
+      "weeklyTopPlaysHeader": "Weekwy top pways",
+      "trending": "Trends"
+    },
+    "songList": {
+      "songTitle": "Titwe",
+      "songCoveredBy": "Covewed by",
+      "songDuration": "Duwation",
+      "sangOnTime": "Sang on uwu"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Monthwy top pways fow {arg0}",
+      "weeklyTopForOrg": "Weekwy top pways fow {arg0}"
+    },
+    "installPrompt": {
+      "title": "Instaww howodex",
+      "callToAction": "Watching bideos on howodex wowks best when added to home scween",
+      "notNowBtn": "Not now",
+      "installBtn": "Instaww",
+      "iOS": {
+        "popup": "Instaww howodex on ios",
+        "afterExportIcon": "then 'add to home scween",
+        "beforeExportIcon": "Tap uwu"
+      }
+    },
+    "media": {
+      "remove": "Wemove"
+    },
+    "comment": {
+      "close": "Cwose",
+      "readMore": "Read mowe"
+    },
+    "reportDialog": {
+      "title": "Repowt",
+      "collabing": "Dis channew may be cowwabing with a {org} membew ow with youw favowites. U can disabwe dis featuwe thwough da settings",
+      "comments": "Wat actions shouwd howodex take?",
+      "success": "Repowt sent, thankies!",
+      "consider": "Considew using da fiwtew and discawding dis wepowt instead.",
+      "reasons": {
+        "0": "Bideo tagged incowwectwy",
+        "1": "Dangewouswy low quawity/misweading content",
+        "2": "Viowates da owg's dewivative wowk guidewines ow inappwopwiate",
+        "3": "Othew",
+        "4": "Incowwect bideo topic",
+        "5": "Incowwect channew mentions",
+        "6": "Dis {arg0} does not bewong to {arg1}"
+      },
+      "applyChanges": "Appwy Changes",
+      "selectAll": "Sewect Aww",
+      "deselectAll": "Desewect Aww",
+      "adjustMentionedChannels": "Adjust Mentionyed Channyews",
+      "addMentionedChannels": "Add Mentionyed Channyews",
+      "searchMentionedChannels": "Seawch VTubews to mention",
+      "commentLanguagesOk": "* Engwish / Japanyese / Twaditionyaw Chinyese OK",
+      "specificChannelWarningBody1": "Howodex does nyot awbitwate owdinyawy twanswation quawity disputes. Fow minyow issues, weave feedback fow da cwippew ow twanswatow on YouTube.",
+      "specificChannelWarningBody2": "If a video is dangewouswy mistwanswated and wikewy to cause sewious misundewstanding, Howodex may wemove it ow escawate it.",
+      "specificChannelWarningBody3": "To stop seeing a channyew, use da bwock channyew button on dis diawog ow on da channyew page.",
+      "specificChannelWarningTitle": "Nyote: pwease do nyot wepowt onwy because yu diswike ow disagwee wif dis channyew.",
+      "topicUnsetPlaceholder": "Suggest nyew topic (weave empty to unset)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Because of how youw intewnet bwowsew wowks, some bwowsews with stwict <b>thiwd pawty cookie</b> powicies, ow those bwocking <kbd>youtube.com</kbd> cookies may find it difficuwt to wog into / use youtube chat. <br /><br /> u can fix dis by whitewisting <kbd>youtube.com</kbd> in thiwd pawty cookie bwockews, ow decweasing youw cookie secuwity / pwivacy wevew fow <kbd>howodex.net</kbd>. <br /><br /> we incwuded some websites that pwovide mowe infowmation on how to do dis.",
+      "dialogTitle": "Using youtube chat on howodex",
+      "alertText": "Youw bwowsew pwivacy setting ish making it impossibwe to wog-in to youtube chat. Cwick hewe fow mowe info",
+      "neverShowAgain": "Nevew show awewt again"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Expowt pwaywist",
+        "new-playlist": "New pwaywist",
+        "rename-playlist": "Rename pwaywist",
+        "reset-unsaved": "Reset unsaved changes",
+        "delete-playlist": "Dewete pwaywist",
+        "clear-playlist": "Cweaw pwaywist"
+      },
+      "save-error-not-logged-in": "U need to be wogged in to save pwaywists",
+      "unnamed-playlist": "Unnyamed Pwaywist",
+      "video-count": "{count} videos uwu",
+      "next-video": "Nyext video",
+      "error-loading": "Ewwow woading pwaywist, does it exist?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Event data pwovided by {arg0} fwom: {arg1}",
+      "datasourceCredit": "Event data fetched fwom {arg0} datasouwce.",
+      "botCredit": "Event data pwovided via {arg0} datasouwce, cweated by {arg1}.",
+      "streamPageBtn": "Stweam page",
+      "eventPageBtn": "Event page",
+      "scheduledEvent": "Scheduwed",
+      "editorCredit": "Event setup by howodex editow {arg0}.",
+      "creditTitleText": "Cwedits:"
+    },
+    "calendar": {
+      "liveCalendar": "Wive Cawendaw (iCaw)",
+      "favoritesCalendar": "Favowites Cawendaw (iCaw)",
+      "favoritesLoginRequired": "Wogin wequiwed to use favowites cawendaw feed."
+    },
+    "form": {
+      "required": "Wequiwed",
+      "invalidUrl": "Invawid UWW",
+      "invalidTime": "Invawid time",
+      "error": "Some ewwow occuwwed.",
+      "never": "nyevew",
+      "new": "Nyew",
+      "existing": "Existing uwu",
+      "channel": "Channyew",
+      "submit": "Submit uwu",
+      "certainty": {
+        "certain": "Cewtain",
+        "likely": "Wikewy"
+      },
+      "placeholder": {
+        "editorBadge": "Editow",
+        "title": "Pwacehowdew Stweam",
+        "description": "Cweate ow update scheduwed pwacehowdews wif da migwated fowm fwow.",
+        "success": "Successfuwwy added Pwacehowdew Stweam",
+        "authError": "yu'we nyot a vawid Howodex Editow, ow yuw discowd-genyewated pwacehowdew cweation wink has expiwed",
+        "editingAs": "Editing as  uwu{user} fwom {guild} Discowd. yuw session expiwes: {expiresIn}. Pwease wefwesh if it is about to expiwe.",
+        "notEditor": "yu awe nyot an editow ow token has expiwed, pwease wogin ow genyewate a nyew token using ouw bot.",
+        "editorCreditName": "Editow Cwedit Nyame",
+        "editorCreditHint": "Use a diffewent nyame when being pubwicwy cwedited.",
+        "placeholderId": "Pwacehowdew ID (11 chawactews)",
+        "placeholderIdInput": "Pwacehowdew ID",
+        "videoTitle": "Video Titwe",
+        "japaneseVideoTitle": "Japanyese Video Titwe",
+        "sourceLink": "Souwce Wink",
+        "sourceLinkHint": "e.g. UWW to Twittew scheduwe ow Twitch channyew",
+        "thumbnailImage": "Thumbnyaiw Image",
+        "eventType": "Event Type uwu",
+        "certainty": "Cewtainty",
+        "timezone": "Timezonye",
+        "date": "Date uwu",
+        "time": "Time uwu",
+        "duration": "Duwation",
+        "durationHint": "Guess a duwation in minyutes",
+        "submitModification": "Submit Pwacehowdew Modification",
+        "create": "Cweate nyew Pwacehowdew",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Nyonye",
+      "ok": "OK uwu"
+    },
+    "common": {
+      "actions": "Actions uwu",
+      "chat": "Chat uwu",
+      "close": "Cwose",
+      "collapse": "Cowwapse",
+      "confirm": "Confiwm",
+      "language": "Wanguage",
+      "moreActions": "Mowe actions",
+      "or": "ow",
+      "processing": "Pwocessing...",
+      "remove": "Wemove",
+      "save": "Save uwu"
+    },
+    "pagination": {
+      "nextPage": "Nyext page",
+      "previousPage": "Pwevious page"
+    },
+    "userMenu": {
+      "apiKey": "API key uwu",
+      "googleLinkUnavailable": "Googwe winking is unyavaiwabwe.",
+      "googleSignInUnavailable": "Googwe sign-in is unyavaiwabwe.",
+      "icalFeed": "iCaw feed",
+      "link": "Wink",
+      "linkGoogle": "Wink Googwe",
+      "linkedAccounts": "Winked accounts",
+      "manualOAuthInstructions": "If automatic sign-in did nyot compwete, paste da wediwected UWW bewow.",
+      "pasteRedirectUrl": "Paste wediwected UWW",
+      "userAvatar": "Usew avataw"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Bideos",
+      "clips": "Cwips",
+      "music": "Music uwu",
+      "collabs": "Cowwabs",
+      "about": "About uwu"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Subscwibews",
+        "group": "Gwoup",
+        "recentUpload": "Recent upwoad",
+        "videoCount": "Bideo count",
+        "clipCount": "Cwip count",
+        "org": "Owganization"
+      },
+      "tabs": {
+        "Vtuber": "Vtubew",
+        "Subber": "Subbew",
+        "Favorites": "Favowites",
+        "Blocked": "Bwocked"
+      },
+      "favoritesAreEmpty": "U have no favowites!",
+      "blockedAreEmpty": "U have no bwocked channews.",
+      "sort": {
+        "newestFirst": "Nyewest fiwst",
+        "oldestFirst": "Owdest fiwst"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Live / upcoming",
+      "recentVideosHeading": "Recent bideos",
+      "noStreams": "No wive ow upcoming stweams at da moment",
+      "recentVideoToggles": {
+        "all": "Aww",
+        "official": "Awchive",
+        "subber": "Cwips"
+      },
+      "liveLabel": "Wive",
+      "upcomingLabel": "upcoming",
+      "controls": {
+        "sortBy": "Sowt by",
+        "viewers": "Viewews",
+        "latest": "Nyewest",
+        "uploadedBefore": "Upwoaded Befowe",
+        "pickDate": "Pick a date uwu",
+        "clipLanguages": "See cwips in these wanguages:"
+      },
+      "apiError": "Couwd nyot woad videos."
+    },
+    "library": {
+      "savedVideosTitle": "Saved bideos",
+      "createYtPlaylistButton": "Cweate yt pwaywist ({arg0})",
+      "deleteFromLibraryButton": "Dewete ({arg0})",
+      "deleteConfirmation": "Awe u suwe u wanna dewete {arg0} bideos?",
+      "deleteConfirmationOK": "Dewete",
+      "deleteConfirmationCancel": "Cancew",
+      "selectionReset": "Weset",
+      "selectionSelectAll": "Sewect aww",
+      "emptyLibrary": "U have no saved bideos!",
+      "exportSelected": "Expowt sewected ({arg0})",
+      "exportYtPlaylist": "Youtube pwaywist",
+      "exportCsv": "Csv fiwe",
+      "selectionSelect50": "Sewect 50",
+      "exportYTExplanation": "Da youtube pwaywist cweated by dis featuwe ish <b>unwisted</b> and may be deweted by youtube. <br /> because youtube's featuwe incompweteness, u need to do da fowwowing to save da <b>unwisted</b> youtube pwaywist to youw account.",
+      "exportYTHeading": "Saving youtube pwaywist instwuctions",
+      "exportYTInstructions": "<b class=\"red--text\">Step 1</b>: pway da youtube pwaywist, and change da pwayew ui into mini-pwayew. <br /><br /> <b class=\"red--text\">step 2</b>: pick any bideo and add it to da queue. <br /><br /> <b class=\"red--text\">step 3</b>: da pwaywist ish now save-abwe. Cwick save to save it.",
+      "sort": {
+        "dateaddedEarliestFirst": "Date added to libwawy, eawwiest fiwst",
+        "dateaddedLatestFirst": "Date added to libwawy, watest fiwst",
+        "dateuploadedLatestFirst": "Upwoad date, watest fiwst",
+        "dateuploadedEarliestFirst": "Upwoad date, eawwiest fiwst"
+      }
+    },
+    "notFound": {
+      "title": "Content nyot found",
+      "back": "Retuwn home"
+    },
+    "search": {
+      "sort": {
+        "newest": "Nyewest",
+        "oldest": "Owdest",
+        "longest": "Wongest"
+      },
+      "type": {
+        "all": "Aww",
+        "official": "Officiaw",
+        "clip": "Cwip"
+      },
+      "unsupportedQuery": "Cuwwentwy seawching cwips by <kbd>topic</kbd> and <kbd>owganization</kbd> ish not suppowted. No <b>cwips</b> wiww show up.",
+      "sortByLabel": "Sowt by",
+      "typeDropdownLabel": "Type uwu",
+      "searching": "Seawching...",
+      "useSearchBar": "Use da seawch baw to find stweams, cwips, ow channyews."
+    },
+    "settings": {
+      "title": "Settings uwu",
+      "darkModeLabel": "Dawk mode",
+      "darkModeMsg": "Changes da theme between wight mode and dawk mode",
+      "redirectModeLabel": "Open on youtube",
+      "redirectModeMsg": "Cwicking on bideo thumbnaiws wiww open it in youtube, cwicking da bideo titwe wiww open on howodex",
+      "useEnglishNameLabel": "Use engwish name",
+      "useEnglishNameMsg": "Uses engwish wocawized names fow vtubew channews",
+      "hideVideoThumbnailsLabel": "Hide bideo thumbnaiws",
+      "hideVideoThumbnailsMsg": "Hide bideo thumbnaiws, hewps speed up woading time and wess scwowwing on mobiwe",
+      "pushNotificationLabel": "Push notifications (coming soon)",
+      "pushNotificationMsg": "Enabwe push notification fow favowited channews",
+      "autoplayVideoLabel": "Autopway bideo",
+      "autoplayVideoMsg": "Enabwe automatic pwayback of bideos",
+      "scrollModeLabel": "Scwoww mode",
+      "scrollModeMsg": "Use scwoww/tap to tuwn pages",
+      "resetAllSettings": "Reset aww settings/data",
+      "resetAllSettingsWarning": "U wiww wose aww data. Continue?",
+      "clipLanguageSelection": "See cwips in these wanguages:",
+      "tlLanguageSelection": "See wive-chat tl in these wanguages",
+      "defaultPage": "Defauwt page",
+      "defaultPageMsg": "Open dis page by defauwt when visiting howodex.net, ow cwicking on da wogo top weft.",
+      "videoFeedSettings": "Bideo feed settings",
+      "siteNavigationSettings": "Site/navigation",
+      "languageSettings": "Wanguage",
+      "gridSizeLabel": "Thumbnaiw/gwid size",
+      "gridSizeMsg": "Change thumbnaiw/video gwid size on home/favowites page",
+      "gridSize": {
+        "0": "Lawge",
+        "1": "Medium uwu",
+        "2": "Smaww"
+      },
+      "hideCollabStreamsLabel": "Hide cowwab stweams",
+      "hideCollabStreamsMsg": "Hide cowwab stweams fwom youw favowites feed",
+      "hidePlaceholderStreams": "Hide pwacehowdew stweams",
+      "hidePlaceholderStreamsMsg": "Hide scheduwed pwacehowdew entwies dat do nyot yet have a pwayabwe stweam page",
+      "hideMissingStreams": "Hide Missing Stweams",
+      "hideMissingStreamsMsg": "Hide videos dat awe unyavaiwabwe ow missing wequiwed Howodex metadata",
+      "ignoredTopicsLabel": "Ignowed topics",
+      "ignoredTopicsMsg": "Hide bideos with these topics fwom da home and favowites pages",
+      "theme": "Theme uwu",
+      "moreSettings": "Mowe settings",
+      "systemOptions": "System Options uwu",
+      "followSystemThemeLabel": "Fowwow System Theme",
+      "languageOverrideActive": "Wanguage ovewwide is active fow {language}. Cwick to cweaw it.",
+      "filters": {
+        "blockedTopics": "Ignowed topics",
+        "blockedTopicsDescription": "Hide bideos with these topics fwom da home and favowites pages",
+        "searchTopics": "Seawch topics",
+        "clearBlockedTopics": "Cweaw bwocked topics",
+        "hideStreams": "Hide Stweams",
+        "collab": "Cowwab",
+        "placeholder": "Pwacehowdew",
+        "missing": "Missing uwu"
+      },
+      "defaultTheme": "Defauwt"
+    },
+    "app": {
+      "update_available": "An update ish avaiwabwe",
+      "update_btn": "Update uwu",
+      "close_btn": "Cwose",
+      "check_about_page": "Visit da about page to see new changes",
+      "nowSupportsMultiOrg": "Tip: You can change the owganyization hewe (・`ω´・)",
+      "loginCallToAction": "Wogin to set youw own favowites."
+    },
+    "about": {
+      "add_my_channel": "Channew request"
+    },
+    "watch": {
+      "theaterMode": "Theatew mode (alt + t)",
+      "mentionIconLabel": "MENTIONS uwu",
+      "chat": {
+        "loading": "Loading chat...",
+        "hideTLBtn": "Hide tls",
+        "showTLBtn": "Show tls",
+        "TLSettingsTitle": "Tl settings",
+        "showSubtitle": "Show subtitwe",
+        "expandTL": "Expand tldex",
+        "tlStart": "Stawt of messages",
+        "StickBottomSettingLabel": "Stick bottom",
+        "StickBottomSettingsDesc": "Tl box pwaced bewow youtube chat",
+        "showVerifiedMessages": "Show vewified messages",
+        "showModeratorMessages": "Show modewatow messages",
+        "showVtuberMessages": "Show vtubew messages",
+        "showLocalTime": "Show locaw times",
+        "tlFontSize": "Font size",
+        "tlWindowSize": "Tl box size (%), weave as 0% fow automatic",
+        "retryBtn": "Retwy",
+        "status": {
+          "reconnecting": "Auto reconnecting...",
+          "reconnectFailed": "Couwd not weconnect",
+          "notLive": "Stweam ish not wive yet, pwease twy again when da stweam ish within 15 minutes of being wive",
+          "connectedToChat": "Connyected",
+          "disconnectedToChat": "Disconnyected"
+        },
+        "archiveNeedExtension": "Awchive chat does not wowk without da {arg0} extension ow othew thiwd pawty extensions.",
+        "hideSpoiler": "Hide spoiwew",
+        "archiveNeedExtensionAfter": " to view awchived TW chat.",
+        "archiveNeedExtensionBefore": "Instaww da bwowsew extension",
+        "editBlockedList": "Edit bwocked wist",
+        "manageBlockedTranslators": "Manyage bwocked twanswatow nyames.",
+        "membersOnlyTl": "Membews-onwy TW chat is unyavaiwabwe.",
+        "noBlockedNames": "Nyo bwocked nyames.",
+        "tuneTlBehavior": "Tunye wive twanswation behaviow and wayout.",
+        "ytChatLabel": "YouTube chat uwu"
+      },
+      "removeFromPlaylist": "Remove bideo fwom cuwwent pwaywist",
+      "saveToPlaylist": "Save bideo to cuwwent pwaywist",
+      "likeOnYoutube": "Like bideo on youtube",
+      "uploadPanel": {
+        "title": "Upwoad scwipt",
+        "usernameText": "Tl wiww be upwoaded undew usewname",
+        "usernameChange": "Change uwu",
+        "tlLang": "Tl wanguage",
+        "headerStart": "Stawt",
+        "headerEnd": "End uwu",
+        "headerText": "Text uwu",
+        "cancelBtn": "Cancew",
+        "okBtn": "Ok uwu",
+        "notifTextErr": "UNABWE TO PAWSE THE FIWE (FIWE COWWUPTED?)",
+        "notifTextParsing": "Pawsing fiwe...",
+        "notifTextErrExt": "Unwecognized fiwe extension.",
+        "subtitleFile": "Subtitwe fiwe"
+      },
+      "reloadVideoFrame": "Wewoad video fwame"
+    },
+    "favorites": {
+      "promptForAction": "Cweate a wist of favowite vtubews and see theiw watest cwips and wives on dis page.",
+      "manageFavorites": "Manage favowites",
+      "close": "Cwose",
+      "showall": "Show aww"
+    },
+    "editor": {
+      "needlogin": "U'ww need to wogin to make edits to howodex bideo and song metadata.",
+      "changeTopic": {
+        "title": "Change stweam topic",
+        "info": "Aww usews can assign topic to bideos, but onwy editows and admins can wemove and change da topic once set.",
+        "button": "Save (may take 5 minutes to take effect)",
+        "unset": "Unset uwu",
+        "inputPlaceholder": "Topic (weave empty to unset)",
+        "saveTopic": "Save Topic uwu"
+      },
+      "channelMentions": {
+        "title": "Channew mentions",
+        "addSuccess": "Channyew mention added.",
+        "deleteSuccess": "Channyew mention wemoved.",
+        "tagsTitle": "Mentionyed channyews"
+      },
+      "sources": {
+        "title": "Souwces/cwips (in devewopment)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "U can use api key to quewy howodex api pwogwammaticawwy. Onwy one key pew account. Aftew getting a new key, da owd key wiww expiwe within 0-24 houws.",
+      "apikeyNew": "Get new api key",
+      "ownedYtChannel": "Owned youtube channew",
+      "futureYtcOwnerMessage": "In da futuwe, we pwan on pwoviding mowe sewvices to channew ownews wike editing metadata fow theiw own bideos.",
+      "linkAcc": "Link anothew account",
+      "apikeyResetConfirm1": "Awe u suwe u wanna weset youw api key?",
+      "apikeyResetConfirm2": "Da owd api key wiww have 0-24 houws befowe expiwing. Reawwy weset?",
+      "apikeyResetNvm": "Nothing intewesting happened.",
+      "with": {
+        "0": "Login with googwe",
+        "1": "Login with discowd",
+        "2": "Login with twittew"
+      },
+      "twitterMsg": {
+        "0": "Due to Twittew API powicy change, Twittew Wogin is wikewy to nyo wongew wowk aftew Feb 9th.",
+        "1": "You awe onwy using Twittew Wogin at the moment. We stwongwy wecommend winking a diffewent wogin method nyow to pwevent wockout. (on diffewent devices ow aftew a bwowsew wipe).",
+        "2": "If you awe faiwing to wog into Howodex usew via Twittew account (and have nyot bound any othew wogin methods), pwease contact us on Twittew DMs ow Discowd fow suppowt."
+      },
+      "username": "Usewname",
+      "usernameBtn": {
+        "0": "Change uwu",
+        "1": "Confiwm",
+        "2": "Save uwu"
+      },
+      "loggingIn": "Wogging in..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Ovewwwite cuwwent wayout?",
+      "confirmOverwriteYes": "Confiwm",
+      "permalink": "Pewmawink",
+      "presets": "Pwesets",
+      "addframe": "Add ceww",
+      "muteAll": "Mute aww",
+      "unmuteAll": "Unmute aww",
+      "muteOthers": "Mute othews",
+      "muteOthersDetail": "Mute aww but one stweam",
+      "autoLayoutTip": "Cwick on a channew to stawt watching using auto wayout mode",
+      "createLayoutTip": "Cweate youw own wayout by adding a ceww, ow using a pweset",
+      "openToolbarTip": "Open da toowbaw to stawt using muwtiview",
+      "archiveSync": "Awchive sync",
+      "preset": {
+        "shareOnDiscord": "Have a coow wayout to shawe? use da shawe button and wet us know on ouw <a href=\"https://discord.gg/jctkgHBt4b\">discowd sewvew</a>!",
+        "custom": "My layouts",
+        "toggleAutoLayout": "Toggwe use wayout in auto",
+        "remove": "Dewete",
+        "desktop": "Desktop uwu",
+        "mobile": "Mobiwe",
+        "autoLayout": "Autolayout",
+        "noPresets": "Nyo pwesets avaiwabwe"
+      },
+      "presetEditor": {
+        "title": "Save layout",
+        "name": "Nyame",
+        "autoLayout": "Use wayout in auto mode"
+      },
+      "video": {
+        "selectLive": "Sewect live",
+        "addCustomVideo": "Add custom bideo",
+        "twitchChannelLink": "Twitch Channyew Wink",
+        "youtubeVideoLink": "YouTube Video Wink",
+        "noHistory": "Nyo histowy",
+        "addUrl": "Add UWW",
+        "addUrlShort": "Add uwu",
+        "urlPlaceholder": "Paste a YouTube ow Twitch UWW",
+        "urlPlaceholderShort": "UWW"
+      },
+      "fullScreen": "Fuwwscween",
+      "mediaControls": "Media contwows",
+      "mediaControlsEmpty": "Bideos being pwayed wiww appeaw hewe",
+      "editAutoLayout": "Edit auto layout",
+      "changeLayout": "Change layout",
+      "done": "Donye",
+      "hints": "Hints uwu",
+      "presetsHint": "Open pwesets menu to switch wayouts and configuwe auto wayout",
+      "mediaControlsHint1": "Use media contwows to mute and sync (",
+      "mediaControlsHint2": ") wive stweams",
+      "dragDropHint": "Dwag and dwop stweams fwom toowbaw to cewws to owganize stweams",
+      "reorderHint": "Use reowdew layout menu to change bideo/chat positions",
+      "reorderLayout": "Reowdew layout",
+      "reorderLayoutDetail": "Dwag and dwop icons to da desiwed position",
+      "sync": {
+        "nothingToSync": "Nothing to sync, pwease open two ovewwapping awchives (eg. cowwab stweams)",
+        "syncSettings": "Sync settings",
+        "syncSettingsDetail": "Bideos awe synced based on da stweam stawt time, and can desync due to mid stweam technicaw issues ow deweted powtions. Use offsets to manuawwy awign bideos"
+      },
+      "syncLabel": "Sync uwu",
+      "collapseToolbar": "Cowwapse toowbaw",
+      "deleteCell": "Dewete ceww",
+      "fillEmptyCells": "Fiww empty cewws wif cuwwent videos",
+      "openNavigation": "Open nyavigation",
+      "shareLayout": "Shawe wayout"
+    },
+    "mugen": {
+      "welcome": "Wewcome to mugencwips! evewyone on dis page ish seeing da same wandomwy sewected engwish howowive cwip. Watch awong and chat with howowive fans fwom acwoss da wowwd. If u skip ahead and wanna be we-sync'd with evewyone, pwease wefwesh da page."
+    },
+    "playlist": {
+      "playlist-is-modified": "Nyot saved",
+      "item-last-updated": "Last updated:",
+      "login-prompt": "Login to save pwaywists and have mowe than one pwaywist",
+      "new-playlist-btn-label": "Cweate a new pwaywist",
+      "page-heading": "Youw pwaywists:",
+      "page-instruction": "Cwick a pwaywist to set it as active.",
+      "change-loss-warning": "U wiww wose unsaved changes. Continue?"
+    },
+    "extension": {
+      "title": "Howodex pwus extension",
+      "features": "Featuwes",
+      "featureset": {
+        "one": "Enabwes awchive live chat on watch and muwtiview",
+        "two": "Awwows wiking bideos fwom howodex watch page",
+        "three": "Fixes memowy weak in youtube's wive chat",
+        "four": "Fixes expewimentaw fwags on youtube pwayew (like disabwing muwtipwe stweams, waiting woom thumbnaiw not showing) and mowe!"
+      },
+      "chromeWebstore": "Chwome Web Stowe",
+      "downloadSourceCode": "Downwoad souwce code",
+      "firefoxAddons": "Fiwefox Add-ons",
+      "firefoxExtension": "Fiwefox extension",
+      "githubDownload": "GitHub downwoad",
+      "installFromGithubPrefix": "Instaww fwom ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Seawch awchives",
+          "channels": "Open channyews",
+          "clips": "Find cwips",
+          "live": "Check wive stweams"
+        },
+        "getItOnPrefix": "Get it on  uwu",
+        "getItOnSuffix": ".",
+        "title": "Waycast extension"
+      },
+      "raycastStore": "Waycast Stowe"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menyu",
+        "setting": "Tldex room settings",
+        "loadVideo": "Show bideo",
+        "unloadVideo": "Hide bideo",
+        "loadChat": "Add yt chat to bwoadcast tl",
+        "unloadChat": "Detach fwom yt chat"
+      },
+      "tlControl": {
+        "enterBtn": "Entew",
+        "prefix": "Pwefix",
+        "suffix": "Suffix uwu",
+        "fontColour": "Font cowow",
+        "outlineColour": "Outwine cowor",
+        "localPrefix": "Wanguage tag in chat",
+        "addProfile": "Add pwofiwe",
+        "removeProfile": "Wemove pwofiwe",
+        "shiftUp": "Shift pwofiwe up",
+        "shiftDown": "Shift pwofiwe down",
+        "showSetting": "Setting uwu",
+        "hideSetting": "Hide uwu",
+        "currentProfileSettings": "Cuwwent pwofiwe [{name}] settings uwu",
+        "inputPlaceholder": "Type twanswation text"
+      },
+      "addProfilePanel": {
+        "title": "Add new pwofiwe",
+        "inputLabel": "Pwofiwe name"
+      },
+      "settingPanel": {
+        "title": "Setting uwu",
+        "mainStreamLink": "Main stweam wink",
+        "collabLink": "Cowwab winks",
+        "findVideo": "Find video uwu"
+      },
+      "removeProfileTitle": "Confiwm wemove pwofiwe",
+      "loadChatPanel": {
+        "title": "Woad chat",
+        "inputLabel": "Stweam wink"
+      },
+      "unloadChatTitle": "Unwoad ALL active chat?",
+      "pangram": "Da quick bwown fox jumps ovew da wazy dog",
+      "cancelBtn": "Cancew",
+      "okBtn": "Ok uwu",
+      "shortcuts": {
+        "changeProfiles": "Change pwofiwes",
+        "or": "ow",
+        "quickSwitchDefaultProfile": "Quick switch to defauwt pwofiwe",
+        "quickSwitchProfileRange": "Pwofiwes 0-9",
+        "quickSwitchProfiles": "Quick switch pwofiwes",
+        "whileTyping": "Whiwe typing in da TW box:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Save uwu",
+        "continuousEnd": "Make time continuous (change end)",
+        "clearAll": "Dewete scwipt",
+        "exportFile": "Expowt fiwe",
+        "importFile": "Impowt fiwe",
+        "editorMode": "Editow mode",
+        "changeCustomLink": "Change custom wink",
+        "timeShift": "Time shift uwu"
+      },
+      "table": {
+        "headerStart": "Stawt",
+        "headerEnd": "End uwu",
+        "headerProfile": "Pwofiwe",
+        "headerText": "Text uwu",
+        "setAsStart": "Set as stawt",
+        "shiftCurrentTime": "Shift to cuwwent time",
+        "deleteEntry": "Dewete entwy"
+      },
+      "loadVideoPanel": {
+        "title": "Load bideo",
+        "inputLabel": "Stweam link"
+      },
+      "setStartTitle": "Set sewected entwy as stawt, aww da pwevious entwies wiww be deweted.",
+      "importFile": {
+        "overwriteBtn": "Ovewwwite"
+      },
+      "editorModePanel": {
+        "activateMode": "Activate editow mode",
+        "deactivateMode": "Deactivate editow mode",
+        "roleWarning": "U dun have enough pwiviwege",
+        "filterTranslator": "Fiwtew twanswatow"
+      },
+      "timeShift": {
+        "offset": "Offset uwu",
+        "seconds": "seconds uwu",
+        "secondsShort": "sec uwu",
+        "timeOffset": "Time offset uwu"
+      }
+    },
+    "tlManager": {
+      "title": "Scwipt managew",
+      "headerID": "Bideo id",
+      "headerEntries": "Entwies",
+      "download": "Downwoad",
+      "delete": "Dewete",
+      "deleteTitle": "Dewete entwies",
+      "langPick": "Wanguage",
+      "changeCustomLink": "Change custom wink",
+      "changeStreamLink": "Change stweam wink",
+      "description": "Manyage twanswation scwipts, expowt data, and cwean up custom winks.",
+      "entriesCount": "{count} entwies",
+      "importFromMchad": "Impowt fwom MChad",
+      "importMchad": {
+        "claimAllArchives": "Cwaim aww awchives",
+        "claimSuccess": "Cwaimed awchives.",
+        "entryLength": "{count} entwies",
+        "foundId": "Found woom ID: {id}",
+        "login": "Wog in",
+        "missingCredentials": "Entew woom nyame and passwowd.",
+        "noArchives": "Nyo awchives found.",
+        "password": "Passwowd",
+        "roomName": "Woom nyame"
+      },
+      "newLink": "Nyew wink",
+      "noScriptsFound": "Nyo twanswation scwipts found fow dis page.",
+      "noTitle": "Nyo titwe",
+      "videoTitle": "Video titwe"
+    },
+    "relayBot": {
+      "addSubscription": "Add subscwiption",
+      "blacklist": "Bwackwist",
+      "botMissing": "da bot is nyot in dis sewvew.",
+      "channelsFor": "Channyews fow {name}",
+      "description": "Weway wive twanswations fwom YouTube channyews ow videos into Discowd.",
+      "inviteBot": "Invite bot uwu",
+      "loginDiscord": "Wog in wif Discowd",
+      "noBlacklistEntries": "Nyo bwackwist entwies.",
+      "noSubscriptionsConfigured": "Nyo subscwiptions configuwed.",
+      "noWhitelistEntries": "Nyo whitewist entwies.",
+      "notOk": "Faiwed",
+      "ok": "OK uwu",
+      "relaySubscription": "Weway subscwiption",
+      "relayTL": "Weway TW",
+      "saved": "Saved. uwu",
+      "saving": "Saving... uwu",
+      "sendingTrigger": "Sending... uwu",
+      "serverNotShown": "Onwy sewvews whewe yu can manyage da bot awe shown.",
+      "servers": "Sewvews",
+      "settingFor": "Settings fow {name}",
+      "subscribedChannel": "Subscwibed channyew",
+      "title": "Weway Bot",
+      "translatorName": "Twanswatow nyame",
+      "whitelist": "Whitewist",
+      "youtubeChannel": "YouTube channyew",
+      "youtubeLinkChannelVideo": "YouTube channyew ow video wink"
+    }
+  },
+  "time": {
+    "soon": "soon uwu",
+    "diff_future_date": "Stawts {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Add uwu",
+      "update": "Update uwu",
+      "permission": "U need to be an 'editow' usew wevew ow highew to update ow dewete existing songs. Pwease contact us on <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discowd</a> to notify editows of issues / abuse, ow appwy to become an editow.",
+      "titles": {
+        "addSong": "Song metadata: add a new song",
+        "songList": "Song list : {arg0}",
+        "help": "Guide uwu"
+      },
+      "itunesLookupPlaceholder": "(optionaw) lookup on itunes",
+      "moveRight2s": "Move wight 2s",
+      "testEnd": "Test wisten stawting at 3 seconds befowe da end.",
+      "setToCurrentTime": "Set to cuwwent time ({arg0})",
+      "moveLeft2s": "Move weft 2s",
+      "trackNameInput": "Twack name",
+      "originalArtistInput": "Owiginaw awtist",
+      "testStart": "Test da stawt",
+      "startInput": "Stawt",
+      "endInput": "Duwation in seconds: (end @ {arg0})",
+      "inheritItunesMusic": "Set duwation via itunes: {arg0}",
+      "listenOnAppleMusic": "Wisten on Appwe Music",
+      "pickItunesResult": "Pick eithew iTunyes wesuwt",
+      "playFromHere": "Pway fwom hewe",
+      "timestampEditorHint": "Use wewative timestamps to winye music up wif da video."
+    },
+    "exitMode": "Exit edit mode",
+    "enterMode": "Edit bideo"
+  },
+  "about": {
+    "quicklinks": "Quick links",
+    "discordBtn": "Howodex discowd",
+    "faq": {
+      "title": "Faq",
+      "ytchatHeader": "My youtube chat ish not wogged in!",
+      "ytchatContent": "Pwease disabwe da bwowsew secuwity featuwe known as 3wd pawty cookies bwocking, ow whitewist dis website and youtube.com to awwow 3wd pawty cookies.",
+      "ytchatFirefox": "Fiwefox instwuctions, othew bwowsews may be simiwaw.",
+      "autoplayHeader": "Autopway isn't wowking!",
+      "autoplayContent": "Pwease googwe how to enabwe autopway fow youw bwowsew.",
+      "musicPlayer": "Music pwayew doesn't wowk weww on mobiwe devices!",
+      "musicPlayerContent": "Fow most ios devices, u cannot tuwn off da scween ow cwose safawi whiwe pwaying howodex music. Dis westwiction may ow may not appwy to andwoid devices (depends on device). Pwease give us feedback on discowd if u have any idea how to pwoduce a bettew pwayback system.",
+      "videoLinkage": "How do me make suwe that bideos awe winked pwopewwy to vtubews?",
+      "videoLinkageContent": "Aww infowmation ish pawsed fwom da bideo descwiption. If u awe cwipping a stweam, pwease make suwe to wink da officiaw stweam. If u awe cwipping fan made content (eg. fwom biwibiwi), just make suwe to wink da officiaw youtube channews of wewevant vtubews. If u do not wink any vtubew channews, then we wiww not show that cwip on howodex, as aww cwips wequiwe winkage to a vtubew known to howodex.",
+      "quitHolodex": "Am a subbew and me wouwd wike to have my channew wemoved fwom howodex\r\n",
+      "quitHolodexContent": "Sad to see u go :(, pwease wet me know if thewe's any issue me can hewp u with. If u wouwd stiww wike to have it wemoved, pwease send us a message on discowd.",
+      "favorite": {
+        "title": "Wat awe favowites?",
+        "Contents": {
+          "0": "Favowites awe a way to stay on top of youw favowite vtubews, u can add youw favowite channews by cwicking da heawt icon on da",
+          "1": "page. Pwease note that favowiting subbews ish cuwwentwy not suppowted, but u shouwd stiww considew subscwibing and suppowting them in othew ways!"
+        },
+        "disappear": {
+          "title": "My favowites wist disappeawed / me cannot favowite"
+        },
+        "contents": {
+          "0": "Pwease make suwe u awe wogged in and visit da channews favowites tab to fowce a wefwesh."
+        }
+      },
+      "mobile": {
+        "title": "Ish thewe an andwoid/ios app fow howodex?",
+        "content": {
+          "summary": "We awe wowking on it! in da mean time, pwease use da \"add to home\" featuwe on youw bwowsew. We have tuned it a wot to behave wike an app",
+          "android": {
+            "0": "Andwoid chwome: navigate to da site, cwick da thwee dots",
+            "1": "on da top wight and find \"add to home scween\"."
+          },
+          "ios": {
+            "0": "ios safawi: navigate to da site on youw phone, cwick da squawe with awwow pointing up",
+            "1": "at da bottom of safawi, and cwick \"add to home scween\""
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "Wat ish mugencwips?",
+        "contents": {
+          "0": "Mugencwips, ow infinite cwips, ish a watch awong pawty whewe peopwe on da site can watch a constantwy wotating vawiety of cwips upwoaded by da many community twanswation channews"
+        }
+      },
+      "subber": {
+        "title": "Am a subbew and can't find my channew ow cwips on howodex",
+        "contents": {
+          "0": "Pwease check on da channews page to see if u awe wisted as a subbew, if not pwease fiww out",
+          "1": "dis fowm",
+          "2": ", and we wiww add u manuawwy. If u awe awweady on da wist, pwease make suwe youw bideo descwiptions have da cowwect youtube souwce/channew winks."
+        }
+      },
+      "feedback": {
+        "title": "Me have feedback/want to contwibute to dis pwoject",
+        "contents": {
+          "0": "Aww hewp and ideas awe wewcome! da ui and backend awe both avaiwabwe fow contwibution, awthough onwy da ui ish open souwce cuwwentwy. Pwease contact us on discowd to gain access to backend souwce, ow simpwy chat about youw ideas."
+        }
+      },
+      "support": {
+        "title": "How do me suppowt howodex?",
+        "contents": {
+          "0": "Ouw sewf-hosted sewvew ish a 28-cowe 60gb ram machine that take about $60 usd / mo to wun, and we'we wooking to expanding mowe and mowe in ouw featuwe set, so we've stawted a <a href=\"https://ko-fi.com/holodex\">ko-fi</a> to covew sewvew costs. (we awso have a <a href=\"https://www.patreon.com/holodex\">patweon</a>, but we wike da ko-fi bettew.)<br /><br />you can awso suppowt howodex by giving us feedback and suppowtive messages on twittew, hewping us twanswate via <a href=\"https://crwd.in/holodex\">cwowdin</a>, as weww as contwibuting to ouw data stowe of songs. Even timing a stweam fow funny pawts, and commenting that on da owiginaw stweam ish gweat hewp!"
+        }
+      }
+    },
+    "privacyPolicy": "Pwyvacy powicy",
+    "gdpr": "Gdpr and my data",
+    "gdprContent": "A googwe anawytics cookie ish used to twack pageviews fow ouw anawyticaw puwposes. Aftew wogin, we associate youw sociaw media account usewname and id with youw favowites. Dis data may incwude youw emaiw (fow googwe), discowd id, ow twittew handwe wespectivewy.",
+    "gdprDeletion": "Fow dewetion of youw usew data, pwease contact us on discowd!",
+    "feedback": "Feedback/bug repowts",
+    "feedbackHtml": "U can cweate an issue in da <a href=\"https://github.com/RiceCakess/Holodex/issues\"> github issue twackew </a> ow find da howodex team on discowd <br /> <br /> reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/rice_cakess </a>",
+    "credits": {
+      "title": "Cwedits",
+      "contents": {
+        "0": "Me wouwd wike to give big thankies to da",
+        "1": "team fow theiw wowk on",
+        "2": "Awso to aww da subbews fow hewping da ovewseas bwos! pwease check them out!",
+        "3": "Dis ish a fan made website and da content found on dis website ish owned by covew cowp and its pawtnews. Da site fowwows da guidewines set fowth by covew cowp in theiw",
+        "4": "Dewivative wowk license agweement"
+      }
+    },
+    "changelog": {
+      "title": "Changewog"
+    },
+    "news": {
+      "title": "Nyews"
+    },
+    "bookmarklet": {
+      "title": "Bookmawkwets",
+      "description": "Dwag these bookmawkwets to youw bookmawk baw to open youtube watch page in howodex easiwy:",
+      "openYoutube": "Open YouTube in Howodex"
+    },
+    "links": {
+      "browserAddon": "Bwowsew add-on",
+      "community": "Communyity",
+      "docs": "Docs uwu",
+      "extension": "Extension uwu",
+      "repository": "Wepositowy"
+    },
+    "privacy": {
+      "content": {
+        "intro": "dis page expwains what data Howodex handwes and how thiwd-pawty sewvices awe used."
+      },
+      "firstParty": {
+        "title": "Howodex data",
+        "collection": "Howodex stowes da account identifiews, favowites, settings, pwaywists, and editow actions nyeeded to pwovide site featuwes.",
+        "voluntary": "Most account data is cweated onwy when yu sign in ow use account featuwes.",
+        "access": "yu can access ow update yuw usew settings fwom yuw account menyu.",
+        "limitedUse": "Howodex uses Googwe usew data onwy fow sign-in and account winking featuwes.",
+        "noPosting": "Howodex does nyot post to yuw winked accounts.",
+        "revoking": "yu can wevoke thiwd-pawty account access fwom da pwovidew account settings.",
+        "changes": "dis powicy may change when site featuwes ow pwovidew wequiwements change."
+      },
+      "links": {
+        "google": "Googwe Pwivacy Powicy",
+        "twitch": "Twitch Pwivacy Nyotice"
+      },
+      "thirdParty": {
+        "title": "Thiwd-pawty sewvices",
+        "analyticsTitle": "Anyawytics",
+        "analyticsBody": "Howodex may use anyawytics to undewstand site usage and wewiabiwity.",
+        "analyticsUse": "Anyawytics data is used to impwove pewfowmance, nyavigation, and stabiwity.",
+        "embedsTitle": "Embedded pwayews and chat",
+        "embedsBody": "YouTube and Twitch embeds awe pwovided by those sewvices and may use theiw own cookies and account state.",
+        "linksIntro": "See these pwovidew powicies fow detaiws:",
+        "choicesTitle": "yuw choices",
+        "choicesBody": "yu can bwock thiwd-pawty cookies ow sign out of winked pwovidews, though some embedded featuwes may stop wowking.",
+        "contactTitle": "Contact uwu",
+        "contactBody": "Contact da Howodex team thwough Discowd ow GitHub fow pwivacy questions.",
+        "commitment": "Howodex onwy asks fow da access nyeeded to wun its featuwes."
+      }
+    },
+    "stats": {
+      "lastMonth": "wast month",
+      "songs": "songs uwu",
+      "subbers": "subbews",
+      "videos": "videos uwu",
+      "vtubers": "VTubers",
+      "yesterday": "yestewday"
+    },
+    "youtubeTerms": {
+      "before": "Use of embedded YouTube featuwes is subject to da ",
+      "link": "YouTube Tewms of Sewvice",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Request type:",
+    "Types": {
+      "AddVtuber": "Add a vtubew ▶️ fow howodex to twack da channew and cwips.",
+      "AddClipper": "Add a cwipping/subbing channew to howodex",
+      "ModifyExistingInfo": "Modify existing channew infowmation",
+      "DeleteChannel": "Dewete my channew"
+    },
+    "DirectContactDisclaimer": "Feew fwee to weave youw discowd id, emaiw ow twittew. In case u need to be contacted (this info wiww stay pwivate) so we can pwovide feedback. Onwy howodex administwatows wiww see dis infowmation.",
+    "DirectContactLabel": "Contact method (optionaw)",
+    "TwitterHandle": "Dis channew's twittew handwe (optionaw)",
+    "VtuberGroupLabel": "Vtubew gwoup (optionaw)",
+    "VtuberGroupHint": "Which owg / gwoup does dis vtubew bewong to?",
+    "ChannelLanguageLabel": "Channew's main wanguage",
+    "EnglishNameHint": "Pwovide an engwish name if da channew name ish not in engwish. Fowwow name-owdew conventions fwom da native wocawe of dis vtubew (natsuiwo matsuwi), ow a pwefewwed en bwand name (ewu da ewf, emma★august).",
+    "EnglishNameLabel": "Engwish channew name",
+    "Comments": "Comments uwu",
+    "CommentsHint": "Othew comments u'd wike to teww us.",
+    "VtuberRequirementText": "A minyimum of 15K subscwibews is wequiwed fow independents. Vtubews as pawt of existing owgs wiww be accepted. <br /><br />Nyew Owgs wiww be cweated depending on da avewage subscwibew count.<br /><br />Twitch stweamews must have an officiaw YouTube channyew to be indexed.<br /><br /><strong>Any  mention of \"Past-Wives\" / awtewnyate identities wiww automaticawwy be  wejected.</strong>",
+    "ClipperRequirementText": "Fow cwippews, it must be at weast 2 months owd and post weguwawwy, ow post mowe than 20 cwips in one month. Spamming of showt cwips evewy day, posting onwy showt &lt;1min cwips, ow using unfwattewing thumbnaiws wiww aww count against da channew. Content quawity might be judged as weww. <br /><br />it's impowtant to note that cwippews shouwd cite theiw souwces via channew winks, @youtube channew mentions, and bideo winks. Ovewciting (e.g. Linking to evewyone at nijisanji) cweates wowk fow howodex editows, and undewciting (no winks) wiww make cwips hidden. <br /><br /> howodex contains awgowithms to detect ovewciting and cowwect them automaticawwy, but it may not awways wowk pewfectwy. Cwippews who ovewcite may be wemoved fwom pwatfowm to weduce noise.",
+    "DeletionRequirementText": "Dewetion shouwd onwy be wequested if u awe da channew ownew(s), pwease pwovide contact infowmation so we can vewify dis.",
+    "PageTitle": "Howodex channew request",
+    "ChannelURLErrorFeedback": "Must be  uwuhttps://www.youtube.com/channel/UC_____ ow https://www.youtube.com/@_____",
+    "ChannelURLLabel": "Channyew UWW",
+    "SelectLanguage": "Sewect wanguage",
+    "ChannelURLExample": "Exampwe: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discowd, emaiw, ow othew contact method",
+    "TwitterExample": "Exampwe: @howodex",
+    "TwitterPlaceholder": "@usewnyame",
+    "VtuberGroupPlaceholder": "Gwoup ow owganyization nyame"
+  }
+}

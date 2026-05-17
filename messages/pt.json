@@ -1,0 +1,1076 @@
+{
+  "component": {
+    "apiError": {
+      "title": "Gomenasorry!",
+      "textBeforeTwitter": "Houve um erro ao carregar conteúdo, verifique o twitter ",
+      "textAfterTwitter": " ou relate o erro por meio da ",
+      "aboutPage": "página de Informações",
+      "afterAboutPageHyperlink": ".",
+      "refresh": "Atualizar",
+      "hardRefreshTip": "Dica: recarregamento forçado/limpar cache:"
+    },
+    "channelList": {
+      "signInToFavorite": "Conecte-se para adicionar canais ao Favoritos",
+      "unfavoriteAllInGroup": "Remover todos desse grupo dos favoritos",
+      "favoriteAllInGroup": "Adicionar todos desse grupo aos favoritos",
+      "enableGroupDisplay": "Mostrar canais deste grupo na página inicial",
+      "disableGroupDisplay": "Ocultar canais deste grupo da página inicial"
+    },
+    "channelInfo": {
+      "stats": "Estatísticas",
+      "videoCount": "{arg0} Vídeos",
+      "clipCount": "{n} Clipes",
+      "subscriberCount": "{n} Inscritos",
+      "subscriberNA": "Número de inscritos indisponível",
+      "totalViews": "Total de Visualizações",
+      "inactiveChannel": "Este canal não está mais ativo."
+    },
+    "channelSocials": {
+      "addToFavorites": "Adicionar aos favoritos",
+      "removeFromFavorites": "Remover dos favoritos",
+      "unblock": "Desbloquear este canal",
+      "block": "Bloquear o conteúdo deste canal no Holodex",
+      "blocked": "Bloqueados"
+    },
+    "mainNav": {
+      "home": "Início",
+      "favorites": "Favoritos",
+      "channels": "Canais",
+      "about": "Informações",
+      "library": "Biblioteca",
+      "settings": "Configurações",
+      "login": "Entrar",
+      "logout": "Sair",
+      "MugenClips": "MugenClips<sup>beta</sup>",
+      "accountSettings": "Configurações da Conta",
+      "music": "Música",
+      "multiview": "Multi Stream",
+      "points": "pts",
+      "playlist": "Lista de reprodução"
+    },
+    "videoCard": {
+      "clips": "{n} Clipes",
+      "watching": "{arg0} assistindo agora",
+      "liveNow": "Ao Vivo",
+      "openInBackground": "Abrir em segundo plano",
+      "edit": "Editar",
+      "copiedToClipboard": "Link copiado para a área de transferência.",
+      "copyLink": "Copiar link Holodex",
+      "premiere": "ESTREIA",
+      "googleCalendar": "Adicionar ao Google Agenda",
+      "totalTLs": "Total de tradutores no chat",
+      "totalSongs": "Total de músicas com timestamp",
+      "tlPresence": "Tradutor ativo nos últimos 30 min",
+      "uncertainPlaceholder": "O horário de início não está confirmado oficialmente; o horário real pode variar.",
+      "typeScheduledYT": "Stream agendada",
+      "typeExternalStream": "Stream externa",
+      "typeEventPlaceholder": "Evento",
+      "openClient": "Abrir cliente TL",
+      "openScriptEditor": "Abrir editor de script",
+      "popoutChat": "Abrir chat do YouTube em janela",
+      "uploadScript": "Enviar script TL",
+      "removeFromPlaylist": "Remover da playlist"
+    },
+    "videoDescription": {
+      "description": "Descrição"
+    },
+    "video": {
+      "comment": {}
+    },
+    "description": {
+      "showLess": "Mostrar Menos",
+      "showMore": "Mostrar Mais"
+    },
+    "watch": {
+      "streamingFor": "Transmissão iniciada há {arg0}",
+      "nextUpInMugen": "Próximo",
+      "loadingVideo": "Carregando vídeo",
+      "Comments": {
+        "title": "Comentários",
+        "all": "Todos"
+      }
+    },
+    "search": {
+      "searchLabel": "Buscar",
+      "type": {
+        "channel": "canal",
+        "topic": "tópico",
+        "org": "organização",
+        "titledesc": "título/descrição",
+        "title": "título",
+        "description": "descrição",
+        "comments": "comentários",
+        "videourl": "URL do vídeo"
+      },
+      "placeholder": "Buscar streams, clipes e canais",
+      "clear": "Limpar",
+      "loading": "Carregando...",
+      "typeTwoCharacters": "Digite 2 caracteres",
+      "noChannelsFound": "Nenhum canal encontrado",
+      "noTopicsFound": "Nenhum tópico encontrado",
+      "noOrganizationsFound": "Nenhuma organização encontrada",
+      "noResultsFound": "Nenhum resultado encontrado",
+      "searchChannels": "Buscar canais",
+      "filterByTopicOrgChannel": "Filtrar por tópico, organização, canal ...",
+      "topicOrgChannelPlaceholder": "Tópico, organização ou canal",
+      "toggleSearch": "Alternar busca",
+      "organizations": "Organizações",
+      "searchOrganizations": "Buscar organizações",
+      "quickSelect": "Seleção rápida",
+      "allVtubers": "Todos os VTubers",
+      "selectedOrgCount": "{count} organizações",
+      "additionalOrgCount": "{count} mais",
+      "unset": "Não definido"
+    },
+    "relatedVideo": {
+      "clipsLabel": "Clipes",
+      "simulcastsLabel": "Simulcasts",
+      "simulcasts": {
+        "linkToMultiview": {
+          "tooltip": "Abrir todos os simulcasts no Multiview",
+          "error": {
+            "layoutBuildFailure": "Ocorreu um erro ao criar o link do Multiview. Relate este bug no GitHub ou no Discord.",
+            "noDefaultLayout": "O Multiview não tem um layout para {videoCount} vídeos.",
+            "noSimulcasts": "Não há simulcasts para este vídeo."
+          }
+        }
+      },
+      "refersLabel": "Ref",
+      "sourcesLabel": "Fontes",
+      "songsLabel": "músicas",
+      "recommendationsLabel": "recomendados",
+      "sameSourceClips": "Dos mesmos streams"
+    },
+    "paginateLoad": {
+      "newer": "Novos",
+      "older": "Antigos"
+    },
+    "music": {
+      "clearPlaylist": "Limpar",
+      "trendingForOrg": "Em alta para {arg0}"
+    },
+    "channelMusic": {
+      "recentSongsHeader": "Músicas Recentes",
+      "weeklyTopPlaysHeader": "Mais ouvidas da semana",
+      "trending": "Em alta"
+    },
+    "songList": {
+      "songTitle": "Título",
+      "songCoveredBy": "Cover por",
+      "songDuration": "Duração",
+      "sangOnTime": "Cover feito em"
+    },
+    "orgMusic": {
+      "monthlyTopForOrg": "Mais ouvidas do mes por {arg0}",
+      "weeklyTopForOrg": "Mais ouvidas da semana por {arg0}"
+    },
+    "installPrompt": {
+      "title": "Instalar Holodex",
+      "callToAction": "Assistir vídeos no Holodex funciona melhor quando adicionado à tela inicial",
+      "notNowBtn": "Agora Não",
+      "installBtn": "Instalar",
+      "iOS": {
+        "popup": "Instalar Holodex no iOS",
+        "afterExportIcon": ", \"Adicionar à Tela de Início\"",
+        "beforeExportIcon": "Toque"
+      }
+    },
+    "media": {
+      "remove": "Remover"
+    },
+    "comment": {
+      "close": "Fechar",
+      "readMore": "Mostrar mais"
+    },
+    "reportDialog": {
+      "title": "Reportar",
+      "collabing": "Este canal pode estar em collab com um membro da {org} ou com um dos seus favoritos. Você pode desativar este recurso nas configurações",
+      "comments": "Que ações o Holodex deve tomar?",
+      "success": "Denuncia enviada, Obrigado!",
+      "consider": "Considere usar o filtro e descartar esta denúncia.",
+      "reasons": {
+        "0": "Vídeo etiquetado incorretamente",
+        "1": "Conteúdo Perigososamente de Baixa Qualidade ou Enganoso",
+        "2": "Inapropriado ou Viola as diretrizes de trabalho derivado",
+        "3": "Outros",
+        "4": "Tema do vídeo incorreto",
+        "5": "Menções de canais incorretas",
+        "6": "Este {arg0} não pertence a {arg1}"
+      },
+      "applyChanges": "Aplicar alterações",
+      "selectAll": "Selecionar tudo",
+      "deselectAll": "Desmarcar tudo",
+      "adjustMentionedChannels": "Ajustar canais mencionados",
+      "addMentionedChannels": "Adicionar canais mencionados",
+      "searchMentionedChannels": "Buscar VTubers para mencionar",
+      "commentLanguagesOk": "* Inglês / japonês / chinês tradicional OK",
+      "specificChannelWarningBody1": "O Holodex não arbitra disputas comuns sobre qualidade de tradução. Para problemas menores, deixe feedback para o clipper ou tradutor no YouTube.",
+      "specificChannelWarningBody2": "Se um vídeo estiver perigosamente mal traduzido e puder causar um mal-entendido sério, o Holodex pode removê-lo ou encaminhar o caso.",
+      "specificChannelWarningBody3": "Para parar de ver um canal, use o botão de bloquear canal neste diálogo ou na página do canal.",
+      "specificChannelWarningTitle": "Observação: não denuncie apenas porque você não gosta deste canal ou discorda dele.",
+      "topicUnsetPlaceholder": "Sugerir novo tema (deixe vazio para remover)"
+    },
+    "thirdpartycookie": {
+      "explanation": "Pode ser difícil acessar / usar o chat do Youtube devido às políticas de <b>Cookie de Terceiros</b> rígidas ou aos cookies do <kbd>Youtube.com</kbd> bloqueados. <br /><br /> Impedir <kbd>Youtube.com</kbd> de bloquear Cookies de Terceiros, ou reduzir o nível de segurança / privacidade de cookies para <kbd>Holodex.net</kbd> pode corrigir isso. <br /><br /> Incluímos alguns sites que explicam como fazer isso.",
+      "dialogTitle": "Usando o Chat do Youtube no Holodex",
+      "alertText": "As configurações de privacidade do seu navegador está impossibilitando o Chat do Youtube de se conectar. Clique aqui para mais informações",
+      "neverShowAgain": "Não Mostrar Este Alerta Novamente"
+    },
+    "playlist": {
+      "menu": {
+        "export-playlist": "Exportar Playlist",
+        "new-playlist": "Nova Playlist",
+        "rename-playlist": "Renomear Playlist",
+        "reset-unsaved": "Redefinir mudanças não salvas",
+        "delete-playlist": "Excluir Playlist",
+        "clear-playlist": "Limpar Playlist"
+      },
+      "save-error-not-logged-in": "Você precisa estar logado para salvar Playlists",
+      "unnamed-playlist": "Playlist sem nome",
+      "video-count": "{count} vídeos",
+      "next-video": "Próximo vídeo",
+      "error-loading": "Erro ao carregar a playlist, ela existe?"
+    },
+    "placeholderVideo": {
+      "discordCredit": "Dados do evento fornecidos por {arg0} a partir de: {arg1}",
+      "datasourceCredit": "Dados do evento obtidos da fonte {arg0}.",
+      "botCredit": "Dados do evento fornecidos via fonte {arg0}, criados por {arg1}.",
+      "streamPageBtn": "Página do stream",
+      "eventPageBtn": "Página do evento",
+      "scheduledEvent": "Agendado",
+      "editorCredit": "Evento configurado pelo editor Holodex {arg0}.",
+      "creditTitleText": "Creditos:"
+    },
+    "calendar": {
+      "liveCalendar": "Calendário de lives (iCal)",
+      "favoritesCalendar": "Calendário de favoritos (iCal)",
+      "favoritesLoginRequired": "É necessário fazer login para usar o feed de calendário dos favoritos."
+    },
+    "form": {
+      "required": "Obrigatório",
+      "invalidUrl": "URL inválida",
+      "invalidTime": "Hora inválida",
+      "error": "Ocorreu um erro.",
+      "never": "nunca",
+      "new": "Novo",
+      "existing": "Existente",
+      "channel": "Canal",
+      "submit": "Enviar",
+      "certainty": {
+        "certain": "Certo",
+        "likely": "Provável"
+      },
+      "placeholder": {
+        "editorBadge": "Editor",
+        "title": "Stream provisória",
+        "description": "Crie ou atualize streams provisórias agendadas com o novo fluxo do formulário.",
+        "success": "Stream provisória adicionada com sucesso",
+        "authError": "Você não é um Editor Holodex válido, ou o link de criação provisória gerado pelo Discord expirou",
+        "editingAs": "Editando como {user} a partir do Discord {guild}. Sua sessão expira: {expiresIn}. Atualize se ela estiver prestes a expirar.",
+        "notEditor": "Você não é editor ou o token expirou. Entre na conta ou gere um novo token usando nosso bot.",
+        "editorCreditName": "Nome de crédito do editor",
+        "editorCreditHint": "Use um nome diferente quando for creditado publicamente.",
+        "placeholderId": "ID provisório (11 caracteres)",
+        "placeholderIdInput": "ID provisório",
+        "videoTitle": "Título do vídeo",
+        "japaneseVideoTitle": "Título japonês do vídeo",
+        "sourceLink": "Link da fonte",
+        "sourceLinkHint": "ex.: URL de agenda no Twitter ou canal da Twitch",
+        "thumbnailImage": "Miniatura",
+        "eventType": "Tipo de evento",
+        "certainty": "Certeza",
+        "timezone": "Fuso horário",
+        "date": "Data",
+        "time": "Hora",
+        "duration": "Duração",
+        "durationHint": "Estime uma duração em minutos",
+        "submitModification": "Enviar modificação provisória",
+        "create": "Criar novo provisório",
+        "sourceLinkPlaceholder": "https://...",
+        "thumbnailPlaceholder": "https://..."
+      },
+      "none": "Nenhum",
+      "ok": "OK"
+    },
+    "common": {
+      "actions": "Ações",
+      "chat": "Chat",
+      "close": "Fechar",
+      "collapse": "Recolher",
+      "confirm": "Confirmar",
+      "language": "Idioma",
+      "moreActions": "Mais ações",
+      "or": "ou",
+      "processing": "Processando...",
+      "remove": "Remover",
+      "save": "Salvar"
+    },
+    "pagination": {
+      "nextPage": "Próxima página",
+      "previousPage": "Página anterior"
+    },
+    "userMenu": {
+      "apiKey": "Chave de API",
+      "googleLinkUnavailable": "A vinculação com o Google está indisponível.",
+      "googleSignInUnavailable": "O login com Google está indisponível.",
+      "icalFeed": "Feed iCal",
+      "link": "Vincular",
+      "linkGoogle": "Vincular Google",
+      "linkedAccounts": "Contas vinculadas",
+      "manualOAuthInstructions": "Se o login automático não foi concluído, cole abaixo a URL redirecionada.",
+      "pasteRedirectUrl": "Colar URL redirecionada",
+      "userAvatar": "Avatar do usuário"
+    }
+  },
+  "views": {
+    "channel": {
+      "video": "Vídeos",
+      "clips": "Clipes",
+      "music": "Músicas",
+      "collabs": "Colaborações",
+      "about": "Informações"
+    },
+    "channels": {
+      "sortOptions": {
+        "subscribers": "Inscritos",
+        "group": "Groupo",
+        "recentUpload": "Uploads Recentes",
+        "videoCount": "Número de Vídeos",
+        "clipCount": "Número de Clipes",
+        "org": "Organização"
+      },
+      "tabs": {
+        "Vtuber": "VTuber",
+        "Subber": "Tradutores",
+        "Favorites": "Favoritos",
+        "Blocked": "Bloqueados"
+      },
+      "favoritesAreEmpty": "Você não tem favoritos!",
+      "blockedAreEmpty": "Você não bloqueou nenhum canal.",
+      "sort": {
+        "newestFirst": "Mais recentes primeiro",
+        "oldestFirst": "Mais antigos primeiro"
+      }
+    },
+    "home": {
+      "liveOrUpcomingHeading": "Live / Próximas Transmissões",
+      "recentVideosHeading": "Vídeos Recentes",
+      "noStreams": "Sem lives ou streams futuras no momento",
+      "recentVideoToggles": {
+        "all": "Todos",
+        "official": "VODs",
+        "subber": "Clipes"
+      },
+      "liveLabel": "Ao vivo",
+      "upcomingLabel": "Próximas Transmissões",
+      "controls": {
+        "sortBy": "Ordenar por",
+        "viewers": "Espectadores",
+        "latest": "Novos",
+        "uploadedBefore": "Enviado antes de",
+        "pickDate": "Escolher uma data",
+        "clipLanguages": "Mostrar clipes nestes idiomas:"
+      },
+      "apiError": "Não foi possível carregar os vídeos."
+    },
+    "library": {
+      "savedVideosTitle": "Vídeos Salvos",
+      "createYtPlaylistButton": "Criar uma Playlist no Youtube ({arg0})",
+      "deleteFromLibraryButton": "Deletar ({arg0})",
+      "deleteConfirmation": "Tem certeza de que deseja excluir {arg0} vídeos?",
+      "deleteConfirmationOK": "Deletar",
+      "deleteConfirmationCancel": "Cancelar",
+      "selectionReset": "Redefinir",
+      "selectionSelectAll": "Selecionar Todos",
+      "emptyLibrary": "Você não tem vídeos salvos!",
+      "exportSelected": "Exportar Selecionado(s) ({arg0})",
+      "exportYtPlaylist": "Playlist no Youtube",
+      "exportCsv": "Arquivo CSV",
+      "selectionSelect50": "Selecionar 50",
+      "exportYTExplanation": "A Playlist criada por este recurso é <b>não listada</b> e pode ser excluída pelo Youtube. <br /> Como os recursos do Youtube são incompletos, siga os seguintes passo para salvar a playlist <b>não listada</b> em sua conta do Youtube.",
+      "exportYTHeading": "Instruções para salvar a Playlist no Youtube",
+      "exportYTInstructions": "<b class=\"red--text\">Passo 1</b>: Abra a playlist no youtube, e altere a interface para o modo Miniplayer. <br /><br /> <b class=\"red--text\">Passo 2</b>: Escolha qualquer vídeo e adicione-o à fila. <br /><br /> <b class=\"red--text\">Passo 3</b>: A Playlist agora pode ser salva em sua conta clicando em Salvar.",
+      "sort": {
+        "dateaddedEarliestFirst": "Data adicionado, do mais recente",
+        "dateaddedLatestFirst": "Data adicionado, do mais antigo",
+        "dateuploadedLatestFirst": "Data de envio, do mais antigo",
+        "dateuploadedEarliestFirst": "Data de envio, do mais recente"
+      }
+    },
+    "notFound": {
+      "title": "Conteúdo não encontrado",
+      "back": "Voltar para o Início"
+    },
+    "search": {
+      "sort": {
+        "newest": "Novos",
+        "oldest": "Angitos",
+        "longest": "Mais longo"
+      },
+      "type": {
+        "all": "Todos",
+        "official": "Oficiais",
+        "clip": "Clipe"
+      },
+      "unsupportedQuery": "Atualmente, pesquisar clipes por <kbd>Tópico</kbd> e <kbd>Organização</kbd> não é suportado. Nenhum <b> clipe </b> aparecerá.",
+      "sortByLabel": "Ordenar por",
+      "typeDropdownLabel": "Tipo",
+      "searching": "Buscando...",
+      "useSearchBar": "Use a barra de busca para encontrar streams, clipes ou canais."
+    },
+    "settings": {
+      "title": "Configurações",
+      "darkModeLabel": "Modo Escuro",
+      "darkModeMsg": "Altera o tema entre modo claro e modo escuro",
+      "redirectModeLabel": "Assistir no Youtube",
+      "redirectModeMsg": "Clique na thumbnail de um vídeo para assistir direto no Youtube ou clique no título para assistir no Holodex",
+      "useEnglishNameLabel": "Usar nomes em Inglês",
+      "useEnglishNameMsg": "Mostrar o nome dos VTubers em Inglês",
+      "hideVideoThumbnailsLabel": "Esconder Thumbnails",
+      "hideVideoThumbnailsMsg": "Esconde as thumbnails dos vídeo, molhora o carregamento da pagina e menos rolagem em celulares",
+      "pushNotificationLabel": "Push Notifications (Em Breve)",
+      "pushNotificationMsg": "Ativa push notification para seus canais favoritos",
+      "autoplayVideoLabel": "Reprodução automática de Videos",
+      "autoplayVideoMsg": "Liga a reprodução automática de vídeos",
+      "scrollModeLabel": "Modo de Rolagem",
+      "scrollModeMsg": "Use rolar/tocar para navegar nas páginas",
+      "resetAllSettings": "Redefinir todas as configurações/dados",
+      "resetAllSettingsWarning": "Perderás todos os dados. Continuar?",
+      "clipLanguageSelection": "Mostrar clipes nestes idiomas:",
+      "tlLanguageSelection": "Ver Traduções no Chat nestes idiomas",
+      "defaultPage": "Página Padrão",
+      "defaultPageMsg": "Abra esta página por padrão quando visitar holodex.net, ou clicar no logotipo no canto superior esquerdo.",
+      "videoFeedSettings": "Definições do feed de vídeos",
+      "siteNavigationSettings": "Navegação do site",
+      "languageSettings": "Idioma",
+      "gridSizeLabel": "Miniatura/Tamanho da Grade",
+      "gridSizeMsg": "Alterar tamanho da grade de miniaturas/vídeo na página Início/Favoritos",
+      "gridSize": {
+        "0": "Grande",
+        "1": "Médio",
+        "2": "Pequeno"
+      },
+      "hideCollabStreamsLabel": "Ocultar Collab Streams",
+      "hideCollabStreamsMsg": "Ocultar Streams que são Collab do seus Favoritos",
+      "hidePlaceholderStreams": "Ocultar streams placeholder",
+      "hidePlaceholderStreamsMsg": "Ocultar entradas placeholder agendadas que ainda não têm uma página de stream reproduzível",
+      "hideMissingStreams": "Ocultar streams ausentes",
+      "hideMissingStreamsMsg": "Ocultar vídeos indisponíveis ou sem metadados obrigatórios do Holodex",
+      "ignoredTopicsLabel": "Tópicos Ignorados",
+      "ignoredTopicsMsg": "Ocultar vídeos com esses tópicos das páginas Início e Favoritos",
+      "theme": "Tema",
+      "moreSettings": "Mais configurações",
+      "systemOptions": "Opções do sistema",
+      "followSystemThemeLabel": "Seguir tema do sistema",
+      "languageOverrideActive": "Substituição de idioma ativa para {language}. Clique para limpar.",
+      "filters": {
+        "blockedTopics": "Tópicos Ignorados",
+        "blockedTopicsDescription": "Ocultar vídeos com esses tópicos das páginas Início e Favoritos",
+        "searchTopics": "Pesquisar tópicos",
+        "clearBlockedTopics": "Limpar tópicos ignorados",
+        "hideStreams": "Ocultar streams",
+        "collab": "Colaboração",
+        "placeholder": "Provisório",
+        "missing": "Ausente"
+      },
+      "defaultTheme": "Padrão"
+    },
+    "app": {
+      "update_available": "Uma atualização está disponível",
+      "update_btn": "Atualizar",
+      "close_btn": "Fechar",
+      "check_about_page": "Veja o que há de novo no Holodex acessando a página de Informações",
+      "nowSupportsMultiOrg": "Dica: você pode mudar a organização aqui.",
+      "loginCallToAction": "Faça login para definir seus favoritos."
+    },
+    "about": {
+      "add_my_channel": "Solicitação de canal"
+    },
+    "watch": {
+      "theaterMode": "Modo cinema (alt + t)",
+      "mentionIconLabel": "Menções",
+      "chat": {
+        "loading": "Carregando o Chat...",
+        "hideTLBtn": "Esconder Traduções",
+        "showTLBtn": "Mostrar Traduções",
+        "TLSettingsTitle": "Configurações de tradução",
+        "showSubtitle": "Mostrar legenda",
+        "expandTL": "Expandir TLdex",
+        "tlStart": "Início das mensagens",
+        "StickBottomSettingLabel": "Fixar embaixo",
+        "StickBottomSettingsDesc": "A caixa TL fica abaixo do chat do YouTube",
+        "showVerifiedMessages": "Mostrar Mensagens Verificadas",
+        "showModeratorMessages": "Mostrar Mensagens de Moderadores",
+        "showVtuberMessages": "Mostrar mensagens de VTubers",
+        "showLocalTime": "Mostrar horários locais",
+        "tlFontSize": "Tamanho da Fonte",
+        "tlWindowSize": "Tamanho da Caixa de tradução, (%), deixar em 0% para automático",
+        "retryBtn": "Tentar Novamente",
+        "status": {
+          "reconnecting": "Tentando Reconexão",
+          "reconnectFailed": "Não foi possível reconectar",
+          "notLive": "A transmissão ainda não começou, tente novamente dentro de 15 minutos após o início da transmissão",
+          "connectedToChat": "Conectado",
+          "disconnectedToChat": "Desconectado"
+        },
+        "archiveNeedExtension": "O chat arquivado não funciona sem a extensão {arg0} ou outras extensões de terceiros.",
+        "hideSpoiler": "Ocultar spoiler",
+        "archiveNeedExtensionAfter": " para ver o chat TL arquivado.",
+        "archiveNeedExtensionBefore": "Instale a extensão do navegador",
+        "editBlockedList": "Editar lista de bloqueio",
+        "manageBlockedTranslators": "Gerenciar nomes de tradutores bloqueados.",
+        "membersOnlyTl": "O chat TL exclusivo para membros não está disponível.",
+        "noBlockedNames": "Nenhum nome bloqueado.",
+        "tuneTlBehavior": "Ajustar comportamento e layout da tradução ao vivo.",
+        "ytChatLabel": "Chat do YouTube"
+      },
+      "removeFromPlaylist": "Remover vídeo da lista atual",
+      "saveToPlaylist": "Salvar vídeo na lista atual",
+      "likeOnYoutube": "Curtir vídeo no YouTube",
+      "uploadPanel": {
+        "title": "Enviar script",
+        "usernameText": "O TL será enviado com o nome de usuário",
+        "usernameChange": "Alterar",
+        "tlLang": "Idioma do TL",
+        "headerStart": "Iniciar",
+        "headerEnd": "Fim",
+        "headerText": "Texto",
+        "cancelBtn": "Cancelar",
+        "okBtn": "OK",
+        "notifTextErr": "NÃO FOI POSSÍVEL ANALISAR O ARQUIVO (ARQUIVO CORROMPIDO?)",
+        "notifTextParsing": "Analisando arquivo...",
+        "notifTextErrExt": "Extensão de arquivo não reconhecida.",
+        "subtitleFile": "Arquivo de legenda"
+      },
+      "reloadVideoFrame": "Recarregar quadro do vídeo"
+    },
+    "favorites": {
+      "promptForAction": "Crie uma lista com seus vtubers favoritos para ver clipes e lives mais recentes nesta página.",
+      "manageFavorites": "Gerenciar Favoritos",
+      "close": "Fechar",
+      "showall": "Mostrar todos"
+    },
+    "editor": {
+      "needlogin": "Você precisará fazer login para editar metadados de vídeo e música do Holodex.",
+      "changeTopic": {
+        "title": "Alterar tópico da transmissão",
+        "info": "Todos os usuários podem atribuir tópico a vídeos, mas somente editores e administradores podem remover e alterar o tópico uma vez definido.",
+        "button": "Salvar (Pode levar 5 minutos para ter efeito)",
+        "unset": "Não definido",
+        "inputPlaceholder": "Tópico (deixe vazio para remover)",
+        "saveTopic": "Salvar tópico"
+      },
+      "channelMentions": {
+        "title": "Menções de Canal",
+        "addSuccess": "Menção de canal adicionada.",
+        "deleteSuccess": "Menção de canal removida.",
+        "tagsTitle": "Canais mencionados"
+      },
+      "sources": {
+        "title": "Fontes/Clipes (em desenvolvimento)"
+      }
+    },
+    "login": {
+      "apikeyMsg": "Você pode usar a chave de API para consultar a Holodex API programaticamente. Apenas uma  chave por conta. Gerar uma nova chave fará com que as chaves antigas expirem em até 24 horas.",
+      "apikeyNew": "Gerar nova Chave de API",
+      "ownedYtChannel": "Meu Canal do Youtube",
+      "futureYtcOwnerMessage": "No futuro, planejamos disponibilizar mais ferramentas para quem tem canais editar metadados de seus próprios vídeos.",
+      "linkAcc": "Vincular outra conta",
+      "apikeyResetConfirm1": "Tem certeza de que deseja resetar sua chave de API?",
+      "apikeyResetConfirm2": "Isto fará com que as chaves antigas expirem em até 24 horas. Deseja realmente presseguir?",
+      "apikeyResetNvm": "Nada de interessante aconteceu",
+      "with": {
+        "0": "Entrar com o Google",
+        "1": "Entrar com Discord",
+        "2": "Entrar com o Twitter"
+      },
+      "twitterMsg": {
+        "0": "Devido à mudança na política da API do Twitter, é provável que o login pelo Twitter deixe de funcionar após 9 de fevereiro.",
+        "1": "No momento você usa apenas login pelo Twitter. Recomendamos vincular outro método de login agora para evitar perder acesso em outros dispositivos ou após limpar o navegador.",
+        "2": "Se você não conseguir entrar no Holodex com Twitter e não tiver vinculado outro método, fale conosco por DM no Twitter ou pelo Discord para suporte."
+      },
+      "username": "Nome de usuário",
+      "usernameBtn": {
+        "0": "Alterar",
+        "1": "Confirmar",
+        "2": "Salvar"
+      },
+      "loggingIn": "Entrando..."
+    },
+    "multiview": {
+      "confirmOverwrite": "Sobrescrever layout atual?",
+      "confirmOverwriteYes": "Confirmar",
+      "permalink": "Link Permanente",
+      "presets": "Predefinidas",
+      "addframe": "Adicionar Célula",
+      "muteAll": "Silenciar Tudo",
+      "unmuteAll": "Desmutar Tudo",
+      "muteOthers": "Silenciar outros",
+      "muteOthersDetail": "Silenciar todos os streams menos um",
+      "autoLayoutTip": "Clique para assistir um canal usando um layout automático",
+      "createLayoutTip": "Crie teu próprio layout adindo uma célula ou use um modelo",
+      "openToolbarTip": "Abra a barra de ferramentas para começar a usar o multiview",
+      "archiveSync": "Sincronização de arquivo",
+      "preset": {
+        "shareOnDiscord": "Tem um layout legal para compartilhar? Use o botão compartilhar e nos informe no nosso <a href=\"https://discord.gg/jctkgHBt4b\">Discord</a>!",
+        "custom": "Meus layouts",
+        "toggleAutoLayout": "Alternar layout automático",
+        "remove": "Excluir",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "autoLayout": "Layout Automático",
+        "noPresets": "Nenhum preset disponível"
+      },
+      "presetEditor": {
+        "title": "Salvar Layout",
+        "name": "Nome",
+        "autoLayout": "Usar layout no modo automático"
+      },
+      "video": {
+        "selectLive": "Selecionar Live",
+        "addCustomVideo": "Adicionar Vídeo",
+        "twitchChannelLink": "Link do canal Twitch",
+        "youtubeVideoLink": "Link do vídeo YouTube",
+        "noHistory": "Sem histórico",
+        "addUrl": "Adicionar URL",
+        "addUrlShort": "Adicionar",
+        "urlPlaceholder": "Cole uma URL do YouTube ou Twitch",
+        "urlPlaceholderShort": "URL"
+      },
+      "fullScreen": "Tela Cheia",
+      "mediaControls": "Controles de Mídia",
+      "mediaControlsEmpty": "Vídeos que estão sendo reproduzidos aparecerão aqui",
+      "editAutoLayout": "Editar layout automático",
+      "changeLayout": "Alterar layout",
+      "done": "Concluído",
+      "hints": "Dicas",
+      "presetsHint": "Abra o menu de presets para trocar layouts e configurar o layout automático",
+      "mediaControlsHint1": "Use os controles de mídia para silenciar e sincronizar (",
+      "mediaControlsHint2": ") streams ao vivo",
+      "dragDropHint": "Arraste streams da barra de ferramentas para as células para organizá-los",
+      "reorderHint": "Use o menu de reordenar layout para mudar posições de vídeo/chat",
+      "reorderLayout": "Reordenar layout",
+      "reorderLayoutDetail": "Arraste os ícones para a posição desejada",
+      "sync": {
+        "nothingToSync": "Nada para sincronizar; abra dois arquivos sobrepostos, por exemplo streams em collab",
+        "syncSettings": "Configurações de sincronização",
+        "syncSettingsDetail": "Os vídeos são sincronizados pelo horário de início do stream e podem dessincronizar por problemas técnicos durante o stream ou trechos removidos. Use deslocamentos para alinhar manualmente"
+      },
+      "syncLabel": "Sincronizar",
+      "collapseToolbar": "Recolher barra de ferramentas",
+      "deleteCell": "Excluir célula",
+      "fillEmptyCells": "Preencher células vazias com os vídeos atuais",
+      "openNavigation": "Abrir navegação",
+      "shareLayout": "Compartilhar layout"
+    },
+    "mugen": {
+      "welcome": "Boas-vindas ao MugenClips! Todos nesta página veem o mesmo clipe aleatório em inglês de Hololive. Assista junto e converse com fãs de Hololive do mundo todo. Se você avançar e quiser sincronizar novamente com todos, atualize a página."
+    },
+    "playlist": {
+      "playlist-is-modified": "Não salvo",
+      "item-last-updated": "Última Atualização:",
+      "login-prompt": "Faça login para salvar as listas e ter mais de uma",
+      "new-playlist-btn-label": "Criar uma nova lista",
+      "page-heading": "Suas listas:",
+      "page-instruction": "Clique numa lista para torná-la ativa.",
+      "change-loss-warning": "Perderás mudanças não salvas. Continuar?"
+    },
+    "extension": {
+      "title": "Extensão Holodex Plus",
+      "features": "Recursos",
+      "featureset": {
+        "one": "Ativa o chat ao vivo arquivado no Watch e no Multiview",
+        "two": "Permite curtir vídeos pela página de exibição do Holodex",
+        "three": "Corrige vazamento de memória no chat ao vivo do YouTube",
+        "four": "Corrige flags experimentais no player do YouTube, como desativação de múltiplas streams, miniatura da sala de espera não aparecendo e mais."
+      },
+      "chromeWebstore": "Chrome Web Store",
+      "downloadSourceCode": "Baixar código-fonte",
+      "firefoxAddons": "Firefox Add-ons",
+      "firefoxExtension": "Extensão Firefox",
+      "githubDownload": "Download do GitHub",
+      "installFromGithubPrefix": "Instalar de ",
+      "installFromGithubSuffix": ".",
+      "raycast": {
+        "features": {
+          "archives": "Buscar arquivos",
+          "channels": "Abrir canais",
+          "clips": "Encontrar clipes",
+          "live": "Verificar streams ao vivo"
+        },
+        "getItOnPrefix": "Obtenha na ",
+        "getItOnSuffix": ".",
+        "title": "Extensão Raycast"
+      },
+      "raycastStore": "Raycast Store"
+    },
+    "tlClient": {
+      "menu": {
+        "title": "Menu",
+        "setting": "Configurações da sala TLDex",
+        "loadVideo": "Mostrar vídeo",
+        "unloadVideo": "Ocultar vídeo",
+        "loadChat": "Adicionar chat YT ao Broadcast TL",
+        "unloadChat": "Desanexar do chat YT"
+      },
+      "tlControl": {
+        "enterBtn": "Enter",
+        "prefix": "Prefixo",
+        "suffix": "Sufixo",
+        "fontColour": "Cor da fonte",
+        "outlineColour": "Cor do contorno",
+        "localPrefix": "Tag de idioma no chat",
+        "addProfile": "Adicionar perfil",
+        "removeProfile": "Remover perfil",
+        "shiftUp": "Subir perfil",
+        "shiftDown": "Descer perfil",
+        "showSetting": "Configuração",
+        "hideSetting": "Ocultar",
+        "currentProfileSettings": "Configurações do perfil atual [{name}]",
+        "inputPlaceholder": "Digite o texto da tradução"
+      },
+      "addProfilePanel": {
+        "title": "Adicionar novo perfil",
+        "inputLabel": "Nome do perfil"
+      },
+      "settingPanel": {
+        "title": "Configuração",
+        "mainStreamLink": "Link do stream principal",
+        "collabLink": "Links de collab",
+        "findVideo": "Encontrar vídeo"
+      },
+      "removeProfileTitle": "Confirmar remoção do perfil",
+      "loadChatPanel": {
+        "title": "Carregar chat",
+        "inputLabel": "Link do stream"
+      },
+      "unloadChatTitle": "Descarregar TODOS os chats ativos?",
+      "pangram": "A rápida raposa marrom salta sobre o cão preguiçoso",
+      "cancelBtn": "Cancelar",
+      "okBtn": "OK",
+      "shortcuts": {
+        "changeProfiles": "Alterar perfis",
+        "or": "ou",
+        "quickSwitchDefaultProfile": "Alternar rapidamente para o perfil padrão",
+        "quickSwitchProfileRange": "Perfis 0-9",
+        "quickSwitchProfiles": "Alternar perfis rapidamente",
+        "whileTyping": "Ao digitar na caixa TL:"
+      }
+    },
+    "scriptEditor": {
+      "menu": {
+        "save": "Salvar",
+        "continuousEnd": "Tornar tempo contínuo (alterar fim)",
+        "clearAll": "Excluir script",
+        "exportFile": "Exportar arquivo",
+        "importFile": "Importar arquivo",
+        "editorMode": "Modo editor",
+        "changeCustomLink": "Alterar link personalizado",
+        "timeShift": "Deslocamento de tempo"
+      },
+      "table": {
+        "headerStart": "Iniciar",
+        "headerEnd": "Fim",
+        "headerProfile": "Perfil",
+        "headerText": "Texto",
+        "setAsStart": "Definir como início",
+        "shiftCurrentTime": "Mover para o tempo atual",
+        "deleteEntry": "Excluir entrada"
+      },
+      "loadVideoPanel": {
+        "title": "Carregar vídeo",
+        "inputLabel": "Link do stream"
+      },
+      "setStartTitle": "Definir a entrada selecionada como início; todas as entradas anteriores serão excluídas.",
+      "importFile": {
+        "overwriteBtn": "Sobrescrever"
+      },
+      "editorModePanel": {
+        "activateMode": "Ativar modo editor",
+        "deactivateMode": "Desativar modo editor",
+        "roleWarning": "Você não tem privilégios suficientes",
+        "filterTranslator": "Filtrar tradutor"
+      },
+      "timeShift": {
+        "offset": "Deslocamento",
+        "seconds": "segundos",
+        "secondsShort": "s",
+        "timeOffset": "Deslocamento de tempo"
+      }
+    },
+    "tlManager": {
+      "title": "Gerenciador de scripts",
+      "headerID": "ID do vídeo",
+      "headerEntries": "Entradas",
+      "download": "Baixar",
+      "delete": "Excluir",
+      "deleteTitle": "Excluir entradas",
+      "langPick": "Idioma",
+      "changeCustomLink": "Alterar link personalizado",
+      "changeStreamLink": "Alterar link da stream",
+      "description": "Gerencie scripts de tradução, exporte dados e limpe links personalizados.",
+      "entriesCount": "{count} entradas",
+      "importFromMchad": "Importar do MChad",
+      "importMchad": {
+        "claimAllArchives": "Reivindicar todos os arquivos",
+        "claimSuccess": "Arquivos reivindicados.",
+        "entryLength": "{count} entradas",
+        "foundId": "ID da sala encontrado: {id}",
+        "login": "Entrar",
+        "missingCredentials": "Digite o nome da sala e a senha.",
+        "noArchives": "Nenhum arquivo encontrado.",
+        "password": "Senha",
+        "roomName": "Nome da sala"
+      },
+      "newLink": "Novo link",
+      "noScriptsFound": "Nenhum script de tradução encontrado para esta página.",
+      "noTitle": "Sem título",
+      "videoTitle": "Título do vídeo"
+    },
+    "relayBot": {
+      "addSubscription": "Adicionar inscrição",
+      "blacklist": "Lista de bloqueio",
+      "botMissing": "O bot não está neste servidor.",
+      "channelsFor": "Canais de {name}",
+      "description": "Retransmita traduções ao vivo de canais ou vídeos do YouTube para o Discord.",
+      "inviteBot": "Convidar bot",
+      "loginDiscord": "Entrar com Discord",
+      "noBlacklistEntries": "Nenhuma entrada na lista de bloqueio.",
+      "noSubscriptionsConfigured": "Nenhuma inscrição configurada.",
+      "noWhitelistEntries": "Nenhuma entrada na lista de permissões.",
+      "notOk": "Falhou",
+      "ok": "OK",
+      "relaySubscription": "Inscrição de retransmissão",
+      "relayTL": "Retransmitir TL",
+      "saved": "Salvo.",
+      "saving": "Salvando...",
+      "sendingTrigger": "Enviando...",
+      "serverNotShown": "Apenas servidores onde você pode gerenciar o bot são exibidos.",
+      "servers": "Servidores",
+      "settingFor": "Configurações de {name}",
+      "subscribedChannel": "Canal inscrito",
+      "title": "Bot de retransmissão",
+      "translatorName": "Nome do tradutor",
+      "whitelist": "Lista de permissões",
+      "youtubeChannel": "Canal do YouTube",
+      "youtubeLinkChannelVideo": "Link de canal ou vídeo do YouTube"
+    }
+  },
+  "time": {
+    "soon": "em breve",
+    "diff_future_date": "Começa {arg0} ({arg1})",
+    "distance_past_date": "{arg0}"
+  },
+  "editor": {
+    "music": {
+      "add": "Adicionar",
+      "update": "Atualizar",
+      "permission": "Você precisa ser um usuário com título de \"Editor\" ou superior para atualizar ou excluir  músicas existente. Use nosso <a class='white--text' href='https://discord.gg/jctkgHBt4b'>discord</a> para notificar os editores sobre problemas ou abusos, ou candidate-se para se tornar um editor.",
+      "titles": {
+        "addSong": "Metadados de Música: Adicionar uma nova Música",
+        "songList": "Lista de Músicas: {arg0}",
+        "help": "Guia"
+      },
+      "itunesLookupPlaceholder": "(Opcional) Procurar no iTunes",
+      "moveRight2s": "Avançar 2 segundos",
+      "testEnd": "Teste começando 3 segundos antes do final.",
+      "setToCurrentTime": "Ir para ({arg0})",
+      "moveLeft2s": "Retroceder 2 segundos",
+      "trackNameInput": "Nome da Música",
+      "originalArtistInput": "Artista Original",
+      "testStart": "Testar o inicio",
+      "startInput": "Iniciar",
+      "endInput": "Duração em segundos: (end @ {arg0})",
+      "inheritItunesMusic": "Definir duração via iTunes: {arg0}",
+      "listenOnAppleMusic": "Ouvir no Apple Music",
+      "pickItunesResult": "Escolha um resultado do iTunes",
+      "playFromHere": "Tocar daqui",
+      "timestampEditorHint": "Use timestamps relativos para alinhar a música com o vídeo."
+    },
+    "exitMode": "Sair do Modo de Edição",
+    "enterMode": "Editar Vídeo"
+  },
+  "about": {
+    "quicklinks": "Links",
+    "discordBtn": "Discord do Holodex",
+    "faq": {
+      "title": "FAQ - Perguntas Frequentes",
+      "ytchatHeader": "Meu Chat do Youtube não está conectado!",
+      "ytchatContent": "Desative o recurso de segurança do seu navegador conhecido como \"Bloqueio de Cookies de Terceiros\", ou adicione este site e o youtube.com como exceções.",
+      "ytchatFirefox": "Instruções do Firefox, outros navegadores podem ser similares.",
+      "autoplayHeader": "O AutoPlay não está funcionando!",
+      "autoplayContent": "Por favor, procure no Google como ativar a reprodução automática para o seu navegador.",
+      "musicPlayer": "Reprodutor de música não funciona bem em dispositivos móveis!",
+      "musicPlayerContent": "Na maioria dos dispositivos iOS, não é possível desligar a tela ou fechar o Safari enquanto músicas do Holodex estão tocando. Essa restrição pode ou não se aplicar a dispositivos Android, dependendo do aparelho. Envie feedback pelo Discord se tiver alguma ideia para criarmos um sistema de reprodução melhor.",
+      "videoLinkage": "Como posso me certificar de que os vídeos estão ligados aos vtubers apropriadamente?",
+      "videoLinkageContent": "Todas as informações são analisadas na descrição dos vídeos. Se você está clipando uma transmissão, por favor certifique-se de mencionar a transmissão oficial. Se você está clipando conteúdo feito por fãs (por exemplo, um vídeo do bilibili), apenas certifique-se de mencionar os canais oficiais do youtube de vtubers relevantes. Se você não mencionar nenhum canal de vtuber, então não mostraremos esse clipe no holodex, como todos os clipes requerem uma menção a um vtuber existente no holodex.",
+      "quitHolodex": "Sou um subber e gostaria que meu canal fosse removido do Holodex\\r",
+      "quitHolodexContent": "Estou triste em vê-lo ir :(, por favor me avise se houver qualquer problema com que possamos lhe ajudar. Se você ainda deseja ser removido, por favor nos mande uma mensagem no Discord.",
+      "favorite": {
+        "title": "O que são os favoritos?",
+        "Contents": {
+          "0": "Favoritos são uma forma de acompanhar seus VTubers preferidos. Você pode adicionar canais aos favoritos clicando no ícone de coração na",
+          "1": "página. Observe que favoritar subbers ainda não é suportado, mas você ainda deve considerar se inscrever e apoiá-los de outras formas!"
+        },
+        "disappear": {
+          "title": "A minha lista de favoritos desapareceu / eu não consigo favoritar"
+        },
+        "contents": {
+          "0": "Certifique-se de estar logado e visite a aba de canais favoritos para forçar uma atualização."
+        }
+      },
+      "mobile": {
+        "title": "Existe um aplicativo do Holodex para Android/iOS?",
+        "content": {
+          "summary": "Estamos trabalhando nisso. Enquanto isso, use o recurso \"Adicionar à tela inicial\" do seu navegador. Ajustamos bastante para se comportar como um app.",
+          "android": {
+            "0": "Android Chrome: abra o site e toque nos três pontos",
+            "1": "no canto superior direito e encontre \"Adicionar à tela inicial\"."
+          },
+          "ios": {
+            "0": "iOS Safari: abra o site no telefone e toque no quadrado com seta para cima",
+            "1": "na parte inferior do Safari, depois toque em \"Adicionar à tela inicial\"."
+          }
+        }
+      },
+      "MugenClips": {
+        "title": "O que é MugenClips?",
+        "contents": {
+          "0": "MugenClips, ou clipes infinitos, é uma sessão de assistir junto em que as pessoas no site veem uma variedade de clipes em rotação constante enviados por muitos canais de tradução da comunidade."
+        }
+      },
+      "subber": {
+        "title": "Sou um subber e não consigo encontrar meu canal ou clipes no Holodex",
+        "contents": {
+          "0": "Verifique na página de canais se você está listado como subber. Se não estiver, preencha",
+          "1": "este formulário",
+          "2": ", e nós adicionaremos você manualmente. Se você já estiver na lista, confira se as descrições dos seus vídeos têm os links corretos da fonte ou do canal do YouTube."
+        }
+      },
+      "feedback": {
+        "title": "Eu tenho feedback/quero contribuir com o projeto",
+        "contents": {
+          "0": "Toda ajuda e toda ideia são bem-vindas. A UI e o backend aceitam contribuições, embora apenas a UI seja open source no momento. Entre em contato conosco no Discord para obter acesso ao código do backend, ou simplesmente converse sobre suas ideias."
+        }
+      },
+      "support": {
+        "title": "Como posso apoiar o Holodex?",
+        "contents": {
+          "0": "Nosso servidor self-hosted é uma máquina de 28 cores e 60 GB de RAM que custa cerca de 60 USD por mês, e queremos expandir cada vez mais nosso conjunto de recursos. Por isso criamos um <a href=\"https://ko-fi.com/holodex\">Ko-fi</a> para cobrir os custos do servidor. Também temos um <a href=\"https://www.patreon.com/holodex\">Patreon</a>, mas preferimos o Ko-fi.<br /><br />Você também pode apoiar o Holodex enviando feedback e mensagens de apoio no Twitter, ajudando a traduzir pelo <a href=\"https://crwd.in/holodex\">Crowdin</a> e contribuindo para nosso banco de dados de músicas. Até marcar momentos engraçados de uma stream e comentar isso na stream original ajuda bastante."
+        }
+      }
+    },
+    "privacyPolicy": "Política de privacidade",
+    "gdpr": "GDPR e meus dados",
+    "gdprContent": "Um cookie do Google Analytics é usado para monitorar páginas visualizadas para nossos fins analíticos. Após o login, associamos o seu nome de usuário e ID de mídia social aos seus favoritos. Estes dados podem incluir seu e-mail (Google), ID do Discord ou ID do Twitter, respectivamente.",
+    "gdprDeletion": "Para exclusão de seus dados de usuário, entre em contato conosco no discord!",
+    "feedback": "Feedback/Reportar Bug",
+    "feedbackHtml": "Você pode criar uma issue no <a href=\"https://github.com/RiceCakess/Holodex/issues\"> Github Issue Tracker </a> ou contactar a equipe do Holodex no Discord <br /> <br /> Reddit: <a href=\"https://www.reddit.com/user/Rice_Cakess/\"> u/Rice_cakess </a>",
+    "credits": {
+      "title": "Creditos",
+      "contents": {
+        "0": "Gostaria de agradecer muito à equipe do",
+        "1": "pelo trabalho em",
+        "2": "Também agradeço a todos os subbers por ajudarem os fãs internacionais! Confiram o trabalho deles!",
+        "3": "Este é um site feito por fãs, e o conteúdo encontrado nele pertence à Cover Corp e seus parceiros. O site segue as diretrizes definidas pela Cover Corp em seu",
+        "4": "Contrato de Licença de Obra Derivada"
+      }
+    },
+    "changelog": {
+      "title": "Mudanças"
+    },
+    "news": {
+      "title": "Novidades"
+    },
+    "bookmarklet": {
+      "title": "Bookmarklets",
+      "description": "Arraste estes bookmarklets para sua barra de favoritos para abrir páginas do YouTube no Holodex facilmente:",
+      "openYoutube": "Abrir YouTube no Holodex"
+    },
+    "links": {
+      "browserAddon": "Extensão do navegador",
+      "community": "Comunidade",
+      "docs": "Documentação",
+      "extension": "Extensão",
+      "repository": "Repositório"
+    },
+    "privacy": {
+      "content": {
+        "intro": "Esta página explica quais dados o Holodex processa e como serviços de terceiros são usados."
+      },
+      "firstParty": {
+        "title": "Dados do Holodex",
+        "collection": "O Holodex armazena identificadores de conta, favoritos, configurações, playlists e ações de edição necessários para oferecer os recursos do site.",
+        "voluntary": "A maioria dos dados de conta só é criada quando você faz login ou usa recursos de conta.",
+        "access": "Você pode acessar ou atualizar suas configurações de usuário pelo menu da conta.",
+        "limitedUse": "O Holodex usa dados de usuário do Google apenas para login e vinculação de contas.",
+        "noPosting": "O Holodex não publica nada nas suas contas vinculadas.",
+        "revoking": "Você pode revogar o acesso de contas de terceiros nas configurações da conta do provedor.",
+        "changes": "Esta política pode mudar quando os recursos do site ou os requisitos dos provedores mudarem."
+      },
+      "links": {
+        "google": "Política de Privacidade do Google",
+        "twitch": "Aviso de Privacidade da Twitch"
+      },
+      "thirdParty": {
+        "title": "Serviços de terceiros",
+        "analyticsTitle": "Análises",
+        "analyticsBody": "O Holodex pode usar análises para entender o uso e a confiabilidade do site.",
+        "analyticsUse": "Dados de análise são usados para melhorar desempenho, navegação e estabilidade.",
+        "embedsTitle": "Players e chat incorporados",
+        "embedsBody": "Incorporações do YouTube e da Twitch são fornecidas por esses serviços e podem usar seus próprios cookies e estado de conta.",
+        "linksIntro": "Consulte as políticas desses provedores para detalhes:",
+        "choicesTitle": "Suas escolhas",
+        "choicesBody": "Você pode bloquear cookies de terceiros ou sair de provedores vinculados, embora alguns recursos incorporados possam parar de funcionar.",
+        "contactTitle": "Contato",
+        "contactBody": "Entre em contato com a equipe do Holodex pelo Discord ou GitHub para dúvidas sobre privacidade.",
+        "commitment": "O Holodex solicita apenas o acesso necessário para executar seus recursos."
+      }
+    },
+    "stats": {
+      "lastMonth": "mês passado",
+      "songs": "músicas",
+      "subbers": "legendadores",
+      "videos": "vídeos",
+      "vtubers": "VTubers",
+      "yesterday": "ontem"
+    },
+    "youtubeTerms": {
+      "before": "O uso dos recursos incorporados do YouTube está sujeito aos ",
+      "link": "Termos de Serviço do YouTube",
+      "after": "."
+    }
+  },
+  "channelRequest": {
+    "RequestType": "Tipo de solicitação:",
+    "Types": {
+      "AddVtuber": "Adicionar um VTuber ▶️ para que o Holodex acompanhe o canal e os clipes.",
+      "AddClipper": "Adicionar um canal de clipes/legendas ao Holodex",
+      "ModifyExistingInfo": "Modificar informações de um canal existente",
+      "DeleteChannel": "Excluir meu canal"
+    },
+    "DirectContactDisclaimer": "Você pode deixar seu Discord, e-mail ou Twitter. Caso precisemos entrar em contato, essa informação ficará privada e nos permitirá dar retorno. Somente administradores do Holodex verão essas informações.",
+    "DirectContactLabel": "Método de contato (opcional)",
+    "TwitterHandle": "Twitter deste canal (opcional)",
+    "VtuberGroupLabel": "Grupo VTuber (opcional)",
+    "VtuberGroupHint": "A qual organização ou grupo este VTuber pertence?",
+    "ChannelLanguageLabel": "Idioma principal do canal",
+    "EnglishNameHint": "Forneça um nome em inglês se o nome do canal não estiver em inglês. Siga a ordem de nomes do idioma nativo deste VTuber (Natsuiro Matsuri) ou o nome de marca EN preferido (Elu the Elf, Emma★August).",
+    "EnglishNameLabel": "Nome do canal em inglês",
+    "Comments": "Comentários",
+    "CommentsHint": "Outros comentários que você queira nos enviar.",
+    "VtuberRequirementText": "Independentes precisam de no mínimo 15 mil inscritos. VTubers que fazem parte de organizações existentes serão aceitos. <br /><br />Novas organizações serão criadas conforme a média de inscritos.<br /><br />Streamers da Twitch precisam ter um canal oficial no YouTube para serem indexados.<br /><br /><strong>Qualquer menção a \"past lives\" ou identidades alternativas será rejeitada automaticamente.</strong>",
+    "ClipperRequirementText": "Para clippers, o canal deve ter pelo menos 2 meses e publicar regularmente, ou publicar mais de 20 clipes em um mês. Spam diário de clipes curtos, publicar apenas clipes com menos de 1 minuto ou usar thumbnails desfavoráveis contará contra o canal. A qualidade do conteúdo também pode ser avaliada. <br /><br />É importante que clippers citem suas fontes por links de canal, menções @ a canais do YouTube e links de vídeo. Citar em excesso (por exemplo, linkar todos da Nijisanji) cria trabalho para editores do Holodex; citar de menos (sem links) fará os clipes ficarem ocultos. <br /><br />O Holodex contém algoritmos para detectar e corrigir citações excessivas automaticamente, mas eles nem sempre funcionam perfeitamente. Clippers que citam em excesso podem ser removidos da plataforma para reduzir ruído.",
+    "DeletionRequirementText": "A exclusão deve ser solicitada apenas por proprietários do canal. Forneça informações de contato para que possamos verificar.",
+    "PageTitle": "Solicitação de canal Holodex",
+    "ChannelURLErrorFeedback": "Deve ser https://www.youtube.com/channel/UC_____ ou https://www.youtube.com/@_____",
+    "ChannelURLLabel": "URL do canal",
+    "SelectLanguage": "Selecionar idioma",
+    "ChannelURLExample": "Exemplo: https://www.youtube.com/@holodex",
+    "ChannelURLPlaceholder": "https://www.youtube.com/@channel",
+    "DirectContactPlaceholder": "Discord, e-mail ou outro método de contato",
+    "TwitterExample": "Exemplo: @holodex",
+    "TwitterPlaceholder": "@usuario",
+    "VtuberGroupPlaceholder": "Nome do grupo ou organização"
+  }
+}

@@ -1,13 +1,12 @@
 "use client";
 
-import { mdiAccountCancel, mdiHeartOutline, mdiTwitch } from "@mdi/js";
-import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
+import { UserX, Heart, TwitchIcon } from "@/lib/icons";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppState } from "@/lib/store";
-import { useI18n } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
-import { cn } from "@/lib/cn";
-
+import { cn } from "@/lib/utils";
 export function ChannelSocials({
   channel,
   vertical = false,
@@ -28,7 +27,7 @@ export function ChannelSocials({
   className?: string;
 }) {
   const app = useAppState();
-  const { t } = useI18n();
+  const t = useTranslations();
   const isBlocked = app.blockedChannelIDs.has(channel?.id);
   const isFavorited = app.isFavorited(channel?.id);
   const tooltip = !app.isLoggedIn
@@ -53,89 +52,132 @@ export function ChannelSocials({
     else app.patchSettings({ blockedChannels: [...blocked, channel] } as any);
   }
   return (
-    <div
-      className={cn(
-        "flex gap-2",
-        vertical
-          ? "flex-col items-start"
-          : "channel-social-horizontal items-center",
-        className,
-      )}
-      onClick={(e) => e.stopPropagation()}
-    >
-      {channel?.id && !hideYt ? (
-        <Button
-          as="a"
-          variant="ghost"
-          size="icon"
-          href={`https://www.youtube.com/channel/${channel.id}`}
-          rel="noreferrer"
-          target="_blank"
-          title="YouTube"
-        >
-          <Icon icon={icons.mdiYoutube} className="text-red-500" />
-        </Button>
-      ) : null}
-      {channel?.twitter && !hideTwitter ? (
-        <Button
-          as="a"
-          variant="ghost"
-          size="icon"
-          href={`https://twitter.com/${channel.twitter}`}
-          rel="noreferrer"
-          target="_blank"
-          title="Twitter"
-        >
-          <Icon icon={icons.mdiTwitter} className="text-sky-400" />
-        </Button>
-      ) : null}
-      {channel?.twitch && !hideTwitch ? (
-        <Button
-          as="a"
-          variant="ghost"
-          size="icon"
-          href={`https://twitch.tv/${channel.twitch}`}
-          rel="noreferrer"
-          target="_blank"
-          title="Twitch"
-        >
-          <Icon icon={mdiTwitch} className="text-violet-400" />
-        </Button>
-      ) : null}
-      {channel?.type === "vtuber" && !hideFav ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title={tooltip}
-          onClick={toggleFavorite}
-        >
-          <Icon
-            icon={isFavorited ? icons.mdiHeart : mdiHeartOutline}
-            className={
-              isFavorited && app.isLoggedIn ? "text-rose-400" : "text-slate-500"
-            }
-          />
-        </Button>
-      ) : null}
-      {showDelete ? (
-        <Button
-          type="button"
-          variant={isBlocked ? "destructive" : "ghost"}
-          size="sm"
-          title={blockTooltip}
-          onClick={(e: any) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleBlocked();
-          }}
-        >
-          <Icon icon={mdiAccountCancel} />
-          {isBlocked ? (
-            <span>{t("component.channelSocials.blocked")}</span>
-          ) : null}
-        </Button>
-      ) : null}
-    </div>
+    <TooltipProvider>
+      <div
+        className={cn(
+          "flex gap-2",
+          vertical ? "flex-col items-start" : "flex-wrap items-center",
+          className,
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {channel?.id && !hideYt ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button nativeButton={false}
+                  render={
+                    <a
+                      href={`https://www.youtube.com/channel/${channel.id}`}
+                      rel="noreferrer"
+                      target="_blank"
+                      aria-label="YouTube"
+                    />
+                  }
+                  variant="ghost"
+                  size="icon"
+                />
+              }
+            >
+              <icons.YoutubeIcon className="size-5 text-red-500" />
+            </TooltipTrigger>
+            <TooltipContent>YouTube</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {channel?.twitter && !hideTwitter ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button nativeButton={false}
+                  render={
+                    <a
+                      href={`https://twitter.com/${channel.twitter}`}
+                      rel="noreferrer"
+                      target="_blank"
+                      aria-label="Twitter"
+                    />
+                  }
+                  variant="ghost"
+                  size="icon"
+                />
+              }
+            >
+              <icons.TwitterIcon className="size-5 text-sky-400" />
+            </TooltipTrigger>
+            <TooltipContent>Twitter</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {channel?.twitch && !hideTwitch ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button nativeButton={false}
+                  render={
+                    <a
+                      href={`https://twitch.tv/${channel.twitch}`}
+                      rel="noreferrer"
+                      target="_blank"
+                      aria-label="Twitch"
+                    />
+                  }
+                  variant="ghost"
+                  size="icon"
+                />
+              }
+            >
+              <TwitchIcon className="size-5 text-violet-400" />
+            </TooltipTrigger>
+            <TooltipContent>Twitch</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {channel?.type === "vtuber" && !hideFav ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={tooltip}
+                  onClick={toggleFavorite}
+                />
+              }
+            >
+              {isFavorited ? <icons.Heart className={cn("size-5", isFavorited && app.isLoggedIn
+                    ? "text-rose-400"
+                    : "text-slate-500")} /> : <Heart className={cn("size-5", isFavorited && app.isLoggedIn
+                    ? "text-rose-400"
+                    : "text-slate-500")} />}
+            </TooltipTrigger>
+            <TooltipContent>{tooltip}</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {showDelete ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant={isBlocked ? "destructive" : "ghost"}
+                  size="sm"
+                  aria-label={blockTooltip}
+                  onClick={(e: any) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleBlocked();
+                  }}
+                />
+              }
+            >
+              <UserX className="size-5" />
+              {isBlocked ? (
+                <span>{t("component.channelSocials.blocked")}</span>
+              ) : null}
+            </TooltipTrigger>
+            <TooltipContent>{blockTooltip}</TooltipContent>
+          </Tooltip>
+        ) : null}
+      </div>
+    </TooltipProvider>
   );
 }

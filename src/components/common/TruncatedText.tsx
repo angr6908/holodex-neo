@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import linkifyHtml from "linkifyjs/html";
-
+import { Button } from "@/components/ui/button";
 function escapeHtml(value: string) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -27,21 +27,17 @@ export function TruncatedText({ html = "", text = "", lines = 5, className = "",
   return (
     <div className={className} style={style}>
       <div style={contentStyle}><span dangerouslySetInnerHTML={{ __html: linkedHtml }} /></div>
-      {shouldTruncate && renderButton ? (
-        <span
-          role="button"
-          tabIndex={0}
-          className="mt-3 inline-flex items-center"
+      {shouldTruncate ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mt-3 h-auto p-0"
           onClick={() => setExpanded((value) => !value)}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            setExpanded((value) => !value);
-          }}
         >
-          {renderButton(expanded)}
-        </span>
-      ) : shouldTruncate ? <button type="button" className="mt-3 inline-flex items-center" onClick={() => setExpanded((value) => !value)}><span>{expanded ? "Show less" : "Show more"}</span></button> : null}
+          {renderButton ? renderButton(expanded) : <span>{expanded ? "Show less" : "Show more"}</span>}
+        </Button>
+      ) : null}
     </div>
   );
 }
