@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Radio, Calendar, Check, AlarmClock, Music, Plus, TwitchIcon, TwitterIcon, YoutubeIcon, type AnyIcon } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,24 +20,16 @@ import * as icons from "@/lib/icons";
 
 function externalHref(link = "") {
   if (!link) return "";
-  if (/^https?:\/\//i.test(link)) return link;
-  return `https://${link.replace(/^\/+/, "")}`;
+  return /^https?:\/\//i.test(link) ? link : `https://${link.replace(/^\/+/, "")}`;
 }
 
-function PlaceholderOverlay({ showOnlyOnHover = false }: { showOnlyOnHover?: boolean }) {
-  return (
-    <div className={`pointer-events-none absolute inset-0 z-[2]${showOnlyOnHover ? " opacity-0 transition-opacity duration-300 group-hover:opacity-100" : ""}`}>
-      <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-        <svg viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 h-full w-full">
-          <g className="opacity-90 group-hover:animate-pulse" stroke="var(--v-background-darken3)" strokeDasharray="0,20" strokeLinecap="round" strokeWidth="12">
-            <line y1={225 * 2 / 10} y2={225 * 8.4 / 10} x1="0" x2="0" />
-            <line y1={225 * 2 / 10} y2={225 * 8.4 / 10} x1="400" x2="400" />
-          </g>
-        </svg>
-      </div>
-    </div>
-  );
-}
+const twoLineTitleStyle = {
+  display: "-webkit-box",
+  minHeight: "2.625rem",
+  overflow: "hidden",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+} satisfies CSSProperties;
 
 export function VideoCard({ video, source, fluid = false, includeChannel = false, includeAvatar = false, hideThumbnail = false, horizontal = false, colSize = 1, active = false, disableDefaultClick = false, activePlaylistItem = false, parentPlaylistId = null, denseList = false, inMultiViewSelector = false, onVideoClicked, children, action }: any) {
   const data = source || video;
@@ -53,9 +45,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const [dragging, setDragging] = useState(false);
   const [hasWatched, setHasWatched] = useState(false);
   const [dragSelectionLocked, setDragSelectionLocked] = useState(false);
-  const [isSingleLineTitle, setIsSingleLineTitle] = useState(false);
-  const titleButton = useRef<HTMLAnchorElement | null>(null);
-  const titleResizeObserver = useRef<ResizeObserver | null>(null);
   const dragPreviewEl = useRef<HTMLElement | null>(null);
   useEffect(() => { if (data?.status !== "live") return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [data?.status]);
   useEffect(() => {
@@ -95,38 +84,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   );
   const channelTitle = data?.channel ? `${data.channel.name || ""}${data.channel.english_name ? `\nEN: ${data.channel.english_name}` : ""}${data.channel.org ? `\n> ${data.channel.org}` : ""}${data.channel.group ? `\n> ${data.channel.group}` : ""}` : channelName;
 
-  const updateTitleLineState = useCallback(() => {
-    const el = titleButton.current;
-    if (!el || horizontal || denseList) {
-      setIsSingleLineTitle(false);
-      return;
-    }
-    const style = window.getComputedStyle(el);
-    const lineHeight = Number.parseFloat(style.lineHeight || "0");
-    if (!lineHeight) {
-      setIsSingleLineTitle(false);
-      return;
-    }
-    const titleHeight = el.getBoundingClientRect().height;
-    setIsSingleLineTitle(titleHeight <= lineHeight * 1.45);
-  }, [denseList, horizontal]);
-
-  useEffect(() => {
-    if (typeof ResizeObserver === "undefined" || !titleButton.current || horizontal || denseList) {
-      updateTitleLineState();
-      return;
-    }
-    titleResizeObserver.current?.disconnect();
-    const observer = new ResizeObserver(updateTitleLineState);
-    titleResizeObserver.current = observer;
-    observer.observe(titleButton.current);
-    requestAnimationFrame(updateTitleLineState);
-    return () => {
-      observer.disconnect();
-      if (titleResizeObserver.current === observer) titleResizeObserver.current = null;
-    };
-  }, [title, horizontal, denseList, app.currentGridSize, updateTitleLineState]);
-
   function shouldIgnoreTextClick(event: any) {
     const selection = window.getSelection?.();
     if (!selection || selection.isCollapsed || !selection.toString().trim()) return false;
@@ -148,14 +105,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     else router.push(watchLink);
   }
   function onThumbnailClicked() {
-    if (disableDefaultClick) {
-      onVideoClicked?.(data);
-      return;
-    }
-    if (isPlaceholder) {
-      goToVideo();
-      return;
-    }
+    if (disableDefaultClick) return onVideoClicked?.(data);
+    if (isPlaceholder) return goToVideo();
     if (app.settings.redirectMode) {
       onVideoClicked?.(data);
       window.open(`https://youtu.be/${data.id}`, "_blank", "noopener");
@@ -235,32 +186,28 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const showTimeMeta = !hideGridLiveMeta;
   const isFlat = horizontal || denseList;
   const articleClass = cn(
-    "group relative flex cursor-pointer bg-transparent shadow-none",
+    "group relative flex cursor-pointer",
     fluid && "w-full",
-    active && "before:pointer-events-none before:absolute before:-inset-px before:rounded before:bg-primary/15 before:content-['']",
-    dragging && "scale-[0.985] opacity-[0.92]",
+    active && "outline outline-ring",
+    dragging && "opacity-70",
     horizontal && "flex-row",
     denseList && "min-h-12 flex-row",
     !isFlat && "flex-col",
   );
   const shellClass = cn(
-    "video-card-shell w-full gap-0 overflow-hidden p-0",
-    isFlat
-      ? "flex flex-row rounded-none border border-transparent bg-transparent shadow-none group-hover:bg-card/55"
-      : "flex flex-col rounded-2xl border border-border bg-card shadow-sm transition-colors group-hover:border-primary/30",
-    denseList && "min-h-12 border-0",
+    "video-card-shell flex w-full gap-0 overflow-hidden p-0",
+    isFlat ? "flex-row" : "flex-col",
+    denseList && "min-h-12",
   );
   const thumbnailClass = cn(
-    "relative flex w-full shrink-0 cursor-pointer overflow-hidden rounded-none bg-slate-950/30 text-white",
+    "relative flex w-full shrink-0 cursor-pointer overflow-hidden bg-muted",
     horizontal && "my-1.5 ml-1.5 h-[72px] w-[128px] self-center rounded-lg",
     inMultiViewActiveVideos && "grayscale opacity-30",
   );
   const overlayClass = "pointer-events-none absolute inset-0 z-[1] flex h-full w-full flex-col justify-between overflow-hidden rounded-[inherit]";
-  const badgeClass = "m-[5px] min-h-[22px] gap-0 rounded border border-primary/25 bg-primary/30 px-[5px] py-0.5 text-center text-[0.8125rem] font-normal leading-none tracking-[0.025em] text-white shadow-sm [&>svg]:size-3.5";
-  const liveBadgeClass = "border-white/20 bg-red-900/90 text-white";
   const textClass = cn(
-    "video-card-text flex flex-1 flex-row gap-2.5 bg-transparent",
-    denseList ? "items-center gap-2 overflow-hidden border-0 py-0 pr-2 pl-1" : horizontal ? "border-0 px-2 py-1.5" : "min-h-[88px] border-t border-border/70 px-2.5 py-2",
+    "video-card-text flex flex-1 flex-row gap-2.5",
+    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 py-2",
     hideGridLiveMeta && "min-h-0 flex-none",
   );
   const linesClass = cn(
@@ -271,73 +218,73 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const titleWrapClass = cn(
     "min-h-0",
     denseList ? "m-0 min-w-0 flex-1 overflow-hidden" : "flex-none",
-    isSingleLineTitle && !isFlat && "h-10",
   );
   const titleClass = cn(
     "select-text text-left no-underline transition-colors",
-    denseList ? "block w-full truncate text-sm leading-[1.3]" : "line-clamp-2 max-h-10 cursor-pointer break-words leading-5 hyphens-auto",
+    denseList ? "block w-full truncate text-sm leading-[1.3]" : "cursor-pointer break-words leading-5 hyphens-auto",
     hasWatched && "text-primary/70 opacity-60",
     inMultiViewActiveVideos && "grayscale opacity-30",
   );
+  const titleStyle = denseList ? undefined : twoLineTitleStyle;
   const metaClass = cn(
     "min-h-0 flex-1",
     denseList ? "m-0 flex flex-none flex-row items-center gap-3" : "mt-0.5 flex flex-col [&>div]:mb-0.5",
     hideGridLiveMeta && "[&>div]:mb-0",
-    isSingleLineTitle && !isFlat && "flex-none",
   );
   const channelSlotClass = cn(
     "flex min-w-0 items-center gap-2",
     denseList ? "max-w-[min(220px,28vw)] flex-[0_1_220px] overflow-hidden" : "min-h-0 flex-1 justify-between",
-    isSingleLineTitle && !isFlat && "flex-none pt-0",
   );
   const timeClass = cn("flex min-h-4 flex-none items-center gap-1 overflow-hidden text-sm leading-tight text-muted-foreground", denseList && "min-w-20 whitespace-nowrap");
   const itemActionsClass = cn(
-    "video-card-item-actions flex items-center gap-1 bg-inherit [&>button]:inline-flex [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:p-1.5 [&>button]:text-foreground [&>button]:transition-colors [&>button:hover]:bg-white/10",
-    denseList ? "h-auto self-stretch border-l border-border/70 px-2 py-0" : "border-t border-border/70 px-3 py-2",
+    "video-card-item-actions flex items-center gap-1",
+    denseList ? "h-auto self-stretch border-l px-2 py-0" : "border-t px-3 py-2",
   );
+  const isLive = data.status === "live";
+  const durationBadgeClass = cn("m-1", isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white");
   return (
     <article className={articleClass} draggable={!dragSelectionLocked} onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))} onDragStart={drag} onDragEnd={handleDragEnd} onClick={(e) => { if ((e.target as HTMLElement).closest("a,button")) return; if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>
       <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
         <ContextMenuTrigger render={<Card className={shellClass} />}>
-          {!denseList ? <div style={horizontal && !shouldHideThumbnail ? { background: `url(${imageSrc}) center/cover` } : undefined} className={thumbnailClass}>
+          {!denseList ? <div className={thumbnailClass}>
+          {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover" alt="" /> : null}
           <Button type="button" variant="ghost" className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent focus-visible:ring-2 focus-visible:ring-primary" onClick={(e) => { e.stopPropagation(); onThumbnailClicked(); }}>
             <span className="sr-only">{title}</span>
           </Button>
-          {isPlaceholder && data.status === "upcoming" && data.placeholderType ? <PlaceholderOverlay showOnlyOnHover={false} /> : null}
           <div className={overlayClass}>
-            <div className="flex items-start justify-between"><div>{data.topic_id && !isClip ? <Badge variant="outline" className="m-1.5 min-h-[22px] max-w-full gap-0 truncate rounded border-white/20 bg-slate-950/85 px-[5px] py-0.5 text-center text-[0.8125rem] font-normal capitalize leading-none tracking-[0.025em] text-white shadow-sm">{data.topic_id}</Badge> : null}</div>{!isPlaceholder ? <Button type="button" variant="ghost" size="icon-xs" className="pointer-events-auto m-1 size-6 cursor-pointer rounded-lg border border-white/60 bg-black/40 p-0 text-slate-50 transition-colors hover:border-white/80 hover:bg-black/60 hover:text-slate-50 dark:hover:bg-black/60" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}>{hasSaved ? <Check className="size-4 text-slate-50" /> : <Plus className="size-4 text-slate-50" />}</Button> : null}</div>
+            <div className="flex items-start justify-between"><div>{data.topic_id && !isClip ? <Badge variant="secondary" className="m-1.5 max-w-full truncate capitalize">{data.topic_id}</Badge> : null}</div>{!isPlaceholder ? <Button type="button" variant="secondary" size="icon-xs" className="pointer-events-auto m-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}>{hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}</Button> : null}</div>
             <div className="flex min-w-0 items-end justify-between gap-2">
-              <div className="min-w-0 flex-1">{showViewerBadge ? <Badge variant="outline" className={cn(badgeClass, liveBadgeClass, "gap-1 rounded-full")} title={viewerLabel}><Radio className="size-3.5 text-white" />{viewerCount}</Badge> : null}</div>
-              {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="outline" className={badgeClass} title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5 text-white" /></Badge> : null}{hasTLs ? <Badge variant="outline" className={badgeClass} title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5 text-white" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="outline" className={cn(badgeClass, data.status === "live" && liveBadgeClass)}>{durationText}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="outline" className={cn(badgeClass, data.status === "live" && liveBadgeClass, "[&>svg]:size-4")}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
+              <div className="min-w-0 flex-1">{showViewerBadge ? <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}><Radio className="size-3.5" />{viewerCount}</Badge> : null}</div>
+              {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationText}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
             </div>
           </div>
-          {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className={cn("pointer-events-none aspect-video w-full object-cover", data.placeholderType === "scheduled-yt-stream" && "opacity-60 group-hover:opacity-100")} alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-white/6" /> : null}
+          {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
         </div> : null}
         <div className={textClass}>
-          {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0 [&_.rounded]:shadow-sm [&_img]:shadow-sm")}><Button type="button" variant="ghost" className="h-auto w-auto p-0 hover:bg-transparent" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></Button></div> : null}
+          {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></Button></div> : null}
           <div className={linesClass}>
-            <div className={titleWrapClass}><Link ref={titleButton} href={titleHref} className={titleClass} title={title} style={{ fontSize: `${1 - app.currentGridSize / 16}rem` }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="size-5 mr-1 inline-block h-[18px] w-[18px] align-text-bottom text-amber-400" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
+            <div className={titleWrapClass}><Link href={titleHref} className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
             <div className={metaClass}>
               {includeChannel ? (
                 <div className={channelSlotClass}>
                   <div className="min-w-0 overflow-hidden truncate text-sm leading-tight text-muted-foreground">
-                    <Button type="button" variant="ghost" className={cn("h-auto max-w-full justify-start truncate p-0 text-left font-normal text-muted-foreground underline-offset-4 hover:bg-transparent hover:text-foreground hover:underline", denseList && "max-w-[150px]", (data.type === "stream" || data.channel?.type === "vtuber") && "text-[#42a5f5]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
+                    <Button type="button" variant="link" className={cn("h-auto max-w-full justify-start truncate p-0 text-left font-normal", denseList && "max-w-[150px]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
                   </div>
                   {showChannelViewers ? <span className="ml-auto inline-flex flex-none items-center gap-1 whitespace-nowrap text-[0.8125rem] leading-none tracking-[0.025em] text-muted-foreground tabular-nums" title={viewerLabel}><Radio className="size-3.5" />{viewerCount}</span> : null}
                 </div>
               ) : null}
-              {showTimeMeta ? <div className={timeClass}><span className={cn("inline-block min-w-0 max-w-full flex-auto overflow-hidden text-ellipsis whitespace-nowrap", data.status === "live" && "font-medium text-red-500")} title={absoluteTimeText}>{timeText}</span>{data.clips?.length && !isPlaceholder ? <span className="flex-none whitespace-nowrap text-[color:var(--color-primary)]"> • {t("component.videoCard.clips", { n: typeof data.clips === "object" ? data.clips.length : +data.clips })}</span> : data.status === "live" && viewerLabel && !showChannelViewers ? <span className="flex-none whitespace-nowrap text-muted-foreground"> • {viewerLabel}</span> : null}</div> : null}
+              {showTimeMeta ? <div className={timeClass}><span className={cn("inline-block min-w-0 max-w-full flex-auto overflow-hidden text-ellipsis whitespace-nowrap", data.status === "live" && "font-medium text-destructive")} title={absoluteTimeText}>{timeText}</span>{data.clips?.length && !isPlaceholder ? <span className="flex-none whitespace-nowrap text-primary"> • {t("component.videoCard.clips", { n: typeof data.clips === "object" ? data.clips.length : +data.clips })}</span> : data.status === "live" && viewerLabel && !showChannelViewers ? <span className="flex-none whitespace-nowrap text-muted-foreground"> • {viewerLabel}</span> : null}</div> : null}
             </div>
           </div>
         </div>
         </ContextMenuTrigger>
         {menuOpen ? (
-          <ContextMenuContent className="z-[500] w-[260px] rounded-2xl border-border p-2 shadow-2xl">
+          <ContextMenuContent className="w-[260px]">
             <VideoCardMenu video={data} close={closeContextMenu} />
           </ContextMenuContent>
         ) : null}
       </ContextMenu>
-      {(children || action || activePlaylistItem) ? <div className={itemActionsClass}>{activePlaylistItem ? <><Button type="button" variant="ghost" size="icon-xs" className="rounded-full p-1.5 text-foreground hover:bg-white/10" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("up"); }}><icons.ChevronUp className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" className="rounded-full p-1.5 text-foreground hover:bg-white/10" onClick={(event) => { event.stopPropagation(); event.preventDefault(); app.removeFromPlaylist(data.id); }}><icons.Trash2 className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" className="rounded-full p-1.5 text-foreground hover:bg-white/10" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("down"); }}><icons.ChevronDown className="h-4 w-4" /></Button></> : action || children}</div> : null}
+      {(children || action || activePlaylistItem) ? <div className={itemActionsClass}>{activePlaylistItem ? <><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("up"); }}><icons.ChevronUp className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); app.removeFromPlaylist(data.id); }}><icons.Trash2 className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("down"); }}><icons.ChevronDown className="h-4 w-4" /></Button></> : action || children}</div> : null}
     </article>
   );
 }

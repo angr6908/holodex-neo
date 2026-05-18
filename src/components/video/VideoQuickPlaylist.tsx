@@ -64,10 +64,7 @@ export function VideoQuickPlaylist({ videoId, video }: { videoId: string; video:
           key={`${p.id}${p.name}`}
           type="button"
           variant="ghost"
-          className={cn(
-            "h-auto justify-start rounded-xl px-3 py-2 text-left font-normal whitespace-normal text-slate-200 hover:bg-white/8 hover:text-slate-200",
-            p.contains && "bg-emerald-500/12 text-emerald-100 hover:text-emerald-100",
-          )}
+          className={cn("h-auto justify-start text-left font-normal whitespace-normal", p.contains && "font-medium")}
           onClick={(event) => { event.stopPropagation(); toggle(idx); }}
         >
           <span>{p.name}</span>

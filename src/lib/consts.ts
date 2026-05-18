@@ -10,7 +10,7 @@ export const TL_LANGS = Object.freeze([
   { text: "English", value: "en" }, { text: "日本語", value: "ja" }, { text: "Español", value: "es" }, { text: "中文", value: "zh" },
   { text: "Bahasa", value: "id" }, { text: "Русский", value: "ru" }, { text: "한국어", value: "ko" }, { text: "Tiếng Việt", value: "vi" },
 ]);
-export const langConversion = Object.freeze({ "lol-PEKO": "en", "lol-UWU": "en", zh: "zh-Hant", "zh-CN": "zh-Hans", "en-GB": "enm" });
+export const langConversion = Object.freeze({ "lol-PEKO": "en", "lol-UWU": "en", zh: "zh-Hant", "zh-CN": "zh-Hans" });
 export const companionExtensionId = "jkdnofimdhpbhdjbcdlgnccfjjkidlgp";
 export const MESSAGE_TYPES = Object.freeze({ TOKEN: "token", FAVORITES: "favorites" });
 export const MAX_PLAYLIST_LENGTH = 500;
@@ -21,8 +21,6 @@ export const DEFAULT_ORG = "Hololive";
 // Source-derived from holodex-neo/src/plugins/app-i18n.ts
 export const langs = [
   { val: "en", display: "English", credit: "@Holodex" },
-  { val: "en-CA", display: "English (Canadian)", credit: "@Holodex" },
-  { val: "en-GB", display: "English (British)", credit: "@Holodex" },
   { val: "lol-UWU", display: "English (UwU)", credit: "Doubleturtle#3660" },
   { val: "lol-PEKO", display: "English (PEKO)", credit: "Doubleturtle#3660" },
   { val: "ja", display: "日本語", credit: "Yourein#3960,Saginomiya#2353" },

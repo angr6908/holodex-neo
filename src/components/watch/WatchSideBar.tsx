@@ -38,8 +38,7 @@ type SimulcastMultiviewLink = {
 };
 const sectionToggleClass = [
   "mx-2 my-1 h-auto shrink justify-start whitespace-normal rounded-none px-0 py-0 pr-2",
-  "text-left text-xs font-normal uppercase tracking-[0.2em] text-slate-300",
-  "hover:bg-transparent hover:text-slate-300 dark:hover:bg-transparent",
+  "text-left text-xs font-normal text-muted-foreground",
 ].join(" ");
 
 function readPersistedAutoLayout() {
@@ -137,7 +136,7 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
 
     return (
       <>
-        <div className="relative z-[1] flex items-center gap-2 hover:bg-white/6 [&_*]:z-[1] [&_*]:!leading-7">
+        <div className="relative z-[1] flex items-center gap-2 [&_*]:z-[1] [&_*]:!leading-7">
           {renderSectionToggle("songs", video.songcount)}
           <div className="flex-1" />
           <Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={() => setShowDetailed((value) => !value)}>
@@ -174,7 +173,7 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
 
     return (
       <div key={relation}>
-        <div className="relative z-[1] flex items-center gap-2 hover:bg-white/6 [&_*]:z-[1] [&_*]:!leading-7">
+        <div className="relative z-[1] flex items-center gap-2 [&_*]:z-[1] [&_*]:!leading-7">
           {renderSectionToggle(relation, videos.length)}
           <div className="flex-1" />
           {relation === "simulcasts" ? (

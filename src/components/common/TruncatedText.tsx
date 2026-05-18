@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import linkifyHtml from "linkifyjs/html";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 function escapeHtml(value: string) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -12,21 +13,24 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-export function TruncatedText({ html = "", text = "", lines = 5, className = "", style, renderButton }: { html?: string; text?: string; lines?: number | string; className?: string; style?: React.CSSProperties; renderButton?: (expanded: boolean) => React.ReactNode }) {
+const lineClampClasses: Record<number, string> = {
+  1: "line-clamp-1",
+  2: "line-clamp-2",
+  3: "line-clamp-3",
+  4: "line-clamp-4",
+  5: "line-clamp-5",
+  6: "line-clamp-6",
+};
+
+export function TruncatedText({ html = "", text = "", lines = 5, className = "", renderButton }: { html?: string; text?: string; lines?: number | string; className?: string; renderButton?: (expanded: boolean) => React.ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const lineCount = useMemo(() => (html.split(/\r\n|\r|\n/).length || text.split(/\r\n|\r|\n/).length), [html, text]);
   const linkedHtml = useMemo(() => linkifyHtml(html || escapeHtml(text)), [html, text]);
   const lineLimit = Number(lines);
   const shouldTruncate = lineCount > lineLimit;
-  const contentStyle = {
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    WebkitLineClamp: lineLimit,
-    ...(!expanded && shouldTruncate ? { display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" } : {}),
-  } as React.CSSProperties;
   return (
-    <div className={className} style={style}>
-      <div style={contentStyle}><span dangerouslySetInnerHTML={{ __html: linkedHtml }} /></div>
+    <div className={className}>
+      <div className={cn("whitespace-pre-wrap break-words", !expanded && shouldTruncate && lineClampClasses[lineLimit])}><span dangerouslySetInnerHTML={{ __html: linkedHtml }} /></div>
       {shouldTruncate ? (
         <Button
           type="button"

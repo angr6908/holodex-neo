@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Извините!",
+      "title": "Не удалось загрузить контент",
       "textBeforeTwitter": "Произошла ошибка при получении данных, пожалуйста, проверьте Twitter ",
       "textAfterTwitter": " или сообщите об ошибке через",
       "aboutPage": "О сайте",
@@ -96,31 +96,38 @@
         "channel": "канал",
         "topic": "тема",
         "org": "организация",
-        "titledesc": "название/описание",
+        "titledesc": "Название или описание",
         "title": "название",
         "description": "описание",
         "comments": "комментарии",
         "videourl": "URL видео"
       },
-      "placeholder": "Искать стримы, клипы, каналы",
+      "placeholder": "Искать стримы, клипы или каналы",
       "clear": "Очистить",
       "loading": "Загрузка...",
-      "typeTwoCharacters": "Введите 2 символа",
+      "typeTwoCharacters": "Введите минимум 2 символа",
       "noChannelsFound": "Каналы не найдены",
       "noTopicsFound": "Темы не найдены",
       "noOrganizationsFound": "Организации не найдены",
       "noResultsFound": "Результаты не найдены",
       "searchChannels": "Искать каналы",
-      "filterByTopicOrgChannel": "Фильтр по теме, организации, каналу ...",
+      "filterByTopicOrgChannel": "Фильтр по теме, организации или каналу",
       "topicOrgChannelPlaceholder": "Тема, организация или канал",
       "toggleSearch": "Переключить поиск",
       "organizations": "Организации",
       "searchOrganizations": "Искать организации",
       "quickSelect": "Быстрый выбор",
       "allVtubers": "Все VTuber",
-      "selectedOrgCount": "{count} орг.",
+      "selectedOrgCount": "{count} организаций",
       "additionalOrgCount": "Еще {count}",
       "unset": "Не задано"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Модератор",
+      "openYouTube": "YouTube",
+      "blockChannel": "Заблокировать канал",
+      "unblock": "Разблокировать"
     },
     "relatedVideo": {
       "clipsLabel": "клипы",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Удалить"
+      "remove": "Удалить",
+      "automatedSongHelper": "Автопомощник песен из комментариев",
+      "clickSearchableTimestamp": "Выберите таймкод или поисковый запрос"
     },
     "comment": {
       "close": "Закрыть",
@@ -369,7 +378,10 @@
         "latest": "Сначала новые",
         "uploadedBefore": "Загружено до",
         "pickDate": "Выбрать дату",
-        "clipLanguages": "Посмотрите клипы на этих языках:"
+        "clipLanguages": "Языки клипов",
+        "displayMode": "Режим отображения",
+        "list": "Список",
+        "denseList": "Компактный список"
       },
       "apiError": "Не удалось загрузить видео."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Все",
-        "official": "Официальные",
+        "official": "Стримы",
         "clip": "Клипы"
       },
       "unsupportedQuery": "На данный момент поиск клипов по <kbd>теме</kbd> и <kbd>агентствам</kbd> не поддерживается. Ни одного <b>клипа</b> не выйдет в результатах.",
       "sortByLabel": "Сортировать по",
-      "typeDropdownLabel": "Тип",
+      "typeDropdownLabel": "Тип контента",
       "searching": "Поиск...",
-      "useSearchBar": "Используйте строку поиска, чтобы найти стримы, клипы или каналы."
+      "useSearchBar": "Используйте строку поиска, чтобы найти стримы, клипы или каналы.",
+      "sortBy": "Сортировать по"
     },
     "settings": {
       "title": "Настройки",
@@ -499,9 +512,9 @@
         "tlStart": "Начало сообщений",
         "StickBottomSettingLabel": "Расположить снизу",
         "StickBottomSettingsDesc": "Расположить переводы под чатом Youtube",
-        "showVerifiedMessages": "Показать сообщ. от вериф. пользователей",
-        "showModeratorMessages": "Показывать сообщения от модераторов",
-        "showVtuberMessages": "Показать сообщения от витуберов",
+        "showVerifiedMessages": "Показывать проверенные сообщения",
+        "showModeratorMessages": "Показывать сообщения модераторов",
+        "showVtuberMessages": "Показывать сообщения VTuber",
         "showLocalTime": "Показывать местное время",
         "tlFontSize": "Размер шрифта",
         "tlWindowSize": "Размер окна с переводами (%), оставьте 0% для автонастройки",
@@ -558,7 +571,8 @@
         "button": "Сохранить (Для применения может потребоваться 5 минут)",
         "unset": "Не задано",
         "inputPlaceholder": "Тема (оставьте пустым, чтобы снять)",
-        "saveTopic": "Сохранить тему"
+        "saveTopic": "Сохранить тему",
+        "updateSuccess": "Тема обновлена: {topic}"
       },
       "channelMentions": {
         "title": "Упомянутые каналы",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Слушать в Apple Music",
       "pickItunesResult": "Выберите один из результатов iTunes",
       "playFromHere": "Воспроизвести отсюда",
-      "timestampEditorHint": "Используйте относительные метки времени, чтобы синхронизировать музыку с видео."
+      "timestampEditorHint": "Используйте относительные метки времени, чтобы синхронизировать музыку с видео.",
+      "exportSummary": "{entries, plural, one {# запись} few {# записи} many {# записей} other {# записи}}, {profiles, plural, one {# профиль} few {# профиля} many {# профилей} other {# профиля}}"
     },
     "exitMode": "Выйти из режима редактирования",
     "enterMode": "Редактировать видео"

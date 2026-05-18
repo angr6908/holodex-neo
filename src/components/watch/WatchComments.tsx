@@ -140,11 +140,7 @@ export function WatchComments({
   return (
     <Card className="rounded-none p-0 shadow-none">
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger
-          render={
-            <Button type="button" variant="ghost" className="h-auto w-full justify-between rounded-none px-4 py-3 text-left text-sm font-medium" />
-          }
-        >
+        <CollapsibleTrigger render={<Button type="button" variant="ghost" className="h-auto w-full justify-between px-4 py-3 text-left" />}>
           {t("component.watch.Comments.title")} ({comments.length})
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -168,7 +164,7 @@ export function WatchComments({
 
             <Separator />
 
-            <div className="caption mt-3" onClick={handleCommentClick}>
+	            <div className="mt-3 text-sm" onClick={handleCommentClick}>
               {visibleComments.map((comment) => (
                 <Comment key={comment.comment_key} comment={comment} videoId={video.id || ""} />
               ))}

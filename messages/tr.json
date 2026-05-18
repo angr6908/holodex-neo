@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomennüzgünüz!",
+      "title": "İçerik yüklenemedi",
       "textBeforeTwitter": "İçerik alınırken bir sorun oluştu, lütfen Twitter'ı kontrol edin ",
       "textAfterTwitter": "veya hatayı ",
       "aboutPage": "Hakkında Sayfası",
@@ -96,31 +96,38 @@
         "channel": "kanal",
         "topic": "konu",
         "org": "organizasyon",
-        "titledesc": "başlık/açıklama",
+        "titledesc": "Başlık veya açıklama",
         "title": "başlık",
         "description": "açıklama",
         "comments": "yorumlar",
         "videourl": "video URL'si"
       },
-      "placeholder": "Yayın, klip ve kanal ara",
+      "placeholder": "Yayın, klip veya kanal ara",
       "clear": "Temizle",
       "loading": "Yükleniyor...",
-      "typeTwoCharacters": "2 karakter yazın",
+      "typeTwoCharacters": "En az 2 karakter yaz",
       "noChannelsFound": "Kanal bulunamadı",
       "noTopicsFound": "Konu bulunamadı",
       "noOrganizationsFound": "Organizasyon bulunamadı",
       "noResultsFound": "Sonuç bulunamadı",
-      "searchChannels": "Kanal ara",
-      "filterByTopicOrgChannel": "Konu, organizasyon, kanal ile filtrele ...",
+      "searchChannels": "Kanalları ara",
+      "filterByTopicOrgChannel": "Konu, organizasyon veya kanala göre filtrele",
       "topicOrgChannelPlaceholder": "Konu, organizasyon veya kanal",
       "toggleSearch": "Aramayı aç/kapat",
       "organizations": "Organizasyonlar",
       "searchOrganizations": "Organizasyon ara",
-      "quickSelect": "Hızlı seç",
+      "quickSelect": "Hızlı seçim",
       "allVtubers": "Tüm VTuber'lar",
-      "selectedOrgCount": "{count} org",
+      "selectedOrgCount": "{count} organizasyon",
       "additionalOrgCount": "{count} daha",
       "unset": "Ayarlanmamış"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Kanalı engelle",
+      "unblock": "Engeli kaldır"
     },
     "relatedVideo": {
       "clipsLabel": "klipler",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Kaldır"
+      "remove": "Kaldır",
+      "automatedSongHelper": "Yorum şarkıları için otomatik yardımcı",
+      "clickSearchableTimestamp": "Zaman damgası veya arama terimi seç"
     },
     "comment": {
       "close": "Kapat",
@@ -367,9 +376,12 @@
         "sortBy": "Sıralama türü",
         "viewers": "İzleyiciler",
         "latest": "En yeni",
-        "uploadedBefore": "Şundan önce yüklendi",
+        "uploadedBefore": "Yüklenme tarihi önce",
         "pickDate": "Tarih seç",
-        "clipLanguages": "Klipleri şu dillerde görüntüle:"
+        "clipLanguages": "Klip dilleri",
+        "displayMode": "Görünüm modu",
+        "list": "Liste",
+        "denseList": "Yoğun liste"
       },
       "apiError": "Videolar yüklenemedi."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Tümü",
-        "official": "Resmi",
-        "clip": "Klip"
+        "official": "Yayınlar",
+        "clip": "Klipler"
       },
       "unsupportedQuery": "<kbd>Konu</kbd> ve <kbd>Organizasyon</kbd> ile arama şu an desteklenmemektedir. Hiçbir <b>clip</b> gösterilmeyecek.",
       "sortByLabel": "Sıralama türü",
       "typeDropdownLabel": "İçerik türü",
       "searching": "Aranıyor...",
-      "useSearchBar": "Yayın, klip veya kanal bulmak için arama çubuğunu kullanın."
+      "useSearchBar": "Yayın, klip veya kanal bulmak için arama çubuğunu kullanın.",
+      "sortBy": "Sıralama türü"
     },
     "settings": {
       "title": "Tercihler",
@@ -499,9 +512,9 @@
         "tlStart": "Mesajların başı",
         "StickBottomSettingLabel": "Alta Yapıştır",
         "StickBottomSettingsDesc": "Altyazı kutusunu Youtube Sohbetinin altına yerleştir",
-        "showVerifiedMessages": "Doğrulanmış Mesajları Göster",
-        "showModeratorMessages": "Moderatör Mesajlarını Göster",
-        "showVtuberMessages": "Vtuber Mesajlarını Görüntüle",
+        "showVerifiedMessages": "Doğrulanmış mesajları göster",
+        "showModeratorMessages": "Moderatör mesajlarını göster",
+        "showVtuberMessages": "VTuber mesajlarını göster",
         "showLocalTime": "Yerel saatleri göster",
         "tlFontSize": "Yazı Tipi Büyüklüğü",
         "tlWindowSize": "Çeviri kutusu büyüklüğü (%), otomatik için %0 olarak bırakın",
@@ -558,7 +571,8 @@
         "button": "Kaydet (Etkili olması 5 dakika kadar süre alabilir)",
         "unset": "Ayarlanmamış",
         "inputPlaceholder": "Konu (kaldırmak için boş bırak)",
-        "saveTopic": "Konuyu kaydet"
+        "saveTopic": "Konuyu kaydet",
+        "updateSuccess": "Konu güncellendi: {topic}"
       },
       "channelMentions": {
         "title": "Kanal bahsetmeleri",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Apple Music'te dinle",
       "pickItunesResult": "iTunes sonuçlarından birini seç",
       "playFromHere": "Buradan oynat",
-      "timestampEditorHint": "Müziği videoyla hizalamak için göreli zaman damgaları kullanın."
+      "timestampEditorHint": "Müziği videoyla hizalamak için göreli zaman damgaları kullanın.",
+      "exportSummary": "{entries} kayıt, {profiles} profil"
     },
     "exitMode": "Düzenleme modundan çık",
     "enterMode": "Düzenle"

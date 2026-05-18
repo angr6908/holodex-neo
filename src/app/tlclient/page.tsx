@@ -23,15 +23,9 @@ import { VideoSelector } from "@/components/multiview/VideoSelector";
 import { YoutubePlayer } from "@/components/player/YoutubePlayer";
 import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { openUserMenu, readJSON, writeJSON } from "@/lib/browser";
-const defaultProfile = [{
-  Name: "Default",
-  Prefix: "",
-  Suffix: "",
-  useCC: false,
-  CC: "#000000",
-  useOC: false,
-  OC: "#000000",
-}];
+import { cn } from "@/lib/utils";
+const defaultProfile = [{ Name: "Default", Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }];
+const playerEmbedClass = "h-full w-full [&>div]:h-full [&>div]:w-full [&>div>iframe]:h-full [&>div>iframe]:w-full [&>iframe]:h-full [&>iframe]:w-full";
 
 export default function TLClientPage() {
   const t = useTranslations();
@@ -63,7 +57,6 @@ export default function TLClientPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const mainLinkIsCustom = !video?.id;
-  const activeChatGridRow = activeChat.length < 4 ? { gridTemplateRows: "1fr" } : { gridTemplateRows: "1fr 1fr" };
   const currentVideoPanelWidth = activeChat.length < 2 ? videoPanelWidth1 : videoPanelWidth2;
   const liveTlStickBottom = appStore.settings.liveTlStickBottom;
   const userdata = appStore.userdata;
@@ -97,11 +90,6 @@ export default function TLClientPage() {
 
   useEffect(() => () => { if (profileDisplayTimer.current) clearTimeout(profileDisplayTimer.current); }, []);
 
-  function handleModalOpen(open: boolean) {
-    if (!open) modalNexusOutsideClick();
-    else setModalNexus(true);
-  }
-
   function init() {
     setFirstLoad(true);
     setModalNexus(true);
@@ -114,107 +102,70 @@ export default function TLClientPage() {
 
   function IFrameLoaded(event: React.SyntheticEvent<HTMLIFrameElement>, target: string) {
     setActiveChat((prev) => prev.map((item) => item.text === target ? { ...item, IFrameEle: event.currentTarget } : item));
-    const origin = target.startsWith("YT_") ? "https://www.youtube.com" : target.startsWith("TW_") ? "https://www.twitch.tv" : null;
-    if (!origin) return;
+    const isYT = target.startsWith("YT_"), isTW = target.startsWith("TW_");
+    if (!isYT && !isTW) return;
+    const origin = isYT ? "https://www.youtube.com" : "https://www.twitch.tv";
     const send = () => event.currentTarget.contentWindow?.postMessage({ n: "HolodexSync", d: "Initiate" }, origin);
-    if (target.startsWith("YT_")) setTimeout(send, 5000);
-    else send();
+    if (isYT) setTimeout(send, 5000); else send();
   }
 
   function addEntry() {
-    const message = profile[profileIdx].Prefix + inputString + profile[profileIdx].Suffix;
+    const p = profile[profileIdx];
+    const message = p.Prefix + inputString + p.Suffix;
     activeChat.forEach((e) => {
       const origin = e.text.startsWith("YT_") ? "https://www.youtube.com" : e.text.startsWith("TW_") ? "https://www.twitch.tv" : null;
       if (origin) e.IFrameEle?.contentWindow?.postMessage({ n: "HolodexSync", d: localPrefix + message }, origin);
     });
-
-    const bodydt = {
-      name: userdata.user.username,
-      message,
-      cc: profile[profileIdx].useCC ? profile[profileIdx].CC : "",
-      oc: profile[profileIdx].useOC ? profile[profileIdx].OC : "",
-      source: "user",
-    };
-
-    const post = (videoId: string, customId?: string, withToast = false) =>
-      api.postTL({ videoId: videoId || "custom", jwt: userdata.jwt, lang: TLLang.value, ...(customId && { custom_video_id: customId }), body: bodydt })
-        .then(({ status, data }: any) => {
-          if (status !== 200) { console.error(data); if (withToast) toast.error(String(data)); }
-        })
+    const body = { name: userdata.user.username, message, cc: p.useCC ? p.CC : "", oc: p.useOC ? p.OC : "", source: "user" };
+    const post = (id: string, customId?: string, withToast = false) =>
+      api.postTL({ videoId: id || "custom", jwt: userdata.jwt, lang: TLLang.value, ...(customId && { custom_video_id: customId }), body })
+        .then(({ status, data }: any) => { if (status !== 200) { console.error(data); if (withToast) toast.error(String(data)); } })
         .catch((err: any) => { console.error(err); if (withToast) toast.error(String(err)); });
-
     post(video?.id, video?.id ? undefined : mainStreamLink);
     collabLinks.forEach((link) => {
       if (!link) return;
       const ytId = link.match(VIDEO_URL_REGEX)?.groups?.id;
       post(ytId || "", ytId ? undefined : link, true);
     });
-
     setInputString("");
   }
 
-  function deleteAuxLink(idx: number) {
-    if (collabLinks.length !== 1) setCollabLinks((prev) => prev.filter((_, index) => index !== idx));
-  }
-
-  function modalNexusOutsideClick() {
-    if (modalMode !== 3) setModalNexus(false);
-  }
+  const deleteAuxLink = (i: number) => { if (collabLinks.length !== 1) setCollabLinks((p) => p.filter((_, x) => x !== i)); };
+  const modalOutsideClick = () => { if (modalMode !== 3) setModalNexus(false); };
 
   async function settingOKClick() {
     const ytId = mainStreamLink.match(VIDEO_URL_REGEX)?.groups?.id || mainStreamLink;
-    setIsLoading(true);
-    setVideo({});
+    setIsLoading(true); setVideo({});
     if (ytId && ytId !== mainStreamLink) {
       api.video(ytId, TLLang.value).then(({ data }: any) => setVideo(data)).catch(() => setVideo({ id: ytId })).finally(() => setIsLoading(false));
-    } else {
-      setVideo({});
-      setIsLoading(false);
-    }
-
+    } else { setVideo({}); setIsLoading(false); }
     setLocalPrefix(`[${TLLang.value}] `);
     setModalNexus(false);
     if (firstLoad) {
       loadChat(mainStreamLink);
-      loadVideo();
-      collabLinks.forEach((e) => loadChat(e));
+      setVidPlayer(true);
+      collabLinks.forEach(loadChat);
       setFirstLoad(false);
     }
   }
 
   function swapProfile(dir: -1 | 1) {
-    if ((dir === -1 && profileIdx <= 1) || (dir === 1 && (profileIdx === 0 || profileIdx >= profile.length - 1))) {
-      showProfileList();
-      return;
-    }
+    if ((dir === -1 && profileIdx <= 1) || (dir === 1 && (profileIdx === 0 || profileIdx >= profile.length - 1))) return showProfileList();
     setProfile((prev) => {
-      const next = [...prev];
-      [next[profileIdx + dir], next[profileIdx]] = [next[profileIdx], next[profileIdx + dir]];
-      return next;
+      const n = [...prev];
+      [n[profileIdx + dir], n[profileIdx]] = [n[profileIdx], n[profileIdx + dir]];
+      return n;
     });
-    setProfileIdx((idx) => idx + dir);
+    setProfileIdx((i) => i + dir);
     showProfileList();
   }
-  const shiftProfileUp = () => swapProfile(-1);
-  const shiftProfileDown = () => swapProfile(1);
-
-  function profileUp() {
-    setProfileIdx((idx) => idx === 0 ? profile.length - 1 : idx - 1);
-    showProfileList();
-  }
-  function profileDown(isTab: boolean) {
-    setProfileIdx((idx) => idx === profile.length - 1 ? (isTab ? 1 : 0) : idx + 1);
-    showProfileList();
-  }
-  function profileJump(idx: number) {
-    if (idx < profile.length) setProfileIdx(idx);
-    showProfileList();
-  }
-  const profileJumpToDefault = () => profileJump(0);
+  const profileUp = () => { setProfileIdx((i) => i === 0 ? profile.length - 1 : i - 1); showProfileList(); };
+  const profileDown = (isTab: boolean) => { setProfileIdx((i) => i === profile.length - 1 ? (isTab ? 1 : 0) : i + 1); showProfileList(); };
+  const profileJump = (i: number) => { if (i < profile.length) setProfileIdx(i); showProfileList(); };
 
   function addProfile() {
-    const name = addProfileNameString.trim() ? addProfileNameString : `Profile ${profile.length}`;
-    setProfile((prev) => [...prev, { Name: name, Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }]);
+    const name = addProfileNameString.trim() || `Profile ${profile.length}`;
+    setProfile((p) => [...p, { Name: name, Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }]);
     setProfileIdx(profile.length);
     setModalNexus(false);
     showProfileList();
@@ -222,9 +173,8 @@ export default function TLClientPage() {
 
   function deleteProfile() {
     if (profileIdx !== 0) {
-      const removeIdx = profileIdx;
-      setProfileIdx((idx) => idx - 1);
-      setProfile((prev) => prev.filter((_, idx) => idx !== removeIdx));
+      setProfile((p) => p.filter((_, i) => i !== profileIdx));
+      setProfileIdx((i) => i - 1);
     }
     setModalNexus(false);
     showProfileList();
@@ -233,74 +183,64 @@ export default function TLClientPage() {
   function showProfileList() {
     if (!profileDisplay) setProfileDisplay(true);
     if (profileDisplayTimer.current) clearTimeout(profileDisplayTimer.current);
-    profileDisplayTimer.current = setTimeout(() => {
-      setProfileDisplay(false);
-      profileDisplayTimer.current = null;
-    }, 3000);
+    profileDisplayTimer.current = setTimeout(() => { setProfileDisplay(false); profileDisplayTimer.current = null; }, 3000);
   }
 
-  function unloadAll() { setActiveChat([]); }
-  function closeActiveChat(idx: number) { setActiveChat((prev) => prev.filter((_, index) => index !== idx)); }
+  const closeChat = (i: number) => setActiveChat((p) => p.filter((_, x) => x !== i));
 
   function URLExtender(s: string) {
-    switch (s.slice(0, 3)) {
-      case "YT_": return `https://www.youtube.com/live_chat?v=${s.slice(3)}&embed_domain=${window.location.hostname}`;
-      case "TW_": return `https://www.twitch.tv/embed/${s.slice(3)}/chat?parent=${window.location.hostname}`;
-      default: return "";
-    }
+    const id = s.slice(3), host = window.location.hostname;
+    if (s.startsWith("YT_")) return `https://www.youtube.com/live_chat?v=${id}&embed_domain=${host}`;
+    if (s.startsWith("TW_")) return `https://www.twitch.tv/embed/${id}/chat?parent=${host}`;
+    return "";
   }
 
   function loadChat(s: string) {
     const url: any = getVideoIDFromUrl(s);
     if (!url) return;
-    const prefix = url.type === "twitch" ? "TW_" : "YT_";
-    setActiveChat((prev) => [...prev, { text: `${prefix}${url.id}`, IFrameEle: undefined }]);
+    setActiveChat((p) => [...p, { text: `${url.type === "twitch" ? "TW_" : "YT_"}${url.id}`, IFrameEle: undefined }]);
   }
 
-  function loadVideo() { setVidPlayer(true); }
-  function unloadVideo() { setVidPlayer(false); }
+  const persistLayout = (tl = tlChatPanelSize, w1 = videoPanelWidth1, w2 = videoPanelWidth2) =>
+    writeJSON("Holodex-TLClient", { tlChatPanelSize: tl, videoPanelWidth1: w1, videoPanelWidth2: w2 });
 
-  function persistLayout(nextTl = tlChatPanelSize, next1 = videoPanelWidth1, next2 = videoPanelWidth2) {
-    writeJSON("Holodex-TLClient", { tlChatPanelSize: nextTl, videoPanelWidth1: next1, videoPanelWidth2: next2 });
+  function mainPanelsLayout(l: Record<string, number>) {
+    const size = l["tlclient-main"];
+    if (!activeChat.length || !size) return;
+    if (activeChat.length < 2) { setVideoPanelWidth1(size); persistLayout(tlChatPanelSize, size, videoPanelWidth2); }
+    else { setVideoPanelWidth2(size); persistLayout(tlChatPanelSize, videoPanelWidth1, size); }
   }
 
-  function handleMainPanelsLayout(layout: Record<string, number>) {
-    const mainSize = layout["tlclient-main"];
-    if (activeChat.length === 0 || !mainSize) return;
-    if (activeChat.length < 2) {
-      setVideoPanelWidth1(mainSize);
-      persistLayout(tlChatPanelSize, mainSize, videoPanelWidth2);
-    } else {
-      setVideoPanelWidth2(mainSize);
-      persistLayout(tlChatPanelSize, videoPanelWidth1, mainSize);
-    }
+  function videoStackLayout(l: Record<string, number>) {
+    const t = l["tlclient-translations"];
+    if (!t) return;
+    setTlChatPanelSize(t); persistLayout(t);
   }
 
-  function handleVideoStackLayout(layout: Record<string, number>) {
-    const translationsSize = layout["tlclient-translations"];
-    if (!translationsSize) return;
-    setTlChatPanelSize(translationsSize);
-    persistLayout(translationsSize);
-  }
+  const handleVideoClicked = (v: any) => {
+    setVideoSelectDialog(false);
+    setMainStreamLink(v.type === "placeholder" ? v.link : `https://youtube.com/watch?v=${v.id}`);
+  };
 
   const checkLoginValidity = () => appStore.loginVerify({ bounceToLogin: true });
   const changeUsernameClick = () => { openUserMenu(); router.push("/"); };
-  function handleVideoClicked(selectedVideo: any) {
-    setVideoSelectDialog(false);
-    setMainStreamLink(selectedVideo.type === "placeholder" ? selectedVideo.link : `https://youtube.com/watch?v=${selectedVideo.id}`);
-  }
+  const shiftProfileUp = () => swapProfile(-1);
+  const shiftProfileDown = () => swapProfile(1);
+  const loadVideo = () => setVidPlayer(true);
+  const unloadVideo = () => setVidPlayer(false);
+  const unloadAll = () => setActiveChat([]);
 
   const updateProfileField = (field: string, value: string) =>
-    setProfile((prev) => prev.map((item, idx) => idx === profileIdx ? { ...item, [field]: value } : item));
+    setProfile((p) => p.map((item, i) => i === profileIdx ? { ...item, [field]: value } : item));
 
-  function handleInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") { addEntry(); return; }
-    if (event.ctrlKey && /^[0-9]$/.test(event.key)) { event.preventDefault(); profileJump(Number(event.key)); return; }
-    if (event.ctrlKey || (event.key !== "Tab" && event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
-    event.preventDefault();
-    if (event.key === "ArrowUp") profileUp();
-    else if (event.key === "ArrowDown") profileDown(false);
-    else if (event.shiftKey) profileJumpToDefault();
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") return addEntry();
+    if (e.ctrlKey && /^[0-9]$/.test(e.key)) { e.preventDefault(); return profileJump(Number(e.key)); }
+    if (e.ctrlKey || !["Tab", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+    e.preventDefault();
+    if (e.key === "ArrowUp") profileUp();
+    else if (e.key === "ArrowDown") profileDown(false);
+    else if (e.shiftKey) profileJump(0);
     else profileDown(true);
   }
 
@@ -334,25 +274,24 @@ export default function TLClientPage() {
         </Button>
       </Card>
 
-      <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1 gap-3" onLayoutChanged={handleMainPanelsLayout}>
+      <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1 gap-3" onLayoutChanged={mainPanelsLayout}>
         <ResizablePanel id="tlclient-main" defaultSize={activeChat.length > 0 ? currentVideoPanelWidth : 100} minSize={activeChat.length > 0 ? 33 : undefined} maxSize={activeChat.length > 0 ? 75 : undefined} className="min-h-0">
-          <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[calc(var(--radius)+6px)] border border-[color:var(--color-border)] bg-[color:var(--colorbg)] shadow-[0_24px_80px_rgb(15_23_42/0.35)] backdrop-blur-[18px]">
+	          <Card className="relative flex h-full min-h-0 flex-col overflow-hidden p-0">
             {vidPlayer && parsedMain ? (
-              <ResizablePanelGroup orientation="vertical" className="min-h-0 flex-1" onLayoutChanged={handleVideoStackLayout}>
+              <ResizablePanelGroup orientation="vertical" className="min-h-0 flex-1" onLayoutChanged={videoStackLayout}>
                 <ResizablePanel id="tlclient-player" defaultSize={100 - tlChatPanelSize} minSize={25} className="min-h-0">
                   <div id="player" className="h-full w-full overflow-hidden">
-                    {parsedMain.type !== "twitch" ? <YoutubePlayer videoId={parsedMain.id} /> : <TwitchPlayer channel={parsedMain.id} />}
+                    {parsedMain.type !== "twitch" ? <YoutubePlayer videoId={parsedMain.id} className={playerEmbedClass} /> : <TwitchPlayer channel={parsedMain.id} className={playerEmbedClass} />}
                   </div>
                 </ResizablePanel>
-                <ResizableHandle withHandle className="bg-white/10" />
+	                <ResizableHandle withHandle />
                 <ResizablePanel id="tlclient-translations" defaultSize={tlChatPanelSize} minSize={20} className="min-h-0">
                   {!isLoading ? (
                     <LiveTranslations
                       tlLang={TLLang.value}
                       tlClient
                       video={mainLinkIsCustom ? { id: mainStreamLink, isCustom: true } : video}
-                      className={`${liveTlStickBottom ? "stick-bottom" : ""}`}
-                      style={{ height: "100%" }}
+                      className={cn("h-full", liveTlStickBottom && "flex-col-reverse")}
                       useLocalSubtitleToggle={false}
                     />
                   ) : null}
@@ -363,29 +302,28 @@ export default function TLClientPage() {
                 tlLang={TLLang.value}
                 tlClient
                 video={mainLinkIsCustom ? { id: mainStreamLink, isCustom: true } : video}
-                className={`${liveTlStickBottom ? "stick-bottom" : ""}`}
-                style={{ height: "100%" }}
+                className={cn("h-full", liveTlStickBottom && "flex-col-reverse")}
                 useLocalSubtitleToggle={false}
               />
             ) : null}
             {profileDisplay && activeChat.length > 1 ? (
-              <div className="absolute bottom-[5px] right-[5px] flex flex-col gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--colorbg)] px-3 py-2 text-xs text-slate-200 shadow-[0_24px_80px_rgb(15_23_42/0.35)] backdrop-blur-[18px]">
-                {profile.map((prf, index) => <span key={`profilecard${index}`} className={index === profileIdx ? "font-medium text-sky-300" : ""}>{index === profileIdx ? <span>&gt; </span> : null}{index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}{index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}{" " + prf.Name}</span>)}
-              </div>
+	              <Card className="absolute bottom-1 right-1 flex flex-col gap-1 p-3 text-xs">
+	                {profile.map((prf, index) => <span key={`profilecard${index}`} className={index === profileIdx ? "font-medium text-primary" : ""}>{index === profileIdx ? <span>&gt; </span> : null}{index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}{index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}{" " + prf.Name}</span>)}
+	              </Card>
             ) : null}
-          </div>
+	          </Card>
         </ResizablePanel>
 
-        {activeChat.length > 0 ? <ResizableHandle withHandle className="bg-transparent" /> : null}
+	        {activeChat.length > 0 ? <ResizableHandle withHandle /> : null}
 
         {activeChat.length > 0 ? (
           <ResizablePanel id="tlclient-chat" defaultSize={100 - currentVideoPanelWidth} minSize={25} className="min-h-0">
-            <div className="relative grid h-full min-h-0 grid-flow-col overflow-hidden rounded-[calc(var(--radius)+6px)] border border-[color:var(--color-border)] bg-[color:var(--colorbg)] shadow-[0_24px_80px_rgb(15_23_42/0.35)] backdrop-blur-[18px]" style={activeChatGridRow}>
+	            <Card className={cn("relative grid h-full min-h-0 grid-flow-col overflow-hidden p-0", activeChat.length < 4 ? "grid-rows-1" : "grid-rows-2")}>
               {activeChat.map((ChatURL, index) => (
-                <div key={ChatURL.text} className="flex min-h-0 flex-col border-b border-white/8 last:border-b-0">
-                  <div className="flex items-center justify-between px-3 py-2 text-sm text-slate-200">
-                    <span>{ChatURL.text}</span>
-                    <Button type="button" variant="ghost" size="icon-xs" className="text-slate-400 hover:text-white" onClick={() => closeActiveChat(index)}>
+	                <div key={ChatURL.text} className="flex min-h-0 flex-col border-b last:border-b-0">
+	                  <div className="flex items-center justify-between px-3 py-2 text-sm">
+	                    <span>{ChatURL.text}</span>
+	                    <Button type="button" variant="ghost" size="icon-xs" onClick={() => closeChat(index)}>
                       <CircleX className="size-4" />
                     </Button>
                   </div>
@@ -393,21 +331,21 @@ export default function TLClientPage() {
                 </div>
               ))}
               {profileDisplay && activeChat.length < 2 ? (
-                <div className="absolute bottom-[5px] right-[5px] flex flex-col gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--colorbg)] px-3 py-2 text-xs text-slate-200 shadow-[0_24px_80px_rgb(15_23_42/0.35)] backdrop-blur-[18px]">
-                  {profile.map((prf, index) => <span key={`profilecard${index}`} className={index === profileIdx ? "font-medium text-sky-300" : ""}>{index === profileIdx ? <span>&gt; </span> : null}{index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}{index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}{index === Math.max(1, (profileIdx + 1) % profile.length) ? <Kbd className="ml-1">Tab↹</Kbd> : null}{" " + prf.Name}</span>)}
-                </div>
-              ) : null}
-            </div>
+	                <Card className="absolute bottom-1 right-1 flex flex-col gap-1 p-3 text-xs">
+	                  {profile.map((prf, index) => <span key={`profilecard${index}`} className={index === profileIdx ? "font-medium text-primary" : ""}>{index === profileIdx ? <span>&gt; </span> : null}{index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}{index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}{index === Math.max(1, (profileIdx + 1) % profile.length) ? <Kbd className="ml-1">Tab↹</Kbd> : null}{" " + prf.Name}</span>)}
+	                </Card>
+	              ) : null}
+	            </Card>
           </ResizablePanel>
         ) : null}
       </ResizablePanelGroup>
 
       <Card className="p-3">
         <div className="flex flex-col gap-3 lg:flex-row">
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/4 px-3 py-2">
-            <span className="shrink-0 text-sm text-slate-400">{currentProfile.Prefix}</span>
-            <Input value={inputString} className="border-0 bg-transparent px-0 shadow-none focus:ring-0" placeholder={t("views.tlClient.tlControl.inputPlaceholder")} onChange={(event) => setInputString(event.target.value)} onKeyDown={handleInputKeyDown} />
-            <span className="shrink-0 text-sm text-slate-400">{currentProfile.Suffix}</span>
+	          <div className="flex flex-1 items-center gap-2 rounded-md border px-3 py-2">
+	            <span className="shrink-0 text-sm text-muted-foreground">{currentProfile.Prefix}</span>
+	            <Input value={inputString} className="border-0 bg-transparent px-0 shadow-none focus:ring-0" placeholder={t("views.tlClient.tlControl.inputPlaceholder")} onChange={(event) => setInputString(event.target.value)} onKeyDown={handleInputKeyDown} />
+	            <span className="shrink-0 text-sm text-muted-foreground">{currentProfile.Suffix}</span>
           </div>
           <Button className="lg:self-start" onClick={addEntry}>{t("views.tlClient.tlControl.enterBtn")}</Button>
           <Button variant="outline" className="lg:self-start" onClick={() => setTLSetting(!TLSetting)}>
@@ -417,11 +355,11 @@ export default function TLClientPage() {
         </div>
 
         {TLSetting ? (
-          <div className="mt-3 rounded-[calc(var(--radius)+6px)] border border-white/10 bg-white/4 p-4">
+	          <div className="mt-3 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-medium text-white">{t("views.tlClient.tlControl.currentProfileSettings", { name: currentProfile.Name })}</div>
-                <div className="mt-2 space-y-1 text-xs text-slate-400">
+	                <div className="text-sm font-medium">{t("views.tlClient.tlControl.currentProfileSettings", { name: currentProfile.Name })}</div>
+	                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                   <div>{t("views.tlClient.shortcuts.whileTyping")}</div>
                   <div><Kbd>Up⇧</Kbd> {t("views.tlClient.shortcuts.or")} <Kbd>Down⇩</Kbd> {t("views.tlClient.shortcuts.changeProfiles")}</div>
                   <div><Kbd>Ctrl+[0~9]</Kbd> {t("views.tlClient.shortcuts.quickSwitchProfileRange")}</div>
@@ -429,13 +367,13 @@ export default function TLClientPage() {
                   <div><Kbd>Shift⇧-Tab↹</Kbd> {t("views.tlClient.shortcuts.quickSwitchDefaultProfile")}</div>
                 </div>
               </div>
-              <Button type="button" variant="ghost" size="icon-xs" className="text-slate-400 hover:text-white" onClick={() => setTLSetting(false)}><XIcon className="size-4" /></Button>
+	              <Button type="button" variant="ghost" size="icon-xs" onClick={() => setTLSetting(false)}><XIcon className="size-4" /></Button>
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr]">
-              <Field className="gap-2"><FieldLabel htmlFor="tlclient-profile-prefix" className="text-slate-300">{t("views.tlClient.tlControl.prefix")}</FieldLabel><Input id="tlclient-profile-prefix" value={currentProfile.Prefix} onChange={(event) => updateProfileField("Prefix", event.target.value)} /></Field>
-              <Field className="gap-2"><FieldLabel htmlFor="tlclient-profile-suffix" className="text-slate-300">{t("views.tlClient.tlControl.suffix")}</FieldLabel><Input id="tlclient-profile-suffix" value={currentProfile.Suffix} onChange={(event) => updateProfileField("Suffix", event.target.value)} /></Field>
-              <Field className="gap-2"><FieldLabel htmlFor="tlclient-local-prefix" className="text-slate-300">{t("views.tlClient.tlControl.localPrefix")}</FieldLabel><Input id="tlclient-local-prefix" value={localPrefix} onChange={(event) => setLocalPrefix(event.target.value)} /></Field>
+	              <Field className="gap-2"><FieldLabel htmlFor="tlclient-profile-prefix">{t("views.tlClient.tlControl.prefix")}</FieldLabel><Input id="tlclient-profile-prefix" value={currentProfile.Prefix} onChange={(event) => updateProfileField("Prefix", event.target.value)} /></Field>
+	              <Field className="gap-2"><FieldLabel htmlFor="tlclient-profile-suffix">{t("views.tlClient.tlControl.suffix")}</FieldLabel><Input id="tlclient-profile-suffix" value={currentProfile.Suffix} onChange={(event) => updateProfileField("Suffix", event.target.value)} /></Field>
+	              <Field className="gap-2"><FieldLabel htmlFor="tlclient-local-prefix">{t("views.tlClient.tlControl.localPrefix")}</FieldLabel><Input id="tlclient-local-prefix" value={localPrefix} onChange={(event) => setLocalPrefix(event.target.value)} /></Field>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -448,28 +386,28 @@ export default function TLClientPage() {
         ) : null}
       </Card>
 
-      <Dialog open={modalNexus} onOpenChange={handleModalOpen}>
+      <Dialog open={modalNexus} onOpenChange={(o) => o ? setModalNexus(true) : modalOutsideClick()}>
         <DialogContent className="max-w-[600px] p-0">
         {modalMode === 1 ? (
           <div className="space-y-5 p-6">
-            <h2 className="text-lg font-semibold text-white">{t("views.tlClient.addProfilePanel.title")}</h2>
+	            <h2 className="text-lg font-semibold">{t("views.tlClient.addProfilePanel.title")}</h2>
             <Input value={addProfileNameString} placeholder={t("views.tlClient.addProfilePanel.inputLabel")} onChange={(event) => setAddProfileNameString(event.target.value)} />
             <div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={addProfile}>{t("views.tlClient.okBtn")}</Button></div>
           </div>
         ) : modalMode === 2 ? (
-          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold text-white">{t("views.tlClient.removeProfileTitle") + " " + currentProfile.Name}.</h2><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={deleteProfile}>{t("views.tlClient.okBtn")}</Button></div></div>
+	          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold">{t("views.tlClient.removeProfileTitle") + " " + currentProfile.Name}.</h2><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={deleteProfile}>{t("views.tlClient.okBtn")}</Button></div></div>
         ) : modalMode === 3 ? (
           <div className="space-y-5 p-6">
-            <div><h2 className="text-lg font-semibold text-white">{t("views.tlClient.settingPanel.title")}</h2><p className="mt-2 text-sm text-slate-400">{t("views.watch.uploadPanel.usernameText") + " : " + userdata.user?.username + " "}<Button type="button" variant="link" className="h-auto p-0 align-baseline text-xs underline underline-offset-4 hover:text-sky-300" onClick={changeUsernameClick}>{t("views.watch.uploadPanel.usernameChange")}</Button></p></div>
-            <Field className="gap-2"><FieldLabel htmlFor="tlclient-language" className="text-slate-300">{t("views.watch.uploadPanel.tlLang")}</FieldLabel><Select value={TLLang.value} onValueChange={(value) => { const next = TL_LANGS.find((item) => item.value === value) || TL_LANGS[0]; setTLLang(next); setLocalPrefix(`[${next.value}] `); }}><SelectTrigger id="tlclient-language" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{TL_LANGS.map((item) => <SelectItem key={item.value} value={item.value}>{item.text + " (" + item.value + ")"}</SelectItem>)}</SelectContent></Select></Field>
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end"><Field className="flex-1 gap-2"><FieldLabel htmlFor="tlclient-main-stream-link" className="text-slate-300">{t("views.tlClient.settingPanel.mainStreamLink")}</FieldLabel><Input id="tlclient-main-stream-link" value={mainStreamLink} placeholder="https://..." onChange={(event) => setMainStreamLink(event.target.value)} /></Field><span className="text-sm text-slate-500">{t("component.common.or")}</span><Button variant="secondary" onClick={() => setVideoSelectDialog(true)}>{t("views.tlClient.settingPanel.findVideo")}</Button></div>
-            <Field className="gap-3"><FieldLabel className="text-slate-300">{t("views.tlClient.settingPanel.collabLink")}</FieldLabel>{collabLinks.map((AuxLink, index) => <div key={index} className="flex gap-2"><Button variant="outline" size="icon" onClick={() => deleteAuxLink(index)}><MinusCircle className="size-4" /></Button><Input value={AuxLink} className="flex-1" onChange={(event) => setCollabLinks((prev) => prev.map((item, idx) => idx === index ? event.target.value : item))} /><Button variant="outline" size="icon" onClick={() => setCollabLinks((prev) => [...prev, ""])}><CirclePlus className="size-4" /></Button></div>)}</Field>
+	            <div><h2 className="text-lg font-semibold">{t("views.tlClient.settingPanel.title")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("views.watch.uploadPanel.usernameText") + " : " + userdata.user?.username + " "}<Button type="button" variant="link" className="h-auto p-0 align-baseline text-xs underline underline-offset-4" onClick={changeUsernameClick}>{t("views.watch.uploadPanel.usernameChange")}</Button></p></div>
+	            <Field className="gap-2"><FieldLabel htmlFor="tlclient-language">{t("views.watch.uploadPanel.tlLang")}</FieldLabel><Select value={TLLang.value} onValueChange={(value) => { const next = TL_LANGS.find((item) => item.value === value) || TL_LANGS[0]; setTLLang(next); setLocalPrefix(`[${next.value}] `); }}><SelectTrigger id="tlclient-language" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{TL_LANGS.map((item) => <SelectItem key={item.value} value={item.value}>{item.text + " (" + item.value + ")"}</SelectItem>)}</SelectContent></Select></Field>
+	            <div className="flex flex-col gap-3 lg:flex-row lg:items-end"><Field className="flex-1 gap-2"><FieldLabel htmlFor="tlclient-main-stream-link">{t("views.tlClient.settingPanel.mainStreamLink")}</FieldLabel><Input id="tlclient-main-stream-link" value={mainStreamLink} placeholder="https://..." onChange={(event) => setMainStreamLink(event.target.value)} /></Field><span className="text-sm text-muted-foreground">{t("component.common.or")}</span><Button variant="secondary" onClick={() => setVideoSelectDialog(true)}>{t("views.tlClient.settingPanel.findVideo")}</Button></div>
+	            <Field className="gap-3"><FieldLabel>{t("views.tlClient.settingPanel.collabLink")}</FieldLabel>{collabLinks.map((AuxLink, index) => <div key={index} className="flex gap-2"><Button variant="outline" size="icon" onClick={() => deleteAuxLink(index)}><MinusCircle className="size-4" /></Button><Input value={AuxLink} className="flex-1" onChange={(event) => setCollabLinks((prev) => prev.map((item, idx) => idx === index ? event.target.value : item))} /><Button variant="outline" size="icon" onClick={() => setCollabLinks((prev) => [...prev, ""])}><CirclePlus className="size-4" /></Button></div>)}</Field>
             <div className="flex justify-center"><Button onClick={settingOKClick}>{t("views.tlClient.okBtn")}</Button></div>
           </div>
         ) : modalMode === 4 ? (
-          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold text-white">{t("views.tlClient.loadChatPanel.title")}</h2><Input value={activeURLStream} placeholder={t("views.tlClient.loadChatPanel.inputLabel")} onChange={(event) => setActiveURLStream(event.target.value)} /><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={() => { loadChat(activeURLStream); setModalNexus(false); }}>{t("views.tlClient.okBtn")}</Button></div></div>
+	          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold">{t("views.tlClient.loadChatPanel.title")}</h2><Input value={activeURLStream} placeholder={t("views.tlClient.loadChatPanel.inputLabel")} onChange={(event) => setActiveURLStream(event.target.value)} /><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={() => { loadChat(activeURLStream); setModalNexus(false); }}>{t("views.tlClient.okBtn")}</Button></div></div>
         ) : modalMode === 5 ? (
-          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold text-white">{t("views.tlClient.unloadChatTitle")}</h2><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={() => { unloadAll(); setModalNexus(false); }}>{t("views.tlClient.okBtn")}</Button></div></div>
+	          <div className="space-y-5 p-6"><h2 className="text-lg font-semibold">{t("views.tlClient.unloadChatTitle")}</h2><div className="flex items-center gap-3"><Button variant="ghost" onClick={() => setModalNexus(false)}>{t("views.tlClient.cancelBtn")}</Button><Button className="ml-auto" onClick={() => { unloadAll(); setModalNexus(false); }}>{t("views.tlClient.okBtn")}</Button></div></div>
         ) : null}
         </DialogContent>
       </Dialog>

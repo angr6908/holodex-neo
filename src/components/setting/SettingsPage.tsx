@@ -15,6 +15,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 const sectionLabelClass = "text-[0.68rem] font-normal uppercase leading-normal tracking-[0.16em] text-muted-foreground";
+const settingControlClass = "flex min-w-[min(100%,14rem)] max-w-full flex-1 flex-col gap-[0.45rem]";
 
 export function SettingsPage({ className = "" }: { className?: string }) {
   const app = useAppState();
@@ -44,7 +45,6 @@ export function SettingsPage({ className = "" }: { className?: string }) {
   }, []);
   useEffect(() => {
     try { localStorage.setItem("theme", `${themeId}`); } catch {}
-    window.dispatchEvent(new CustomEvent("holodex-theme-change", { detail: themeId }));
   }, [themeId]);
 
   function clearOverrideLanguage() {
@@ -63,7 +63,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
   return <div className={cn("min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-4 sm:p-5", className)}>
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-2">
-        <div className="flex min-w-0 max-w-full flex-col gap-[0.45rem]">
+        <div className={settingControlClass}>
           <Label className={sectionLabelClass}>{t("views.settings.languageSettings")}</Label>
           <Select
             value={app.settings.lang}
@@ -85,12 +85,12 @@ export function SettingsPage({ className = "" }: { className?: string }) {
           </Select>
         </div>
 
-        <div className="flex max-w-full flex-col gap-[0.45rem]">
+        <div className={settingControlClass}>
           <Label className={sectionLabelClass}>{t("views.settings.theme")}</Label>
           <Select value={String(themeId)} onValueChange={(value) => setThemeId(value)}>
             <SelectTrigger>
               <span className="flex min-w-0 items-center gap-2">
-                <ThemeSwatch color={selectedTheme?.themes.light.accent || "#38bdf8"} />
+                <ThemeSwatch />
                 <span className="truncate">{themeName(selectedTheme?.name)}</span>
               </span>
             </SelectTrigger>
@@ -98,7 +98,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
               {themeOptions.map((theme) => (
                 <SelectItem key={theme.id} value={String(theme.id)}>
                   <span className="flex min-w-0 items-center gap-2">
-                    <ThemeSwatch color={theme.themes.light.accent} />
+                    <ThemeSwatch />
                     <span className="truncate">{themeName(theme.name)}</span>
                   </span>
                 </SelectItem>
@@ -107,7 +107,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
           </Select>
         </div>
 
-        <div className="flex max-w-full flex-col gap-[0.45rem]">
+        <div className={settingControlClass}>
           <Label className={sectionLabelClass}>{t("views.settings.defaultPage")}</Label>
           <ToggleGroup
             variant="outline"
@@ -124,8 +124,8 @@ export function SettingsPage({ className = "" }: { className?: string }) {
         </div>
       </div>
 
-	      {overrideLanguage ? <Alert className="rounded-xl border-amber-400/25 bg-amber-400/10 px-3 py-2.5 text-sm text-amber-50" onClick={clearOverrideLanguage}>
-	        <AlertDescription className="block text-amber-50">
+      {overrideLanguage ? <Alert onClick={clearOverrideLanguage}>
+        <AlertDescription>
 	          {t("views.settings.languageOverrideActive", { language: langs.find((x) => x.val === overrideLanguage)?.display || overrideLanguage })}
 	        </AlertDescription>
 	      </Alert> : null}
@@ -144,11 +144,6 @@ export function SettingsPage({ className = "" }: { className?: string }) {
   </div>;
 }
 
-function ThemeSwatch({ color }: { color: string }) {
-  return (
-    <span
-      className="size-3 shrink-0 rounded-full border border-[color:var(--color-border)] shadow-sm"
-      style={{ backgroundColor: color }}
-    />
-  );
+function ThemeSwatch() {
+  return <span className="size-3 shrink-0 rounded-full border border-border bg-primary shadow-sm" />;
 }

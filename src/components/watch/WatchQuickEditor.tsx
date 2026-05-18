@@ -80,16 +80,16 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
       if (!data) return;
       setDeletionSet(new Set());
       setIsSelectedAll(false);
-      showSuccess("Successfully deleted mention");
+      showSuccess(t("views.editor.channelMentions.deleteSuccess"));
       updateMentions();
-    }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured")).finally(() => setIsApplyingBulkEdit(false));
+    }).catch((e: any) => showError((e.response?.data.message) || e.message || t("component.form.error"))).finally(() => setIsApplyingBulkEdit(false));
   }
   function addMention(channel: any) {
     api.addMention(video.id, channel.id, app.userdata.jwt).then(({ data }: any) => {
       if (!data) return;
-      showSuccess(`Added channel: ${channelDisplayName(channel, useEnglishName)}`);
+      showSuccess(t("views.editor.channelMentions.addSuccess", { channel: channelDisplayName(channel, useEnglishName) }));
       updateMentions();
-    }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured"));
+    }).catch((e: any) => showError((e.response?.data.message) || e.message || t("component.form.error")));
   }
   function selectMention(channelId: string | null) {
     if (!channelId) return;
@@ -102,13 +102,13 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
     setTopics((data || []).map((topic: any) => ({ value: topic.id, text: `${topic.id} (${topic.count ?? 0})` })));
   }
   function saveTopic() {
-    api.topicSet(newTopic, video.id, app.userdata.jwt).then(() => { setCurrentTopic(newTopic); showSuccess(`Updated Topic to ${newTopic}`); }).catch((e: any) => showError((e.response?.data.message) || e.message || "Error occured"));
+    api.topicSet(newTopic, video.id, app.userdata.jwt).then(() => { setCurrentTopic(newTopic); showSuccess(t("views.editor.changeTopic.updateSuccess", { topic: newTopic || t("component.search.unset") })); }).catch((e: any) => showError((e.response?.data.message) || e.message || t("component.form.error")));
   }
 
   return (
-    <Card className="rounded-none border-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.02),rgba(255,255,255,0.02)_10px,rgba(255,255,255,0.04)_10px,rgba(255,255,255,0.04)_20px)] p-4 shadow-none">
-      {errorMessage && showErrorAlert ? <Alert className="mb-3 rounded-2xl border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"><AlertDescription className="text-rose-200">{errorMessage}</AlertDescription></Alert> : null}
-      {successMessage && showSuccessAlert ? <Alert className="mb-3 rounded-2xl border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"><AlertDescription className="text-emerald-200">{successMessage}</AlertDescription></Alert> : null}
+    <Card className="rounded-none p-4">
+      {errorMessage && showErrorAlert ? <Alert variant="destructive" className="mb-3"><AlertDescription>{errorMessage}</AlertDescription></Alert> : null}
+      {successMessage && showSuccessAlert ? <Alert className="mb-3"><AlertDescription>{successMessage}</AlertDescription></Alert> : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -116,10 +116,10 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
 	            <Button type="button" variant="ghost" size="sm" onClick={toggleMentionSelection}>{isSelectedAll ? <icons.Square className="size-5" /> : <icons.CheckSquare className="size-5" />}{isSelectedAll ? t("component.reportDialog.deselectAll") : t("component.reportDialog.selectAll")}</Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {mentions.map((item, index) => <div key={`${item.id || "mention"}-${index}`} className="relative"><ChannelChip channel={item} size={60} closeDelay={0}>{() => <div className={`absolute inset-0 flex items-center justify-center rounded-full ${isAddedToDeletionSet(item.id) ? "bg-rose-950/70" : "bg-slate-950/0 hover:bg-slate-950/40"}`}><Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={(event) => { event.stopPropagation(); toggleDeletion(item.id); }}>{isAddedToDeletionSet(item.id) ? <icons.Trash2 className="size-5" /> : <icons.SquarePlus className="size-5" />}</Button></div>}</ChannelChip></div>)}
+            {mentions.map((item, index) => <div key={`${item.id || "mention"}-${index}`} className="relative"><ChannelChip channel={item} size={60} closeDelay={0}>{() => <div className="absolute inset-0 flex items-center justify-center rounded-full"><Button type="button" size="icon" variant={isAddedToDeletionSet(item.id) ? "destructive" : "ghost"} className="h-8 w-8" onClick={(event) => { event.stopPropagation(); toggleDeletion(item.id); }}>{isAddedToDeletionSet(item.id) ? <icons.Trash2 className="size-5" /> : <icons.SquarePlus className="size-5" />}</Button></div>}</ChannelChip></div>)}
           </div>
           <div className="mt-4">
-	            <Label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("component.reportDialog.addMentionedChannels")}</Label>
+            <Label className="mb-2 block">{t("component.reportDialog.addMentionedChannels")}</Label>
             <div className="max-w-xl">
               <Combobox
                 items={channelValues}
@@ -146,9 +146,9 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
           </div>
         </div>
         {video.type === "stream" || video.type === "placeholder" ? (
-          <div className="min-w-[260px] max-w-sm flex-1 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="mb-2 flex items-center gap-2 text-slate-300"><icons.CirclePlay className="size-5" /><span className="text-xs uppercase tracking-[0.2em] text-slate-400">{t("component.search.type.topic")}</span></div>
-	            <div className="mb-3 text-sm text-sky-300">{currentTopic || t("views.editor.changeTopic.unset")}</div>
+          <Card className="min-w-[260px] max-w-sm flex-1 p-4">
+            <div className="mb-2 flex items-center gap-2"><icons.CirclePlay className="size-5" /><span className="text-sm text-muted-foreground">{t("component.search.type.topic")}</span></div>
+            <div className="mb-3 text-sm">{currentTopic || t("views.editor.changeTopic.unset")}</div>
             <Combobox
               items={topicValues}
               value={newTopic}
@@ -171,7 +171,7 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
               </ComboboxContent>
             </Combobox>
 	            <Button type="button" size="sm" className="mt-3" onClick={saveTopic}><Save className="size-5" />{t("views.editor.changeTopic.saveTopic")}</Button>
-          </div>
+          </Card>
         ) : null}
       </div>
     </Card>

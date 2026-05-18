@@ -19,7 +19,6 @@ export function ChannelInfo({
   noSubscriberCount = false,
   noGroup = false,
   children,
-  style,
   className = "",
 }: {
   channel: Record<string, any>;
@@ -28,7 +27,6 @@ export function ChannelInfo({
   noSubscriberCount?: boolean;
   noGroup?: boolean;
   children?: React.ReactNode;
-  style?: React.CSSProperties;
   className?: string;
 }) {
   const router = useRouter();
@@ -49,7 +47,7 @@ export function ChannelInfo({
   }
 
   return (
-    <div className={cn("min-w-0 flex-1", className)} style={style}>
+    <div className={cn("min-w-0 flex-1", className)}>
       <div className="self-start">
         <Link href={`/channel/${channel.id}`} className="truncate no-underline">
           {channel.inactive ? (
@@ -64,13 +62,13 @@ export function ChannelInfo({
             {channel.yt_handle[0]} •
           </a>
         ) : null}
-        <span style={{ display: channel.org ? undefined : "none" }}>
+        <span className={channel.org ? undefined : "hidden"}>
           <Link href={`/?${channelOrg}`} className="text-xs font-light text-muted-foreground no-underline opacity-70 hover:opacity-100">
             {channel.org + (!noGroup && group ? " / " + group : "")}
           </Link>
         </span>
       </div>
-      <div className="text-sm text-[color:var(--color-muted-foreground)]">
+      <div className="text-sm text-muted-foreground">
         {!noSubscriberCount ? <span className="subscriber-count">{subscriberCount}</span> : null}
         {includeVideoCount ? (
           <>
@@ -79,22 +77,20 @@ export function ChannelInfo({
             {channel.clip_count > 0 ? (
               <Link href={`/channel/${channel.id}/clips`} className="no-underline">
                 {" • "}
-                <span className="text-[color:var(--color-primary)]">{t("component.channelInfo.clipCount", { n: channel.clip_count })}</span>
+                <span className="text-primary">{t("component.channelInfo.clipCount", { n: channel.clip_count })}</span>
               </Link>
             ) : null}
           </>
         ) : null}
       </div>
       {channel.top_topics && channel.top_topics.length ? (
-        <div className="text-sm text-[color:var(--color-muted-foreground)]">
-          🏆{" "}
+        <div className="text-sm text-muted-foreground">
           {channel.top_topics.map((topic: string) => (
             <Button
               key={topic}
               type="button"
               variant="outline"
               size="xs"
-              className="mr-1 h-auto rounded-full bg-muted px-2 py-0.5 text-xs font-normal capitalize hover:border-transparent hover:bg-primary hover:text-primary-foreground"
               onClick={(event) => { event.stopPropagation(); event.preventDefault(); void searchTopic(topic); }}
             >
               {topic}
@@ -102,7 +98,7 @@ export function ChannelInfo({
           ))}
         </div>
       ) : null}
-      {includeSocials ? <div className="text-sm text-[color:var(--color-muted-foreground)]"><ChannelSocials channel={channel} /></div> : null}
+      {includeSocials ? <div className="text-sm text-muted-foreground"><ChannelSocials channel={channel} /></div> : null}
       {children}
     </div>
   );

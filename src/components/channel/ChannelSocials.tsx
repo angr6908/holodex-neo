@@ -79,7 +79,7 @@ export function ChannelSocials({
                 />
               }
             >
-              <icons.YoutubeIcon className="size-5 text-red-500" />
+              <icons.YoutubeIcon className="size-5" />
             </TooltipTrigger>
             <TooltipContent>YouTube</TooltipContent>
           </Tooltip>
@@ -102,7 +102,7 @@ export function ChannelSocials({
                 />
               }
             >
-              <icons.TwitterIcon className="size-5 text-sky-400" />
+              <icons.TwitterIcon className="size-5" />
             </TooltipTrigger>
             <TooltipContent>Twitter</TooltipContent>
           </Tooltip>
@@ -125,7 +125,7 @@ export function ChannelSocials({
                 />
               }
             >
-              <TwitchIcon className="size-5 text-violet-400" />
+              <TwitchIcon className="size-5" />
             </TooltipTrigger>
             <TooltipContent>Twitch</TooltipContent>
           </Tooltip>
@@ -143,11 +143,7 @@ export function ChannelSocials({
                 />
               }
             >
-              {isFavorited ? <icons.Heart className={cn("size-5", isFavorited && app.isLoggedIn
-                    ? "text-rose-400"
-                    : "text-slate-500")} /> : <Heart className={cn("size-5", isFavorited && app.isLoggedIn
-                    ? "text-rose-400"
-                    : "text-slate-500")} />}
+              {isFavorited ? <icons.Heart className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")} /> : <Heart className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")} />}
             </TooltipTrigger>
             <TooltipContent>{tooltip}</TooltipContent>
           </Tooltip>

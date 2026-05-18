@@ -1,281 +1,175 @@
-import type { CSSProperties } from "react";
-export function getTlTextStyle(cc = "", oc = "", strokeWidth = "1px"): CSSProperties {
-  return {
-    WebkitTextFillColor: cc === "" ? "unset" : cc,
-    WebkitTextStrokeColor: oc === "" ? "unset" : oc,
-    WebkitTextStrokeWidth: oc === "" ? "0px" : strokeWidth,
-  };
-}
-
-export function downloadTextFile(filename: string, contents: string): void {
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
-  link.download = filename;
-  link.click();
-  link.remove();
+export function downloadTextFile(filename: string, contents: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
+  a.download = filename;
+  a.click();
+  a.remove();
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
+const splitHMS = (ms: number) => [Math.floor(ms / 3600000), Math.floor(ms / 60000) % 60, Math.floor(ms / 1000) % 60, ms % 1000];
 
-export function formatTlTimestamp(raw: number): string {
-  let ms = Math.max(0, Math.floor(raw || 0));
-  const hh = Math.floor(ms / 3600000); ms -= hh * 3600000;
-  const mm = Math.floor(ms / 60000); ms -= mm * 60000;
-  const ss = Math.floor(ms / 1000); ms -= ss * 1000;
-  return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}.${pad2(Math.floor(ms / 10))}`;
+export function formatTlTimestamp(raw: number) {
+  const [h, m, s, ms] = splitHMS(Math.max(0, Math.floor(raw || 0)));
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}.${pad2(Math.floor(ms / 10))}`;
 }
 
-function isSrtTimestamp(testString: string): boolean {
-  const [hStr, mStr, smStr] = testString.split(":");
-  if (!smStr) return false;
-  const hrs = Number.parseInt(hStr, 10);
-  const mins = Number.parseInt(mStr, 10);
-  if (Number.isNaN(hrs) || Number.isNaN(mins) || mins > 60) return false;
-  const [secStr, msStr] = smStr.split(",");
+const stringifyTlExportTime = (t: number, srt: boolean) => {
+  const [h, m, s, ms] = splitHMS(t);
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}${srt ? "," : "."}${ms}`;
+};
+
+const isSrtTimestamp = (s: string) => {
+  const [hStr, mStr, smStr] = s.split(":");
+  const [secStr, msStr] = (smStr || "").split(",");
   if (!msStr) return false;
-  const secs = Number.parseInt(secStr, 10);
-  const ms = Number.parseInt(msStr, 10);
-  return !Number.isNaN(secs) && secs <= 60 && !Number.isNaN(ms) && ms <= 1000;
-}
-
-export function isSrtTimestampRange(timeString: string): boolean {
-  const timeSplit = timeString.split("-->");
-  if (timeSplit.length !== 2) return false;
-  return isSrtTimestamp(timeSplit[0].trim()) && isSrtTimestamp(timeSplit[1].trim());
-}
-
-type SrtCue = {
-  text: string;
-  startTime: number;
-  duration: number;
+  const nums = [hStr, mStr, secStr, msStr].map((v) => parseInt(v, 10));
+  return !nums.some(Number.isNaN) && nums[1] <= 60 && nums[2] <= 60 && nums[3] <= 1000;
 };
 
-type TlImportProfile = {
-  Name: string;
-  CC: string;
-  OC: string;
+export const isSrtTimestampRange = (t: string) => {
+  const parts = t.split("-->");
+  return parts.length === 2 && isSrtTimestamp(parts[0].trim()) && isSrtTimestamp(parts[1].trim());
 };
 
-type TlImportEntry = {
-  text: string;
-  startTime: number;
-  duration: number;
-  profileIndex: number;
+type Profile = { Name: string; CC: string; OC: string };
+type Entry = { text: string; startTime: number; duration: number; profileIndex: number };
+type ParseResult = { profiles: Profile[]; entries: Entry[] };
+type AssOpts = { trimDialogueStyle?: boolean; requireTimestampFraction?: boolean };
+type TtmlOpts = { continueAfterUnknownProfile?: boolean };
+
+const splitFormat = (line?: string) => {
+  if (!line || !/^Format/i.test(line)) return null;
+  const f = line.split(":")[1];
+  return f === undefined ? null : f.split(",").map((s) => s.trim());
 };
 
-type TlImportParseResult = {
-  profiles: TlImportProfile[];
-  entries: TlImportEntry[];
+const parseColour = (raw: string) => {
+  const c = raw.trim();
+  return c.length === 10 ? c.slice(8, 10) + c.slice(6, 8) + c.slice(4, 6) : null;
 };
 
-type ParseTlAssImportOptions = {
-  trimDialogueStyle?: boolean;
-  requireTimestampFraction?: boolean;
-};
-
-type AssStyleFormat = {
-  nameIndex: number;
-  primaryColourIndex: number;
-  outlineColourIndex: number;
-  dataLength: number;
-};
-
-type AssEventFormat = {
-  startIndex: number;
-  endIndex: number;
-  styleIndex: number;
-  textIndex: number;
-  dataLength: number;
-};
-
-function splitAssFormatLine(line: string | undefined): string[] | null {
-  if (!line || line.search(/^Format/gi) === -1) return null;
-  const format = line.split(":")[1];
-  if (format === undefined) return null;
-  return format.split(",").map((item) => item.trim());
+function parseAssTimestamp(raw: string, opts: AssOpts) {
+  const t = raw.trim().split(":");
+  if (t.length !== 3) return null;
+  const sec = t[2].split(".");
+  if (opts.requireTimestampFraction && sec.length !== 2) return null;
+  const nums = [t[0], t[1], sec[0], (sec[1] || "0").padEnd(3, "0")].map((v) => parseInt(v, 10));
+  return nums.some(Number.isNaN) ? null : nums[0] * 3600000 + nums[1] * 60000 + nums[2] * 1000 + nums[3];
 }
 
-function readAssStyleFormat(line: string | undefined): AssStyleFormat | null {
-  const lineSplit = splitAssFormatLine(line);
-  if (!lineSplit) {
-    return null;
-  }
-
-  const nameIndex = lineSplit.indexOf("Name");
-  const primaryColourIndex = lineSplit.indexOf("PrimaryColour");
-  const outlineColourIndex = lineSplit.indexOf("OutlineColour");
-  if (nameIndex === -1 || primaryColourIndex === -1 || outlineColourIndex === -1) {
-    return null;
-  }
-
-  return {
-    nameIndex,
-    primaryColourIndex,
-    outlineColourIndex,
-    dataLength: lineSplit.length,
-  };
-}
-
-function readAssEventFormat(line: string | undefined): AssEventFormat | null {
-  const lineSplit = splitAssFormatLine(line);
-  if (!lineSplit) return null;
-  const startIndex = lineSplit.indexOf("Start");
-  const endIndex = lineSplit.indexOf("End");
-  const styleIndex = lineSplit.indexOf("Style");
-  const textIndex = lineSplit.indexOf("Text");
-  if (startIndex === -1 || endIndex === -1 || styleIndex === -1 || textIndex === -1) return null;
-  return { startIndex, endIndex, styleIndex, textIndex, dataLength: lineSplit.length };
-}
-
-function parseAssStyleColour(raw: string): string | null {
-  const colour = raw.trim();
-  if (colour.length !== 10) return null;
-  return colour.slice(8, 10) + colour.slice(6, 8) + colour.slice(4, 6);
-}
-
-function parseAssTimestamp(raw: string, options: ParseTlAssImportOptions): number | null {
-  const timeSplit = raw.trim().split(":");
-  if (timeSplit.length !== 3) return null;
-  const secondSplit = timeSplit[2].split(".");
-  if (options.requireTimestampFraction && secondSplit.length !== 2) return null;
-  let msShift = secondSplit[1] || "0";
-  if (msShift.length === 2) msShift += "0";
-  else if (msShift.length === 1) msShift += "00";
-  const hours = Number.parseInt(timeSplit[0], 10);
-  const minutes = Number.parseInt(timeSplit[1], 10);
-  const seconds = Number.parseInt(secondSplit[0], 10);
-  const milliseconds = Number.parseInt(msShift, 10);
-  if (Number.isNaN(hours) || Number.isNaN(minutes) || Number.isNaN(seconds) || Number.isNaN(milliseconds)) return null;
-  return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;
-}
-
-function parseAssProfiles(lines: string[]): TlImportProfile[] | null {
-  const sIdx = lines.findIndex((l) => l.search(/\[V4\+ Styles\]/gi) !== -1);
+function parseAssProfiles(lines: string[]): Profile[] | null {
+  const sIdx = lines.findIndex((l) => /\[V4\+ Styles\]/i.test(l));
   if (sIdx === -1) return null;
-  const styleFormat = readAssStyleFormat(lines[sIdx + 1]);
-  if (!styleFormat) return null;
-  const profiles: TlImportProfile[] = [];
-  for (let i = sIdx + 2; i < lines.length; i++) {
-    if (lines[i].search(/^Style/gi) === -1) break;
-    const styleValues = lines[i].split(":")[1]?.split(",").map((item) => item.trim());
-    if (!styleValues || styleValues.length !== styleFormat.dataLength) return null;
-    const CC = parseAssStyleColour(styleValues[styleFormat.primaryColourIndex]);
-    const OC = parseAssStyleColour(styleValues[styleFormat.outlineColourIndex]);
+  const fmt = splitFormat(lines[sIdx + 1]);
+  if (!fmt) return null;
+  const nameI = fmt.indexOf("Name"), pcI = fmt.indexOf("PrimaryColour"), ocI = fmt.indexOf("OutlineColour");
+  if (nameI === -1 || pcI === -1 || ocI === -1) return null;
+  const profiles: Profile[] = [];
+  for (let i = sIdx + 2; i < lines.length && /^Style/i.test(lines[i]); i++) {
+    const v = lines[i].split(":")[1]?.split(",").map((s) => s.trim());
+    if (!v || v.length !== fmt.length) return null;
+    const CC = parseColour(v[pcI]), OC = parseColour(v[ocI]);
     if (CC === null || OC === null) return null;
-    profiles.push({ Name: styleValues[styleFormat.nameIndex].trim(), CC, OC });
+    profiles.push({ Name: v[nameI].trim(), CC, OC });
   }
   return profiles;
 }
 
-function parseAssEntries(lines: string[], profiles: TlImportProfile[], options: ParseTlAssImportOptions): TlImportEntry[] | null {
-  const eIdx = lines.findIndex((l) => l.search(/\[Events\]/gi) !== -1);
+function parseAssEntries(lines: string[], profiles: Profile[], opts: AssOpts): Entry[] | null {
+  const eIdx = lines.findIndex((l) => /\[Events\]/i.test(l));
   if (eIdx === -1) return null;
-  const eventFormat = readAssEventFormat(lines[eIdx + 1]);
-  if (!eventFormat) return null;
-  const entries: TlImportEntry[] = [];
-  for (let i = eIdx + 2; i < lines.length; i++) {
-    if (lines[i].search(/^Dialogue/gi) === -1) break;
-    const dialogueValues = lines[i].split("Dialogue:")[1]?.split(",");
-    if (!dialogueValues) return null;
-    if (dialogueValues.length < eventFormat.dataLength) break;
-    const profileName = options.trimDialogueStyle ? dialogueValues[eventFormat.styleIndex].trim() : dialogueValues[eventFormat.styleIndex];
-    const profileIndex = profiles.findIndex((profile) => profile.Name === profileName);
+  const fmt = splitFormat(lines[eIdx + 1]);
+  if (!fmt) return null;
+  const startI = fmt.indexOf("Start"), endI = fmt.indexOf("End"), styleI = fmt.indexOf("Style"), textI = fmt.indexOf("Text");
+  if (startI === -1 || endI === -1 || styleI === -1 || textI === -1) return null;
+  const entries: Entry[] = [];
+  for (let i = eIdx + 2; i < lines.length && /^Dialogue/i.test(lines[i]); i++) {
+    const v = lines[i].split("Dialogue:")[1]?.split(",");
+    if (!v) return null;
+    if (v.length < fmt.length) break;
+    const name = opts.trimDialogueStyle ? v[styleI].trim() : v[styleI];
+    const profileIndex = profiles.findIndex((p) => p.Name === name);
     if (profileIndex === -1) continue;
-    const text = dialogueValues.slice(eventFormat.textIndex).join(",");
-    const startTime = parseAssTimestamp(dialogueValues[eventFormat.startIndex].trim(), options);
-    const endTime = parseAssTimestamp(dialogueValues[eventFormat.endIndex].trim(), options);
+    const startTime = parseAssTimestamp(v[startI].trim(), opts);
+    const endTime = parseAssTimestamp(v[endI].trim(), opts);
     if (startTime === null || endTime === null) return null;
-    entries.push({ text, startTime, duration: endTime - startTime, profileIndex });
+    entries.push({ text: v.slice(textI).join(","), startTime, duration: endTime - startTime, profileIndex });
   }
   return entries;
 }
 
-export function parseTlAssImport(dataFeed: string, options: ParseTlAssImportOptions = {}): TlImportParseResult | null {
-  const lines = dataFeed.split("\n");
+export function parseTlAssImport(data: string, opts: AssOpts = {}): ParseResult | null {
+  const lines = data.split("\n");
   const profiles = parseAssProfiles(lines);
-  if (!profiles) return null;
-  const entries = parseAssEntries(lines, profiles, options);
-  if (!entries) return null;
-  return { profiles, entries };
+  const entries = profiles && parseAssEntries(lines, profiles, opts);
+  return profiles && entries ? { profiles, entries } : null;
 }
 
-function readTagAttribute(dataFeed: string, tagStart: number, tagEnd: number, name: string): string | null {
-  const target = dataFeed.indexOf(`${name}="`, tagStart);
-  if (target === -1 || target > tagEnd) return null;
-  const valueStart = target + name.length + 2;
-  const valueEnd = dataFeed.indexOf('"', valueStart);
-  if (valueEnd === -1 || valueEnd > tagEnd) return null;
-  return dataFeed.substring(valueStart, valueEnd);
+function readAttr(data: string, tagStart: number, tagEnd: number, name: string) {
+  const t = data.indexOf(`${name}="`, tagStart);
+  if (t === -1 || t > tagEnd) return null;
+  const valStart = t + name.length + 2;
+  const valEnd = data.indexOf('"', valStart);
+  return valEnd === -1 || valEnd > tagEnd ? null : data.substring(valStart, valEnd);
 }
 
-function readOptionalTtmlPenColour(dataFeed: string, tagStart: number, tagEnd: number, name: string): string | null {
-  const target = dataFeed.indexOf(`${name}="`, tagStart);
-  if (target === -1 || target > tagEnd) return "";
-  const valueStart = target + 5;
-  const valueEnd = dataFeed.indexOf('"', valueStart);
-  if (valueEnd === -1 || valueEnd > tagEnd) return null;
-  return dataFeed.substring(valueStart, valueEnd);
+function readPenColour(data: string, tagStart: number, tagEnd: number, name: string) {
+  const t = data.indexOf(`${name}="`, tagStart);
+  if (t === -1 || t > tagEnd) return "";
+  const valStart = t + 5;
+  const valEnd = data.indexOf('"', valStart);
+  return valEnd === -1 || valEnd > tagEnd ? null : data.substring(valStart, valEnd);
 }
 
-function parseTtmlProfiles(dataFeed: string): TlImportProfile[] | null {
-  const startIndex = dataFeed.indexOf("<head>");
-  const endIndex = dataFeed.indexOf("</head>");
-  if (startIndex === -1 || endIndex === -1) return null;
-  const profiles: TlImportProfile[] = [];
-  for (let penStart = dataFeed.indexOf("<pen", startIndex); penStart !== -1 && penStart < endIndex; penStart = dataFeed.indexOf("<pen", penStart)) {
-    const penEnd = dataFeed.indexOf(">", penStart);
-    if (penEnd === -1 || penEnd > endIndex) return null;
-    const Name = readTagAttribute(dataFeed, penStart, penEnd, "id");
-    const CC = readOptionalTtmlPenColour(dataFeed, penStart, penEnd, "fc");
-    const OC = readOptionalTtmlPenColour(dataFeed, penStart, penEnd, "ec");
+function parseTtmlProfiles(data: string): Profile[] | null {
+  const s = data.indexOf("<head>"), e = data.indexOf("</head>");
+  if (s === -1 || e === -1) return null;
+  const profiles: Profile[] = [];
+  for (let p = data.indexOf("<pen", s); p !== -1 && p < e; p = data.indexOf("<pen", p)) {
+    const pe = data.indexOf(">", p);
+    if (pe === -1 || pe > e) return null;
+    const Name = readAttr(data, p, pe, "id"), CC = readPenColour(data, p, pe, "fc"), OC = readPenColour(data, p, pe, "ec");
     if (Name === null || CC === null || OC === null) return null;
     profiles.push({ Name, CC, OC });
-    penStart = penEnd;
+    p = pe;
   }
   return profiles;
 }
 
-type ParseTlTtmlImportOptions = {
-  continueAfterUnknownProfile?: boolean;
-};
-
-function parseTtmlSpanEntry(dataFeed: string, profiles: TlImportProfile[], pEnd: number, sStart: number, startTime: number, duration: number, options: ParseTlTtmlImportOptions): TlImportEntry | null {
-  const sTagEnd = dataFeed.indexOf(">", sStart);
-  const spanEnd = dataFeed.indexOf("</s>", sTagEnd);
+function parseTtmlSpan(data: string, profiles: Profile[], pEnd: number, sStart: number, startTime: number, duration: number, opts: TtmlOpts): Entry | null {
+  const sTagEnd = data.indexOf(">", sStart), spanEnd = data.indexOf("</s>", sTagEnd);
   if (sTagEnd === -1 || sTagEnd > pEnd || spanEnd === -1 || spanEnd > pEnd) return null;
-  const text = dataFeed.substring(sTagEnd + 1, spanEnd).trim();
+  const text = data.substring(sTagEnd + 1, spanEnd).trim();
   if (text.length <= 1) return { text: "", startTime, duration, profileIndex: -1 };
-  const profileName = readTagAttribute(dataFeed, sStart, sTagEnd, "p");
-  if (profileName === null) return options.continueAfterUnknownProfile ? null : { text, startTime, duration, profileIndex: -1 };
-  return { text, startTime, duration, profileIndex: profiles.findIndex((p) => p.Name === profileName) };
+  const name = readAttr(data, sStart, sTagEnd, "p");
+  if (name === null) return opts.continueAfterUnknownProfile ? null : { text, startTime, duration, profileIndex: -1 };
+  return { text, startTime, duration, profileIndex: profiles.findIndex((p) => p.Name === name) };
 }
 
-function parseTtmlEntries(dataFeed: string, profiles: TlImportProfile[], options: ParseTlTtmlImportOptions): TlImportEntry[] | null {
-  const bodyStart = dataFeed.indexOf("<body>");
-  const bodyEnd = dataFeed.indexOf("</body>");
-  if (bodyStart === -1 || bodyEnd === -1) return null;
-  let previousTimestamp = 0;
-  const entries: TlImportEntry[] = [];
-  for (let pStart = dataFeed.indexOf("<p", bodyStart); pStart !== -1 && pStart < bodyEnd; pStart = dataFeed.indexOf("<p", pStart)) {
-    const pEnd = dataFeed.indexOf("</p>", pStart);
-    if (pEnd === -1 || pEnd > bodyEnd) return null;
-    const tagEnd = dataFeed.indexOf(">", pStart);
+function parseTtmlEntries(data: string, profiles: Profile[], opts: TtmlOpts): Entry[] | null {
+  const bS = data.indexOf("<body>"), bE = data.indexOf("</body>");
+  if (bS === -1 || bE === -1) return null;
+  let prev = 0;
+  const entries: Entry[] = [];
+  for (let pStart = data.indexOf("<p", bS); pStart !== -1 && pStart < bE; pStart = data.indexOf("<p", pStart)) {
+    const pEnd = data.indexOf("</p>", pStart);
+    if (pEnd === -1 || pEnd > bE) return null;
+    const tagEnd = data.indexOf(">", pStart);
     if (tagEnd === -1 || tagEnd > pEnd) return null;
-    const rawStartTime = readTagAttribute(dataFeed, pStart, tagEnd, "t");
-    const rawEndTime = readTagAttribute(dataFeed, pStart, tagEnd, "d");
-    if (rawStartTime === null || rawEndTime === null) return null;
-    const startTime = Number.parseInt(rawStartTime, 10);
-    const endTime = Number.parseInt(rawEndTime, 10);
-    if (Number.isNaN(startTime) || Number.isNaN(endTime)) return null;
-    if (previousTimestamp !== startTime) {
-      previousTimestamp = startTime;
-      const duration = endTime - startTime;
-      for (let sStart = dataFeed.indexOf("<s", tagEnd); sStart !== -1 && sStart < pEnd; sStart = dataFeed.indexOf("<s", sStart)) {
-        const entry = parseTtmlSpanEntry(dataFeed, profiles, pEnd, sStart, startTime, duration, options);
-        if (entry === null) return null;
-        if (entry.profileIndex >= 0) { entries.push(entry); break; }
-        if (!options.continueAfterUnknownProfile && entry.text.length > 1) break;
-        sStart = dataFeed.indexOf(">", sStart);
+    const rs = readAttr(data, pStart, tagEnd, "t"), re = readAttr(data, pStart, tagEnd, "d");
+    if (rs === null || re === null) return null;
+    const st = parseInt(rs, 10), et = parseInt(re, 10);
+    if (Number.isNaN(st) || Number.isNaN(et)) return null;
+    if (prev !== st) {
+      prev = st;
+      const dur = et - st;
+      for (let sStart = data.indexOf("<s", tagEnd); sStart !== -1 && sStart < pEnd; sStart = data.indexOf("<s", sStart)) {
+        const e = parseTtmlSpan(data, profiles, pEnd, sStart, st, dur, opts);
+        if (e === null) return null;
+        if (e.profileIndex >= 0) { entries.push(e); break; }
+        if (!opts.continueAfterUnknownProfile && e.text.length > 1) break;
+        sStart = data.indexOf(">", sStart);
       }
     }
     pStart = pEnd;
@@ -283,80 +177,64 @@ function parseTtmlEntries(dataFeed: string, profiles: TlImportProfile[], options
   return entries;
 }
 
-export function parseTlTtmlImport(dataFeed: string, options: ParseTlTtmlImportOptions = {}): TlImportParseResult | null {
-  const profiles = parseTtmlProfiles(dataFeed);
-  if (!profiles) return null;
-  const entries = parseTtmlEntries(dataFeed, profiles, options);
-  if (!entries) return null;
-  return { profiles, entries };
+export function parseTlTtmlImport(data: string, opts: TtmlOpts = {}): ParseResult | null {
+  const profiles = parseTtmlProfiles(data);
+  const entries = profiles && parseTtmlEntries(data, profiles, opts);
+  return profiles && entries ? { profiles, entries } : null;
 }
 
-export function parseSrtCues(dataFeed: string): SrtCue[] {
-  const lines = dataFeed.split("\n");
-  const cues: SrtCue[] = [];
+const parseSrtTimestamp = (s: string) => {
+  const [hhmm, ms] = s.split(",");
+  const [h, m, sec] = hhmm.split(":").map(Number);
+  return h * 3600000 + m * 60000 + sec * 1000 + Number(ms);
+};
+
+export function parseSrtCues(data: string) {
+  const lines = data.split("\n");
+  const cues: { text: string; startTime: number; duration: number }[] = [];
   for (let i = 0; i < lines.length; i++) {
     if (!isSrtTimestampRange(lines[i])) continue;
     const [t0, t1] = lines[i].split("-->");
-    const startTime = parseSrtTimestamp(t0.trim());
-    const endTime = parseSrtTimestamp(t1.trim());
+    const startTime = parseSrtTimestamp(t0.trim()), endTime = parseSrtTimestamp(t1.trim());
     const push = (text: string) => cues.push({ text, startTime, duration: endTime - startTime });
-    let text = "", shouldWriteText = true;
+    let text = "", write = true;
     for (i++; i < lines.length; i++) {
       if (isSrtTimestampRange(lines[i])) { i--; push(text); break; }
       if (lines[i] === "") { push(text); break; }
       if (i === lines.length - 1) { if (lines[i].trim()) text += lines[i]; push(text); break; }
-      if (lines[i].trim()) { if (shouldWriteText) { if (text) text += " "; text += lines[i]; } }
-      else shouldWriteText = false;
+      if (lines[i].trim()) { if (write) text += (text ? " " : "") + lines[i]; }
+      else write = false;
     }
   }
   return cues;
 }
 
-function parseSrtTimestamp(targetString: string): number {
-  const [hhmm, ms] = targetString.split(",");
-  const [h, m, s] = hhmm.split(":").map(Number);
-  return h * 3600000 + m * 60000 + s * 1000 + Number(ms);
-}
+const bgrHex = (hex: string, use: boolean, fallback: string) =>
+  use ? hex.substring(5, 7) + hex.substring(3, 5) + hex.substring(1, 3) : fallback;
 
-function stringifyTlExportTime(time: number, srtSeparator: boolean): string {
-  const h = Math.floor(time / 3600000);
-  const m = Math.floor((time % 3600000) / 60000);
-  const s = Math.floor((time % 60000) / 1000);
-  const ms = time % 1000;
-  return `${pad2(h)}:${pad2(m)}:${pad2(s)}${srtSeparator ? "," : "."}${ms}`;
-}
-
-export function buildTlAssExport(entries: any[], profile: any[]): string {
-  const bgrHex = (hex: string, use: boolean, fallback: string) =>
-    use ? hex.substring(5, 7) + hex.substring(3, 5) + hex.substring(1, 3) : fallback;
-  const styleLines = profile.map((p) =>
-    `Style: ${p.Name},Arial,20,&H00${bgrHex(p.CC, p.useCC, "FFFFFF")},&H00000000,&H00${bgrHex(p.OC, p.useOC, "000000")},&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1`
-  ).join("\n");
-  const dialogueLines = entries.map((entry, i) => {
-    const endTime = i === entries.length - 1 ? entry.Time + 3000 : entry.Time + entries[0].Duration;
-    return `Dialogue: 0,${stringifyTlExportTime(entry.Time, false)},${stringifyTlExportTime(endTime, false)},${profile[entry.Profile].Name},,0,0,0,,${entry.SText}`;
+export function buildTlAssExport(entries: any[], profile: any[]) {
+  const styles = profile.map((p) =>
+    `Style: ${p.Name},Arial,20,&H00${bgrHex(p.CC, p.useCC, "FFFFFF")},&H00000000,&H00${bgrHex(p.OC, p.useOC, "000000")},&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1`).join("\n");
+  const dialogues = entries.map((e, i) => {
+    const end = i === entries.length - 1 ? e.Time + 3000 : e.Time + entries[0].Duration;
+    return `Dialogue: 0,${stringifyTlExportTime(e.Time, false)},${stringifyTlExportTime(end, false)},${profile[e.Profile].Name},,0,0,0,,${e.SText}`;
   }).join("\n");
-  return `[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n${styleLines}\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n${dialogueLines}\n`;
+  return `[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n${styles}\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n${dialogues}\n`;
 }
 
-export function buildTlTtmlExport(entries: any[], profile: any[]): string {
-  const penLines = profile.flatMap((p, i) =>
-    [4, 3].map((et, j) =>
-      `\t\t<pen id="${i * 2 + 2 + j}" sz="100" fc="${p.useCC ? p.CC : "#FFFFFF"}" fo="254" et="${et}" ec="${p.useOC ? p.OC : "#000000"}" />`
-    )
-  ).join("\n");
-  const bodyLines = entries.flatMap((entry, i) => {
-    const d = i === entries.length - 1 ? entry.Time + 3001 : entry.Time + 1 + entry.Duration;
-    return [2, 3].map((penOffset) =>
-      `\t\t<p t="${entry.Time + 1}" d="${d}" wp="1" ws="1"><s p="1"></s><s p="${entry.Profile * 2 + penOffset}"> ${entry.SText} </s><s p="1"></s></p>`
-    );
+export function buildTlTtmlExport(entries: any[], profile: any[]) {
+  const pens = profile.flatMap((p, i) => [4, 3].map((et, j) =>
+    `\t\t<pen id="${i * 2 + 2 + j}" sz="100" fc="${p.useCC ? p.CC : "#FFFFFF"}" fo="254" et="${et}" ec="${p.useOC ? p.OC : "#000000"}" />`)).join("\n");
+  const body = entries.flatMap((e, i) => {
+    const d = i === entries.length - 1 ? e.Time + 3001 : e.Time + 1 + e.Duration;
+    return [2, 3].map((off) => `\t\t<p t="${e.Time + 1}" d="${d}" wp="1" ws="1"><s p="1"></s><s p="${e.Profile * 2 + off}"> ${e.SText} </s><s p="1"></s></p>`);
   }).join("\n");
-  return `<?xml version="1.0" encoding="utf-8"?><timedtext format="3">\n\t<head>\n\t\t<wp id="0" ap="7" ah="0" av="0" />\n\t\t<wp id="1" ap="7" ah="50" av="100" />\n\t\t<ws id="0" ju="2" pd="0" sd="0" />\n\t\t<ws id="1" ju="2" pd="0" sd="0" />\n\n\t\t<pen id="0" sz="100" fc="#000000" fo="0" bo="0" />\n\t\t<pen id="1" sz="0" fc="#A0AAB4" fo="0" bo="0" />\n${penLines}\n\t</head>\n\n\t<body>\n${bodyLines}\n\t</body>\n</timedtext>`;
+  return `<?xml version="1.0" encoding="utf-8"?><timedtext format="3">\n\t<head>\n\t\t<wp id="0" ap="7" ah="0" av="0" />\n\t\t<wp id="1" ap="7" ah="50" av="100" />\n\t\t<ws id="0" ju="2" pd="0" sd="0" />\n\t\t<ws id="1" ju="2" pd="0" sd="0" />\n\n\t\t<pen id="0" sz="100" fc="#000000" fo="0" bo="0" />\n\t\t<pen id="1" sz="0" fc="#A0AAB4" fo="0" bo="0" />\n${pens}\n\t</head>\n\n\t<body>\n${body}\n\t</body>\n</timedtext>`;
 }
 
-export function buildTlSrtExport(entries: any[]): string {
-  return entries.map((entry, i) => {
-    const endTime = i === entries.length - 1 ? entry.Time + 3000 : entry.Time + entry.Duration;
-    return `${i + 1}\n${stringifyTlExportTime(entry.Time, true)} --> ${stringifyTlExportTime(endTime, true)}\n${entry.SText}\n\n`;
+export function buildTlSrtExport(entries: any[]) {
+  return entries.map((e, i) => {
+    const end = i === entries.length - 1 ? e.Time + 3000 : e.Time + e.Duration;
+    return `${i + 1}\n${stringifyTlExportTime(e.Time, true)} --> ${stringifyTlExportTime(end, true)}\n${e.SText}\n\n`;
   }).join("");
 }

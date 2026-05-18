@@ -42,14 +42,15 @@ export function filterVideo(v: VideoLike | null | undefined, app: any, options: 
   if (hideUpcoming && v.status === "upcoming") return false;
   if (hideLive && v.status === "live") return false;
 
-  const targetOrgs = new Set(
-    (forOrgs?.length ? forOrgs : Array.isArray(forOrg) ? forOrg : [forOrg || app.currentOrg.name]).filter(Boolean),
-  );
-  const matchesTargetOrg = (org?: string) => targetOrgs.has(ALL_VTUBERS_ORG) || targetOrgs.has(org || "");
-
   const hiddenGroups: Record<string, string[]> = app.settings.hiddenGroups || {};
   const channelOrg: string = channel.org || "";
   if (hideGroups && hiddenGroups[channelOrg]?.includes(channelGroupKey(channel))) return false;
+  if (!forOrgs?.length && !forOrg) return true;
+
+  const targetOrgs = new Set(
+    (forOrgs?.length ? forOrgs : Array.isArray(forOrg) ? forOrg : [forOrg]).filter(Boolean),
+  );
+  const matchesTargetOrg = (org?: string) => targetOrgs.has(ALL_VTUBERS_ORG) || targetOrgs.has(org || "");
 
   const favoriteChannels: Set<string> = app.favoriteChannelIDs || new Set();
   if (matchesTargetOrg(channelOrg) || favoriteChannels.has(channelId)) return true;

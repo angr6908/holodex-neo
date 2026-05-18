@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "โกเมนาซอรี่!",
+      "title": "ไม่สามารถโหลดเนื้อหาได้",
       "textBeforeTwitter": "เกิดข้อผิดพลาดในการดึงเนื้อหา โปรดตรวจสอบทวิตเตอร์ ",
       "textAfterTwitter": " หรือแจ้งข้อผิดพลาดผ่าน",
       "aboutPage": "เกี่ยวกับเพจ",
@@ -96,22 +96,22 @@
         "channel": "ช่อง",
         "topic": "หัวข้อ",
         "org": "องค์กร",
-        "titledesc": "ชื่อ/คำอธิบาย",
+        "titledesc": "ชื่อหรือคำอธิบาย",
         "title": "ชื่อ",
         "description": "คำอธิบาย",
         "comments": "ความคิดเห็น",
         "videourl": "URL วิดีโอ"
       },
-      "placeholder": "ค้นหาสตรีม คลิป ช่อง",
+      "placeholder": "ค้นหาสตรีม คลิป หรือช่อง",
       "clear": "ล้าง",
       "loading": "กำลังโหลด...",
-      "typeTwoCharacters": "พิมพ์ 2 ตัวอักษร",
+      "typeTwoCharacters": "พิมพ์อย่างน้อย 2 ตัวอักษร",
       "noChannelsFound": "ไม่พบช่อง",
       "noTopicsFound": "ไม่พบหัวข้อ",
       "noOrganizationsFound": "ไม่พบองค์กร",
       "noResultsFound": "ไม่พบผลลัพธ์",
       "searchChannels": "ค้นหาช่อง",
-      "filterByTopicOrgChannel": "กรองตามหัวข้อ องค์กร ช่อง ...",
+      "filterByTopicOrgChannel": "กรองตามหัวข้อ องค์กร หรือช่อง",
       "topicOrgChannelPlaceholder": "หัวข้อ องค์กร หรือช่อง",
       "toggleSearch": "สลับการค้นหา",
       "organizations": "องค์กร",
@@ -121,6 +121,13 @@
       "selectedOrgCount": "{count} องค์กร",
       "additionalOrgCount": "อีก {count}",
       "unset": "ไม่ได้ตั้งค่า"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "ม็อด",
+      "openYouTube": "YouTube",
+      "blockChannel": "บล็อกช่อง",
+      "unblock": "เลิกบล็อก"
     },
     "relatedVideo": {
       "clipsLabel": "คลิป",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "ลบ"
+      "remove": "ลบ",
+      "automatedSongHelper": "ตัวช่วยหาเพลงจากคอมเมนต์อัตโนมัติ",
+      "clickSearchableTimestamp": "เลือกเวลาในวิดีโอหรือคำค้นหา"
     },
     "comment": {
       "close": "ปิด",
@@ -369,7 +378,10 @@
         "latest": "ใหม่ล่าสุด",
         "uploadedBefore": "อัปโหลดก่อน",
         "pickDate": "เลือกวันที่",
-        "clipLanguages": "ดูคลิปในภาษาเหล่านี้:"
+        "clipLanguages": "ภาษาของคลิป",
+        "displayMode": "โหมดการแสดงผล",
+        "list": "รายการ",
+        "denseList": "รายการแบบกระชับ"
       },
       "apiError": "ไม่สามารถโหลดวิดีโอได้"
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "ทั้งหมด",
-        "official": "ออฟฟิเชียล",
+        "official": "สตรีม",
         "clip": "คลิป"
       },
       "unsupportedQuery": "ขณะนี้ไม่รองรับการค้นหาคลิปตาม <kbd>หัวข้อ</kbd> และ <kbd> สังกัด </kbd> ทำให้ไม่มี<b>คลิป</b>ปรากฏขึ้น",
       "sortByLabel": "เรียงตาม",
-      "typeDropdownLabel": "ประเภท",
+      "typeDropdownLabel": "ประเภทเนื้อหา",
       "searching": "กำลังค้นหา...",
-      "useSearchBar": "ใช้แถบค้นหาเพื่อค้นหาสตรีม คลิป หรือช่อง"
+      "useSearchBar": "ใช้แถบค้นหาเพื่อค้นหาสตรีม คลิป หรือช่อง",
+      "sortBy": "เรียงตาม"
     },
     "settings": {
       "title": "การตั้งค่า",
@@ -499,9 +512,9 @@
         "tlStart": "จุดเริ่มตันของข้อความ",
         "StickBottomSettingLabel": "ติดด้านล่าง (มือถือ)",
         "StickBottomSettingsDesc": "กล่องการแปล จะอยู่ที่ด้านล่างของแชท (ค่าเริ่มต้นติดด้านบนบนมือถือ)",
-        "showVerifiedMessages": "แสดงข้อความบัญชีที่ได้รับการยืนยันแล้ว",
-        "showModeratorMessages": "แสดงข้อความผู้ดูแล",
-        "showVtuberMessages": "แสดงข้อความวีทูบเบอร์",
+        "showVerifiedMessages": "แสดงข้อความที่ยืนยันแล้ว",
+        "showModeratorMessages": "แสดงข้อความจากผู้ดูแล",
+        "showVtuberMessages": "แสดงข้อความจาก VTuber",
         "showLocalTime": "แสดงเวลาท้องถิ่น",
         "tlFontSize": "ขนาดตัวอักษร",
         "tlWindowSize": "ขนาดกล่องการแปล (%) ปล่อยให้เป็น 0% สำหรับขนาดอัตโนมัติ",
@@ -558,7 +571,8 @@
         "button": "บันทึก (อาจใช้เวลา 5 นาทีจึงจะมีผล)",
         "unset": "ไม่ได้ตั้งค่า",
         "inputPlaceholder": "หัวข้อ (เว้นว่างไว้เพื่อยกเลิก)",
-        "saveTopic": "บันทึกหัวข้อ"
+        "saveTopic": "บันทึกหัวข้อ",
+        "updateSuccess": "อัปเดตหัวข้อแล้ว: {topic}"
       },
       "channelMentions": {
         "title": "การพูดถึงช่อง",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "ฟังบน Apple Music",
       "pickItunesResult": "เลือกผลลัพธ์ iTunes รายการใดรายการหนึ่ง",
       "playFromHere": "เล่นจากตรงนี้",
-      "timestampEditorHint": "ใช้เวลาประทับแบบสัมพัทธ์เพื่อจัดเพลงให้ตรงกับวิดีโอ"
+      "timestampEditorHint": "ใช้เวลาประทับแบบสัมพัทธ์เพื่อจัดเพลงให้ตรงกับวิดีโอ",
+      "exportSummary": "{entries} รายการ, {profiles} โปรไฟล์"
     },
     "exitMode": "ออกจากโหมดแก้ไข",
     "enterMode": "แก้ไขวีดีโอ"

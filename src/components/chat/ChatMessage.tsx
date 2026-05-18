@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import * as icons from "@/lib/icons";
+import { useTranslations } from "next-intl";
 
 export function ChatMessage({ source, hideAuthor = false }: { source: Record<string, any>; hideAuthor?: boolean }) {
   const app = useAppState();
+  const t = useTranslations();
   const [showBlockChannelDialog, setShowBlockChannelDialog] = useState(false);
   const realTime = useMemo(() => dayjs(source.timestamp).format("LTS"), [source.timestamp]);
   const displayTime = useMemo(() => {
@@ -28,9 +30,9 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
   }
 
   return (
-    <div className={`flex flex-row ${!hideAuthor && !source.shouldHideAuthor ? "mt-1 border-t border-white/8 pt-1" : ""}`}>
+    <div className={`flex flex-row ${!hideAuthor && !source.shouldHideAuthor ? "mt-1 border-t pt-1" : ""}`}>
       {source.is_vtuber && source.channel_id ? (
-        <div style={{ minWidth: 28 }} className="mr-2">
+        <div className="mr-2 min-w-7">
           {!hideAuthor && !source.shouldHideAuthor ? (
             <ChannelImg className="self-center" channel={{ id: source.channel_id, name: source.name }} size={28} rounded noLink />
           ) : null}
@@ -39,30 +41,30 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
       <div className="basis-full">
         {!hideAuthor && !source.shouldHideAuthor ? (
           <div
-            className={`text-[0.85em] tracking-[0.033em] text-[hsla(0,0%,70%,0.7)] ${source.is_owner ? "text-[color:var(--color-primary)]" : ((source.is_verified || source.is_moderator || source.is_vtuber) ? "text-[color:var(--color-accent)]" : "")}`}
+            className={`text-[0.85em] tracking-[0.033em] text-muted-foreground ${source.is_owner || source.is_verified || source.is_moderator || source.is_vtuber ? "text-primary" : ""}`}
           >
             <Button type="button" variant="ghost" className="group/tl-name relative h-auto cursor-pointer justify-start border-0 bg-transparent p-0 text-left break-words hover:bg-transparent" onClick={() => setShowBlockChannelDialog(true)}>
-              {source.is_vtuber ? <span>[Vtuber]</span> : null}
-              {source.is_moderator ? <span>[Mod]</span> : null}
-              {source.name}<span>{source.is_verified ? <span style={{ fontWeight: 800 }}> ✓</span> : null}:</span>
+              {source.is_vtuber ? <span>[{t("component.chatMessage.vtuberBadge")}]</span> : null}
+              {source.is_moderator ? <span>[{t("component.chatMessage.moderatorBadge")}]</span> : null}
+              {source.name}<span>{source.is_verified ? <span className="font-extrabold"> ✓</span> : null}:</span>
               <icons.Settings className="size-3.5 absolute mt-[2px] w-[11px] opacity-0 group-hover/tl-name:opacity-100" />
             </Button>
           </div>
         ) : null}
         <a className="tl-message break-words [&_img]:h-[1.3em] [&_img]:w-auto [&_img]:align-middle" data-time={source.relativeMs / 1000}>
           {source.timestamp ? (
-            <span className="mr-1 text-[0.85em] tracking-[0.033em] text-[hsla(0,0%,70%,0.7)]">
+            <span className="mr-1 text-[0.85em] tracking-[0.033em] text-muted-foreground">
               {app.settings.liveTlShowLocalTime || !displayTime ? realTime : displayTime}
             </span>
           ) : null}
-          {source.parsed ? <span className="text-[color:var(--color-primary)]" dangerouslySetInnerHTML={{ __html: source.parsed }} /> : <span className="text-[color:var(--color-primary)]">{source.message}</span>}
+          {source.parsed ? <span className="text-primary" dangerouslySetInnerHTML={{ __html: source.parsed }} /> : <span className="text-primary">{source.message}</span>}
         </a>
       </div>
       {!hideAuthor && !source.shouldHideAuthor ? (
         <Dialog open={showBlockChannelDialog} onOpenChange={setShowBlockChannelDialog}>
-          <DialogContent className="max-w-lg p-0">
-          <Card className="space-y-5 p-5">
-            <DialogTitle className="text-lg font-semibold leading-7 text-white">
+          <DialogContent className="max-w-lg">
+          <Card>
+            <DialogTitle className="text-lg font-semibold leading-7">
               {source.name}
             </DialogTitle>
             <div className="flex flex-wrap gap-2">
@@ -73,7 +75,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
                   size="sm"
                 >
                   <icons.YoutubeIcon className="size-4" />
-                  Youtube
+                  {t("component.chatMessage.openYouTube")}
                 </Button>
               ) : null}
               {source.channel_id && source.is_vtuber ? (
@@ -86,7 +88,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
                 </Button>
               ) : null}
               <Button variant="outline" size="sm" onClick={() => toggleBlockName(source.name)}>
-                {!blockedNames.has(source.name) ? "Block Channel" : "Unblock"}
+                {!blockedNames.has(source.name) ? t("component.chatMessage.blockChannel") : t("component.chatMessage.unblock")}
               </Button>
             </div>
           </Card>

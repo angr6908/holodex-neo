@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "ゴメナソーリー!",
+      "title": "コンテンツを読み込めませんでした",
       "textBeforeTwitter": "コンテンツの取得中にエラーが発生しました。Twitter ",
       "textAfterTwitter": " をご確認いただくか、",
       "aboutPage": "案内ページ",
@@ -96,7 +96,7 @@
         "channel": "チャンネル",
         "topic": "トピック",
         "org": "組織",
-        "titledesc": "タイトル/説明",
+        "titledesc": "タイトルまたは説明",
         "title": "タイトル",
         "description": "説明",
         "comments": "コメント",
@@ -105,22 +105,29 @@
       "placeholder": "配信、クリップ、チャンネルを検索",
       "clear": "クリア",
       "loading": "読み込み中...",
-      "typeTwoCharacters": "2文字入力",
+      "typeTwoCharacters": "2文字以上入力",
       "noChannelsFound": "チャンネルが見つかりません",
       "noTopicsFound": "トピックが見つかりません",
       "noOrganizationsFound": "組織が見つかりません",
       "noResultsFound": "結果が見つかりません",
       "searchChannels": "チャンネルを検索",
-      "filterByTopicOrgChannel": "トピック、組織、チャンネルで絞り込み ...",
+      "filterByTopicOrgChannel": "トピック、組織、チャンネルで絞り込み",
       "topicOrgChannelPlaceholder": "トピック、組織、チャンネル",
       "toggleSearch": "検索を切り替え",
       "organizations": "組織",
       "searchOrganizations": "組織を検索",
       "quickSelect": "クイック選択",
       "allVtubers": "すべてのVTuber",
-      "selectedOrgCount": "{count} 組織",
+      "selectedOrgCount": "{count} 件の組織",
       "additionalOrgCount": "さらに {count}",
       "unset": "未設定"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "モデレーター",
+      "openYouTube": "YouTube",
+      "blockChannel": "チャンネルをブロック",
+      "unblock": "ブロック解除"
     },
     "relatedVideo": {
       "clipsLabel": "切り抜き",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "消去"
+      "remove": "消去",
+      "automatedSongHelper": "コメント内楽曲の自動補助",
+      "clickSearchableTimestamp": "タイムスタンプまたは検索語を選択"
     },
     "comment": {
       "close": "閉じる",
@@ -367,9 +376,12 @@
         "sortBy": "並べ替え",
         "viewers": "視聴者",
         "latest": "新しい順",
-        "uploadedBefore": "指定日以前にアップロード",
+        "uploadedBefore": "アップロード日がこれより前",
         "pickDate": "日付を選択",
-        "clipLanguages": "次の言語で切り抜きを表示する"
+        "clipLanguages": "クリップ言語",
+        "displayMode": "表示モード",
+        "list": "リスト",
+        "denseList": "密リスト"
       },
       "apiError": "動画を読み込めませんでした。"
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "すべて",
-        "official": "公式",
-        "clip": "切り抜き"
+        "official": "配信",
+        "clip": "クリップ"
       },
       "unsupportedQuery": "現在<kbd>配信内容</kbd>と<kbd>所属</kbd>での検索はサポートされていません。<b>切り抜き</b>は検索結果に表示されません。",
       "sortByLabel": "並べ替え",
-      "typeDropdownLabel": "動画のタイプ",
+      "typeDropdownLabel": "コンテンツタイプ",
       "searching": "検索中...",
-      "useSearchBar": "検索バーで配信、クリップ、チャンネルを探せます。"
+      "useSearchBar": "検索バーで配信、クリップ、チャンネルを探せます。",
+      "sortBy": "並べ替え"
     },
     "settings": {
       "title": "設定",
@@ -499,9 +512,9 @@
         "tlStart": "メッセージの始まり",
         "StickBottomSettingLabel": "下部に固定",
         "StickBottomSettingsDesc": "翻訳ボックスを Youtube チャットの下に配置します",
-        "showVerifiedMessages": "確認済みのユーザーのメッセージを表示",
-        "showModeratorMessages": "モデレータによるメッセージを表示",
-        "showVtuberMessages": "Vtuberのメッセージを表示",
+        "showVerifiedMessages": "認証済みメッセージを表示",
+        "showModeratorMessages": "モデレーターのメッセージを表示",
+        "showVtuberMessages": "VTuberのメッセージを表示",
         "showLocalTime": "ローカル時刻を表示",
         "tlFontSize": "フォントサイズ",
         "tlWindowSize": "翻訳済みのボックスサイズ (%)、自動で0%に設定されます",
@@ -558,7 +571,8 @@
         "button": "保存(5分ほどで有効になります)",
         "unset": "未設定",
         "inputPlaceholder": "トピック（解除する場合は空欄）",
-        "saveTopic": "トピックを保存"
+        "saveTopic": "トピックを保存",
+        "updateSuccess": "トピックを更新しました: {topic}"
       },
       "channelMentions": {
         "title": "チャンネルメンション",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Apple Musicで聴く",
       "pickItunesResult": "iTunesの検索結果を選択",
       "playFromHere": "ここから再生",
-      "timestampEditorHint": "相対タイムスタンプを使って音楽を動画に合わせます。"
+      "timestampEditorHint": "相対タイムスタンプを使って音楽を動画に合わせます。",
+      "exportSummary": "{entries} 件のエントリ、{profiles} 件のプロファイル"
     },
     "exitMode": "編集モードを終了",
     "enterMode": "動画を編集"

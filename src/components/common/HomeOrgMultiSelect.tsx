@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Trash, ChevronDown, Building } from "@/lib/icons";
+import { ChevronDown, Building } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Toggle } from "@/components/ui/toggle";
 import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
 import { useAppState } from "@/lib/store";
@@ -21,7 +22,6 @@ type HomeOrgMultiSelectProps = {
   fallbackSelection?: string[];
   selectedNamesOverride?: string[] | null;
   manualApply?: boolean;
-  inline?: boolean;
   className?: string;
   onApply?: (value: string[]) => void;
 };
@@ -40,14 +40,13 @@ const preferredOrgNames = [
 export function HomeOrgMultiSelect({
   hideTrigger = false,
   buttonVariant = "secondary",
-  buttonClass = "h-10 min-w-[12rem] px-3",
+  buttonClass = "",
   iconOnly = false,
   emptySelectionLabel = ALL_VTUBERS_ORG,
   clearSelectionLabel = ALL_VTUBERS_ORG,
   fallbackSelection = [],
   selectedNamesOverride = null,
   manualApply = false,
-  inline = false,
   className = "",
   onApply,
 }: HomeOrgMultiSelectProps) {
@@ -57,10 +56,7 @@ export function HomeOrgMultiSelect({
   const [search, setSearch] = useState("");
   const allVtubersLabel = t("component.search.allVtubers");
 
-  function formatSelectionLabel(name: string) {
-    if (name === ALL_VTUBERS_ORG) return allVtubersLabel;
-    return formatOrgDisplayName(name);
-  }
+  const formatSelectionLabel = (name: string) => name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
 
   useEffect(() => {
     if (!app.orgs.length) void app.fetchOrgs();
@@ -124,9 +120,7 @@ export function HomeOrgMultiSelect({
           <Button
             type="button"
             variant={buttonVariant as any}
-            className={cn("min-w-0 justify-between", buttonClass, className)}
-            aria-haspopup={inline ? "listbox" : "dialog"}
-            aria-expanded={open ? "true" : "false"}
+            className={cn("justify-between", buttonClass, className)}
           />
         }
       >
@@ -134,53 +128,54 @@ export function HomeOrgMultiSelect({
           <Building className="size-4" />
         ) : (
           <>
-            <span className="min-w-0 flex flex-1 items-center gap-2">
-              <Building className="size-4" />
-              <span className="min-w-0 truncate text-left">{triggerLabel}</span>
+            <span className="flex min-w-0 flex-1 items-center gap-2">
+              <Building className="size-4 shrink-0" />
+              <span className="truncate">{triggerLabel}</span>
             </span>
-            <ChevronDown className={cn("size-4", "shrink-0 transition-transform", open && "rotate-180")} />
+            <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
           </>
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" sideOffset={8} className="w-[min(92vw,24rem)]">
+        <div className="p-1">
+          <Input
+            tabIndex={-1}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => event.stopPropagation()}
+            placeholder={t("component.search.searchOrganizations")}
+          />
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("component.search.organizations")}</DropdownMenuLabel>
-          <div className="p-1">
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
-              placeholder={t("component.search.searchOrganizations")}
-            />
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem
-            checked={workingSelectedNames.length === 0}
-            onSelect={(event) => event.preventDefault()}
-            onCheckedChange={clearSelection}
-          >
-            <Trash className="size-4" />
-            {clearLabel}
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuGroup>
-        {quickSelectOrgNames.length ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{t("component.search.quickSelect")}</DropdownMenuLabel>
-              {quickSelectOrgNames.map((name) => (
-                <DropdownMenuCheckboxItem
+          <DropdownMenuLabel>{t("component.search.quickSelect")}</DropdownMenuLabel>
+          <div className="flex flex-wrap gap-1.5 px-2 pb-1.5">
+            <Toggle
+              pressed={workingSelectedNames.length === 0}
+              variant="outline"
+              size="sm"
+              aria-label={clearLabel}
+              onPressedChange={(checked) => { if (checked) clearSelection(); }}
+            >
+              <span className="truncate">{clearLabel}</span>
+            </Toggle>
+            {quickSelectOrgNames.map((name) => {
+              const label = formatOrgDisplayName(name);
+              return (
+                <Toggle
                   key={name}
-                  checked={selectedSet.has(name)}
-                  onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={(checked) => toggleName(name, checked === true)}
+                  pressed={selectedSet.has(name)}
+                  variant="outline"
+                  size="sm"
+                  aria-label={label}
+                  onPressedChange={(checked) => toggleName(name, checked)}
                 >
-                  {formatOrgDisplayName(name)}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuGroup>
-          </>
-        ) : null}
+                  <span className="truncate">{label}</span>
+                </Toggle>
+              );
+            })}
+          </div>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[min(45vh,22rem)]">
           {filteredOrgs.map((org) => (

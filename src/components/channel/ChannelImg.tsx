@@ -5,6 +5,25 @@ import { CircleUser } from "@/lib/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
+
+export function channelAvatarSizeClass(size: string | number | undefined) {
+  const px = Number(size) || 40;
+  const classes: Record<number, string> = {
+    24: "size-6",
+    28: "size-7",
+    36: "size-9",
+    40: "size-10",
+    42: "size-[42px]",
+    48: "size-12",
+    52: "size-[52px]",
+    55: "size-[55px]",
+    56: "size-14",
+    60: "size-[60px]",
+    72: "size-[72px]",
+  };
+  return classes[px] || "size-10";
+}
+
 export function ChannelImg({ channel, size = 40, noLink = false, className = "" }: { channel: any; size?: string | number; noLink?: boolean; className?: string; rounded?: boolean }) {
   const router = useRouter();
   const channelId = channel?.id;
@@ -25,11 +44,10 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "" 
     return Array.from(new Set(sources));
   }, [channelId, channelPhoto]);
   const photo = photoSources[sourceIndex] || "";
-  const style = { width: `${px}px`, height: `${px}px`, minWidth: `${px}px` };
 
   const onImgError = () => sourceIndex < photoSources.length - 1 ? setSourceIndex((index) => index + 1) : setErr(true);
   const avatar = (
-    <Avatar title={title} className={cn("ring-1 ring-white/10", className)} style={style}>
+    <Avatar title={title} className={cn(channelAvatarSizeClass(size), className)}>
       {!err && photo ? (
         <AvatarImage key={photo} src={photo} decoding="async" width={px} height={px} className="object-cover" onError={onImgError} alt="" />
       ) : null}

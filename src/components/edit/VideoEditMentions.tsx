@@ -55,14 +55,12 @@ export function VideoEditMentions({ video }: { video: any }) {
 
   return (
     <div>
-      <div className="text-h6">
+      <div className="text-lg font-semibold">
         <AtSign className="size-4" /> {t("views.editor.channelMentions.tagsTitle")}
       </div>
       {alert ? (
-        <Alert className={alert.kind === "success"
-          ? "mb-3 rounded-2xl border-emerald-400/30 bg-emerald-500/20 text-white"
-          : "mb-3 rounded-2xl border-rose-400/30 bg-rose-500/20 text-white"}>
-          <AlertDescription className="text-white">{alert.message}</AlertDescription>
+	        <Alert variant={alert.kind === "error" ? "destructive" : "default"} className="mb-3">
+	          <AlertDescription>{alert.message}</AlertDescription>
         </Alert>
       ) : null}
       <div className="my-2 flex flex-col gap-2">
@@ -75,7 +73,7 @@ export function VideoEditMentions({ video }: { video: any }) {
         {mentions.map((channel, index) => (
           <div key={`${channel.id || "channel"}-${index}`}>
             {index > 0 ? <Separator /> : null}
-            <div className="flex items-start gap-3 px-4 py-3 no-underline hover:bg-white/5">
+	            <div className="flex items-start gap-3 px-4 py-3 no-underline">
               <div className="shrink-0"><ChannelImg channel={channel} size={55} /></div>
               <ChannelInfo channel={channel} includeVideoCount={false} />
               <Button

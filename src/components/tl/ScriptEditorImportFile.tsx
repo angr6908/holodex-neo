@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FileText } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,20 +98,19 @@ export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boo
 
   return (
     <Dialog open={show} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[500px] max-w-[80%] p-0">
-        <Card className="border-0 p-0 shadow-none">
-          <CardContent className="space-y-4 p-4">
+      <DialogContent className="max-h-[500px] max-w-[80%]">
+          <div className="space-y-4">
             <DialogHeader className="items-center text-center sm:text-center">
-              <DialogTitle className="text-center text-xl leading-7 font-semibold text-[color:var(--color-foreground)]">
+              <DialogTitle>
                 {t("views.scriptEditor.menu.importFile")}
               </DialogTitle>
             </DialogHeader>
-            <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/14 bg-white/4 px-4 py-3 text-sm leading-5 font-normal text-[color:var(--color-muted-foreground)] transition hover:border-sky-300/40 hover:bg-white/6">
-              <FileText className="h-5 w-5 text-[color:var(--color-primary)]" />
+            <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm leading-5 font-normal text-muted-foreground">
+              <FileText className="h-5 w-5" />
               <span className="truncate">{selectedFileName || ".ass, .ttml, .srt"}</span>
               <Input ref={fileInput} accept=".ass,.TTML,.srt" type="file" className="hidden" onChange={handleFileInput} />
             </Label>
-            <p className="text-sm text-[color:var(--color-muted-foreground)]">{notifText}</p>
+            <p className="text-sm text-muted-foreground">{notifText}</p>
             {entries.length > 0 ? (
               <div className="max-h-[40vh] overflow-auto rounded-xl border">
                 <Table>
@@ -135,8 +133,7 @@ export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boo
                 {t("views.scriptEditor.importFile.overwriteBtn")}
               </Button>
             </DialogFooter>
-          </CardContent>
-        </Card>
+          </div>
       </DialogContent>
     </Dialog>
   );

@@ -3,67 +3,49 @@
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
+import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-
-type SelectOption = {
-  label: React.ReactNode
-  value: any
-}
-
-function collectSelectItems(children: React.ReactNode, result: SelectOption[] = []) {
-  React.Children.forEach(children, (child) => {
-    if (!React.isValidElement(child)) return
-
-    const props = child.props as {
-      children?: React.ReactNode
-      label?: React.ReactNode
-      value?: any
-    }
-
-    if (child.type === SelectItem && props.value !== undefined) {
-      result.push({
-        label: props.label ?? props.children,
-        value: props.value,
-      })
-      return
-    }
-
-    if (props.children && typeof props.children !== "function") {
-      collectSelectItems(props.children, result)
-    }
-  })
-
-  return result
-}
-
-function Select({
+function Select<Value, Multiple extends boolean | undefined = false>({
   children,
   items,
   ...props
-}: SelectPrimitive.Root.Props<any, any>) {
-  const inferredItems = React.useMemo(
-    () => collectSelectItems(children),
-    [children]
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const resolvedItems = React.useMemo(
+    () => items ?? collectSelectItemLabels(children),
+    [children, items]
   )
-  const resolvedItems = items ?? (inferredItems.length ? inferredItems : undefined)
-
   return (
-    <SelectPrimitive.Root
-      items={resolvedItems}
-      {...props}
-    >
+    <SelectPrimitive.Root items={resolvedItems} {...props}>
       {children}
     </SelectPrimitive.Root>
   )
+}
+
+function collectSelectItemLabels(
+  node: React.ReactNode
+): ReadonlyArray<{ value: any; label: React.ReactNode }> {
+  const out: Array<{ value: any; label: React.ReactNode }> = []
+  function walk(n: React.ReactNode) {
+    React.Children.forEach(n, (child) => {
+      if (!React.isValidElement(child)) return
+      const childProps = child.props as { value?: unknown; children?: React.ReactNode }
+      if (child.type === SelectItem) {
+        out.push({ value: childProps.value, label: childProps.children })
+        return
+      }
+      if (childProps?.children != null) walk(childProps.children)
+    })
+  }
+  walk(node)
+  return out
 }
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
     <SelectPrimitive.Group
       data-slot="select-group"
-      className={cn("scroll-my-1 p-1", className)}
+      className={cn(className)}
       {...props}
     />
   )
@@ -138,7 +120,7 @@ function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          <SelectPrimitive.List>{children}</SelectPrimitive.List>
+          <SelectPrimitive.List className="scroll-py-1 p-1">{children}</SelectPrimitive.List>
           <SelectScrollDownButton />
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>

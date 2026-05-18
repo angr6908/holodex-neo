@@ -14,219 +14,111 @@ import { useTranslations } from "next-intl";
 import { openUserMenu } from "@/lib/browser";
 import { useAppState } from "@/lib/store";
 import { isSrtTimestampRange, parseSrtCues, parseTlAssImport, parseTlTtmlImport } from "@/lib/tl-format";
-export function UploadScript({ videoData, onClose }: { videoData: any; onClose?: (payload: { upload: boolean }) => void }) {
+
+export function UploadScript({ videoData, onClose }: { videoData: any; onClose?: (p: { upload: boolean }) => void }) {
   const t = useTranslations();
-  const appStore = useAppState();
+  const app = useAppState();
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [parsed, setParsed] = useState(false);
   const [entries, setEntries] = useState<any[]>([]);
-  const [notifText, setNotifText] = useState("");
+  const [notif, setNotif] = useState("");
   const [TLLang, setTLLang] = useState<any>(TL_LANGS[0]);
-  const userdata = appStore.userdata;
+  const user = app.userdata;
 
   const startTime = useMemo(() => {
-    if (!videoData?.start_actual) {
-      return Date.parse(videoData?.available_at);
-    }
-    if (Number.isNaN(Number(videoData.start_actual))) {
-      return Date.parse(videoData.start_actual);
-    }
+    if (!videoData?.start_actual) return Date.parse(videoData?.available_at);
+    if (Number.isNaN(Number(videoData.start_actual))) return Date.parse(videoData.start_actual);
     return videoData.start_actual;
   }, [videoData]);
 
   useEffect(() => {
-    if (fileInput.current) {
-      fileInput.current.value = "";
-    }
-    setParsed(false);
-    setNotifText("");
-    setEntries([]);
+    if (fileInput.current) fileInput.current.value = "";
+    setParsed(false); setNotif(""); setEntries([]);
   }, [videoData]);
 
-  function handleFileInput(event: React.ChangeEvent<HTMLInputElement>) {
-    fileChange(event?.target?.files?.[0]);
-  }
+  const toEntries = (arr: any[], textKey: string) => arr.map((e: any) => ({
+    message: e[textKey], timestamp: e.startTime, duration: e.duration,
+  }));
 
-  function fileChange(e: File | undefined) {
-    setParsed(false);
-    setEntries([]);
-    setNotifText("");
-    if (!e) {
-      return;
-    }
-    setNotifText(t("views.watch.uploadPanel.notifTextParsing"));
+  function fileChange(f: File | undefined) {
+    setParsed(false); setEntries([]); setNotif("");
+    if (!f) return;
+    setNotif(t("views.watch.uploadPanel.notifTextParsing"));
     const reader = new FileReader();
+    const ext = f.name.toLowerCase();
+    const handle = (process: (data: string) => void) => { reader.onload = (res) => process((res.target as FileReader).result as string); reader.readAsText(f); };
 
-    if ((/\.ass$/i).test(e.name)) {
-      reader.onload = (res) => {
-        parseAss((res.target as FileReader).result as string);
-      };
-      reader.readAsText(e);
-    } else if ((/\.srt$/i).test(e.name)) {
-      reader.onload = (res) => {
-        parseSrt((res.target as FileReader).result as string);
-      };
-      reader.readAsText(e);
-    } else if ((/\.ttml$/i).test(e.name)) {
-      reader.onload = (res) => {
-        parseTtml((res.target as FileReader).result as string);
-      };
-      reader.readAsText(e);
-    } else {
-      setNotifText(t("views.watch.uploadPanel.notifTextErrExt"));
-    }
-  }
-
-  function parseAss(dataFeed: string) {
-    const parsedAss = parseTlAssImport(dataFeed, { trimDialogueStyle: true, requireTimestampFraction: true });
-    if (!parsedAss) {
-      setNotifText(t("views.watch.uploadPanel.notifTextErr"));
-      return;
-    }
-
-    const nextEntries = parsedAss.entries.map((entry) => ({
-      message: entry.text,
-      timestamp: entry.startTime,
-      duration: entry.duration,
-    }));
-
-    setEntries(nextEntries);
-    setNotifText(`Parsed ASS file, ${parsedAss.profiles.length} profiles, ${nextEntries.length} Entries.`);
-    setParsed(true);
-  }
-
-  function parseTtml(dataFeed: string) {
-    const parsedTtml = parseTlTtmlImport(dataFeed, { continueAfterUnknownProfile: true });
-    if (!parsedTtml) {
-      setNotifText(t("views.watch.uploadPanel.notifTextErr"));
-      return;
-    }
-
-    const nextEntries = parsedTtml.entries.map((entry) => ({
-      message: entry.text,
-      timestamp: entry.startTime,
-      duration: entry.duration,
-    }));
-
-    setEntries(nextEntries);
-    setNotifText(`Parsed TTML file, ${parsedTtml.profiles.length} colour profiles, ${nextEntries.length} Entries.`);
-    setParsed(true);
-  }
-
-  function parseSrt(dataFeed: string) {
-    const res = dataFeed.split("\n");
-    if (isSrtTimestampRange(res[res.length - 1])) {
-      return;
-    }
-
-    const nextEntries = parseSrtCues(dataFeed).map((cue) => ({
-      message: cue.text,
-      timestamp: cue.startTime,
-      duration: cue.duration,
-    }));
-
-    setEntries(nextEntries);
-    setNotifText(`Parsed SRT file, ${nextEntries.length} Entries.`);
-    setParsed(true);
+    if (/\.ass$/.test(ext)) handle((data) => {
+      const r = parseTlAssImport(data, { trimDialogueStyle: true, requireTimestampFraction: true });
+      if (!r) return setNotif(t("views.watch.uploadPanel.notifTextErr"));
+      const next = toEntries(r.entries, "text");
+      setEntries(next);
+      setNotif(`Parsed ASS file, ${r.profiles.length} profiles, ${next.length} Entries.`);
+      setParsed(true);
+    });
+    else if (/\.srt$/.test(ext)) handle((data) => {
+      const lines = data.split("\n");
+      if (isSrtTimestampRange(lines[lines.length - 1])) return;
+      const next = parseSrtCues(data).map((c) => ({ message: c.text, timestamp: c.startTime, duration: c.duration }));
+      setEntries(next);
+      setNotif(`Parsed SRT file, ${next.length} Entries.`);
+      setParsed(true);
+    });
+    else if (/\.ttml$/.test(ext)) handle((data) => {
+      const r = parseTlTtmlImport(data, { continueAfterUnknownProfile: true });
+      if (!r) return setNotif(t("views.watch.uploadPanel.notifTextErr"));
+      const next = toEntries(r.entries, "text");
+      setEntries(next);
+      setNotif(`Parsed TTML file, ${r.profiles.length} colour profiles, ${next.length} Entries.`);
+      setParsed(true);
+    });
+    else setNotif(t("views.watch.uploadPanel.notifTextErrExt"));
   }
 
   async function sendData() {
-    const processes = await (await api.chatHistory(videoData.id, {
-      lang: TLLang.value,
-      verified: 0,
-      moderator: 0,
-      vtuber: 0,
-      limit: 100000,
-      mode: 1,
-      creator_id: userdata.user.id,
-    })).data.map((e: any) => ({
-      type: "Delete",
-      data: {
-        id: e.id,
-      },
-    }));
-
-    for (let idx = 0; idx < entries.length; idx += 1) {
-      processes.push({
-        type: "Add",
-        data: {
-          tempid: `I${idx}`,
-          name: userdata.user.username,
-          timestamp: Math.floor(startTime + entries[idx].timestamp),
-          message: entries[idx].message,
-          duration: Math.floor(entries[idx].duration),
-        },
-      });
-    }
-
-    api.postTLLog({
-      videoId: videoData.id,
-      jwt: userdata.jwt!,
-      body: processes,
-      lang: TLLang.value,
-    }).then(({ status }: any) => {
-      if (status === 200) {
-        onClose?.({ upload: true });
-      }
-    }).catch((err: any) => {
-      console.error("Upload error:", err);
+    const existing = await api.chatHistory(videoData.id, {
+      lang: TLLang.value, verified: 0, moderator: 0, vtuber: 0, limit: 100000, mode: 1, creator_id: user.user.id,
     });
+    const processes: any[] = existing.data.map((e: any) => ({ type: "Delete", data: { id: e.id } }));
+    entries.forEach((e, i) => processes.push({
+      type: "Add",
+      data: { tempid: `I${i}`, name: user.user.username, timestamp: Math.floor(startTime + e.timestamp), message: e.message, duration: Math.floor(e.duration) },
+    }));
+    api.postTLLog({ videoId: videoData.id, jwt: user.jwt!, body: processes, lang: TLLang.value })
+      .then(({ status }: any) => { if (status === 200) onClose?.({ upload: true }); })
+      .catch((err) => console.error("Upload error:", err));
   }
 
   return (
     <div className="space-y-5 p-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">
-          {t("views.watch.uploadPanel.title")}
-        </h2>
-        <p className="mt-2 text-sm text-slate-400">
-          {t("views.watch.uploadPanel.usernameText") + " : " + userdata.user?.username + " "}
-          <Button
-            type="button"
-            variant="link"
-            className="h-auto p-0 align-baseline text-sm font-normal text-slate-400 underline underline-offset-4 hover:text-sky-300"
-            onClick={openUserMenu}
-          >
+        <h2 className="text-lg font-semibold">{t("views.watch.uploadPanel.title")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("views.watch.uploadPanel.usernameText") + " : " + user.user?.username + " "}
+          <Button type="button" variant="link" className="h-auto p-0 align-baseline text-sm font-normal" onClick={openUserMenu}>
             {t("views.watch.uploadPanel.usernameChange")}
           </Button>
         </p>
       </div>
-
       <Field className="gap-2">
-        <FieldLabel className="text-slate-300">{t("views.watch.uploadPanel.subtitleFile")}</FieldLabel>
-        <div className="flex items-center gap-3 rounded-[calc(var(--radius)+6px)] border border-white/10 bg-white/4 px-4 py-3">
-          <FileText className="size-4 text-slate-400" />
-          <Input
-            ref={fileInput}
-            accept=".ass,.TTML,.srt,.ttml"
-            type="file"
-            className="h-auto border-0 bg-transparent p-0 text-sm text-slate-300 shadow-none file:mr-4 file:h-auto file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-white/15 focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
-            onChange={handleFileInput}
-          />
+        <FieldLabel>{t("views.watch.uploadPanel.subtitleFile")}</FieldLabel>
+        <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
+          <FileText className="size-4 text-muted-foreground" />
+          <Input ref={fileInput} accept=".ass,.TTML,.srt,.ttml" type="file"
+            className="h-auto border-0 bg-transparent p-0 text-sm shadow-none focus-visible:border-transparent focus-visible:ring-0"
+            onChange={(e) => fileChange(e?.target?.files?.[0])} />
         </div>
       </Field>
-
-      <p className="text-sm text-slate-400">
-        {notifText}
-      </p>
-
+      <p className="text-sm text-muted-foreground">{notif}</p>
       <Field className="gap-2">
-        <FieldLabel className="text-slate-300">{t("views.tlManager.langPick")}</FieldLabel>
-        <Select
-          value={TLLang.value}
-          onValueChange={(value) => setTLLang(TL_LANGS.find((item) => item.value === value) || TL_LANGS[0])}
-        >
+        <FieldLabel>{t("views.tlManager.langPick")}</FieldLabel>
+        <Select value={TLLang.value} onValueChange={(v) => setTLLang(TL_LANGS.find((i) => i.value === v) || TL_LANGS[0])}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
-          {TL_LANGS.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.text + " (" + item.value + ")"}
-            </SelectItem>
-          ))}
+            {TL_LANGS.map((i) => <SelectItem key={i.value} value={i.value}>{i.text + " (" + i.value + ")"}</SelectItem>)}
           </SelectContent>
         </Select>
       </Field>
-
       {entries.length > 0 ? (
         <div className="max-h-[40vh] overflow-auto rounded-[calc(var(--radius)+6px)] border">
           <Table>
@@ -238,34 +130,14 @@ export function UploadScript({ videoData, onClose }: { videoData: any; onClose?:
               </TableRow>
             </TableHeader>
             <TableBody>
-              {entries.map((entry, index) => (
-                <TlEntryRow
-                  key={index}
-                  time={entry.timestamp}
-                  duration={entry.duration}
-                  stext={entry.message}
-                  cc={entry.cc || ""}
-                  oc={entry.oc || ""}
-                />
-              ))}
+              {entries.map((e, i) => <TlEntryRow key={i} time={e.timestamp} duration={e.duration} stext={e.message} cc={e.cc || ""} oc={e.oc || ""} />)}
             </TableBody>
           </Table>
         </div>
       ) : null}
-
       <div className="flex items-center gap-3">
-        <Button variant="ghost" onClick={() => onClose?.({ upload: false })}>
-          {t("views.watch.uploadPanel.cancelBtn")}
-        </Button>
-
-        <Button
-          variant="destructive"
-          className="ml-auto"
-          disabled={!parsed}
-          onClick={sendData}
-        >
-          {t("views.scriptEditor.importFile.overwriteBtn")}
-        </Button>
+        <Button variant="ghost" onClick={() => onClose?.({ upload: false })}>{t("views.watch.uploadPanel.cancelBtn")}</Button>
+        <Button variant="destructive" className="ml-auto" disabled={!parsed} onClick={sendData}>{t("views.scriptEditor.importFile.overwriteBtn")}</Button>
       </div>
     </div>
   );

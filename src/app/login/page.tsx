@@ -39,9 +39,9 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <div className="app-page flex items-center justify-center">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 flex items-center justify-center">
       {processing ? (
-        <div className="flex items-center gap-2 text-sm text-[color:var(--color-muted-foreground)]">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner className="size-4" />
           <span>{t("views.login.loggingIn")}</span>
         </div>

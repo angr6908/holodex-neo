@@ -36,20 +36,20 @@ export function LiveTranslationsSetting() {
   ];
   return (
     <div className="relative inline-flex">
-      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" title={t("views.watch.chat.TLSettingsTitle")} onClick={() => setDialog(!dialog)}><icons.Settings className="size-4" /></Button>
+      <Button variant="ghost" size="icon-sm" title={t("views.watch.chat.TLSettingsTitle")} onClick={() => setDialog(!dialog)}><icons.Settings className="size-4" /></Button>
       <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent className="max-w-lg p-0">
-          <DialogHeader className="flex flex-row items-center gap-3 border-b border-white/10 px-5 py-4 space-y-0">
-            {showBlockedList ? <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowBlockedList(false)}><icons.ArrowLeft className="size-4" /></Button> : null}
+        <DialogContent className="max-w-lg">
+          <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
+            {showBlockedList ? <Button variant="ghost" size="icon-sm" onClick={() => setShowBlockedList(false)}><icons.ArrowLeft className="size-4" /></Button> : null}
             <div>
               <DialogTitle>{showBlockedList ? t("views.channels.tabs.Blocked") : t("views.watch.chat.TLSettingsTitle")}</DialogTitle>
               <DialogDescription>{showBlockedList ? t("views.watch.chat.manageBlockedTranslators") : t("views.watch.chat.tuneTlBehavior")}</DialogDescription>
             </div>
           </DialogHeader>
-          <ScrollArea className="max-h-[70vh] px-5 py-4">
+          <ScrollArea className="max-h-[70vh]">
               {!showBlockedList ? (
                 <div className="space-y-5">
-                  <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-lang" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("views.settings.tlLanguageSelection")}</Label><Select value={app.settings.liveTlLang} onValueChange={(value) => patch({ liveTlLang: value })}><SelectTrigger id="live-tl-lang" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{TL_LANGS.map((item) => <SelectItem key={item.value} value={item.value}>{item.text}</SelectItem>)}</SelectContent></Select></div>
+	                  <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-lang">{t("views.settings.tlLanguageSelection")}</Label><Select value={app.settings.liveTlLang} onValueChange={(value) => patch({ liveTlLang: value })}><SelectTrigger id="live-tl-lang" className="w-full"><SelectValue /></SelectTrigger><SelectContent>{TL_LANGS.map((item) => <SelectItem key={item.value} value={item.value}>{item.text}</SelectItem>)}</SelectContent></Select></div>
                   <div className="space-y-3">
                     {toggleSettings.map((setting) => (
                       <Toggle key={setting.label} pressed={setting.checked} variant="outline" className="h-auto w-full justify-start whitespace-normal px-4 py-3" aria-label={setting.label} onPressedChange={setting.onChange}>
@@ -62,11 +62,11 @@ export function LiveTranslationsSetting() {
                   </div>
                   <Button variant="outline" onClick={() => setShowBlockedList(true)}>{t("views.watch.chat.editBlockedList")}</Button>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-font-size" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("views.watch.chat.tlFontSize")}</Label><div className="flex items-center gap-2"><Input id="live-tl-font-size" value={app.settings.liveTlFontSize} type="number" className="flex-1" onChange={(event) => patch({ liveTlFontSize: Number(event.target.value) })} /><span className="text-sm text-slate-400">px</span></div></div>
-                    <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-window-size" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t("views.watch.chat.tlWindowSize")}</Label><div className="flex items-center gap-2"><Input id="live-tl-window-size" value={app.settings.liveTlWindowSize} type="number" className="flex-1" onChange={(event) => patch({ liveTlWindowSize: Number(event.target.value) })} /><span className="text-sm text-slate-400">%</span></div></div>
+	                    <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-font-size">{t("views.watch.chat.tlFontSize")}</Label><div className="flex items-center gap-2"><Input id="live-tl-font-size" value={app.settings.liveTlFontSize} type="number" className="flex-1" onChange={(event) => patch({ liveTlFontSize: Number(event.target.value) })} /><span className="text-sm text-muted-foreground">px</span></div></div>
+	                    <div className="flex flex-col gap-2 text-sm"><Label htmlFor="live-tl-window-size">{t("views.watch.chat.tlWindowSize")}</Label><div className="flex items-center gap-2"><Input id="live-tl-window-size" value={app.settings.liveTlWindowSize} type="number" className="flex-1" onChange={(event) => patch({ liveTlWindowSize: Number(event.target.value) })} /><span className="text-sm text-muted-foreground">%</span></div></div>
                   </div>
                 </div>
-              ) : blockedList.length ? <div className="space-y-2">{blockedList.map((name: string) => <Item key={name} className="justify-between rounded-2xl border-white/10 bg-white/5 px-4 py-3"><ItemTitle className="text-white">{name}</ItemTitle><ItemActions><Button variant="secondary" size="sm" onClick={() => toggleBlockName(name)}>{t("component.channelSocials.unblock")}</Button></ItemActions></Item>)}</div> : <Empty className="rounded-2xl border border-white/12 px-4 py-8 md:px-4 md:py-8"><EmptyDescription className="text-slate-400">{t("views.watch.chat.noBlockedNames")}</EmptyDescription></Empty>}
+	              ) : blockedList.length ? <div className="space-y-2">{blockedList.map((name: string) => <Item key={name} className="justify-between px-4 py-3"><ItemTitle>{name}</ItemTitle><ItemActions><Button variant="secondary" size="sm" onClick={() => toggleBlockName(name)}>{t("component.channelSocials.unblock")}</Button></ItemActions></Item>)}</div> : <Empty className="px-4 py-8 md:px-4 md:py-8"><EmptyDescription>{t("views.watch.chat.noBlockedNames")}</EmptyDescription></Empty>}
           </ScrollArea>
         </DialogContent>
       </Dialog>

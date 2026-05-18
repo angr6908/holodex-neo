@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LiveTranslations } from "@/components/chat/LiveTranslations";
 import { ArchiveTranslations } from "@/components/chat/ArchiveTranslations";
 import { cn } from "@/lib/utils";
-export function WatchLiveChat({ video, currentTime = 0, modelValue, className = "", fluid = false, scale = 1, useLocalSubtitleToggle = false, onVideoUpdate, onTimeJump }: { video?: Record<string, any> | null; currentTime?: number; modelValue: { showTlChat: boolean; showYtChat: boolean }; className?: string; fluid?: boolean; scale?: number; useLocalSubtitleToggle?: boolean; onVideoUpdate?: (obj: any) => void; onTimeJump?: (time: number, a?: boolean, b?: boolean) => void }) {
+export function WatchLiveChat({ video, currentTime = 0, modelValue, className = "", fluid = false, useLocalSubtitleToggle = false, onVideoUpdate, onTimeJump }: { video?: Record<string, any> | null; currentTime?: number; modelValue: { showTlChat: boolean; showYtChat: boolean }; className?: string; fluid?: boolean; scale?: number; useLocalSubtitleToggle?: boolean; onVideoUpdate?: (obj: any) => void; onTimeJump?: (time: number, a?: boolean, b?: boolean) => void }) {
   const appStore = useAppState();
   const t = useTranslations();
   const ytChat = useRef<HTMLIFrameElement | null>(null);
@@ -33,16 +33,15 @@ export function WatchLiveChat({ video, currentTime = 0, modelValue, className = 
     }
     return `https://www.youtube.com/live_chat?${q}`;
   }, [video, appStore.settings.darkMode]);
-  const scaledStyle = useMemo(() => scale !== 1 ? { transform: `scale(${scale})`, height: `${100 / scale}%`, width: `${100 / scale}%`, transformOrigin: "top left" } : {}, [scale]);
-  const ytChatHeight = appStore.settings.liveTlWindowSize > 0 && showTlChat ? `${100 - appStore.settings.liveTlWindowSize}%` : "";
-  const tlChatHeight = showYtChat && appStore.settings.liveTlWindowSize > 0 ? `${appStore.settings.liveTlWindowSize}%` : "";
+  const paneClass = showTlChat && showYtChat ? "min-h-0 flex-1 basis-0" : "min-h-0 flex-1";
   const tlPanelClass = cn(
+    paneClass,
     appStore.settings.liveTlStickBottom && "order-2",
-    !showYtChat ? "absolute h-full max-h-full pb-[calc(env(safe-area-inset-bottom)/1.75)]" : "h-[clamp(140px,24%,210px)]",
+    !showYtChat && "pb-[env(safe-area-inset-bottom)]",
   );
   const embeddedChatClass = cn(
-    "relative h-full w-full [&>iframe]:absolute [&>iframe]:z-[3] [&>iframe]:h-full [&>iframe]:w-full",
-    showTlChat && "h-[calc(100%-clamp(140px,24%,210px))]",
+    "relative min-h-0 w-full [&>iframe]:absolute [&>iframe]:z-[3] [&>iframe]:h-full [&>iframe]:w-full",
+    paneClass,
   );
 
   const postFrameTime = (t: number) => ytChat.current?.contentWindow?.postMessage({ "yt-player-video-progress": t }, "*");
@@ -52,13 +51,12 @@ export function WatchLiveChat({ video, currentTime = 0, modelValue, className = 
   useEffect(() => { if (video?.status === "past") postFrameTime(currentTime); }, [currentTime, video?.status]);
 
   return (
-    <div className={cn("relative z-0 flex h-full min-h-[min(56vh,calc(100vh-120px))] flex-col overflow-hidden rounded-[inherit] text-base", fluid && "min-h-0 w-full min-w-0", className)}>
-      {showYtChat && !needExtension && !chatLoaded ? <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-slate-400">{t("views.watch.chat.loading")}</span> : null}
+    <div className={cn("relative z-0 flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit] text-base", fluid && "w-full min-w-0", className)}>
+      {showYtChat && !needExtension && !chatLoaded ? <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-muted-foreground">{t("views.watch.chat.loading")}</span> : null}
       {showTlChat && video && isLiveTLVideo ? (
         <LiveTranslations
           video={video}
           className={tlPanelClass}
-          style={{ height: tlChatHeight }}
           currentTime={currentTime}
           useLocalSubtitleToggle={useLocalSubtitleToggle}
           onVideoUpdate={onVideoUpdate}
@@ -67,26 +65,25 @@ export function WatchLiveChat({ video, currentTime = 0, modelValue, className = 
         <ArchiveTranslations
           video={video}
           className={tlPanelClass}
-          style={{ height: tlChatHeight }}
           currentTime={currentTime}
           useLocalSubtitleToggle={useLocalSubtitleToggle}
           onTimeJump={onTimeJump}
         />
       ) : showTlChat ? (
-        <Card className="box-border flex flex-col border-0 bg-slate-950/90 p-0 text-sm text-slate-200 shadow-none">
-          <CardContent className={cn("overflow-auto px-0 text-base leading-normal", appStore.settings.liveTlStickBottom && "order-2", !showYtChat && "h-full")} style={{ height: tlChatHeight }}>
+        <Card className={cn("box-border flex flex-col p-0 text-sm", paneClass)}>
+          <CardContent className={cn("min-h-0 flex-1 overflow-auto px-0 text-base leading-normal", appStore.settings.liveTlStickBottom && "order-2")}>
             {t("views.watch.chat.membersOnlyTl")}
           </CardContent>
         </Card>
       ) : null}
       {showYtChat && !needExtension ? (
-        <div className={embeddedChatClass} style={{ height: ytChatHeight }}>
-          <iframe ref={ytChat} src={liveChatUrl || ""} frameBorder={0} style={scaledStyle} onLoad={handleChatLoad} />
+        <div className={embeddedChatClass}>
+          <iframe ref={ytChat} src={liveChatUrl || ""} frameBorder={0} onLoad={handleChatLoad} />
         </div>
       ) : null}
       {needExtension ? (
-        <div className="p-5 text-sm text-slate-300">
-          {t("views.watch.chat.archiveNeedExtensionBefore")} <Link href="/extension" className="text-sky-300 hover:text-sky-200">Holodex+</Link> {t("views.watch.chat.archiveNeedExtensionAfter")}
+        <div className="p-5 text-sm text-muted-foreground">
+          {t("views.watch.chat.archiveNeedExtensionBefore")} <Link href="/extension" className="text-primary underline underline-offset-4">Holodex+</Link> {t("views.watch.chat.archiveNeedExtensionAfter")}
         </div>
       ) : null}
     </div>

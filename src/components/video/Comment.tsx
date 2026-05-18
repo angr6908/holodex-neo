@@ -11,8 +11,8 @@ export function Comment({ comment, videoId }: { comment: Record<string, any>; vi
   const t = useTranslations();
   const processedMessage = linkifyVideoTimestamps(comment.message, videoId, app.settings.redirectMode);
   return (
-    <div className="group/comment relative my-3 block border-l-2 border-white/50 py-1 pr-4 pl-4">
-      <TruncatedText className="whitespace-pre-wrap break-words text-sm text-slate-300" html={processedMessage} lines={5} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
+    <div className="group/comment relative my-3 block border-l-2 py-1 pr-4 pl-4">
+      <TruncatedText className="whitespace-pre-wrap break-words text-sm" html={processedMessage} lines={5} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
       <Button nativeButton={false}
         render={<a href={`https://www.youtube.com/watch?v=${videoId}&lc=${comment.comment_key}`} target="_blank" rel="noopener noreferrer" />}
         variant="ghost"

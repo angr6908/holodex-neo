@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomenasowwy!",
+      "title": "Content load faiwed uwu",
       "textBeforeTwitter": "Thewe was an ewwow wetwieving content, pwease check twittew ",
       "textAfterTwitter": " ow wepowt an ewwow thwough da",
       "aboutPage": "About page uwu",
@@ -96,31 +96,38 @@
         "channel": "channew",
         "topic": "topic uwu",
         "org": "owg",
-        "titledesc": "titwe/desc",
+        "titledesc": "titwe ow descwiption",
         "title": "titwe",
         "description": "descwiption",
         "comments": "comments uwu",
         "videourl": "bideo uww"
       },
-      "placeholder": "Seawch stweams, cwips, channyews",
+      "placeholder": "Seawch stweams, cwips, ow channyews",
       "clear": "Cweaw",
       "loading": "Woading...",
-      "typeTwoCharacters": "Type 2 chawactews",
+      "typeTwoCharacters": "Type at weast 2 chawactews",
       "noChannelsFound": "Nyo channyews found",
       "noTopicsFound": "Nyo topics found",
       "noOrganizationsFound": "Nyo owganyizations found",
       "noResultsFound": "Nyo wesuwts found",
-      "searchChannels": "Seawch Channyews",
-      "filterByTopicOrgChannel": "Fiwtew by Topic, Owg, Channyew ...",
-      "topicOrgChannelPlaceholder": "Topic, owg, ow channyew",
+      "searchChannels": "Seawch channyews",
+      "filterByTopicOrgChannel": "Fiwtew by topic, owganyization, ow channyew",
+      "topicOrgChannelPlaceholder": "Topic, owganyization, ow channyew",
       "toggleSearch": "Toggwe seawch",
       "organizations": "Owganyizations",
       "searchOrganizations": "Seawch owganyizations",
-      "quickSelect": "Quick Sewect",
+      "quickSelect": "Quick sewect",
       "allVtubers": "Aww VTubews",
-      "selectedOrgCount": "{count} owgs",
+      "selectedOrgCount": "{count} owganyizations",
       "additionalOrgCount": "{count} mowe",
       "unset": "Unset uwu"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTubew",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Bwock channyew",
+      "unblock": "Unbwock"
     },
     "relatedVideo": {
       "clipsLabel": "cwips",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Wemove"
+      "remove": "Wemove",
+      "automatedSongHelper": "Automated comment song hewpew",
+      "clickSearchableTimestamp": "Sewect a timestamp ow seawch tewm"
     },
     "comment": {
       "close": "Cwose",
@@ -367,9 +376,12 @@
         "sortBy": "Sowt by",
         "viewers": "Viewews",
         "latest": "Nyewest",
-        "uploadedBefore": "Upwoaded Befowe",
+        "uploadedBefore": "Uploaded befowe uwu",
         "pickDate": "Pick a date uwu",
-        "clipLanguages": "See cwips in these wanguages:"
+        "clipLanguages": "Cwip wanguages uwu",
+        "displayMode": "Dispway mode uwu",
+        "list": "Wist",
+        "denseList": "Dense wist"
       },
       "apiError": "Couwd nyot woad videos."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Aww",
-        "official": "Officiaw",
-        "clip": "Cwip"
+        "official": "Stweams",
+        "clip": "Cwips"
       },
       "unsupportedQuery": "Cuwwentwy seawching cwips by <kbd>topic</kbd> and <kbd>owganization</kbd> ish not suppowted. No <b>cwips</b> wiww show up.",
       "sortByLabel": "Sowt by",
-      "typeDropdownLabel": "Type uwu",
+      "typeDropdownLabel": "Content type uwu",
       "searching": "Seawching...",
-      "useSearchBar": "Use da seawch baw to find stweams, cwips, ow channyews."
+      "useSearchBar": "Use da seawch baw to find stweams, cwips, ow channyews.",
+      "sortBy": "Sowt by"
     },
     "settings": {
       "title": "Settings uwu",
@@ -499,9 +512,9 @@
         "tlStart": "Stawt of messages",
         "StickBottomSettingLabel": "Stick bottom",
         "StickBottomSettingsDesc": "Tl box pwaced bewow youtube chat",
-        "showVerifiedMessages": "Show vewified messages",
-        "showModeratorMessages": "Show modewatow messages",
-        "showVtuberMessages": "Show vtubew messages",
+        "showVerifiedMessages": "Show vewified messages uwu",
+        "showModeratorMessages": "Show modewatow messages uwu",
+        "showVtuberMessages": "Show VTubew messages uwu",
         "showLocalTime": "Show locaw times",
         "tlFontSize": "Font size",
         "tlWindowSize": "Tl box size (%), weave as 0% fow automatic",
@@ -558,7 +571,8 @@
         "button": "Save (may take 5 minutes to take effect)",
         "unset": "Unset uwu",
         "inputPlaceholder": "Topic (weave empty to unset)",
-        "saveTopic": "Save Topic uwu"
+        "saveTopic": "Save Topic uwu",
+        "updateSuccess": "Topic updated: {topic} uwu"
       },
       "channelMentions": {
         "title": "Channew mentions",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Wisten on Appwe Music",
       "pickItunesResult": "Pick eithew iTunyes wesuwt",
       "playFromHere": "Pway fwom hewe",
-      "timestampEditorHint": "Use wewative timestamps to winye music up wif da video."
+      "timestampEditorHint": "Use wewative timestamps to winye music up wif da video.",
+      "exportSummary": "{entries} entwies, {profiles} pwofiwes"
     },
     "exitMode": "Exit edit mode",
     "enterMode": "Edit bideo"

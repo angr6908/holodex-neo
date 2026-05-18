@@ -27,111 +27,69 @@ import { WatchPlaylist } from "@/components/watch/WatchPlaylist";
 import { UploadScript } from "@/components/tl/UploadScript";
 import * as icons from "@/lib/icons";
 import { cn } from "@/lib/utils";
-const emptyVideo = { channel: {}, id: null, title: "Loading...", description: "" };
+
+const empty = { channel: {}, id: null, title: "Loading...", description: "" };
 
 export default function WatchPage() {
   const params = useParams<{ id?: string | string[] }>();
-  const searchParams = useSearchParams();
+  const sp = useSearchParams();
   const router = useRouter();
   const app = useAppState();
   const t = useTranslations();
-  const routeVideoId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const videoId = routeVideoId || searchParams.get("v") || "";
-  const [video, setVideo] = useState<Record<string, any>>(emptyVideo);
+  const videoId = (Array.isArray(params.id) ? params.id[0] : params.id) || sp.get("v") || "";
+  const [video, setVideo] = useState<Record<string, any>>(empty);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [showTL, setShowTL] = useState(false);
   const [showLiveChat, setShowLiveChat] = useState(true);
-  const [theaterMode, setTheaterMode] = useState(false);
+  const [theater, setTheater] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [playlistIndex, setPlaylistIndex] = useState(-1);
-  const [playerRenderWidth, setPlayerRenderWidth] = useState<number | null>(null);
-  const [playerStackReserve, setPlayerStackReserve] = useState(52);
-  const playerStackReserveRef = useRef(52);
-  const playerWidthRaf = useRef<number | null>(null);
+  const [plIdx, setPlIdx] = useState(-1);
   const player = useRef<YoutubePlayerHandle | null>(null);
-  const watchLayout = useRef<HTMLDivElement | null>(null);
-  const timeOffset = Number(searchParams.get("t") || 0) || 0;
+  const layout = useRef<HTMLDivElement | null>(null);
+  const timeOffset = Number(sp.get("t") || 0) || 0;
   const title = (video.title && decodeHTMLEntities(video.title)) || "";
   const hasLiveChat = video.type === "stream" && (["upcoming", "live"].includes(video.status) || (video.status === "past" && !app.isMobile));
   const hasLiveTL = video.type === "stream";
-  const showChatWindow = (hasLiveChat && showLiveChat) || (showTL && hasLiveTL);
+  const showChat = (hasLiveChat && showLiveChat) || (showTL && hasLiveTL);
   const comments = video.comments || [];
-  const isPlaylist = !!searchParams.get("playlist");
+  const isPlaylist = !!sp.get("playlist");
   const role = app.userdata?.user?.role;
   const isEditor = role === "admin" || role === "editor";
-  const hasRelatedSections = Boolean(video?.simulcasts?.length || video?.clips?.length || video?.sources?.length || video?.same_source_clips?.length || video?.recommendations?.length || video?.refers?.length);
-  const showUtilityRail = Boolean(isEditor || isPlaylist);
-  const showUpload = app.uploadPanel;
-  const hasExtension = typeof window !== "undefined" && !!(window as any).HOLODEX_PLUS_INSTALLED;
-  const showHighlightsBar = (comments.length || video.songcount) && (!app.isMobile || !showTL);
-  const likeOnYoutubeLabel = t("views.watch.likeOnYoutube");
-  const theaterModeLabel = t("views.watch.theaterMode");
-  const liveTlLabel = showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn");
+  const hasRelated = Boolean(video?.simulcasts?.length || video?.clips?.length || video?.sources?.length || video?.same_source_clips?.length || video?.recommendations?.length || video?.refers?.length);
+  const showRail = Boolean(isEditor || isPlaylist);
+  const hasExt = typeof window !== "undefined" && !!(window as any).HOLODEX_PLUS_INSTALLED;
+  const showHighlights = !!(comments.length || video.songcount) && (!app.isMobile || !showTL);
+  const likeLbl = t("views.watch.likeOnYoutube");
+  const theaterLbl = t("views.watch.theaterMode");
+  const tlLbl = showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn");
 
   useEffect(() => {
     if (!videoId) { setHasError(true); setIsLoading(false); return; }
     let cancelled = false;
     window.scrollTo(0, 0);
-    setVideo(emptyVideo);
+    setVideo(empty);
     setShowTL(defaultWatchControlsState.showTL);
     setShowLiveChat(defaultWatchControlsState.showLiveChat);
-    setTheaterMode(defaultWatchControlsState.theaterMode);
+    setTheater(defaultWatchControlsState.theaterMode);
     writeWatchControlsState(defaultWatchControlsState);
-    setCurrentTime(0);
-    setIsLoading(true);
-    setHasError(false);
+    setCurrentTime(0); setIsLoading(true); setHasError(false);
     api.video(videoId, app.settings.clipLangs.join(","), 1).then(({ data }: any) => {
       if (cancelled) return;
-      setVideo(data);
-      setIsLoading(false);
+      setVideo(data); setIsLoading(false);
       document.title = (data.title && decodeHTMLEntities(data.title)) || "Holodex";
-      requestAnimationFrame(schedulePlayerWidthMeasure);
       addWatchedVideo(data);
     }).catch((e) => { console.error(e); if (!cancelled) { setHasError(true); setIsLoading(false); } });
     return () => { cancelled = true; };
   }, [videoId]);
 
   useEffect(() => { if (title) document.title = title; }, [title]);
+  useEffect(() => { writeWatchControlsState({ showTL, showLiveChat, theaterMode: theater }); }, [showTL, showLiveChat, theater]);
   useEffect(() => {
-    writeWatchControlsState({ showTL, showLiveChat, theaterMode });
-  }, [showTL, showLiveChat, theaterMode]);
-  useEffect(() => { playerStackReserveRef.current = playerStackReserve; }, [playerStackReserve]);
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) { if (event.altKey && event.key.toLowerCase() === "t") { event.preventDefault(); toggleTheaterMode(); } }
+    const onKey = (e: KeyboardEvent) => { if (e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); toggleTheater(); } };
     window.addEventListener("keyup", onKey);
-    window.addEventListener("resize", schedulePlayerWidthMeasure, { passive: true });
-    requestAnimationFrame(schedulePlayerWidthMeasure);
-    return () => {
-      window.removeEventListener("keyup", onKey);
-      window.removeEventListener("resize", schedulePlayerWidthMeasure);
-      if (playerWidthRaf.current) cancelAnimationFrame(playerWidthRaf.current);
-    };
+    return () => window.removeEventListener("keyup", onKey);
   }, []);
-  useEffect(() => { requestAnimationFrame(schedulePlayerWidthMeasure); }, [theaterMode, app.isMobile, showChatWindow, showHighlightsBar]);
-  function measurePlayerWidth() {
-    const playerSurface = document.querySelector(".watch-screen .video");
-    if (!(playerSurface instanceof HTMLElement)) { setPlayerRenderWidth(null); return; }
-    const width = Math.round(playerSurface.getBoundingClientRect().width);
-    setPlayerRenderWidth(width > 0 ? width : null);
-    const toolbarEl = document.querySelector(".watch-toolbar");
-    const highlightsEl = document.querySelector(".watch-highlights");
-    const toolbarHeight = toolbarEl instanceof HTMLElement ? Math.ceil(toolbarEl.getBoundingClientRect().height) : 52;
-    const highlightsHeight = highlightsEl instanceof HTMLElement ? Math.ceil(highlightsEl.getBoundingClientRect().height) : 0;
-    const nextReserve = toolbarHeight + highlightsHeight;
-    const reserveChanged = playerStackReserveRef.current !== nextReserve;
-    playerStackReserveRef.current = nextReserve;
-    setPlayerStackReserve(nextReserve);
-    if (reserveChanged) requestAnimationFrame(schedulePlayerWidthMeasure);
-  }
-
-  function schedulePlayerWidthMeasure() {
-    if (playerWidthRaf.current) cancelAnimationFrame(playerWidthRaf.current);
-    playerWidthRaf.current = requestAnimationFrame(() => {
-      playerWidthRaf.current = null;
-      measurePlayerWidth();
-    });
-  }
 
   function seekTo(time: number) {
     if (!player.current) return;
@@ -140,139 +98,77 @@ export default function WatchPage() {
     player.current.playVideo();
   }
 
-  function toggleTheaterMode() {
-    setTheaterMode((value) => !value);
-    requestAnimationFrame(() => { schedulePlayerWidthMeasure(); if (watchLayout.current) watchLayout.current.scrollTop = 0; });
+  function toggleTheater() {
+    setTheater((v) => !v);
+    requestAnimationFrame(() => { if (layout.current) layout.current.scrollTop = 0; });
   }
 
-  const isCinema = theaterMode && !app.isMobile;
-  const watchStyle = {
-    "--nav-h": "0px",
-    "--pad-x": "clamp(12px,1.8vw,24px)",
-    "--pad-y": "clamp(12px,1.8vw,24px)",
-    "--gap": "clamp(12px,1.6vw,20px)",
-    "--chat-w": "clamp(320px,24vw,360px)",
-    "--player-stack-reserve": `${playerStackReserve}px`,
-  } as React.CSSProperties;
+  const cinema = theater && !app.isMobile;
   const pageClass = cn(
     "relative z-0 box-border flex min-h-screen w-full overflow-x-clip",
-    "min-[960px]:items-start min-[960px]:gap-[var(--gap)] min-[960px]:px-[var(--pad-x)] min-[960px]:pt-[var(--pad-y)] min-[960px]:pb-[clamp(1.5rem,3vw,3rem)]",
-    "max-[959px]:flex-col max-[959px]:pt-[var(--pad-y)]",
-    showChatWindow && !app.isMobile && (isCinema ? "min-[960px]:pr-[calc(var(--chat-w)+var(--pad-x))]" : "min-[960px]:pr-[calc(var(--chat-w)+var(--gap)+var(--pad-x))]"),
+    "min-[960px]:items-start min-[960px]:gap-[clamp(12px,1.6vw,20px)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[clamp(12px,1.8vw,24px)] min-[960px]:pb-[clamp(1.5rem,3vw,3rem)]",
+    "max-[959px]:flex-col max-[959px]:pt-[clamp(12px,1.8vw,24px)]",
+    showChat && !app.isMobile && (cinema ? "min-[960px]:pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.8vw,24px))]" : "min-[960px]:pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.6vw,20px)+clamp(12px,1.8vw,24px))]"),
   );
-  const contentClass = cn(
-    "relative z-[1] flex w-full min-w-0 grow items-start overflow-visible",
-    isCinema ? "flex-col items-stretch" : "flex-row",
-    "max-[959px]:flex-col",
-  );
-  const mainClass = cn("flex min-w-0 flex-1 flex-col", isCinema ? "w-full max-w-none" : "max-w-[min(100%,1080px)]", "max-[959px]:w-full");
-  const playerGroupClass = cn("contents", isCinema && "block min-[960px]:mx-[calc(-1*var(--pad-x))]");
-  const screenClass = cn("watch-screen relative transition-colors", isCinema && "-mt-[var(--pad-y)]");
+  const contentClass = cn("relative z-[1] flex w-full min-w-0 grow items-start overflow-visible", cinema ? "flex-col items-stretch" : "flex-row", "max-[959px]:flex-col");
+  const mainClass = cn("flex min-w-0 flex-1 flex-col", cinema ? "w-full max-w-none" : "max-w-[min(100%,1080px)]", "max-[959px]:w-full");
+  const groupClass = cn("contents", cinema && "block min-[960px]:mx-[calc(-1*clamp(12px,1.8vw,24px))]");
+  const screenClass = cn("relative transition-colors", cinema && "-mt-[clamp(12px,1.8vw,24px)]");
   const playerClass = cn(
-    "video relative aspect-video h-auto w-full overflow-hidden bg-black [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full",
-    isCinema && "mx-auto max-w-[calc((100dvh-var(--nav-h)-var(--player-stack-reserve))*16/9)] shadow-2xl",
+    "video relative aspect-video h-auto w-full overflow-hidden bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full",
+    cinema && "mx-auto max-w-[calc((100dvh-5rem)*16/9)] shadow-2xl",
   );
-  const toolbarShellClass = cn(isCinema && "mx-auto w-full max-w-[calc((100dvh-var(--nav-h)-var(--player-stack-reserve))*16/9)]");
+  const toolbarShellClass = cn(cinema && "mx-auto w-full max-w-[calc((100dvh-5rem)*16/9)]");
   const sectionClass = "mt-[clamp(12px,1.4vw,18px)]";
   const chatClass = cn(
     "z-[1] w-full min-w-0",
-    "min-[960px]:fixed min-[960px]:right-[var(--pad-x)] min-[960px]:top-[calc(var(--nav-h)+var(--pad-y))] min-[960px]:h-[calc(100vh-var(--nav-h)-var(--pad-y))] min-[960px]:w-[var(--chat-w)] min-[960px]:min-w-80 min-[960px]:overflow-y-auto min-[960px]:rounded-xl",
-    "max-[959px]:relative max-[959px]:mt-[var(--gap)] max-[959px]:h-auto max-[959px]:max-h-[65vh] max-[959px]:min-h-[min(56vh,420px)] max-[959px]:overflow-hidden",
-    isCinema && "min-[960px]:right-0 min-[960px]:top-[var(--nav-h)] min-[960px]:h-[calc(100dvh-var(--nav-h))] min-[960px]:rounded-none min-[960px]:border-l min-[960px]:border-white/10 min-[960px]:bg-slate-950/95",
+    "min-[960px]:fixed min-[960px]:bottom-[clamp(12px,1.8vw,24px)] min-[960px]:right-[clamp(12px,1.8vw,24px)] min-[960px]:top-[clamp(12px,1.8vw,24px)] min-[960px]:w-[clamp(320px,24vw,360px)] min-[960px]:overflow-hidden min-[960px]:rounded-xl",
+    "max-[959px]:relative max-[959px]:mt-[clamp(12px,1.6vw,20px)] max-[959px]:h-[65dvh] max-[959px]:min-h-[min(56dvh,420px)] max-[959px]:overflow-hidden",
+    cinema && "min-[960px]:bottom-0 min-[960px]:right-0 min-[960px]:top-0 min-[960px]:rounded-none min-[960px]:border-l min-[960px]:border-border min-[960px]:bg-card",
   );
 
   if (isLoading || hasError) return (
     <div className="flex min-h-[calc(100vh-65px)] w-full items-start justify-center px-4 pt-[calc(10px+5.5rem)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[calc(10px+8rem)]">
-      {isLoading && !hasError ? (
-        <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3">
-          <Spinner />
-        </Card>
-      ) : null}
+      {isLoading && !hasError ? <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3"><Spinner /></Card> : null}
       {hasError ? <ApiErrorMessage /> : null}
     </div>
   );
   return (
-    <div className={pageClass} style={watchStyle}>
-      <div ref={watchLayout} className={contentClass}>
+    <div className={pageClass}>
+      <div ref={layout} className={contentClass}>
         <div className={mainClass}>
-          <div className={playerGroupClass}>
+          <div className={groupClass}>
             <div className={screenClass}>
-              <div style={{ position: "relative" }}>
-                {video.id ? (
-                  <YoutubePlayer
-                    ref={player}
-                    className={playerClass}
-                    videoId={video.id}
-                    start={timeOffset}
-                    autoplay
-                    lang={getYTLangFromState({ settings: { lang: app.settings.lang } })}
-                    onReady={(p) => { player.current = p; requestAnimationFrame(schedulePlayerWidthMeasure); }}
-                    onCurrentTime={setCurrentTime}
-                    onEnded={() => { if (playlistIndex >= 0) setPlaylistIndex((value) => value + 1); }}
-                  />
-                ) : null}
-                <div id={`overlay-${video.id}`} style={{ fontSize: "max(1.5vw, 16px)" }} />
+              <div className="relative">
+                {video.id ? <YoutubePlayer ref={player} className={playerClass} videoId={video.id} start={timeOffset} autoplay lang={getYTLangFromState({ settings: { lang: app.settings.lang } })} onReady={(p) => { player.current = p; }} onCurrentTime={setCurrentTime} onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} /> : null}
+                <div id={`overlay-${video.id}`} className="text-[max(1.5vw,16px)]" />
               </div>
             </div>
-            {showHighlightsBar ? <WatchHighlights key="highlights" comments={comments} video={video} limit={app.isMobile ? 8 : 0} playerWidth={playerRenderWidth} onTimeJump={seekTo} /> : null}
+            {showHighlights ? <WatchHighlights key="highlights" comments={comments} video={video} limit={app.isMobile ? 8 : 0} onTimeJump={seekTo} /> : null}
             <div className={toolbarShellClass}>
               <WatchToolbar video={video}>
-                {hasExtension ? (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={<Button type="button" size="icon" variant="ghost" aria-label={likeOnYoutubeLabel} onClick={() => player.current?.sendLikeEvent()} />}
-                    >
-                      <ThumbsUp className="size-5" />
-                    </TooltipTrigger>
-                    <TooltipContent>{likeOnYoutubeLabel}</TooltipContent>
-                  </Tooltip>
-                ) : null}
-	                {!app.isMobile ? (
-	                  <Tooltip>
-	                    <TooltipTrigger
-                        render={<Toggle pressed={theaterMode} aria-label={theaterModeLabel} onPressedChange={() => toggleTheaterMode()} />}
-                      >
-	                      <Theater className="size-5" />
-	                    </TooltipTrigger>
-	                    <TooltipContent>{theaterModeLabel}</TooltipContent>
-	                  </Tooltip>
-	                ) : null}
-	                {hasLiveTL ? (
-	                  <Tooltip>
-	                    <TooltipTrigger
-                        render={<Toggle pressed={showTL} aria-label={liveTlLabel} onPressedChange={setShowTL} />}
-                      >
-	                      <icons.TlChatIcon className="size-5" />
-	                    </TooltipTrigger>
-	                    <TooltipContent>{liveTlLabel}</TooltipContent>
-	                  </Tooltip>
-	                ) : null}
-	                {hasLiveChat ? <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}><icons.YtChatIcon className="size-5" /></Toggle> : null}
+                {hasExt ? <Tooltip><TooltipTrigger render={<Button type="button" size="icon" variant="ghost" aria-label={likeLbl} onClick={() => player.current?.sendLikeEvent()} />}><ThumbsUp className="size-5" /></TooltipTrigger><TooltipContent>{likeLbl}</TooltipContent></Tooltip> : null}
+                {!app.isMobile ? <Tooltip><TooltipTrigger render={<Toggle pressed={theater} aria-label={theaterLbl} onPressedChange={() => toggleTheater()} />}><Theater className="size-5" /></TooltipTrigger><TooltipContent>{theaterLbl}</TooltipContent></Tooltip> : null}
+                {hasLiveTL ? <Tooltip><TooltipTrigger render={<Toggle pressed={showTL} aria-label={tlLbl} onPressedChange={setShowTL} />}><icons.TlChatIcon className="size-5" /></TooltipTrigger><TooltipContent>{tlLbl}</TooltipContent></Tooltip> : null}
+                {hasLiveChat ? <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}><icons.YtChatIcon className="size-5" /></Toggle> : null}
               </WatchToolbar>
             </div>
           </div>
           {video?.songcount ? <WatchSideBar key="songs" video={video} className={sectionClass} showSongs showRelations={false} onTimeJump={seekTo} /> : null}
           <WatchInfo key="info" video={video} onTimeJump={seekTo} />
           {comments.length ? <WatchComments key="comments" comments={comments} video={video} limit={app.isMobile ? 5 : 0} onTimeJump={seekTo} /> : null}
-          {hasRelatedSections ? <WatchSideBar key="related" video={video} className={sectionClass} showSongs={false} showRelations onTimeJump={seekTo} /> : null}
-          {showUtilityRail ? (
-            <div className={cn(sectionClass, "flex flex-col gap-4")}>
-              {isEditor ? <WatchQuickEditor video={video} /> : null}
-              {isPlaylist ? <WatchPlaylist value={playlistIndex} video={video} onInput={setPlaylistIndex} onPlayNext={({ video: nextVideo }) => { const playlist = searchParams.get("playlist"); if (nextVideo?.id) router.push(`/watch/${nextVideo.id}${playlist ? `?playlist=${playlist}` : ""}`); }} /> : null}
-            </div>
-          ) : null}
+          {hasRelated ? <WatchSideBar key="related" video={video} className={sectionClass} showSongs={false} showRelations onTimeJump={seekTo} /> : null}
+          {showRail ? <div className={cn(sectionClass, "flex flex-col gap-4")}>
+            {isEditor ? <WatchQuickEditor video={video} /> : null}
+            {isPlaylist ? <WatchPlaylist value={plIdx} video={video} onInput={setPlIdx} onPlayNext={({ video: next }) => { const pl = sp.get("playlist"); if (next?.id) router.push(`/watch/${next.id}${pl ? `?playlist=${pl}` : ""}`); }} /> : null}
+          </div> : null}
         </div>
       </div>
-      {showChatWindow ? <WatchLiveChat className={chatClass} video={video} currentTime={currentTime} modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }} onTimeJump={seekTo} onVideoUpdate={(update) => {
-        if (!update?.status || !update?.start_actual) return;
-        setVideo((value) => ({
-          ...value,
-          live_viewers: update.live_viewers,
-          status: update.status,
-          start_actual: typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
-        }));
+      {showChat ? <WatchLiveChat className={chatClass} video={video} currentTime={currentTime} modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }} onTimeJump={seekTo} onVideoUpdate={(u) => {
+        if (!u?.status || !u?.start_actual) return;
+        setVideo((v) => ({ ...v, live_viewers: u.live_viewers, status: u.status, start_actual: typeof u.start_actual === "string" ? u.start_actual : v.start_actual }));
       }} /> : null}
-      <Dialog open={showUpload} onOpenChange={(open) => app.setUploadPanel(open)}>
+      <Dialog open={app.uploadPanel} onOpenChange={app.setUploadPanel}>
         <DialogContent className="max-h-[500px] max-w-[80%] p-0">
           <UploadScript videoData={video} onClose={() => app.setUploadPanel(false)} />
         </DialogContent>

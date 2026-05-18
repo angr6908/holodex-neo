@@ -74,18 +74,18 @@ export function WatchPlaylist({ value = 0, video, onInput, onPlayNext }: { value
           <>
             <CardHeader className="flex items-start justify-between gap-3 px-4 py-4">
               <div>
-                <CardTitle className="text-base font-semibold leading-normal text-white">{playlist.name}</CardTitle>
-                <CardDescription className="pt-1 text-sm text-slate-400">{value + 1}/{videos.length}</CardDescription>
+	            <CardTitle>{playlist.name}</CardTitle>
+	                <CardDescription>{value + 1}/{videos.length}</CardDescription>
               </div>
               <Button type="button" size="icon" title={t("component.playlist.next-video")} onClick={nextVideo}>
                 <icons.ArrowLeft className="size-5 rotate-180" />
               </Button>
             </CardHeader>
-            <Separator className="bg-white/10" />
-            <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} height={`${Math.min(videos.length, 6) * 102}px`} />
+	            <Separator />
+            <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} />
           </>
         ) : null}
-        {hasError ? <div className="px-4 py-4 text-sm text-rose-300">{t("component.playlist.error-loading")}</div> : null}
+	        {hasError ? <div className="px-4 py-4 text-sm text-destructive">{t("component.playlist.error-loading")}</div> : null}
       </Card>
     </div>
   );

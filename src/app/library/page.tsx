@@ -66,9 +66,9 @@ export default function LibraryPage() {
   }
 
   return (
-    <section className="app-page space-y-4">
+    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-4">
       <div>
-        <div className="mb-2 text-xl font-semibold text-[color:var(--color-foreground)]">{t("views.library.savedVideosTitle")}</div>
+        <div className="mb-2 text-xl font-semibold text-foreground">{t("views.library.savedVideosTitle")}</div>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="secondary" onClick={() => showReset ? reset() : selectAll()}>{showReset ? t("views.library.selectionReset") : t("views.library.selectionSelectAll")}</Button>
           {!showReset ? <Button type="button" variant="secondary" onClick={() => select(50)}>{t("views.library.selectionSelect50")}</Button> : null}
@@ -85,7 +85,7 @@ export default function LibraryPage() {
           <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
             <AlertDialogContent className="max-w-[290px] p-4 sm:max-w-[290px]">
               <AlertDialogHeader className="place-items-start text-left">
-                <AlertDialogTitle className="text-base text-[color:var(--color-foreground)]">{t("views.library.deleteConfirmation", { arg0: selected.length })}</AlertDialogTitle>
+                <AlertDialogTitle className="text-base text-foreground">{t("views.library.deleteConfirmation", { arg0: selected.length })}</AlertDialogTitle>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex-row justify-end">
                 <AlertDialogCancel variant="ghost">{t("views.library.deleteConfirmationCancel")}</AlertDialogCancel>
@@ -106,7 +106,7 @@ export default function LibraryPage() {
       {savedVideosList.length > 0 ? <GenericListLoader key={`vl-home-${sortModel}=${savedVideosList.length}`} paginate perPage={50} loadFn={getLoadFn()}>{({ data }) => <VideoCardList videos={data} horizontal includeChannel dense renderAction={(video: any) => <Checkbox checked={selected.includes(video.id)} onCheckedChange={(checked) => toggleSelected(video.id, checked === true)} onClick={(e) => e.stopPropagation()} />} />}</GenericListLoader> : <Empty className="flex-none gap-0 p-0 md:p-0">{t("views.library.emptyLibrary")}</Empty>}
       <Dialog open={instructionsDialog} onOpenChange={setInstructionsDialog}>
         <DialogContent className={`${app.isMobile ? "max-w-[90%]" : "max-w-[60vw]"} p-4`}>
-          <DialogTitle className="text-lg leading-7 text-[color:var(--color-foreground)]">{t("views.library.exportYTHeading")}</DialogTitle>
+          <DialogTitle className="text-lg leading-7 text-foreground">{t("views.library.exportYTHeading")}</DialogTitle>
           <div className="grid gap-4 md:grid-cols-[1fr_auto]">
             <div>
               <p dangerouslySetInnerHTML={{ __html: t.raw("views.library.exportYTExplanation") }} />

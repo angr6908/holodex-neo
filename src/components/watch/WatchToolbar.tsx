@@ -22,10 +22,10 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
   function toggleSaved() { if (hasSaved) app.removeFromPlaylist(video.id); else app.addToPlaylist(video); }
   const reloadVideo = () => { const curr = document.querySelector("[id^=\"youtube-player\"]") as HTMLIFrameElement | null; if (curr?.contentWindow) curr.contentWindow.location.replace(curr.src); };
   return (
-    <div className="watch-toolbar sticky top-[var(--nav-h)] z-[40] flex justify-between gap-2 border-b border-white/10 bg-slate-950/70 px-3 py-2 backdrop-blur-xl max-[959px]:top-[calc(var(--nav-h)+var(--pad-y))] lg:px-4">
+    <div className="sticky top-[var(--nav-h)] z-40 flex justify-between gap-2 border-b bg-background px-3 py-2 max-[959px]:top-[calc(var(--nav-h)+var(--pad-y))] lg:px-4">
       <Button type="button" size="icon" variant="ghost" onClick={() => router.back()}><ArrowLeft className="size-5" /></Button>
       <TooltipProvider>
-        <div className="watch-btn-group ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2">
           {children}
           <Tooltip>
             <TooltipTrigger
@@ -54,7 +54,7 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
               </TooltipTrigger>
               <TooltipContent>{t("component.common.moreActions")}</TooltipContent>
             </Tooltip>
-            <PopoverContent align="end" sideOffset={8} className="z-[500] w-56 rounded-2xl border-white/10 bg-slate-950/96 p-2 shadow-2xl shadow-slate-950/60 backdrop-blur-xl">
+            <PopoverContent align="end" sideOffset={8} className="w-56">
               <VideoCardMenu video={video} close={() => setMenuOpen(false)} />
             </PopoverContent>
           </Popover>

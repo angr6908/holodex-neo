@@ -165,7 +165,7 @@ export function GenericListLoader({
       <div id={`tjump${randomId}`} />
       {children({ data, isLoading })}
       {infiniteLoad ? (
-        <div ref={sentinel} key={identifier} className="flex justify-center py-4" style={{ minHeight: 100 }}>
+        <div ref={sentinel} key={identifier} className="flex min-h-[100px] justify-center py-4">
           {status === STATUSES.LOADING ? <Spinner className="mt-8" /> : null}
           {status === STATUSES.ERROR ? (
             <Alert variant="destructive" className="mt-4 max-w-md">
@@ -175,7 +175,7 @@ export function GenericListLoader({
         </div>
       ) : null}
       {paginate ? (
-        <div key={identifier} className="flex justify-center py-4" style={{ minHeight: 100 }}>
+        <div key={identifier} className="flex min-h-[100px] justify-center py-4">
           {!pageLessMode ? (
             <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
 	              <PaginationContent className="flex-wrap justify-center gap-2">

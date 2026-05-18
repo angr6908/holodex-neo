@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AtSign } from "@/lib/icons";
-import { Card, CardAction, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChannelChip } from "@/components/channel/ChannelChip";
@@ -75,13 +74,10 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Re
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          {/* Title */}
-          <CardTitle className="text-xl font-semibold leading-snug">{title}</CardTitle>
+      <section className="grid auto-rows-min items-start gap-1 px-4 py-4 max-[640px]:grid-cols-1 min-[641px]:grid-cols-[1fr_auto]">
+        <h1 className="text-xl font-semibold leading-snug text-foreground">{title}</h1>
 
-          {/* Channel + metadata */}
-          <CardDescription className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 text-muted-foreground">
             <div className="flex items-center gap-2 text-sm">
               <ChannelImg channel={ch} size={28} />
               <Link href={`/channel/${ch.id}`} className="font-semibold text-foreground no-underline hover:underline">
@@ -98,10 +94,10 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Re
               {subCountText ? <><span>·</span><span>{subCountText}</span></> : null}
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-              <span className={`text-${video.status}`} title={absoluteTimeString}>{formattedTime}</span>
+              <span title={absoluteTimeString}>{formattedTime}</span>
               {video.status !== "live" && video.duration ? <span>· {formatDuration(video.duration * 1000)}</span> : null}
               {video.status === "live" && liveViewers ? (
-                <span>· {t("component.videoCard.watching", { arg0: liveViewers })}{liveViewerChange ? <span className={liveViewerChange > 0 ? "text-emerald-400" : "text-rose-400"}> ({liveViewerChange > 0 ? "+" : ""}{liveViewerChange})</span> : null}</span>
+	                <span>· {t("component.videoCard.watching", { arg0: liveViewers })}{liveViewerChange ? <span className={liveViewerChange > 0 ? "text-primary" : "text-destructive"}> ({liveViewerChange > 0 ? "+" : ""}{liveViewerChange})</span> : null}</span>
               ) : null}
               {video.topic_id ? (
                 <Badge
@@ -113,24 +109,22 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false }: { video: Re
               ) : null}
               {video.type === "placeholder" && video.certainty !== "certain" ? <span className="basis-full">{t("component.videoCard.uncertainPlaceholder")}</span> : null}
             </div>
-          </CardDescription>
+          </div>
 
-          {/* Socials + mention chips */}
-          <CardAction className="max-w-[min(42vw,28rem)] overflow-visible max-[640px]:col-start-1 max-[640px]:row-span-1 max-[640px]:row-start-3 max-[640px]:mt-2 max-[640px]:w-full max-[640px]:max-w-full max-[640px]:justify-self-start">
+          <div className="col-start-2 row-span-2 row-start-1 max-w-[min(42vw,28rem)] justify-self-end overflow-visible max-[640px]:col-start-1 max-[640px]:row-span-1 max-[640px]:row-start-3 max-[640px]:mt-2 max-[640px]:w-full max-[640px]:max-w-full max-[640px]:justify-self-start">
             <div className="flex flex-wrap items-center justify-end gap-2 max-[640px]:justify-start">
               <ChannelSocials channel={ch} />
-              {channelChips.length > 0 ? <div className="inline-flex size-10 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground"><AtSign className="size-5" /></div> : null}
+              {channelChips.length > 0 ? <Badge variant="secondary"><AtSign className="size-4" /></Badge> : null}
               {channelChips.map((mention: any, i: number) => <ChannelChip key={`${mention.id ?? "m"}-${i}`} channel={mention} size={40} />)}
               {mentions.length > 3 ? (
-                <Button type="button" variant="ghost" size="sm" className="h-auto p-0 text-sm font-normal text-sky-400 hover:bg-transparent hover:text-sky-400" onClick={() => setShowAllMentions(v => !v)}>
+	                <Button type="button" variant="ghost" size="sm" className="h-auto p-0 text-sm font-normal" onClick={() => setShowAllMentions(v => !v)}>
                   [ {showAllMentions ? "-" : "+"}{mentions.length - 3} ]
                 </Button>
               ) : null}
             </div>
-          </CardAction>
-        </CardHeader>
-      </Card>
-      <div className="px-4 pb-4 pt-[var(--pad)] text-sm text-[color:var(--color-muted-foreground)]" onClick={handleClick}>
+          </div>
+      </section>
+      <div className="px-4 pb-4 pt-[var(--pad)] text-sm text-muted-foreground" onClick={handleClick}>
         <TruncatedText html={processedMessage} lines={4} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
       </div>
     </>

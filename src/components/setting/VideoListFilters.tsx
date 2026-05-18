@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Trash } from "@/lib/icons";
+import { Clock, Eye, Trash, type AnyIcon } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { readJSON, writeJSON } from "@/lib/browser";
 import { useAppState } from "@/lib/store";
@@ -24,9 +24,16 @@ type VideoListFiltersProps = {
   showDescriptions?: boolean;
   compact?: boolean;
   className?: string;
+  sortBy?: string;
+  onSortByChange?: (value: string) => void;
 };
 
-export function VideoListFilters({ topicFilter = true, liveFilter = true, upcomingFilter = true, collabFilter = true, placeholderFilter = true, missingFilter = true, showDescriptions = true, compact = false, className = "" }: VideoListFiltersProps) {
+const SORT_OPTIONS: { value: string; icon: AnyIcon; labelKey: string }[] = [
+  { value: "viewers", icon: Eye, labelKey: "views.home.controls.viewers" },
+  { value: "latest", icon: Clock, labelKey: "views.home.controls.latest" },
+];
+
+export function VideoListFilters({ topicFilter = true, liveFilter = true, upcomingFilter = true, collabFilter = true, placeholderFilter = true, missingFilter = true, showDescriptions = true, compact = false, className = "", sortBy, onSortByChange }: VideoListFiltersProps) {
   const app = useAppState();
   const t = useTranslations();
   const [topics, setTopics] = useState<TopicOption[]>([]);
@@ -61,7 +68,31 @@ export function VideoListFilters({ topicFilter = true, liveFilter = true, upcomi
     </Toggle>;
   }
 
+  const showSort = sortBy !== undefined && onSortByChange !== undefined;
+
   return <div className={cn("flex flex-col gap-3", compact ? "" : "max-h-[60vh] overflow-y-auto pr-1", className)}>
+    {showSort ? <div className="flex flex-col gap-[0.45rem]">
+      <span className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">{t("views.home.controls.sortBy")}</span>
+      <div className="grid grid-cols-2 gap-2">
+        {SORT_OPTIONS.map((option) => {
+          const Icon = option.icon;
+          const label = t(option.labelKey as any);
+          return (
+            <Toggle
+              key={option.value}
+              pressed={sortBy === option.value}
+              variant="outline"
+              className="w-full justify-start"
+              aria-label={label}
+              onPressedChange={() => onSortByChange!(option.value)}
+            >
+              <Icon className="size-4" />
+              <span className="truncate">{label}</span>
+            </Toggle>
+          );
+        })}
+      </div>
+    </div> : null}
 	    {topicFilter ? <div className="flex flex-col gap-[0.45rem]">
 	      <div className="space-y-1">
 	        <div className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">{t("views.settings.filters.blockedTopics")}</div>

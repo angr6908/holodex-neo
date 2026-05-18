@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoCard } from "@/components/video/VideoCard";
 import { cn } from "@/lib/utils";
+
 export function VirtualVideoCardList({
   playlist,
   includeChannel,
@@ -15,7 +16,6 @@ export function VirtualVideoCardList({
   disableDefaultClick,
   activePlaylistItem,
   activeIndex = -1,
-  height = "500px",
   pageMode,
   ...rest
 }: {
@@ -31,7 +31,6 @@ export function VirtualVideoCardList({
   disableDefaultClick?: boolean;
   activePlaylistItem?: boolean;
   activeIndex?: number;
-  height?: string;
   [key: string]: any;
 }) {
   const itemRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -44,14 +43,17 @@ export function VirtualVideoCardList({
 
   return (
     <ScrollArea
-      className="[&>[data-slot=scroll-area-viewport]]:overscroll-contain"
-      style={{ height: pageMode ? undefined : height }}
+      className={cn(
+        "[&>[data-slot=scroll-area-viewport]]:overscroll-contain",
+        !pageMode && "max-h-[min(70dvh,36rem)] [&>[data-slot=scroll-area-viewport]]:max-h-[inherit]",
+      )}
     >
       {videos.map((video: any, index: number) => (
         <div
           key={`${video.id || "video"}-${index}`}
           ref={(el) => { itemRefs.current[index] = el; }}
-          className={cn("relative px-1 py-1.5", index === activeIndex && "before:pointer-events-none before:absolute before:-inset-px before:rounded before:bg-primary/15 before:content-['']")}
+          className="relative px-1 py-1.5"
+          aria-current={index === activeIndex ? "true" : undefined}
         >
           <VideoCard
             video={video}

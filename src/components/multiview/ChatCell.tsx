@@ -48,27 +48,27 @@ export function ChatCell({ item, cellWidth = 0, tl = false, onDelete }: { item: 
 
   return (
     <div className="flex h-full max-h-full min-h-0 w-full grow basis-full shrink flex-col overflow-hidden">
-      <div className="flex items-center gap-1 border-b border-white/10 px-1 py-0.5">
-        <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg" disabled={currentTab <= 0} onClick={() => setCurrentTab(currentTab - 1)}><icons.ChevronLeft className="size-4" /></Button>
+      <div className="flex items-center gap-1 border-b px-1 py-0.5">
+        <Button type="button" size="icon-sm" variant="ghost" disabled={currentTab <= 0} onClick={() => setCurrentTab(currentTab - 1)}><icons.ChevronLeft className="size-4" /></Button>
         <Select value={String(currentTab)} onValueChange={(value) => selectChannel(Number(value))}>
-          <SelectTrigger size="sm" className="h-8 min-w-0 flex-1 rounded-xl border-white/10 bg-slate-950 px-3 text-sm text-white">
+          <SelectTrigger size="sm" className="min-w-0 flex-1">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="z-20 border-white/10 bg-slate-950 text-slate-100 shadow-2xl shadow-slate-950/85">
+          <SelectContent>
             {channels.map((channel) => <SelectItem key={channel.value} value={String(channel.value)}>{channel.text}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button type="button" size="icon" variant="ghost" className="h-7 w-7 rounded-lg" disabled={currentTab >= activeVideos.length - 1} onClick={() => setCurrentTab(currentTab + 1)}><icons.ChevronRight className="size-4" /></Button>
+        <Button type="button" size="icon-sm" variant="ghost" disabled={currentTab >= activeVideos.length - 1} onClick={() => setCurrentTab(currentTab + 1)}><icons.ChevronRight className="size-4" /></Button>
       </div>
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {currentVideo && currentTab >= 0 ? currentVideo.type === "twitch" ? <iframe src={twitchChatLink} className="h-full w-full" frameBorder={0} /> : <WatchLiveChat key={`wlc${currentVideo.id}`} modelValue={{ showTlChat, showYtChat }} video={currentVideo} fluid scale={1} currentTime={currentTime} useLocalSubtitleToggle onVideoUpdate={handleVideoUpdate} /> : <div className="h-full" />}
       </div>
       {!editMode ? (
         <div className="flex min-h-[26px] w-full shrink-0">
-          <Button type="button" size="sm" variant="secondary" className="h-7 min-w-0 flex-1 px-2 text-xs" onClick={() => store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true })}><icons.Pencil className="size-4 mr-1" />{cellWidth > 200 ? t("component.videoCard.edit") : null}</Button>
-          <ToggleGroup multiple value={chatModes} onValueChange={setChatModes} className="w-1/2 gap-0 rounded-none">
-            <ToggleGroupItem value="yt" size="sm" className="h-7 min-w-0 flex-1 rounded-none px-2 text-xs"><icons.YtChatIcon className="size-4 mr-1" />{cellWidth > 200 ? t("component.common.chat") : null}</ToggleGroupItem>
-            <ToggleGroupItem value="tl" size="sm" className="h-7 min-w-0 flex-1 rounded-none px-2 text-xs"><icons.TlChatIcon className="size-4 mr-1" />{cellWidth > 200 ? "TL" : null}</ToggleGroupItem>
+          <Button type="button" size="sm" variant="secondary" className="min-w-0 flex-1 px-2 text-xs" onClick={() => store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true })}><icons.Pencil className="size-4 mr-1" />{cellWidth > 200 ? t("component.videoCard.edit") : null}</Button>
+          <ToggleGroup multiple variant="outline" size="sm" value={chatModes} onValueChange={setChatModes} className="w-1/2">
+            <ToggleGroupItem value="yt" className="min-w-0 flex-1 px-2 text-xs"><icons.YtChatIcon className="size-4 mr-1" />{cellWidth > 200 ? t("component.common.chat") : null}</ToggleGroupItem>
+            <ToggleGroupItem value="tl" className="min-w-0 flex-1 px-2 text-xs"><icons.TlChatIcon className="size-4 mr-1" />{cellWidth > 200 ? "TL" : null}</ToggleGroupItem>
           </ToggleGroup>
         </div>
       ) : <CellControl playIcon={icons.Check} onPlaypause={() => store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: false })} onBack={() => store.deleteLayoutContent(item.i)} onDelete={() => onDelete?.(item.i)} />}

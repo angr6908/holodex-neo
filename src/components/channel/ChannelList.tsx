@@ -14,271 +14,162 @@ import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
 import { cn, getBreakpoint } from "@/lib/utils";
+
+const COL_CLASSES: Record<number, string> = {
+  1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5",
+};
+
 export function ChannelList({
-  channels,
-  cardView = false,
-  includeVideoCount = false,
-  grouped = false,
-  groupKey = "group",
-  loading = false,
+  channels, cardView = false, includeVideoCount = false,
+  grouped = false, groupKey = "group", loading = false,
 }: {
-  channels: any[];
-  cardView?: boolean;
-  includeVideoCount?: boolean;
-  grouped?: boolean;
-  groupKey?: string;
-  loading?: boolean;
+  channels: any[]; cardView?: boolean; includeVideoCount?: boolean;
+  grouped?: boolean; groupKey?: string; loading?: boolean;
 }) {
   const t = useTranslations();
   const app = useAppState();
   const isXs = app.windowWidth <= 420;
-  const bpCols = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 };
-  const colSize = bpCols[getBreakpoint(app.windowWidth)];
-  const gridStyle = {
-    "--channel-grid-columns": colSize,
-  } as React.CSSProperties;
-  function isHidden(groupName: string) {
-    const org = app.currentOrg.name;
-    const hiding = app.settings.hiddenGroups;
-    if (!hiding) return false;
-    if (!Object.keys(hiding).includes(org)) return false;
-    return app.settings.hiddenGroups[org].includes(groupName.toLowerCase());
-  }
+  const cols = ({ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 } as const)[getBreakpoint(app.windowWidth)];
+  const gridClass = cn("grid gap-x-1 gap-y-[0.35rem]", COL_CLASSES[cols] || "grid-cols-1");
+
+  const isHidden = (g: string) => app.settings.hiddenGroups?.[app.currentOrg.name]?.includes(g.toLowerCase()) ?? false;
 
   const channelsByGroup = (() => {
-    const groupedChannels: any[] = [];
-    let lastGroup = "";
+    const groups: any[] = [];
+    let last = "";
     (channels || []).forEach((c) => {
-      const group = c?.[groupKey] || "Other";
-      if (group !== lastGroup) {
-        groupedChannels.push({
-          title: group,
-          items: [],
-          allFavorited: true,
-          hide: isHidden(group),
-          org: app.currentOrg.name,
-        });
-        lastGroup = group;
+      const g = c?.[groupKey] || "Other";
+      if (g !== last) {
+        groups.push({ title: g, items: [], allFavorited: true, hide: isHidden(g), org: app.currentOrg.name });
+        last = g;
       }
-      groupedChannels[groupedChannels.length - 1].items.push(c);
-      if (!app.isFavorited(c.id))
-        groupedChannels[groupedChannels.length - 1].allFavorited = false;
+      const cur = groups[groups.length - 1];
+      cur.items.push(c);
+      if (!app.isFavorited(c.id)) cur.allFavorited = false;
     });
-    return groupedChannels;
+    return groups;
   })();
 
-  function toggleFavoriteAll(index: number) {
+  function toggleFavAll(i: number) {
     if (!app.isLoggedIn) return;
-    const allFav = channelsByGroup[index].allFavorited;
-    channelsByGroup[index].items.forEach((c: any) => {
-      if ((!app.isFavorited(c.id) && !allFav) || (app.isFavorited(c.id) && allFav))
-        app.toggleFavorite(c.id);
+    const allFav = channelsByGroup[i].allFavorited;
+    channelsByGroup[i].items.forEach((c: any) => {
+      if ((!app.isFavorited(c.id) && !allFav) || (app.isFavorited(c.id) && allFav)) app.toggleFavorite(c.id);
     });
   }
 
-  function toggleGroupDisplay(group: any) {
-    const groupName = `${group.title}`.toLowerCase();
-    const orgName = `${group.org}`;
-    const hiddenGroups = { ...(app.settings.hiddenGroups || {}) };
-    hiddenGroups[orgName] = [...(hiddenGroups[orgName] || [])];
-    const index = hiddenGroups[orgName].findIndex(
-      (x: string) => x.toLowerCase() === groupName,
-    );
-    if (index >= 0) hiddenGroups[orgName].splice(index, 1);
-    else hiddenGroups[orgName].push(groupName);
-    app.patchSettings({ hiddenGroups });
+  function toggleGroup(g: any) {
+    const name = `${g.title}`.toLowerCase();
+    const hg = { ...(app.settings.hiddenGroups || {}) };
+    hg[g.org] = [...(hg[g.org] || [])];
+    const i = hg[g.org].findIndex((x: string) => x.toLowerCase() === name);
+    if (i >= 0) hg[g.org].splice(i, 1);
+    else hg[g.org].push(name);
+    app.patchSettings({ hiddenGroups: hg });
   }
+
+  const renderChannelItem = (channel: any) =>
+    !channel ? null : (
+      <Item className="flex items-start gap-3 rounded-none px-4 py-3">
+        <div className="shrink-0"><ChannelImg channel={channel} size={55} /></div>
+        <ChannelInfo channel={channel} includeVideoCount={includeVideoCount}>
+          {isXs ? <ChannelSocials channel={channel} className="justify-start p-0" showDelete /> : null}
+        </ChannelInfo>
+        {!isXs ? <ChannelSocials channel={channel} showDelete /> : null}
+      </Item>
+    );
 
   if (cardView) {
-    if (grouped) {
-      return (
-        <div className="space-y-4">
-          {channelsByGroup.map((group, index) => (
-            <div key={`card-group-${index}`}>
-              <div className="px-2 py-3 text-xl font-medium tracking-tight text-[color:var(--color-foreground)]">
-                {group.title}
-              </div>
-              <div className="grid grid-cols-[repeat(var(--channel-grid-columns,1),minmax(140px,1fr))] gap-x-1 gap-y-[0.35rem]" style={gridStyle}>
-                {group.items.map((channel: any, itemIndex: number) => (
-                  <div
-                    key={`${channel.id || "channel"}-${index}-${itemIndex}`}
-                    style={{ opacity: channel.inactive ? 0.5 : 1 }}
-                  >
-                    <ChannelCard channel={channel} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return (
-      <div className="grid grid-cols-[repeat(var(--channel-grid-columns,1),minmax(140px,1fr))] gap-x-1 gap-y-[0.35rem]" style={gridStyle}>
-        {(channels || []).map((channel, index) => (
-          <div
-            key={`${channel.id || "channel"}-${index}`}
-            style={{ opacity: channel.inactive ? 0.5 : 1 }}
-          >
-            <ChannelCard channel={channel} />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (grouped) {
-    return (
-      <div className="space-y-3">
-        {channelsByGroup.map((group, index) => (
-          <Collapsible
-            key={`list-group-${index}`}
-            defaultOpen
-            className="overflow-hidden rounded-xl border border-border"
-          >
-            <div className="flex justify-between gap-3 px-4 py-3">
-              <CollapsibleTrigger
-                render={
-                  <Button type="button" variant="ghost" className="h-auto flex-1 justify-start p-0 text-left text-lg font-medium tracking-tight hover:bg-transparent" />
-                }
-              >
-                {group.title}
-              </CollapsibleTrigger>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  title={
-                    group.hide
-                      ? t("component.channelList.enableGroupDisplay")
-                      : t("component.channelList.disableGroupDisplay")
-                  }
-                  onClick={(event: React.MouseEvent) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleGroupDisplay(group);
-                  }}
-                >
-                  {group.hide ? <EyeOff className={cn("size-4", group.hide ? "text-rose-400" : "text-slate-400")} /> : <Eye className={cn("size-4", group.hide ? "text-rose-400" : "text-slate-400")} />}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  title={
-                    !app.isLoggedIn
-                      ? t("component.channelList.signInToFavorite")
-                      : group.allFavorited
-                        ? t("component.channelList.unfavoriteAllInGroup")
-                        : t("component.channelList.favoriteAllInGroup")
-                  }
-                  onClick={(event: React.MouseEvent) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toggleFavoriteAll(index);
-                  }}
-                >
-                  <icons.Heart className={cn("size-4", group.allFavorited && app.isLoggedIn
-                        ? "text-rose-400"
-                        : "text-slate-400")} />
-                  {t("views.search.type.all")}
-                </Button>
-              </div>
-            </div>
-            <CollapsibleContent>
-              {group.items.map((channel: any, index2: number) => (
-                <div key={`${channel.id || "channel"}-${index}-${index2}`}>
-                  <Separator />
-                  <div
-                    style={{ opacity: channel.inactive ? 0.5 : 1 }}
-                  >
-                    {channel ? (
-                      <Item className="flex items-start gap-3 rounded-none px-4 py-3 hover:bg-white/5">
-                        <div className="shrink-0">
-                          <ChannelImg channel={channel} size={55} />
-                        </div>
-                        <ChannelInfo
-                          channel={channel}
-                          includeVideoCount={includeVideoCount}
-                          style={{ width: "80px" }}
-                        >
-                          {isXs ? (
-                            <ChannelSocials
-                              channel={channel}
-                              className="justify-start p-0"
-                              showDelete
-                            />
-                          ) : null}
-                        </ChannelInfo>
-                        {!isXs ? (
-                          <ChannelSocials channel={channel} showDelete />
-                        ) : null}
-                      </Item>
-                    ) : null}
-                  </div>
+    if (grouped) return (
+      <div className="space-y-4">
+        {channelsByGroup.map((g, i) => (
+          <div key={`card-group-${i}`}>
+            <div className="px-2 py-3 text-xl font-medium tracking-tight text-foreground">{g.title}</div>
+            <div className={gridClass}>
+              {g.items.map((c: any, j: number) => (
+                <div key={`${c.id || "channel"}-${i}-${j}`} className={c.inactive ? "opacity-50" : undefined}>
+                  <ChannelCard channel={c} />
                 </div>
               ))}
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </div>
         ))}
       </div>
     );
-  }
-
-  if ((channels || []).length > 0) {
     return (
-      <div className="overflow-hidden rounded-xl border border-border">
-        {(channels || []).map((channel, index) => (
-          <div key={`${channel.id || "channel"}-${index}`}>
-            {index > 0 ? <Separator /> : null}
-            <div style={{ opacity: channel.inactive ? 0.5 : 1 }}>
-              {channel ? (
-                <Item className="flex items-start gap-3 rounded-none px-4 py-3 hover:bg-white/5">
-                  <div className="shrink-0">
-                    <ChannelImg channel={channel} size={55} />
-                  </div>
-                  <ChannelInfo
-                    channel={channel}
-                    includeVideoCount={includeVideoCount}
-                  >
-                    {isXs ? (
-                      <ChannelSocials
-                        channel={channel}
-                        className="justify-start p-0"
-                        showDelete
-                      />
-                    ) : null}
-                  </ChannelInfo>
-                  {!isXs ? (
-                    <ChannelSocials channel={channel} showDelete />
-                  ) : null}
-                </Item>
-              ) : null}
-            </div>
+      <div className={gridClass}>
+        {(channels || []).map((c, i) => (
+          <div key={`${c.id || "channel"}-${i}`} className={c.inactive ? "opacity-50" : undefined}>
+            <ChannelCard channel={c} />
           </div>
         ))}
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-border">
-        {Array.from({ length: 12 }, (_, i) => i + 1).map((i) => (
-          <div key={i}>
-            {i > 1 ? <Separator /> : null}
-            <div className="flex items-start gap-3 px-4 py-3">
-              <Skeleton className="h-[55px] w-[55px] shrink-0 rounded-full" />
-              <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
-                <Skeleton className="h-4 w-3/5" />
-                <Skeleton className="h-3 w-2/5" />
-                <Skeleton className="h-3 w-1/3" />
+  if (grouped) return (
+    <div className="space-y-3">
+      {channelsByGroup.map((g, i) => (
+        <Collapsible key={`list-group-${i}`} defaultOpen className="overflow-hidden rounded-xl border border-border">
+          <div className="flex justify-between gap-3 px-4 py-3">
+            <CollapsibleTrigger render={<Button type="button" variant="ghost" className="h-auto flex-1 justify-start p-0 text-left text-lg font-medium tracking-tight hover:bg-transparent" />}>
+              {g.title}
+            </CollapsibleTrigger>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon"
+                title={g.hide ? t("component.channelList.enableGroupDisplay") : t("component.channelList.disableGroupDisplay")}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleGroup(g); }}>
+                {g.hide ? <EyeOff className="size-4 text-primary" /> : <Eye className="size-4" />}
+              </Button>
+              <Button variant="outline" size="sm"
+                title={!app.isLoggedIn ? t("component.channelList.signInToFavorite") : g.allFavorited ? t("component.channelList.unfavoriteAllInGroup") : t("component.channelList.favoriteAllInGroup")}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavAll(i); }}>
+                <icons.Heart className={cn("size-4", g.allFavorited && app.isLoggedIn && "text-primary")} />
+                {t("views.search.type.all")}
+              </Button>
+            </div>
+          </div>
+          <CollapsibleContent>
+            {g.items.map((c: any, j: number) => (
+              <div key={`${c.id || "channel"}-${i}-${j}`}>
+                <Separator />
+                <div className={c.inactive ? "opacity-50" : undefined}>{renderChannelItem(c)}</div>
               </div>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      ))}
+    </div>
+  );
+
+  if ((channels || []).length > 0) return (
+    <div className="overflow-hidden rounded-xl border border-border">
+      {(channels || []).map((c, i) => (
+        <div key={`${c.id || "channel"}-${i}`}>
+          {i > 0 ? <Separator /> : null}
+          <div className={c.inactive ? "opacity-50" : undefined}>{renderChannelItem(c)}</div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (loading) return (
+    <div className="overflow-hidden rounded-xl border border-border">
+      {Array.from({ length: 12 }, (_, i) => i + 1).map((i) => (
+        <div key={i}>
+          {i > 1 ? <Separator /> : null}
+          <div className="flex items-start gap-3 px-4 py-3">
+            <Skeleton className="h-[55px] w-[55px] shrink-0 rounded-full" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
+              <Skeleton className="h-4 w-3/5" />
+              <Skeleton className="h-3 w-2/5" />
+              <Skeleton className="h-3 w-1/3" />
             </div>
           </div>
-        ))}
-      </div>
-    );
-  }
+        </div>
+      ))}
+    </div>
+  );
 
   return null;
 }

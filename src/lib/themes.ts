@@ -1,6 +1,9 @@
 import { readJSON } from "@/lib/browser";
-function createTheme({ name, id, color, lightBackground = "#f2f2f2", darkBackground = "#121212" }: { name: string; id: number; color: string; lightBackground?: string; darkBackground?: string }) {
-  return { name, id, themes: { dark: { background: darkBackground, accent: color }, light: { background: lightBackground, accent: color } } };
+
+export const LEGACY_THEME_COLOR = "#42a5f5";
+
+function createTheme({ name, id, color }: { name: string; id: number; color: string }) {
+  return { name, id, computedColor: color };
 }
 
 // Source:
@@ -41,7 +44,7 @@ const MEMBERS = [
 ] as const;
 
 const DEFAULT_THEME_ID = MEMBERS.length;
-const defaultTheme = createTheme({ name: "Default", id: DEFAULT_THEME_ID, color: "#38bdf8", lightBackground: "#f5f7fb", darkBackground: "#121212" });
+const defaultTheme = createTheme({ name: "Default", id: DEFAULT_THEME_ID, color: "#38bdf8" });
 
 const themeSet = [
   ...MEMBERS.map(([, name, color], id) => createTheme({ name, id, color })),
@@ -55,6 +58,10 @@ export function resolveThemeById(themeId: number | string) {
 export function readStoredThemeId() {
   const parsed = Number(readJSON("theme", DEFAULT_THEME_ID));
   return Number.isFinite(parsed) ? parsed : DEFAULT_THEME_ID;
+}
+
+export function getComputedThemeColor(themeId: number | string = readStoredThemeId()) {
+  return resolveThemeById(themeId).computedColor || LEGACY_THEME_COLOR;
 }
 
 export default themeSet;

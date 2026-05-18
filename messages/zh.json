@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "灰常拍謝！",
+      "title": "無法載入內容",
       "textBeforeTwitter": "取得內容時發生錯誤，請於推特確認目前狀況",
       "textAfterTwitter": "，或是從",
       "aboutPage": "關於本站",
@@ -96,22 +96,22 @@
         "channel": "頻道",
         "topic": "主題",
         "org": "組織",
-        "titledesc": "標題/說明",
+        "titledesc": "標題或說明",
         "title": "標題",
         "description": "說明",
         "comments": "留言",
         "videourl": "影片 URL"
       },
-      "placeholder": "搜尋實況、剪輯、頻道",
+      "placeholder": "搜尋實況、剪輯或頻道",
       "clear": "清除",
       "loading": "載入中...",
-      "typeTwoCharacters": "請輸入 2 個字元",
+      "typeTwoCharacters": "請輸入至少 2 個字元",
       "noChannelsFound": "找不到頻道",
       "noTopicsFound": "找不到主題",
       "noOrganizationsFound": "找不到組織",
       "noResultsFound": "找不到結果",
       "searchChannels": "搜尋頻道",
-      "filterByTopicOrgChannel": "依主題、組織、頻道篩選 ...",
+      "filterByTopicOrgChannel": "依主題、組織或頻道篩選",
       "topicOrgChannelPlaceholder": "主題、組織或頻道",
       "toggleSearch": "切換搜尋",
       "organizations": "組織",
@@ -121,6 +121,13 @@
       "selectedOrgCount": "{count} 個組織",
       "additionalOrgCount": "另有 {count} 個",
       "unset": "未設定"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "管理員",
+      "openYouTube": "YouTube",
+      "blockChannel": "封鎖頻道",
+      "unblock": "解除封鎖"
     },
     "relatedVideo": {
       "clipsLabel": "翻譯剪輯",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "移除"
+      "remove": "移除",
+      "automatedSongHelper": "留言歌曲自動助手",
+      "clickSearchableTimestamp": "選擇時間戳或搜尋詞"
     },
     "comment": {
       "close": "關閉",
@@ -364,12 +373,15 @@
       "liveLabel": "實況中",
       "upcomingLabel": "即將開始",
       "controls": {
-        "sortBy": "排序依據",
+        "sortBy": "排序方式",
         "viewers": "觀看人數",
         "latest": "最新",
-        "uploadedBefore": "上傳日期早於",
+        "uploadedBefore": "上傳早於",
         "pickDate": "選擇日期",
-        "clipLanguages": "剪輯語言"
+        "clipLanguages": "剪輯語言",
+        "displayMode": "顯示模式",
+        "list": "列表",
+        "denseList": "緊湊列表"
       },
       "apiError": "無法載入影片。"
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "全部",
-        "official": "官方",
+        "official": "實況",
         "clip": "剪輯"
       },
       "unsupportedQuery": "目前無法透過 <kbd>影片內容</kbd> 與 <kbd>所屬團體</kbd> 搜尋剪輯影片。",
       "sortByLabel": "排序方式",
-      "typeDropdownLabel": "影片類型",
+      "typeDropdownLabel": "內容類型",
       "searching": "正在搜尋...",
-      "useSearchBar": "使用搜尋列尋找實況、剪輯或頻道。"
+      "useSearchBar": "使用搜尋列尋找實況、剪輯或頻道。",
+      "sortBy": "排序方式"
     },
     "settings": {
       "title": "網站設定",
@@ -499,9 +512,9 @@
         "tlStart": "訊息起始處",
         "StickBottomSettingLabel": "翻譯留言置底",
         "StickBottomSettingsDesc": "將社群翻譯放置於預設聊天室下方",
-        "showVerifiedMessages": "顯示已認證的使用者訊息",
+        "showVerifiedMessages": "顯示已驗證訊息",
         "showModeratorMessages": "顯示管理員訊息",
-        "showVtuberMessages": "顯示Vtuber的留言",
+        "showVtuberMessages": "顯示 VTuber 訊息",
         "showLocalTime": "顯示本地時間",
         "tlFontSize": "字型大小",
         "tlWindowSize": "翻譯聊天室大小(%) ，設置0%時會自動調整尺寸",
@@ -558,7 +571,8 @@
         "button": "儲存（可能需要５分鐘才會顯示更新後內容）",
         "unset": "未設定",
         "inputPlaceholder": "主題（留空以取消設定）",
-        "saveTopic": "儲存主題"
+        "saveTopic": "儲存主題",
+        "updateSuccess": "主題已更新：{topic}"
       },
       "channelMentions": {
         "title": "提及頻道",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "在 Apple Music 上聆聽",
       "pickItunesResult": "選擇一個 iTunes 結果",
       "playFromHere": "從這裡播放",
-      "timestampEditorHint": "使用相對時間戳讓音樂與影片對齊。"
+      "timestampEditorHint": "使用相對時間戳讓音樂與影片對齊。",
+      "exportSummary": "{entries} 筆項目，{profiles} 個設定檔"
     },
     "exitMode": "離開編輯模式",
     "enterMode": "編輯影片資料"

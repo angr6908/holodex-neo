@@ -92,7 +92,7 @@ export function SongItem({
 
   return (
     <Item
-      className="flex-nowrap items-start gap-3 rounded-xl px-3 py-2 hover:bg-white/5"
+      className="flex-nowrap items-start gap-3"
       role={onPlay ? "button" : undefined}
       tabIndex={onPlay ? 0 : undefined}
       onClick={playSong}
@@ -108,7 +108,7 @@ export function SongItem({
         {song.art ? (
           <img src={song.art} className="h-full w-full object-cover" alt="" />
         ) : (
-          <div className="flex h-full w-full bg-slate-700 p-1">
+          <div className="flex h-full w-full bg-muted p-1">
             <Button type="button" size="icon" variant="outline" className="m-auto h-8 w-8" disabled>
               <icons.Music className="size-4" />
             </Button>
@@ -120,7 +120,7 @@ export function SongItem({
             <Button
               type="button"
               size="icon"
-              className="m-auto h-8 w-8 rounded-full bg-sky-300 text-slate-950 shadow-md"
+              className="m-auto"
               tabIndex={-1}
               aria-hidden="true"
             >
@@ -134,7 +134,7 @@ export function SongItem({
             <Button
               type="button"
               size="icon"
-              className="m-auto h-8 w-8 rounded-full bg-sky-300 text-slate-950 shadow-md"
+              className="m-auto"
               onClick={handlePlayNow}
             >
               <ArtworkHoverIcon className="size-4" />
@@ -150,7 +150,7 @@ export function SongItem({
               type="button"
               variant="link"
               size="xs"
-              className="float-right ml-1 h-auto rounded-none px-0 py-0 font-normal text-destructive hover:bg-muted"
+              className="float-right ml-1 h-auto px-0 py-0 font-normal"
               onClick={handleRemove}
             >
               {t("component.media.remove")}
@@ -164,7 +164,7 @@ export function SongItem({
           ) : null}
 
           <span className="line-clamp-1 break-words text-left hyphens-auto">
-            {song.name} / <span className="text-[color:var(--color-primary)]">{song.original_artist}</span>
+            {song.name} / <span className="text-primary">{song.original_artist}</span>
           </span>
         </div>
 
@@ -179,7 +179,7 @@ export function SongItem({
               type="button"
               variant="link"
               size="xs"
-              className="h-auto rounded-none px-0 py-0 text-xs font-normal text-inherit underline-offset-4 hover:bg-muted hover:underline"
+              className="h-auto px-0 py-0 text-xs font-normal"
               onClick={handleChannel}
             >
               {channelName}

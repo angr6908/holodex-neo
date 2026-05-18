@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "灰常抱歉！",
+      "title": "无法加载内容",
       "textBeforeTwitter": "加载时出错，请通过Twitter获取最新情况",
       "textAfterTwitter": "或通过",
       "aboutPage": "关于我们",
@@ -96,22 +96,22 @@
         "channel": "频道",
         "topic": "主题",
         "org": "组织",
-        "titledesc": "标题/简介",
+        "titledesc": "标题或简介",
         "title": "标题",
         "description": "简介",
         "comments": "评论",
         "videourl": "视频 URL"
       },
-      "placeholder": "搜索直播、剪辑、频道",
+      "placeholder": "搜索直播、剪辑或频道",
       "clear": "清除",
       "loading": "加载中...",
-      "typeTwoCharacters": "请输入 2 个字符",
+      "typeTwoCharacters": "请输入至少 2 个字符",
       "noChannelsFound": "未找到频道",
       "noTopicsFound": "未找到主题",
       "noOrganizationsFound": "未找到组织",
       "noResultsFound": "未找到结果",
       "searchChannels": "搜索频道",
-      "filterByTopicOrgChannel": "按主题、组织、频道筛选 ...",
+      "filterByTopicOrgChannel": "按主题、组织或频道筛选",
       "topicOrgChannelPlaceholder": "主题、组织或频道",
       "toggleSearch": "切换搜索",
       "organizations": "组织",
@@ -121,6 +121,13 @@
       "selectedOrgCount": "{count} 个组织",
       "additionalOrgCount": "另有 {count} 个",
       "unset": "未设置"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "管理员",
+      "openYouTube": "YouTube",
+      "blockChannel": "屏蔽频道",
+      "unblock": "取消屏蔽"
     },
     "relatedVideo": {
       "clipsLabel": "剪辑",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "移除"
+      "remove": "移除",
+      "automatedSongHelper": "评论歌曲自动助手",
+      "clickSearchableTimestamp": "选择时间戳或搜索词"
     },
     "comment": {
       "close": "关闭",
@@ -364,12 +373,15 @@
       "liveLabel": "直播中",
       "upcomingLabel": "即将开始",
       "controls": {
-        "sortBy": "排序依据",
+        "sortBy": "排序方式",
         "viewers": "观看人数",
         "latest": "最新",
-        "uploadedBefore": "上传日期早于",
+        "uploadedBefore": "上传早于",
         "pickDate": "选择日期",
-        "clipLanguages": "剪辑语言"
+        "clipLanguages": "剪辑语言",
+        "displayMode": "显示模式",
+        "list": "列表",
+        "denseList": "紧凑列表"
       },
       "apiError": "无法加载视频。"
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "全部",
-        "official": "官方",
+        "official": "直播",
         "clip": "剪辑"
       },
       "unsupportedQuery": "目前无法通过 <kbd>视频内容</kbd> 与 <kbd>所属团体</kbd> 搜索<b>剪辑</b>视频。",
       "sortByLabel": "排序方式",
-      "typeDropdownLabel": "类型",
+      "typeDropdownLabel": "内容类型",
       "searching": "正在搜索...",
-      "useSearchBar": "使用搜索栏查找直播、剪辑或频道。"
+      "useSearchBar": "使用搜索栏查找直播、剪辑或频道。",
+      "sortBy": "排序方式"
     },
     "settings": {
       "title": "设置",
@@ -499,9 +512,9 @@
         "tlStart": "消息起始处",
         "StickBottomSettingLabel": "翻译留言置底",
         "StickBottomSettingsDesc": "将翻译窗口置于YouTube聊天栏下方",
-        "showVerifiedMessages": "显示已认证用户的信息",
-        "showModeratorMessages": "显示管理员的信息",
-        "showVtuberMessages": "显示Vtuber的留言",
+        "showVerifiedMessages": "显示已验证消息",
+        "showModeratorMessages": "显示管理员消息",
+        "showVtuberMessages": "显示 VTuber 消息",
         "showLocalTime": "显示本地时间",
         "tlFontSize": "字体大小",
         "tlWindowSize": "翻译窗口大小(%)，设置为0%时为自动",
@@ -558,7 +571,8 @@
         "button": "保存（可能需要5分钟才会生效）",
         "unset": "未设置",
         "inputPlaceholder": "主题（留空以取消设置）",
-        "saveTopic": "保存主题"
+        "saveTopic": "保存主题",
+        "updateSuccess": "主题已更新：{topic}"
       },
       "channelMentions": {
         "title": "提及的频道",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "在 Apple Music 上收听",
       "pickItunesResult": "选择一个 iTunes 结果",
       "playFromHere": "从这里播放",
-      "timestampEditorHint": "使用相对时间戳让音乐与视频对齐。"
+      "timestampEditorHint": "使用相对时间戳让音乐与视频对齐。",
+      "exportSummary": "{entries} 条记录，{profiles} 个配置"
     },
     "exitMode": "退出编辑模式",
     "enterMode": "编辑视频"

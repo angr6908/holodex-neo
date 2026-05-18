@@ -202,7 +202,7 @@ export function SearchDropdown() {
       <PopoverContent align="start" sideOffset={8} className="max-h-[calc(100vh-5rem)] w-[calc(100vw-1rem)] max-w-[48rem] overflow-y-auto sm:w-[min(92vw,48rem)]">
         <FieldGroup>
           <Field>
-            <FieldLabel>{t("component.search.searchLabel")}</FieldLabel>
+            <FieldLabel>{t("component.search.type.titledesc")}</FieldLabel>
             <FieldContent>
               <Input
                 autoFocus

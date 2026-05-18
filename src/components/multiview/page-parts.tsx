@@ -22,29 +22,39 @@ import { encodeLayout } from "@/lib/mv-utils";
 import { getVideoIDFromUrl } from "@/lib/functions";
 import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
 import { cn } from "@/lib/utils";
-// ---------- LayoutPreview ----------
+// Tailwind v4 scans source for arbitrary-value class strings; arrays must stay literal.
+const colStartClasses = ["", "col-start-[1]", "col-start-[2]", "col-start-[3]", "col-start-[4]", "col-start-[5]", "col-start-[6]", "col-start-[7]", "col-start-[8]", "col-start-[9]", "col-start-[10]", "col-start-[11]", "col-start-[12]", "col-start-[13]", "col-start-[14]", "col-start-[15]", "col-start-[16]", "col-start-[17]", "col-start-[18]", "col-start-[19]", "col-start-[20]", "col-start-[21]", "col-start-[22]", "col-start-[23]", "col-start-[24]"];
+const rowStartClasses = ["", "row-start-[1]", "row-start-[2]", "row-start-[3]", "row-start-[4]", "row-start-[5]", "row-start-[6]", "row-start-[7]", "row-start-[8]", "row-start-[9]", "row-start-[10]", "row-start-[11]", "row-start-[12]", "row-start-[13]", "row-start-[14]", "row-start-[15]", "row-start-[16]", "row-start-[17]", "row-start-[18]", "row-start-[19]", "row-start-[20]", "row-start-[21]", "row-start-[22]", "row-start-[23]", "row-start-[24]"];
+const colSpanClasses = ["", "col-span-[1]", "col-span-[2]", "col-span-[3]", "col-span-[4]", "col-span-[5]", "col-span-[6]", "col-span-[7]", "col-span-[8]", "col-span-[9]", "col-span-[10]", "col-span-[11]", "col-span-[12]", "col-span-[13]", "col-span-[14]", "col-span-[15]", "col-span-[16]", "col-span-[17]", "col-span-[18]", "col-span-[19]", "col-span-[20]", "col-span-[21]", "col-span-[22]", "col-span-[23]", "col-span-[24]"];
+const rowSpanClasses = ["", "row-span-[1]", "row-span-[2]", "row-span-[3]", "row-span-[4]", "row-span-[5]", "row-span-[6]", "row-span-[7]", "row-span-[8]", "row-span-[9]", "row-span-[10]", "row-span-[11]", "row-span-[12]", "row-span-[13]", "row-span-[14]", "row-span-[15]", "row-span-[16]", "row-span-[17]", "row-span-[18]", "row-span-[19]", "row-span-[20]", "row-span-[21]", "row-span-[22]", "row-span-[23]", "row-span-[24]"];
 
-const pctOf24 = (n: number) => `${n * (100 / 24)}%`;
+const clamp = (v: number) => Math.max(1, Math.min(24, v));
+export const gridAreaClass = (i: any) => cn(
+  colStartClasses[clamp(Number(i.x) + 1)],
+  rowStartClasses[clamp(Number(i.y) + 1)],
+  colSpanClasses[clamp(Number(i.w))],
+  rowSpanClasses[clamp(Number(i.h))],
+);
+
+function previewSizeClass(mobile: boolean, scale: number) {
+  if (scale < 1) return mobile ? "h-[105.6px] w-[59.4px]" : "h-[59.4px] w-[105.6px]";
+  return mobile ? "h-[192px] w-[108px]" : "h-[108px] w-[192px]";
+}
 
 export function LayoutPreview({ layout = [], content = {}, mobile = false, scale = 1 }: { layout?: any[]; content?: Record<string, any>; mobile?: boolean; scale?: number }) {
-  const app = useAppState();
-  const isLight = !app.settings.darkMode;
-  const width = scale * (mobile ? 108 : 192);
-  const height = scale * (mobile ? 192 : 108);
-  const palette = isLight
-    ? { info: "rgba(56, 189, 248, 0.28)", warning: "rgba(251, 191, 36, 0.3)" }
-    : { info: "rgba(56, 189, 248, 0.24)", warning: "rgba(251, 191, 36, 0.28)" };
   return (
-    <div style={{ width, height }}>
-      <AspectRatio ratio={mobile ? 9 / 16 : 16 / 9} className={`overflow-hidden rounded border-2 ${isLight ? "border-slate-300 bg-slate-100" : "border-slate-600 bg-slate-950/80"}`}>
-        {layout.map((item) => {
-          const isChat = content?.[item.i]?.type === "chat";
-          return (
-            <div key={item.i} className={`absolute flex items-center justify-center overflow-hidden rounded border text-[0.55rem] ${isLight ? "border-slate-300 text-slate-950" : "border-slate-950/60 text-white/90"}`} style={{ top: pctOf24(item.y), left: pctOf24(item.x), width: pctOf24(item.w), height: pctOf24(item.h), backgroundColor: isChat ? palette.warning : palette.info }}>
-              {isChat ? <span>💬</span> : null}
-            </div>
-          );
-        })}
+    <div className={previewSizeClass(mobile, scale)}>
+      <AspectRatio ratio={mobile ? 9 / 16 : 16 / 9} className="overflow-hidden rounded border bg-card">
+        <div className="absolute inset-0 grid grid-cols-[repeat(24,minmax(0,1fr))] grid-rows-[repeat(24,minmax(0,1fr))]">
+          {layout.map((item) => {
+            const isChat = content?.[item.i]?.type === "chat";
+            return (
+              <div key={item.i} className={cn("flex items-center justify-center overflow-hidden rounded border bg-muted text-[0.55rem]", isChat && "bg-secondary", gridAreaClass(item))}>
+                {isChat ? <icons.MessageSquare className="size-3" /> : null}
+              </div>
+            );
+          })}
+        </div>
       </AspectRatio>
     </div>
   );
@@ -52,11 +62,11 @@ export function LayoutPreview({ layout = [], content = {}, mobile = false, scale
 
 export function LayoutPreviewCard({ preset, custom = false, active = false, scale = 1, children, pre, post }: { preset: Record<string, any>; custom?: boolean; active?: boolean; scale?: number; children?: React.ReactNode; pre?: React.ReactNode; post?: React.ReactNode }) {
   return (
-    <Card className="block rounded-[calc(var(--radius)+4px)] border-0 bg-transparent p-2 text-inherit shadow-none">
+    <Card size="sm" className="block p-2">
       <LayoutPreview layout={preset.layout} content={preset.content} mobile={preset.portrait} scale={scale} />
       <div className="relative mt-2 flex items-center justify-center gap-2 text-center text-sm">
         {pre}
-        <span className={cn("min-w-0 truncate", custom && "flex-grow", active && "text-sky-300")}>{children || preset.name}</span>
+        <span className={cn("min-w-0 truncate", custom && "flex-grow", active && "text-primary")}>{children || preset.name}</span>
         {post}
       </div>
     </Card>
@@ -75,10 +85,10 @@ export function EmptyCell({ item, onDelete, onShowSelector, onSetChat }: { item:
   return (
     <div className="flex h-full max-h-full min-h-0 w-full grow basis-full shrink flex-col overflow-hidden pt-4">
       <Empty className="relative grow shrink basis-auto gap-0 overflow-hidden rounded-none p-0 md:p-0">
-        <Button type="button" className="w-[190px] bg-indigo-600 text-white hover:brightness-110" size="lg" onClick={() => onShowSelector?.(item.i)}><Video className="size-5" />{t("views.multiview.video.selectLive")}</Button>
+        <Button type="button" className="w-[190px]" size="lg" onClick={() => onShowSelector?.(item.i)}><Video className="size-5" />{t("views.multiview.video.selectLive")}</Button>
         <div className="mt-2 flex max-w-[190px] gap-2">
-          <Button type="button" size="lg" className="flex-1 bg-teal-600 text-white hover:brightness-110" onClick={() => setItemAsChat(false)}><icons.YtChatIcon className="size-5" />{t("component.common.chat")}</Button>
-          <Button type="button" size="lg" className="flex-1 bg-teal-600 text-white hover:brightness-110" onClick={() => setItemAsChat(true)}><icons.TlChatIcon className="size-5" />TL</Button>
+          <Button type="button" size="lg" variant="secondary" className="flex-1" onClick={() => setItemAsChat(false)}><icons.YtChatIcon className="size-5" />{t("component.common.chat")}</Button>
+          <Button type="button" size="lg" variant="secondary" className="flex-1" onClick={() => setItemAsChat(true)}><icons.TlChatIcon className="size-5" />TL</Button>
         </div>
       </Empty>
       <CellControl playIcon={icons.Play} className="mx-1 mb-2" onDelete={() => onDelete?.(item.i)} />
@@ -110,23 +120,22 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
     const json = ev.dataTransfer.getData("application/json");
     if (json) {
       const video = JSON.parse(json);
-      if (video.id?.length === 11 && video.channel?.name) {
-        let v = video;
-        if (video.type === "placeholder") {
-          const twitchChannel = video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
-          if (!twitchChannel) return;
-          v = { ...video, id: twitchChannel, type: "twitch" };
-        }
-        setContent({ type: "video", id: v.id, video: v });
+      if (!(video.id?.length === 11 && video.channel?.name)) return;
+      let v = video;
+      if (video.type === "placeholder") {
+        const tw = video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
+        if (!tw) return;
+        v = { ...video, id: tw, type: "twitch" };
       }
+      setContent({ type: "video", id: v.id, video: v });
       return;
     }
-    const video = getVideoIDFromUrl(ev.dataTransfer.getData("text")) as any;
-    if (video?.id) setContent({ id: video.id, type: "video", video });
+    const v = getVideoIDFromUrl(ev.dataTransfer.getData("text")) as any;
+    if (v?.id) setContent({ id: v.id, type: "video", video: v });
   }
   return (
-    <div className={`relative flex h-full flex-col content-stretch items-stretch justify-start border border-pink-400/10 bg-slate-950/55 bg-contain bg-center backdrop-blur-sm ${editMode ? "border-transparent shadow-[inset_0_0_0_2px_var(--color-secondary)]" : ""} ${disablePointerEvents ? "pointer-events-none" : ""}`} onDrop={drop} onDragOver={(ev) => ev.preventDefault()} onDragLeave={(ev) => { if (enterTarget === ev.target) setShowDropOverlay(false); }} onDragEnter={(ev) => { setEnterTarget(ev.target); setShowDropOverlay(true); }}>
-      {showDropOverlay ? <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/72 backdrop-blur-sm"><Crosshair className="size-7 text-sky-200" /></div> : null}
+    <div className={cn("relative flex h-full flex-col content-stretch items-stretch justify-start border bg-background bg-contain bg-center", editMode && "ring-2 ring-ring", disablePointerEvents && "pointer-events-none")} onDrop={drop} onDragOver={(ev) => ev.preventDefault()} onDragLeave={(ev) => { if (enterTarget === ev.target) setShowDropOverlay(false); }} onDragEnter={(ev) => { setEnterTarget(ev.target); setShowDropOverlay(true); }}>
+      {showDropOverlay ? <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted"><Crosshair className="size-7" /></div> : null}
       {children}
     </div>
   );
@@ -134,16 +143,16 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
 
 // ---------- MultiviewBackground ----------
 
-export function MultiviewBackground({ collapseToolbar = false, showTips = true, style }: { collapseToolbar?: boolean; showTips?: boolean; style?: React.CSSProperties }) {
+export function MultiviewBackground({ collapseToolbar = false, showTips = true }: { collapseToolbar?: boolean; showTips?: boolean }) {
   const t = useTranslations();
   return (
-    <div className="pointer-events-none absolute inset-0 h-full w-full bg-[linear-gradient(to_right,rgba(128,128,128,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.15)_1px,transparent_1px)] bg-repeat opacity-75" style={style}>
+    <div className="pointer-events-none absolute inset-0 h-full w-full">
       {showTips ? (
         <div className="flex justify-center px-4 pt-[clamp(1rem,4vh,2.5rem)]">
-          <Card className="block w-[min(100%,40rem)] rounded-2xl border-white/10 bg-slate-950/80 p-5 pb-4 text-slate-200 shadow-2xl backdrop-blur-sm max-[640px]:w-[min(100%,24rem)] max-[640px]:p-4">
+          <Card className="block w-[min(100%,40rem)] max-[640px]:w-[min(100%,24rem)]">
             <div className="text-base font-normal leading-snug max-[640px]:text-[0.95rem]">{collapseToolbar ? t("views.multiview.openToolbarTip") : t("views.multiview.autoLayoutTip")}</div>
-            {!collapseToolbar ? <div className="mt-2 leading-snug text-slate-300">{t("views.multiview.createLayoutTip")}</div> : null}
-            <Separator className="my-4 bg-white/10" />
+            {!collapseToolbar ? <div className="mt-2 leading-snug text-muted-foreground">{t("views.multiview.createLayoutTip")}</div> : null}
+            <Separator className="my-4" />
             <div className="space-y-2.5">
               <div className="font-normal">{t("views.multiview.hints")}</div>
               <div className="flex flex-wrap items-center gap-1 font-normal">1. <icons.Grid2x2 className="size-4" /> {t("views.multiview.presetsHint")}</div>
@@ -166,10 +175,9 @@ export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, co
   useEffect(() => { setOverwriteMerge(defaultOverwrite); }, [defaultOverwrite, open]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px] p-0">
-        <Card className="border-0 bg-transparent p-5 shadow-none">
-          <DialogTitle className="leading-7 text-white">{t("views.multiview.confirmOverwrite")}</DialogTitle>
-          <div className="mt-4 flex flex-col items-center justify-center gap-4 text-sm text-slate-200">
+      <DialogContent className="max-w-[400px]">
+          <DialogTitle>{t("views.multiview.confirmOverwrite")}</DialogTitle>
+          <div className="mt-4 flex flex-col items-center justify-center gap-4 text-sm">
             <LayoutPreview layout={layoutPreview.layout} content={layoutPreview.content} />
             <Label className="w-full">
               <Checkbox checked={overwriteMerge} onCheckedChange={(checked) => setOverwriteMerge(checked === true)} />
@@ -180,7 +188,6 @@ export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, co
             <Button type="button" variant="secondary" onClick={() => confirmFn(overwriteMerge)}>{t("views.multiview.confirmOverwriteYes")}</Button>
             <Button type="button" variant="ghost" onClick={() => cancelFn(overwriteMerge)}>{t("views.library.deleteConfirmationCancel")}</Button>
           </DialogFooter>
-        </Card>
       </DialogContent>
     </Dialog>
   );
@@ -203,9 +210,9 @@ export function PresetEditor({ layout, content, onClose }: { layout: any[]; cont
   }
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-white">{t("views.multiview.presetEditor.title")}<span className="text-xs font-normal text-slate-400">{t("component.channelInfo.videoCount", { arg0: videoCells })}</span></div>
+      <div className="flex items-center gap-2 text-sm font-semibold">{t("views.multiview.presetEditor.title")}<span className="text-xs font-normal text-muted-foreground">{t("component.channelInfo.videoCount", { arg0: videoCells })}</span></div>
       <div className="flex justify-center"><LayoutPreview layout={layout} content={content} /></div>
-      <div className="flex items-center gap-2"><Input value={name} className="flex-1" placeholder={t("views.multiview.presetEditor.name")} onChange={(event) => setName(event.target.value)} /><Button size="icon" className="rounded-xl" disabled={!canSave} title={t("views.multiview.presetEditor.title")} onClick={addPresetLayout}><Save className="size-4" /></Button></div>
+      <div className="flex items-center gap-2"><Input value={name} className="flex-1" placeholder={t("views.multiview.presetEditor.name")} onChange={(event) => setName(event.target.value)} /><Button size="icon" disabled={!canSave} title={t("views.multiview.presetEditor.title")} onClick={addPresetLayout}><Save className="size-4" /></Button></div>
       <Label>
         <Checkbox checked={autoLayout} onCheckedChange={(checked) => setAutoLayout(checked === true)} />
         <span>{t("views.multiview.presetEditor.autoLayout")}</span>
@@ -219,50 +226,42 @@ export function PresetEditor({ layout, content, onClose }: { layout: any[]; cont
 export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => void }) {
   const t = useTranslations();
   const store = useMultiviewStore();
-  const autoLayoutSet = new Set(store.autoLayout);
-  const presetInAuto = (p: any) => autoLayoutSet.has(p.id);
-  function removePreset(p: any) {
-    const idx = store.autoLayout.findIndex((l: any) => l === p.id);
-    if (idx >= 0) store.setAutoLayout({ index: idx, encodedLayout: null });
+  const autoSet = new Set(store.autoLayout);
+  const inAuto = (p: any) => autoSet.has(p.id);
+  const removePreset = (p: any) => {
+    const i = store.autoLayout.findIndex((l: any) => l === p.id);
+    if (i >= 0) store.setAutoLayout({ index: i, encodedLayout: null });
     store.removePresetLayout(p.name);
-  }
-  const presetTileClass = (active: boolean) =>
-    `h-auto w-full flex-col cursor-pointer rounded-lg border p-1 font-normal whitespace-normal text-inherit transition hover:text-inherit ${active ? "border-sky-400/40 bg-sky-500/10" : "border-white/8 bg-white/3 hover:border-white/14 hover:bg-white/7"}`;
-  const removeBtnClass = "absolute right-1 top-1 size-5 rounded-md bg-black/40 p-0 text-slate-400 transition hover:bg-red-500/30 hover:text-red-300";
+  };
+  const tileClass = (active: boolean) => cn("h-auto w-full flex-col cursor-pointer whitespace-normal", active && "font-medium");
+  const renderTile = (preset: any, showRemove: boolean) => (
+    <div key={preset.id || preset.name} className="relative">
+      <Button type="button" variant="ghost" className={tileClass(inAuto(preset))} onClick={() => onSelected?.(preset)}>
+        <LayoutPreviewCard preset={preset} active={inAuto(preset)} scale={0.55} />
+      </Button>
+      {showRemove ? <Button type="button" variant="ghost" size="icon-xs" className="absolute right-1 top-1" onClick={(e) => { e.stopPropagation(); removePreset(preset); }}><icons.Trash2 className="size-3.5" /></Button> : null}
+    </div>
+  );
   return (
     <ScrollArea className="max-h-[min(80vh,600px)] w-[min(36rem,calc(100vw-2rem))]">
       <div className="p-2">
-        {store.desktopGroups.length ? store.desktopGroups.map((group: any[], index: number) => group?.length ? (
-          <div key={`group-${index}`} className="mb-1">
-            <div className="px-2 pb-1.5 pt-2 text-[0.68rem] font-medium uppercase tracking-widest text-[color:var(--color-muted-foreground)]">{t("component.channelInfo.videoCount", { arg0: index })}</div>
+        {store.desktopGroups.map((g: any[], i: number) => g?.length ? (
+          <div key={`group-${i}`} className="mb-1">
+            <div className="px-2 pb-1.5 pt-2 text-[0.68rem] font-medium uppercase tracking-widest text-muted-foreground">{t("component.channelInfo.videoCount", { arg0: i })}</div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5 px-1">
-              {group.map((preset: any) => (
-                <div key={preset.id || preset.name} className="relative">
-                  <Button type="button" variant="ghost" className={presetTileClass(presetInAuto(preset))} onClick={() => onSelected?.(preset)}>
-                    <LayoutPreviewCard preset={preset} active={presetInAuto(preset)} scale={0.55} />
-                  </Button>
-                  {preset.custom ? <Button type="button" variant="ghost" size="icon-xs" className={removeBtnClass} onClick={(event) => { event.stopPropagation(); removePreset(preset); }}><icons.Trash2 className="size-3.5" /></Button> : null}
-                </div>
-              ))}
+              {g.map((p: any) => renderTile(p, !!p.custom))}
             </div>
           </div>
-        ) : null) : null}
+        ) : null)}
         {store.decodedCustomPresets.length ? (
           <div className="mb-1">
-            <div className="px-2 pb-1.5 pt-2 text-[0.68rem] font-medium uppercase tracking-widest text-[color:var(--color-muted-foreground)]">{t("views.multiview.preset.custom")}</div>
+            <div className="px-2 pb-1.5 pt-2 text-[0.68rem] font-medium uppercase tracking-widest text-muted-foreground">{t("views.multiview.preset.custom")}</div>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-1.5 px-1">
-              {store.decodedCustomPresets.map((preset: any) => (
-                <div key={preset.id || preset.name} className="relative">
-                  <Button type="button" variant="ghost" className={presetTileClass(presetInAuto(preset))} onClick={() => onSelected?.(preset)}>
-                    <LayoutPreviewCard preset={preset} active={presetInAuto(preset)} scale={0.55} />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon-xs" className={removeBtnClass} onClick={(event) => { event.stopPropagation(); removePreset(preset); }}><icons.Trash2 className="size-3.5" /></Button>
-                </div>
-              ))}
+              {store.decodedCustomPresets.map((p: any) => renderTile(p, true))}
             </div>
           </div>
         ) : null}
-        {!store.desktopGroups.length && !store.decodedCustomPresets.length ? <div className="px-3 py-4 text-center text-sm text-slate-400">{t("views.multiview.preset.noPresets")}</div> : null}
+        {!store.desktopGroups.length && !store.decodedCustomPresets.length ? <div className="px-3 py-4 text-center text-sm text-muted-foreground">{t("views.multiview.preset.noPresets")}</div> : null}
       </div>
     </ScrollArea>
   );
@@ -274,11 +273,9 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
   const t = useTranslations();
   const store = useMultiviewStore();
   const [draggingIdx, setDraggingIdx] = useState(-1);
-  const [dragPos, setDragPos] = useState<{ left: string | number; top: string | number }>({ left: 0, top: 0 });
   const container = useRef<HTMLDivElement | null>(null);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const size = { width: 2 * (isMobile ? 108 : 192), height: 2 * (isMobile ? 192 : 108) };
-  const touchContent = draggingIdx >= 0 ? store.layoutContent[store.layout[draggingIdx]?.i] : null;
   if (!isActive) return null;
   const relativePoint = (t: React.Touch) => {
     const br = container.current!.getBoundingClientRect();
@@ -286,8 +283,6 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
   };
   const onTouchMove = (e: React.TouchEvent) => {
     e.preventDefault();
-    const { x, y } = relativePoint(e.changedTouches[0]);
-    setDragPos({ left: `${x}px`, top: `${y}px` });
   };
   const onTouchEnd = (e: React.TouchEvent, startIdx: number) => {
     e.preventDefault();
@@ -297,27 +292,22 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
     if (dropIdx !== undefined) store.swapGridPosition({ id1: startIdx, id2: dropIdx });
     setDraggingIdx(-1);
   };
-  const styleOf = (item: any) => ({
-    top: pctOf24(item.y), left: pctOf24(item.x), width: pctOf24(item.w), height: pctOf24(item.h),
-    backgroundColor: store.layoutContent[item.i]?.type === "chat" ? "rgba(245, 158, 11, 0.27)" : "rgba(14, 165, 233, 0.27)",
-  });
   const contentIcon = (c: any) => !c ? null
     : c.type === "chat" ? <icons.YtChatIcon className="size-6" />
     : c.video?.type === "twitch" ? <TwitchIcon className="size-6" />
     : c.type === "video" ? <ChannelImg channel={c.video?.channel} noLink rounded /> : null;
   return (
     <div>
-      <div className="text-sm font-semibold text-white">{t("views.multiview.reorderLayout")}</div>
-      <div className="mt-2 text-xs text-slate-300">{t("views.multiview.reorderLayoutDetail")}</div>
-      <Card ref={container} className="relative m-auto mt-3 block gap-0 overflow-hidden rounded border-2 border-slate-600 bg-slate-950/80 p-0 text-popover-foreground shadow-none" style={{ width: size.width, height: size.height }}>
+      <div className="text-sm font-semibold">{t("views.multiview.reorderLayout")}</div>
+      <div className="mt-2 text-xs text-muted-foreground">{t("views.multiview.reorderLayoutDetail")}</div>
+      <Card ref={container} className="relative m-auto mt-3 grid h-[216px] w-[384px] grid-cols-[repeat(24,minmax(0,1fr))] grid-rows-[repeat(24,minmax(0,1fr))] gap-0 overflow-hidden p-0 max-[640px]:h-[384px] max-[640px]:w-[216px]">
         {store.layout.map((item: any, idx: number) => (
-          <div key={item.i} className="absolute flex items-center justify-center overflow-hidden rounded border border-slate-950/60 text-white/90" style={styleOf(item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const start = Number(e.dataTransfer.getData("index")); store.swapGridPosition({ id1: start, id2: idx }); setDraggingIdx(-1); }}>
+          <div key={item.i} className={cn("flex items-center justify-center overflow-hidden rounded border border-border bg-muted text-foreground", store.layoutContent[item.i]?.type === "chat" && "bg-secondary", gridAreaClass(item))} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const start = Number(e.dataTransfer.getData("index")); store.swapGridPosition({ id1: start, id2: idx }); setDraggingIdx(-1); }}>
             {store.layoutContent[item.i]
-              ? <div draggable className="cursor-move p-3 [&_*]:cursor-move" style={{ opacity: draggingIdx !== idx ? 1 : 0 }} onDragStart={(e) => { e.dataTransfer.setData("index", String(idx)); setDraggingIdx(idx); }} onDragEnd={() => setDraggingIdx(-1)} onTouchStart={(e) => { e.preventDefault(); setDraggingIdx(idx); onTouchMove(e); }} onTouchEnd={(e) => onTouchEnd(e, idx)} onTouchMove={onTouchMove} onTouchCancel={() => setDraggingIdx(-1)}>{contentIcon(store.layoutContent[item.i])}</div>
+              ? <div draggable className={cn("cursor-move p-3 [&_*]:cursor-move", draggingIdx === idx && "opacity-0")} onDragStart={(e) => { e.dataTransfer.setData("index", String(idx)); setDraggingIdx(idx); }} onDragEnd={() => setDraggingIdx(-1)} onTouchStart={(e) => { e.preventDefault(); setDraggingIdx(idx); onTouchMove(e); }} onTouchEnd={(e) => onTouchEnd(e, idx)} onTouchMove={onTouchMove} onTouchCancel={() => setDraggingIdx(-1)}>{contentIcon(store.layoutContent[item.i])}</div>
               : null}
           </div>
         ))}
-        {draggingIdx >= 0 && touchContent ? <div style={{ position: "absolute", touchAction: "none", ...dragPos }}>{contentIcon(touchContent)}</div> : null}
       </Card>
     </div>
   );

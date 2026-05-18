@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "¡Gomenasorry!",
+      "title": "No se pudo cargar el contenido",
       "textBeforeTwitter": "Ha ocurrido un error recuperando el contenido, por favor revisa Twitter ",
       "textAfterTwitter": " O reporta el error a través de la",
       "aboutPage": "Página de información",
@@ -96,31 +96,38 @@
         "channel": "canal",
         "topic": "tema",
         "org": "organización",
-        "titledesc": "título/descripción",
+        "titledesc": "Título o descripción",
         "title": "título",
         "description": "descripción",
         "comments": "comentarios",
         "videourl": "URL del vídeo"
       },
-      "placeholder": "Buscar directos, clips y canales",
+      "placeholder": "Buscar directos, clips o canales",
       "clear": "Borrar",
       "loading": "Cargando...",
-      "typeTwoCharacters": "Escribe 2 caracteres",
+      "typeTwoCharacters": "Escribe al menos 2 caracteres",
       "noChannelsFound": "No se encontraron canales",
       "noTopicsFound": "No se encontraron temas",
       "noOrganizationsFound": "No se encontraron organizaciones",
       "noResultsFound": "No se encontraron resultados",
       "searchChannels": "Buscar canales",
-      "filterByTopicOrgChannel": "Filtrar por tema, organización o canal ...",
+      "filterByTopicOrgChannel": "Filtrar por tema, organización o canal",
       "topicOrgChannelPlaceholder": "Tema, organización o canal",
       "toggleSearch": "Mostrar u ocultar búsqueda",
       "organizations": "Organizaciones",
       "searchOrganizations": "Buscar organizaciones",
       "quickSelect": "Selección rápida",
       "allVtubers": "Todos los VTubers",
-      "selectedOrgCount": "{count} orgs.",
+      "selectedOrgCount": "{count} organizaciones",
       "additionalOrgCount": "{count} más",
       "unset": "Sin definir"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Bloquear canal",
+      "unblock": "Desbloquear"
     },
     "relatedVideo": {
       "clipsLabel": "recortes",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Eliminar"
+      "remove": "Eliminar",
+      "automatedSongHelper": "Asistente automático de canciones en comentarios",
+      "clickSearchableTimestamp": "Selecciona una marca de tiempo o término de búsqueda"
     },
     "comment": {
       "close": "Cerrar",
@@ -367,9 +376,12 @@
         "sortBy": "Ordenar por",
         "viewers": "Espectadores",
         "latest": "Más recientes",
-        "uploadedBefore": "Subido antes de",
+        "uploadedBefore": "Subido antes",
         "pickDate": "Elige una fecha",
-        "clipLanguages": "Ver clips en estos idiomas:"
+        "clipLanguages": "Idiomas de los clips",
+        "displayMode": "Modo de visualización",
+        "list": "Lista",
+        "denseList": "Lista compacta"
       },
       "apiError": "No se pudieron cargar los vídeos."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Todo",
-        "official": "Oficial",
-        "clip": "Clip"
+        "official": "Directos",
+        "clip": "Clips"
       },
       "unsupportedQuery": "Por el momento la búsqueda de clips por <kbd>Tema</kbd> y <kbd>Organización</kbd> no está soportada. No se mostrará ningún <b>clip</b>.",
       "sortByLabel": "Ordenar por",
-      "typeDropdownLabel": "Tipo",
+      "typeDropdownLabel": "Tipo de contenido",
       "searching": "Buscando...",
-      "useSearchBar": "Usa la barra de búsqueda para encontrar directos, clips o canales."
+      "useSearchBar": "Usa la barra de búsqueda para encontrar directos, clips o canales.",
+      "sortBy": "Ordenar por"
     },
     "settings": {
       "title": "Ajustes",
@@ -499,9 +512,9 @@
         "tlStart": "Inicio de Mensajes",
         "StickBottomSettingLabel": "Mantenerse en el fondo",
         "StickBottomSettingsDesc": "TL box colocada debajo del chat de Youtube",
-        "showVerifiedMessages": "Mostar mensajes verificados",
-        "showModeratorMessages": "Mostar mensajes del moderador",
-        "showVtuberMessages": "Mostrar mensajes de Vtuber",
+        "showVerifiedMessages": "Mostrar mensajes verificados",
+        "showModeratorMessages": "Mostrar mensajes de moderador",
+        "showVtuberMessages": "Mostrar mensajes de VTuber",
         "showLocalTime": "Mostrar hora local",
         "tlFontSize": "Tamaño de la fuente",
         "tlWindowSize": "Tamaño del cuadro TL (%), déjalo en 0% para automático",
@@ -558,7 +571,8 @@
         "button": "Guardar (Puede tardar 5 minutos en que aparezca los cambios)",
         "unset": "Sin definir",
         "inputPlaceholder": "Tema (dejar vacío para quitarlo)",
-        "saveTopic": "Guardar tema"
+        "saveTopic": "Guardar tema",
+        "updateSuccess": "Tema actualizado: {topic}"
       },
       "channelMentions": {
         "title": "Menciones a canales",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Escuchar en Apple Music",
       "pickItunesResult": "Elige un resultado de iTunes",
       "playFromHere": "Reproducir desde aquí",
-      "timestampEditorHint": "Usa marcas de tiempo relativas para alinear la música con el vídeo."
+      "timestampEditorHint": "Usa marcas de tiempo relativas para alinear la música con el vídeo.",
+      "exportSummary": "{entries, plural, one {# entrada} other {# entradas}}, {profiles, plural, one {# perfil} other {# perfiles}}"
     },
     "exitMode": "Salir del modo edición",
     "enterMode": "Editar vídeo"

@@ -6,6 +6,22 @@ import { useState } from "react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const gridColumnClasses: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+  7: "grid-cols-7",
+  8: "grid-cols-8",
+  9: "grid-cols-9",
+  10: "grid-cols-10",
+  11: "grid-cols-11",
+  12: "grid-cols-12",
+};
+
 export function SkeletonCardList({
   count,
   expectedSize = 24,
@@ -32,21 +48,18 @@ export function SkeletonCardList({
     (typeof window !== "undefined" ? window.innerWidth : 1440);
   const isFlat = horizontal || denseList;
   const colSize = isFlat ? 1 : cols[getBreakpoint(width)];
-  const gridStyle = {
-    gridTemplateColumns: `repeat(${colSize}, minmax(0, 1fr))`,
-  } as React.CSSProperties;
 
   return (
     <div className="relative py-0">
       <div
         className={cn(
           "grid gap-x-1 gap-y-1.5",
-          isFlat && "overflow-hidden rounded-xl border border-border gap-y-0 empty:border-0",
+          gridColumnClasses[colSize] || "grid-cols-1",
+          isFlat && "overflow-hidden rounded-xl border gap-y-0 empty:border-0",
         )}
-        style={gridStyle}
       >
         {Array.from({ length: itemCount }).map((_, index) => (
-          <div key={`${index}-${keyBase + index}`} className={cn("min-w-0 overflow-visible bg-transparent shadow-none", isFlat && "border-border [&:not(:last-child)]:border-b")}>
+          <div key={`${index}-${keyBase + index}`} className={cn("min-w-0 overflow-visible", isFlat && "[&:not(:last-child)]:border-b")}>
             {denseList ? (
               <div className="flex h-12 items-center gap-2 px-2">
                 <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
@@ -57,7 +70,7 @@ export function SkeletonCardList({
                 <Skeleton className="h-3 w-12 shrink-0" />
               </div>
             ) : horizontal ? (
-              <div className="flex min-h-[84px] items-center">
+              <div className="flex items-center py-1.5">
                 <Skeleton className="m-1.5 h-[72px] w-[128px] shrink-0 rounded-lg" />
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-2">
                   <Skeleton className="h-3.5 w-4/5" />
@@ -65,14 +78,11 @@ export function SkeletonCardList({
                 </div>
               </div>
             ) : (
-              <Card className="gap-0 overflow-hidden rounded-2xl border-border p-0 shadow-none">
+              <Card className="gap-0 overflow-hidden p-0">
                 <AspectRatio ratio={16 / 9} className="w-full">
                   <Skeleton className="size-full rounded-t-[1rem] rounded-b-none" />
                 </AspectRatio>
-                <div
-                  className="flex min-h-[88px] items-start px-[0.625rem] py-2 gap-[0.625rem]"
-                  style={{ borderTop: "1px solid color-mix(in srgb, var(--color-border, rgba(255,255,255,0.07)) 72%, transparent 28%)" }}
-                >
+                <div className="flex items-start gap-[0.625rem] border-t px-[0.625rem] py-2">
                   {includeAvatar ? <Skeleton className="h-[48px] w-[48px] shrink-0 rounded-full" /> : null}
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5">
                     <Skeleton className="h-3.5 w-11/12" />

@@ -19,7 +19,7 @@ export default function ExtensionPage() {
   useEffect(() => { document.title = `${t("views.extension.title")} - Holodex`; }, [t]);
 
   return (
-    <div className="app-page flex max-w-6xl flex-col gap-6">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 flex max-w-6xl flex-col gap-6">
       <ExtensionPromoCard
         screenshot={{ src: "/img/holodex-plus/holodex-plus-screenshot.webp", alt: "Holodex Plus screenshot" }}
         icon={{ src: "/img/holodex-plus/holodex-plus-icon.png", alt: "Holodex Plus" }}
@@ -40,7 +40,7 @@ export default function ExtensionPage() {
         </a>
         <Button nativeButton={false}
           render={<a target="_blank" href="https://github.com/HolodexNet/Holodex-Plus" title={t("views.extension.githubDownload")} />}
-          className="h-[50px] rounded-xl bg-violet-600 px-4 text-white hover:brightness-110"
+          className="h-[50px] px-4"
         >
           <GithubIcon className="size-5" />
           {t("views.extension.installFromGithubPrefix")}<br />{t("views.extension.installFromGithubSuffix")}
@@ -61,14 +61,14 @@ export default function ExtensionPage() {
       >
         <Button nativeButton={false}
           render={<a target="_blank" href="https://www.raycast.com/uetchy/holodex" title={t("views.extension.raycastStore")} />}
-          className="h-[50px] rounded-xl bg-violet-600 px-4 text-white hover:brightness-110"
+          className="h-[50px] px-4"
         >
           <img src="https://www.raycast.com/assets/static/favicon.b9532cc.628b74797b5186d6caec6476f06179e0.png" alt="Raycast" className="mr-2 h-8 w-8 rounded-md" />
           {t("views.extension.raycast.getItOnPrefix")}<br />{t("views.extension.raycast.getItOnSuffix")}
         </Button>
         <Button nativeButton={false}
           render={<a target="_blank" href="https://github.com/HolodexNet/raycast-holodex" title={t("views.extension.downloadSourceCode")} />}
-          className="h-[50px] rounded-xl bg-violet-600 px-4 text-white hover:brightness-110"
+          className="h-[50px] px-4"
         >
           <GithubIcon className="size-5" />
           {t("views.extension.installFromGithubPrefix")}<br />{t("views.extension.installFromGithubSuffix")}
@@ -82,17 +82,17 @@ function ExtensionPromoCard({ screenshot, icon, title, featuresLabel, features, 
   return (
     <Card className="overflow-hidden p-0">
       <div className="grid gap-0 md:grid-cols-2">
-        <div className="border-b border-white/10 p-4 md:border-b-0 md:border-r md:p-6">
+        <div className="border-b p-4 md:border-b-0 md:border-r md:p-6">
           <img src={screenshot.src} alt={screenshot.alt} className="h-full w-full rounded-[calc(var(--radius)+4px)] object-cover" />
         </div>
         <CardContent className="p-4 md:p-6">
           <CardHeader className="mb-4 flex items-center gap-3 p-0">
             <img src={icon.src} alt={icon.alt} className="h-8 w-8 rounded-lg" />
-            <CardTitle className="text-2xl font-semibold leading-8 text-white">{title}</CardTitle>
+            <CardTitle>{title}</CardTitle>
           </CardHeader>
 
-          <div className="mb-2 text-lg font-medium text-slate-100">{featuresLabel}</div>
-          <ul className="space-y-2 text-sm text-slate-300">
+          <div className="mb-2 text-lg font-medium">{featuresLabel}</div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
             {features.map((feature, index) => <li key={index}>{feature}</li>)}
           </ul>
 

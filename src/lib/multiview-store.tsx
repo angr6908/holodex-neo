@@ -8,21 +8,22 @@ import { CHANNEL_URL_REGEX } from "@/lib/consts";
 import { Content, LayoutItem, decodeLayout, desktopPresets, getDesktopDefaults, mobilePresets } from "@/lib/mv-utils";
 import { checkIOS } from "@/lib/functions";
 import { readJSON, writeJSON } from "@/lib/browser";
+
 const STORAGE_KEY = "holodex-v2-multiview";
 const BATCH = 25;
 const DEBOUNCE = 140;
 
 const MultiviewContext = createContext<any>(null);
 
-const rectsCollide = (a: LayoutItem, b: LayoutItem) =>
+const collides = (a: LayoutItem, b: LayoutItem) =>
   a.i !== b.i && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-const missingVideoData = (x: Content) =>
+const missing = (x: Content) =>
   x?.type === "video" && x.video?.type !== "twitch" && x.video?.id === x.video?.channel?.name && !(x.video as any)?.noData;
 
-const isLiveContent = (x: Content) => x?.video?.status === "live" || x?.video?.status === "upcoming";
+const isLive = (x: Content) => x?.video?.status === "live" || x?.video?.status === "upcoming";
 
-const decodePreset = (preset: any) => ({ ...preset, ...decodeLayout(preset.layout) });
+const decodePreset = (p: any) => ({ ...p, ...decodeLayout(p.layout) });
 
 export function MultiviewProvider({ children, initialLayout = [], initialContent = {} }: { children: React.ReactNode; initialLayout?: LayoutItem[]; initialContent?: Record<string, Content> }) {
   const [layout, setLayoutState] = useState<LayoutItem[]>(initialLayout);
@@ -36,8 +37,8 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
   const initialized = useRef(false);
   const fetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchQueued = useRef<{ refreshLive?: boolean }>({});
-  const fetchResolvers = useRef<Array<() => void>>([]);
-  const fetchRejectors = useRef<Array<(e: unknown) => void>>([]);
+  const resolvers = useRef<Array<() => void>>([]);
+  const rejectors = useRef<Array<(e: unknown) => void>>([]);
 
   useEffect(() => {
     const s = readJSON<any>(STORAGE_KEY, {});
@@ -77,7 +78,7 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     return groups;
   }, [decodedCustomPresets, decodedDesktopPresets]);
 
-  const deleteContent = (prev: Record<string, Content>, id: string | number) => {
+  const delContent = (prev: Record<string, Content>, id: string | number) => {
     const next = { ...prev };
     delete next[String(id)];
     return next;
@@ -86,8 +87,7 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
   const setItemLock = (id: string | number, locked: boolean) =>
     setLayoutState((prev) => prev.map((item) =>
       item.i === String(id) && (item.isResizable !== !locked || item.isDraggable !== !locked)
-        ? { ...item, isResizable: !locked, isDraggable: !locked } : item,
-    ));
+        ? { ...item, isResizable: !locked, isDraggable: !locked } : item));
 
   const setVideoData = (videos: any[]) => {
     if (!videos) return;
@@ -95,56 +95,56 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
       let changed = false;
       const next: Record<string, Content> = { ...prev };
       const byId = new Map(videos.map((v: any) => [v.id, v]));
-      for (const key of Object.keys(next)) {
-        const c = next[key];
-        const match = byId.get(c.video?.id);
-        if (match && c.video !== match) { next[key] = { ...c, video: match }; changed = true; }
-        if (missingVideoData(next[key])) { next[key] = { ...next[key], video: { ...next[key].video, noData: true } }; changed = true; }
+      for (const k of Object.keys(next)) {
+        const c = next[k];
+        const m = byId.get(c.video?.id);
+        if (m && c.video !== m) { next[k] = { ...c, video: m }; changed = true; }
+        if (missing(next[k])) { next[k] = { ...next[k], video: { ...next[k].video, noData: true } }; changed = true; }
       }
       return changed ? next : prev;
     });
   };
 
-  const runFetchVideoData = async (options?: { refreshLive?: boolean }) => {
-    const snapshot = layoutContent;
-    const ids = new Set<string>(Object.values(snapshot)
-      .filter((x) => missingVideoData(x) || (options?.refreshLive && isLiveContent(x)))
+  const runFetch = async (opts?: { refreshLive?: boolean }) => {
+    const snap = layoutContent;
+    const ids = new Set<string>(Object.values(snap)
+      .filter((x) => missing(x) || (opts?.refreshLive && isLive(x)))
       .map((x) => x.video?.id).filter(Boolean));
     if (!ids.size) return;
 
-    const chunks: string[][] = [];
     const arr = [...ids];
+    const chunks: string[][] = [];
     for (let i = 0; i < arr.length; i += BATCH) chunks.push(arr.slice(i, i + BATCH));
-    const backendRes = await Promise.allSettled(chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })));
-    const backendVideos = backendRes.flatMap((r) => r.status === "fulfilled" ? ((r.value as any)?.data || []) : (console.error(r.reason), []));
-    backendVideos.forEach((v: any) => ids.delete(v.id));
+    const res = await Promise.allSettled(chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })));
+    const backend = res.flatMap((r) => r.status === "fulfilled" ? ((r.value as any)?.data || []) : (console.error(r.reason), []));
+    backend.forEach((v: any) => ids.delete(v.id));
 
     const rest = [...ids];
     const ytRes = await Promise.allSettled(rest.map((id) => axios.get(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}`, { timeout: 10000 })));
-    const ytVideos = ytRes.flatMap((r, idx) => {
+    const yt = ytRes.flatMap((r, i) => {
       if (r.status !== "fulfilled") { console.error(r.reason); return []; }
       const { data, config } = r.value;
       const ch = data.author_url?.match(CHANNEL_URL_REGEX);
       const channelId = ch?.groups?.id || (ch?.length >= 2 && ch[1]);
       const videoId = String(config.url || "").replace("https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=", "");
-      return [{ id: videoId || rest[idx], title: data.title, channel: { name: data.author_name, id: channelId || data.author_name } }];
+      return [{ id: videoId || rest[i], title: data.title, channel: { name: data.author_name, id: channelId || data.author_name } }];
     });
-    setVideoData([...backendVideos, ...ytVideos]);
+    setVideoData([...backend, ...yt]);
   };
 
-  const fetchVideoData = (options?: { refreshLive?: boolean }) => {
-    fetchQueued.current = { refreshLive: fetchQueued.current.refreshLive || options?.refreshLive };
+  const fetchVideoData = (opts?: { refreshLive?: boolean }) => {
+    fetchQueued.current = { refreshLive: fetchQueued.current.refreshLive || opts?.refreshLive };
     return new Promise<void>((resolve, reject) => {
-      fetchResolvers.current.push(resolve);
-      fetchRejectors.current.push(reject);
+      resolvers.current.push(resolve);
+      rejectors.current.push(reject);
       if (fetchTimer.current) clearTimeout(fetchTimer.current);
       fetchTimer.current = setTimeout(async () => {
-        const rs = fetchResolvers.current, fs = fetchRejectors.current;
-        fetchResolvers.current = []; fetchRejectors.current = []; fetchTimer.current = null;
-        const opts = fetchQueued.current; fetchQueued.current = {};
-        try { await runFetchVideoData(opts); rs.forEach((r) => r()); }
+        const rs = resolvers.current, fs = rejectors.current;
+        resolvers.current = []; rejectors.current = []; fetchTimer.current = null;
+        const o = fetchQueued.current; fetchQueued.current = {};
+        try { await runFetch(o); rs.forEach((r) => r()); }
         catch (e) { fs.forEach((f) => f(e)); }
-      }, options?.refreshLive ? 0 : DEBOUNCE);
+      }, opts?.refreshLive ? 0 : DEBOUNCE);
     });
   };
 
@@ -161,16 +161,16 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
         if (!c || equal((c as any)[key], value)) return prev;
         return { ...prev, [String(id)]: { ...c, [key]: value } };
       }),
-    deleteLayoutContent: (id: string | number) => setLayoutContentState((prev) => deleteContent(prev, id)),
+    deleteLayoutContent: (id: string | number) => setLayoutContentState((prev) => delContent(prev, id)),
     removeLayoutItem: (id: string | number) => {
       setLayoutState((prev) => prev.filter((i) => i.i !== String(id)));
-      setLayoutContentState((prev) => deleteContent(prev, id));
+      setLayoutContentState((prev) => delContent(prev, id));
     },
     addLayoutItem: () => setLayoutState((prev) => {
       const id = String(Date.now());
-      for (let y = 0; y < 24; y += 1) for (let x = 0; x < 21; x += 1) {
+      for (let y = 0; y < 24; y++) for (let x = 0; x < 21; x++) {
         const item: LayoutItem = { x, y, w: 4, h: 6, i: id, isResizable: true, isDraggable: true };
-        if (!prev.find((p) => rectsCollide(p, item))) return [...prev, item];
+        if (!prev.find((p) => collides(p, item))) return [...prev, item];
       }
       return [...prev, { x: 0, y: 24, w: 4, h: 6, i: id, isResizable: true, isDraggable: true }];
     }),
@@ -180,25 +180,23 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     activeVideos,
     nonChatCellCount,
     presetLayout,
-    addPresetLayout: (content: { name: string; layout: string }) => setPresetLayout((prev) => [...prev, content]),
-    removePresetLayout: (name: string) => setPresetLayout((prev) => prev.filter((i) => i.name !== name)),
+    addPresetLayout: (c: { name: string; layout: string }) => setPresetLayout((p) => [...p, c]),
+    removePresetLayout: (name: string) => setPresetLayout((p) => p.filter((i) => i.name !== name)),
     autoLayout,
     setAutoLayout: ({ index, encodedLayout }: { index: number; encodedLayout: string | null }) =>
-      setAutoLayoutState((prev) => { const n = [...prev]; n[index] = encodedLayout; return n; }),
+      setAutoLayoutState((p) => { const n = [...p]; n[index] = encodedLayout; return n; }),
     resetAutoLayout: () => setAutoLayoutState(getDesktopDefaults()),
-    ytUrlHistory,
-    twUrlHistory,
-    addUrlHistory: ({ twitch = false, url }: { twitch?: boolean; url: string }) => {
-      (twitch ? setTwUrlHistory : setYtUrlHistory)((prev) => {
-        const n = [...prev, url];
+    ytUrlHistory, twUrlHistory,
+    addUrlHistory: ({ twitch = false, url }: { twitch?: boolean; url: string }) =>
+      (twitch ? setTwUrlHistory : setYtUrlHistory)((p) => {
+        const n = [...p, url];
         if (n.length > 8) n.shift();
         return n;
-      });
-    },
+      }),
     muteOthers,
-    setMuteOthers: (value: boolean) => {
-      setMuteOthersState(value);
-      if (!value) return;
+    setMuteOthers: (v: boolean) => {
+      setMuteOthersState(v);
+      if (!v) return;
       setLayoutContentState((prev) => {
         let i = 0;
         const next: Record<string, Content> = {};
@@ -206,9 +204,9 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
         return next;
       });
     },
-    muteOthersAction: (currentKey: string | number) => {
+    muteOthersAction: (cur: string | number) => {
       if (!muteOthers) return;
-      const target = String(currentKey);
+      const target = String(cur);
       setLayoutContentState((prev) => {
         const next: Record<string, Content> = {};
         for (const k of Object.keys(prev)) next[k] = k === target
@@ -219,14 +217,14 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     },
     syncOffsets,
     setSyncOffsets: ({ id, value }: { id: string; value: any }) =>
-      setSyncOffsetsState((prev) => ({ ...prev, [id]: value })),
+      setSyncOffsetsState((p) => ({ ...p, [id]: value })),
     swapGridPosition: ({ id1, id2 }: { id1: number; id2: number }) =>
       setLayoutState((prev) => {
         if (!prev[id1] || !prev[id2]) return prev;
-        const next = prev.map((i) => ({ ...i }));
-        const a = next[id1], b = next[id2];
+        const n = prev.map((i) => ({ ...i }));
+        const a = n[id1], b = n[id2];
         [a.x, a.y, a.w, a.h, b.x, b.y, b.w, b.h] = [b.x, b.y, b.w, b.h, a.x, a.y, a.w, a.h];
-        return next;
+        return n;
       }),
     fetchVideoData,
     decodedCustomPresets,
@@ -239,9 +237,9 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
 }
 
 export function useMultiviewStore() {
-  const store = useContext(MultiviewContext);
-  if (!store) throw new Error("useMultiviewStore must be used within MultiviewProvider");
-  return store;
+  const s = useContext(MultiviewContext);
+  if (!s) throw new Error("useMultiviewStore must be used within MultiviewProvider");
+  return s;
 }
 
 export const useOptionalMultiviewStore = () => useContext(MultiviewContext);

@@ -25,7 +25,7 @@ export function ImportMchad({ onClose }: { onClose?: (payload: { upload?: boolea
   async function claimAll() { try { setWorking(true); const res = await api.claimMchadMigrate(app.userdata.jwt!, room, pass); if (res.status === 200) setClaimSuccess(true); } catch (error: any) { setClaimErrorMsg(error.response?.data?.message || error.message); } setWorking(false); }
   return (
     <div className="space-y-5 p-6">
-      <h2 className="text-lg font-semibold text-white">{t("views.tlManager.importFromMchad")}</h2>
+	      <h2 className="text-lg font-semibold">{t("views.tlManager.importFromMchad")}</h2>
       {claimSuccess ? (
         <Alert>
           <AlertDescription>{t("views.tlManager.importMchad.claimSuccess")}</AlertDescription>

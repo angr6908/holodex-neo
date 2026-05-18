@@ -94,11 +94,11 @@ export function ExportToFile({ videoData }: { videoData: any }) {
 
   return (
     <div className="space-y-5 p-6">
-      <h2 className="text-center text-lg font-semibold text-white">
+	      <h2 className="text-center text-lg font-semibold">
         {t("views.tlManager.download")}
       </h2>
       <div className="space-y-2">
-        <Label htmlFor="tl-export-lang" className="text-sm font-medium text-slate-300">{t("views.tlManager.langPick")}</Label>
+	        <Label htmlFor="tl-export-lang">{t("views.tlManager.langPick")}</Label>
         <Select
           value={TLLang.value}
           onValueChange={(value) => setTLLang(TL_LANGS.find((item) => item.value === value) || TL_LANGS[0])}
@@ -113,8 +113,8 @@ export function ExportToFile({ videoData }: { videoData: any }) {
           </SelectContent>
         </Select>
       </div>
-      <p className="text-center text-sm text-slate-400">
-        {entries.length + " entries, " + profile.length + " profile."}
+	      <p className="text-center text-sm text-muted-foreground">
+        {t("editor.music.exportSummary", { entries: entries.length, profiles: profile.length })}
       </p>
       <div className="flex flex-wrap justify-center gap-3">
         <Button type="button" onClick={() => downloadFile("srt", buildTlSrtExport(entries))}>

@@ -123,13 +123,13 @@ export function CommentSongParser({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger
           render={
-            <Button type="button" variant="ghost" className="h-auto w-full justify-start p-0 text-base font-medium hover:bg-transparent" />
+            <Button type="button" variant="ghost" className="h-auto w-full justify-start p-0 text-base font-medium" />
           }
         >
-          Automated Comment Song Helper
+          {t("component.media.automatedSongHelper")}
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-4">
-          <h5 className="mb-3 text-sm font-semibold text-slate-200">1: Click on Searchable Component</h5>
+          <h5 className="mb-3 text-sm font-semibold">{t("component.media.clickSearchableTimestamp")}</h5>
 
           {selection.map((timeframe, idx) => (
             <div key={`s${timeframe.index}`} className="mb-4">
@@ -158,22 +158,22 @@ export function CommentSongParser({
                       <icons.XIcon className="size-4" />
                     </Button>
                   </div>
-                  <h5 className="rounded-lg bg-white/8 px-2 py-2 text-sm font-medium text-slate-200">{t("editor.music.pickItunesResult")}</h5>
+                  <h5 className="px-2 py-2 text-sm font-medium">{t("editor.music.pickItunesResult")}</h5>
                   <div className="mt-2 space-y-2">
                     {searchResult.map((song) => (
                       <Button
                         key={`itn${song.trackId}`}
                         type="button"
                         variant="ghost"
-                        className="h-auto w-full justify-start gap-3 rounded-xl px-3 py-2 text-left font-normal hover:bg-white/8"
+                        className="h-auto w-full justify-start gap-3 px-3 py-2 text-left font-normal"
                         onClick={() => onSongSelected?.(timeframe, song)}
                       >
                         <img src={song.artworkUrl100} alt="" className="h-12 w-12 rounded-md object-cover" />
                         <div className="min-w-0">
-                          <div className="truncate text-sm text-white">
+                          <div className="truncate text-sm">
                             🎵 {song.trackName} [{formatDuration(song.trackTimeMillis)}]
                           </div>
-                          <div className="truncate text-xs text-slate-400">
+                          <div className="truncate text-xs text-muted-foreground">
                             🎤 {song.artistName} / {song.collectionName} / {song.releaseDate ? song.releaseDate.slice(0, 7) : ""}
                           </div>
                         </div>

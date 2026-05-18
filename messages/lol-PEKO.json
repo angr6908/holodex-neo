@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Very very sorry!",
+      "title": "Content load failed peko",
       "textBeforeTwitter": "Could not load content. Check peko ",
       "textAfterTwitter": " or report this via peko ",
       "aboutPage": "About page peko",
@@ -96,31 +96,38 @@
         "channel": "channeru",
         "topic": "topic peko",
         "org": "soshiki",
-        "titledesc": "titoru/setumei",
+        "titledesc": "titoru matawa setsumei peko",
         "title": "taitoru",
         "description": "description peko",
         "comments": "komments",
         "videourl": "bideo url peko"
       },
-      "placeholder": "sagasu raibus, kirinukis, channerus peko",
+      "placeholder": "sagasu raibus, kirinukis, matawa channerus peko",
       "clear": "Clear peko",
       "loading": "Loading.. peko.",
-      "typeTwoCharacters": "Type 2 characters peko",
+      "typeTwoCharacters": "Type at least 2 characters peko",
       "noChannelsFound": "No channerus found peko",
       "noTopicsFound": "No topics found peko",
       "noOrganizationsFound": "No organizations found peko",
       "noResultsFound": "No results found peko",
       "searchChannels": "sagasu channerus peko",
-      "filterByTopicOrgChannel": "Filter by Topic, Org, channeru .. peko.",
-      "topicOrgChannelPlaceholder": "Topic, org, or channeru peko",
+      "filterByTopicOrgChannel": "Filter by topic, soshiki, or channeru peko",
+      "topicOrgChannelPlaceholder": "Topic, soshiki, or channeru peko",
       "toggleSearch": "Toggle sagasu peko",
       "organizations": "Organizations peko",
       "searchOrganizations": "sagasu organizations peko",
-      "quickSelect": "Quick Select peko",
+      "quickSelect": "Quick select peko",
       "allVtubers": "All VTubers peko",
-      "selectedOrgCount": "{count} orgs peko",
+      "selectedOrgCount": "{count} soshikis peko",
       "additionalOrgCount": "{count} more peko",
       "unset": "Unset peko"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Block channeru peko",
+      "unblock": "Unblock peko"
     },
     "relatedVideo": {
       "clipsLabel": "kirinuki",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "rimubu"
+      "remove": "rimubu",
+      "automatedSongHelper": "Automated comment song helper peko",
+      "clickSearchableTimestamp": "Select timestamp or search term peko"
     },
     "comment": {
       "close": "Peklose",
@@ -364,12 +373,15 @@
       "liveLabel": "Live peko",
       "upcomingLabel": "Future",
       "controls": {
-        "sortBy": "Sort By peko",
+        "sortBy": "Sort by peko",
         "viewers": "Viewers peko",
         "latest": "motto new",
-        "uploadedBefore": "Uploaded Before peko",
+        "uploadedBefore": "Uploaded before peko",
         "pickDate": "Pick a date peko",
-        "clipLanguages": "See kirinukis in these Languages: peko"
+        "clipLanguages": "Kirinuki languages peko",
+        "displayMode": "Display mode peko",
+        "list": "List peko",
+        "denseList": "Dense list peko"
       },
       "apiError": "Could not load bideos peko."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "all",
-        "official": "Oficial",
-        "clip": "kirinuki peko"
+        "official": "Raibus peko",
+        "clip": "Kirinukis peko"
       },
       "unsupportedQuery": "Currently searching kirinukis by peko <kbd>Topic peko</kbd> and peko <kbd>Organization peko</kbd> is not supported. No peko <b>kirinukis peko</b> will show up peko.",
-      "sortByLabel": "Sort By peko",
-      "typeDropdownLabel": "Type peko",
+      "sortByLabel": "Sort by peko",
+      "typeDropdownLabel": "Content type peko",
       "searching": "Searching.. peko.",
-      "useSearchBar": "Use the sagasu bar to find raibus, kirinukis, or channerus peko."
+      "useSearchBar": "Use the sagasu bar to find raibus, kirinukis, or channerus peko.",
+      "sortBy": "Sort by peko"
     },
     "settings": {
       "title": "Settei",
@@ -499,9 +512,9 @@
         "tlStart": "Start of Messages peko",
         "StickBottomSettingLabel": "Stick Bottom peko",
         "StickBottomSettingsDesc": "TL box placed below Youtube Chat peko",
-        "showVerifiedMessages": "nice peopl show ok",
-        "showModeratorMessages": "supana show ok",
-        "showVtuberMessages": "Show Vtuber Messages peko",
+        "showVerifiedMessages": "Show verified messages peko",
+        "showModeratorMessages": "Show moderator messages peko",
+        "showVtuberMessages": "Show VTuber messages peko",
         "showLocalTime": "Show Local Times peko",
         "tlFontSize": "Font size",
         "tlWindowSize": "TL Box Size (%), leave as 0% for automatic peko",
@@ -558,7 +571,8 @@
         "button": "Se-bu (5-bun matte)",
         "unset": "Unset peko",
         "inputPlaceholder": "Topic (leave empty to unset) peko",
-        "saveTopic": "Save Topic peko"
+        "saveTopic": "Save Topic peko",
+        "updateSuccess": "Topic updated peko: {topic}"
       },
       "channelMentions": {
         "title": "channel mension",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Listen on Apple Music peko",
       "pickItunesResult": "Pick either iTunes result peko",
       "playFromHere": "Play from here peko",
-      "timestampEditorHint": "Use relative timestamps to line music up with the bideo peko."
+      "timestampEditorHint": "Use relative timestamps to line music up with the bideo peko.",
+      "exportSummary": "{entries} entries peko, {profiles} profiles peko"
     },
     "exitMode": "Exit Edit Mode peko",
     "enterMode": "Edit bideo peko"

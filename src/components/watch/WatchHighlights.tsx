@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type CSSProperties } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDuration } from "@/lib/time";
@@ -108,26 +108,14 @@ function bestTimestampLabel(bucket: ParsedTimestampComment[]) {
   return best && best.length > 60 ? `${best.slice(0, 60)}...` : best;
 }
 
-const MARKER_COLORS: ReadonlyArray<[number, string]> = [
-  [5, "red"],
-  [4, "#d05b5b"],
-  [3, "orange"],
-  [2, "darkorange"],
-  [1, "rgb(164, 164, 164)"],
-];
-
-function markerStyle({ song, count }: HighlightBucket): CSSProperties {
-  if (song) {
-    return { width: "3px", backgroundColor: "var(--color-primary)" };
-  }
-  const color = MARKER_COLORS.find(([threshold]) => count > threshold)?.[1] ?? "rgb(100, 100, 100)";
-  return {
-    width: count > 1 ? "2px" : "1px",
-    backgroundColor: color,
-  };
+function markerClass({ song, count }: HighlightBucket) {
+  if (song) return "w-1 bg-primary";
+  if (count > 5) return "w-0.5 bg-destructive";
+  if (count > 2) return "w-0.5 bg-secondary";
+  return "w-px bg-muted-foreground";
 }
 
-export function WatchHighlights({ comments, video, limit = 0, playerWidth = null, onTimeJump }: WatchHighlightsProps) {
+export function WatchHighlights({ comments, video, limit = 0, onTimeJump }: WatchHighlightsProps) {
   const buckets = useMemo(() => {
     const videoDuration = video.duration || 0;
     const videoStartTimestamp = +new Date(video.start_actual || video.available_at || 0);
@@ -190,26 +178,19 @@ export function WatchHighlights({ comments, video, limit = 0, playerWidth = null
     });
   }, [buckets, limit]);
 
-  const cardStyle = playerWidth
-    ? { width: `${playerWidth}px`, maxWidth: `${playerWidth}px`, marginInline: "auto" }
-    : undefined;
-
   return (
-    <Card className="watch-highlights rounded-none border-x-0 border-t-0 px-3 py-2 shadow-none" style={cardStyle}>
+    <Card className="rounded-none border-x-0 border-t-0 px-3 py-2">
       {bucketsFiltered.length > 0 ? (
         <div className="w-full">
-          <div className="relative h-4 rounded-full bg-white/6">
+          <div className="flex h-4 items-stretch justify-between gap-px rounded-full bg-muted">
             {bucketsFiltered.map((bucket) => {
-              const position = video.duration ? Math.round((bucket.time / video.duration) * 100) : 0;
-
               return (
                 <Button
                   key={`${bucket.display}-${bucket.time}`}
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  className="absolute bottom-0 top-0 h-full min-h-0 w-auto min-w-0 rounded-full p-0 hover:bg-transparent hover:text-inherit"
-                  style={{ marginLeft: `${position}%` }}
+                  className="h-full min-h-0 w-auto min-w-0 p-0"
                   title={bucket.best ? `${bucket.display} ${bucket.best}` : bucket.display}
                   aria-label={`Jump to ${bucket.display}`}
                   onClick={(event) => {
@@ -217,7 +198,7 @@ export function WatchHighlights({ comments, video, limit = 0, playerWidth = null
                     onTimeJump?.(bucket.time);
                   }}
                 >
-                  <span className="block h-full rounded-full" style={markerStyle(bucket)} />
+                  <span className={`block h-full rounded-full ${markerClass(bucket)}`} />
                 </Button>
               );
             })}

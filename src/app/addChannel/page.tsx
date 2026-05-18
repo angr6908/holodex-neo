@@ -115,14 +115,14 @@ export default function AddChannelPage() {
     }
   }
   return (
-    <div className="app-page max-w-5xl">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 max-w-5xl">
       <div className="mx-auto w-full md:max-w-[83.333%] lg:max-w-[66.666%]">
         <Card className="p-6">
-          <div className="text-2xl font-semibold text-white">{t("channelRequest.PageTitle")}</div>
+          <div className="text-2xl font-semibold">{t("channelRequest.PageTitle")}</div>
           {type && alertText(type) ? <Alert className="mt-4"><AlertDescription><p dangerouslySetInnerHTML={{ __html: String(alertText(type)) }} /></AlertDescription></Alert> : null}
           <div className="mt-6 space-y-6">
             <FieldSet className="gap-0">
-              <FieldLegend variant="label" className="text-slate-300">{t("channelRequest.RequestType")}</FieldLegend>
+              <FieldLegend variant="label">{t("channelRequest.RequestType")}</FieldLegend>
               <RadioGroup value={type} onValueChange={setType}>{channelTypes.map((ct) => <Label key={ct.value} className="items-start rounded-md border p-3 text-sm"><RadioGroupItem value={ct.value} /><span>{ct.text}</span></Label>)}</RadioGroup>
             </FieldSet>
             {type === MODIFY_EXISTING || type === DELETE ? <div><ChannelAutocomplete value={channel} onChange={setChannel} label={t("component.form.channel")} /></div> : <Field data-invalid={!!linkError}><FieldLabel>{t("channelRequest.ChannelURLLabel")}</FieldLabel><Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={t("channelRequest.ChannelURLPlaceholder")} /><FieldDescription>{t("channelRequest.ChannelURLExample")}</FieldDescription>{linkError ? <FieldError>{linkError}</FieldError> : null}</Field>}

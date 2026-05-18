@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Sumimaaf!",
+      "title": "Tidak dapat memuat konten",
       "textBeforeTwitter": "Terdapat ralat ketika mendapatkan kembali kandungan. Sila semak di Twitter",
       "textAfterTwitter": " atau laporkan ralat melalui",
       "aboutPage": "laman Perihal",
@@ -96,31 +96,38 @@
         "channel": "saluran",
         "topic": "topik",
         "org": "organisasi",
-        "titledesc": "tajuk/perihalan",
+        "titledesc": "Tajuk atau perihalan",
         "title": "tajuk",
         "description": "perihalan",
         "comments": "komen",
         "videourl": "URL video"
       },
-      "placeholder": "Cari strim, klip, saluran",
+      "placeholder": "Cari strim, klip, atau saluran",
       "clear": "Kosongkan",
       "loading": "Memuatkan...",
-      "typeTwoCharacters": "Taip 2 aksara",
+      "typeTwoCharacters": "Taip sekurang-kurangnya 2 aksara",
       "noChannelsFound": "Tiada saluran ditemui",
       "noTopicsFound": "Tiada topik ditemui",
       "noOrganizationsFound": "Tiada organisasi ditemui",
       "noResultsFound": "Tiada hasil ditemui",
       "searchChannels": "Cari saluran",
-      "filterByTopicOrgChannel": "Tapis mengikut topik, organisasi, saluran ...",
+      "filterByTopicOrgChannel": "Tapis mengikut topik, organisasi, atau saluran",
       "topicOrgChannelPlaceholder": "Topik, organisasi, atau saluran",
       "toggleSearch": "Togol carian",
       "organizations": "Organisasi",
       "searchOrganizations": "Cari organisasi",
-      "quickSelect": "Pilih cepat",
+      "quickSelect": "Pilih pantas",
       "allVtubers": "Semua VTuber",
-      "selectedOrgCount": "{count} org",
+      "selectedOrgCount": "{count} organisasi",
       "additionalOrgCount": "{count} lagi",
       "unset": "Belum ditetapkan"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Sekat saluran",
+      "unblock": "Nyahsekat"
     },
     "relatedVideo": {
       "clipsLabel": "sedutan",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Alih keluar"
+      "remove": "Alih keluar",
+      "automatedSongHelper": "Pembantu lagu automatik daripada komen",
+      "clickSearchableTimestamp": "Pilih cap masa atau istilah carian"
     },
     "comment": {
       "close": "Tutup",
@@ -364,12 +373,15 @@
       "liveLabel": "Langsung",
       "upcomingLabel": "Akan Datang",
       "controls": {
-        "sortBy": "Isih Mengikut",
+        "sortBy": "Isih mengikut",
         "viewers": "Penonton",
         "latest": "Terbaharu",
         "uploadedBefore": "Dimuat naik sebelum",
         "pickDate": "Pilih tarikh",
-        "clipLanguages": "Paparkan sedutan yang berbahasa:"
+        "clipLanguages": "Bahasa klip",
+        "displayMode": "Mod paparan",
+        "list": "Senarai",
+        "denseList": "Senarai padat"
       },
       "apiError": "Tidak dapat memuatkan video."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Semua",
-        "official": "Rasmi",
-        "clip": "Sedutan"
+        "official": "Strim",
+        "clip": "Klip"
       },
       "unsupportedQuery": "Carian sedutan menggunakan <kbd>Topik</kbd> dan <kbd>Kumpulan</kbd> masih belum disokong. <b>Sedutan</b> tidak akan terpapar.",
-      "sortByLabel": "Isih Mengikut",
-      "typeDropdownLabel": "Jenis",
+      "sortByLabel": "Isih mengikut",
+      "typeDropdownLabel": "Jenis kandungan",
       "searching": "Mencari...",
-      "useSearchBar": "Gunakan bar carian untuk mencari strim, klip atau saluran."
+      "useSearchBar": "Gunakan bar carian untuk mencari strim, klip atau saluran.",
+      "sortBy": "Isih mengikut"
     },
     "settings": {
       "title": "Tetapan",
@@ -499,9 +512,9 @@
         "tlStart": "Permulaan Pesanan",
         "StickBottomSettingLabel": "Letakkan di Bawah",
         "StickBottomSettingsDesc": "Letakkan terjemahan di bawah ruangan sembang YouTube",
-        "showVerifiedMessages": "Paparkan Sembang Oleh Pengguna Yang Disahkan",
-        "showModeratorMessages": "Paparkan Sembang Oleh Penyederhana",
-        "showVtuberMessages": "Paparkan Sembang oleh Penggiyut Maya",
+        "showVerifiedMessages": "Tunjukkan mesej yang disahkan",
+        "showModeratorMessages": "Tunjukkan mesej penyelia",
+        "showVtuberMessages": "Tunjukkan mesej VTuber",
         "showLocalTime": "Paparkan Waktu Tempatan",
         "tlFontSize": "Ukuran Pasuan",
         "tlWindowSize": "Peratusan (%) saiz ruangan terjemahan. 0% bagi perubahan saiz secara kendiri",
@@ -558,7 +571,8 @@
         "button": "Simpan (Memakan masa kira-kira 5 minit sebelum menunjukkan kesan)",
         "unset": "Belum ditetapkan",
         "inputPlaceholder": "Topik (biarkan kosong untuk nyahset)",
-        "saveTopic": "Simpan topik"
+        "saveTopic": "Simpan topik",
+        "updateSuccess": "Topik dikemas kini: {topic}"
       },
       "channelMentions": {
         "title": "Sebutan Saluran",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Dengar di Apple Music",
       "pickItunesResult": "Pilih salah satu hasil iTunes",
       "playFromHere": "Main dari sini",
-      "timestampEditorHint": "Gunakan cap masa relatif untuk menyelaraskan muzik dengan video."
+      "timestampEditorHint": "Gunakan cap masa relatif untuk menyelaraskan muzik dengan video.",
+      "exportSummary": "{entries} entri, {profiles} profil"
     },
     "exitMode": "Selesaikan Suntingan",
     "enterMode": "Sunting Video"

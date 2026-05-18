@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "고멘나소리!",
+      "title": "콘텐츠를 불러올 수 없습니다",
       "textBeforeTwitter": "콘텐츠를 불러오던 중 오류가 발생했습니다. 트위터 계정 ",
       "textAfterTwitter": " 을 확인하거나",
       "aboutPage": "정보 페이지",
@@ -96,31 +96,38 @@
         "channel": "채널",
         "topic": "주제",
         "org": "소속",
-        "titledesc": "제목/설명",
+        "titledesc": "제목 또는 설명",
         "title": "제목",
         "description": "설명",
         "comments": "댓글",
         "videourl": "동영상 URL"
       },
-      "placeholder": "방송, 클립, 채널 검색",
+      "placeholder": "방송, 클립 또는 채널 검색",
       "clear": "지우기",
       "loading": "불러오는 중...",
-      "typeTwoCharacters": "2글자를 입력하세요",
+      "typeTwoCharacters": "2자 이상 입력",
       "noChannelsFound": "채널을 찾을 수 없습니다",
       "noTopicsFound": "주제를 찾을 수 없습니다",
       "noOrganizationsFound": "소속을 찾을 수 없습니다",
       "noResultsFound": "결과가 없습니다",
       "searchChannels": "채널 검색",
-      "filterByTopicOrgChannel": "주제, 소속, 채널로 필터 ...",
-      "topicOrgChannelPlaceholder": "주제, 소속 또는 채널",
+      "filterByTopicOrgChannel": "주제, 조직 또는 채널로 필터",
+      "topicOrgChannelPlaceholder": "주제, 조직 또는 채널",
       "toggleSearch": "검색 전환",
       "organizations": "소속",
       "searchOrganizations": "소속 검색",
       "quickSelect": "빠른 선택",
       "allVtubers": "모든 VTuber",
-      "selectedOrgCount": "{count}개 소속",
+      "selectedOrgCount": "{count}개 조직",
       "additionalOrgCount": "{count}개 더",
       "unset": "미설정"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "모더레이터",
+      "openYouTube": "YouTube",
+      "blockChannel": "채널 차단",
+      "unblock": "차단 해제"
     },
     "relatedVideo": {
       "clipsLabel": "클립",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "삭제"
+      "remove": "삭제",
+      "automatedSongHelper": "댓글 곡 자동 도우미",
+      "clickSearchableTimestamp": "타임스탬프 또는 검색어 선택"
     },
     "comment": {
       "close": "닫기",
@@ -367,9 +376,12 @@
         "sortBy": "정렬 기준",
         "viewers": "시청자",
         "latest": "최신순",
-        "uploadedBefore": "다음 날짜 이전 업로드",
+        "uploadedBefore": "이전에 업로드됨",
         "pickDate": "날짜 선택",
-        "clipLanguages": "다음 언어로 된 클립 보기:"
+        "clipLanguages": "클립 언어",
+        "displayMode": "표시 모드",
+        "list": "목록",
+        "denseList": "조밀한 목록"
       },
       "apiError": "동영상을 불러올 수 없습니다."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "모두",
-        "official": "공식",
+        "official": "방송",
         "clip": "클립"
       },
       "unsupportedQuery": "아직 <kbd>주제</kbd>와 <kbd>소속</kbd>으로 클립을 검색할 수 없습니다. <b>클립</b>이 표시되지 않습니다.",
       "sortByLabel": "정렬 기준",
-      "typeDropdownLabel": "유형",
+      "typeDropdownLabel": "콘텐츠 유형",
       "searching": "검색 중...",
-      "useSearchBar": "검색창을 사용해 방송, 클립 또는 채널을 찾아보세요."
+      "useSearchBar": "검색창을 사용해 방송, 클립 또는 채널을 찾아보세요.",
+      "sortBy": "정렬 기준"
     },
     "settings": {
       "title": "설정",
@@ -499,9 +512,9 @@
         "tlStart": "메시지 시작",
         "StickBottomSettingLabel": "하단 고정",
         "StickBottomSettingsDesc": "번역 상자는 YouTube 채팅 아래에 표시됩니다",
-        "showVerifiedMessages": "인증된 사용자의 메시지 표시",
-        "showModeratorMessages": "운영자 메시지 표시",
-        "showVtuberMessages": "버튜버의 메시지 표시",
+        "showVerifiedMessages": "인증된 메시지 표시",
+        "showModeratorMessages": "모더레이터 메시지 표시",
+        "showVtuberMessages": "VTuber 메시지 표시",
         "showLocalTime": "로컬 시간 표시",
         "tlFontSize": "글꼴 크기",
         "tlWindowSize": "번역 상자 크기 (%), 0%로 하면 자동",
@@ -558,7 +571,8 @@
         "button": "저장 (적용까지 5분 정도 소요될 수 있음)",
         "unset": "미설정",
         "inputPlaceholder": "주제(해제하려면 비워 두세요)",
-        "saveTopic": "주제 저장"
+        "saveTopic": "주제 저장",
+        "updateSuccess": "주제가 업데이트됨: {topic}"
       },
       "channelMentions": {
         "title": "채널 멘션",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Apple Music에서 듣기",
       "pickItunesResult": "iTunes 결과 중 하나 선택",
       "playFromHere": "여기부터 재생",
-      "timestampEditorHint": "상대 타임스탬프를 사용해 음악을 동영상에 맞추세요."
+      "timestampEditorHint": "상대 타임스탬프를 사용해 음악을 동영상에 맞추세요.",
+      "exportSummary": "{entries}개 항목, {profiles}개 프로필"
     },
     "exitMode": "편집 모드 나가기",
     "enterMode": "동영상 편집"

@@ -76,7 +76,7 @@ export function CalendarUsage({ initialQuery, showFavoritesCalendar = true }: { 
 	        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Filter className="h-4 w-4" /><span>{t("component.search.filterByTopicOrgChannel")}</span></div>
         <Combobox multiple items={resultValues} value={query.map((item) => item.value)} inputValue={searchInput} filter={null} onInputValueChange={setSearchInput} onValueChange={updateQuery}>
           <ComboboxChips ref={filterAnchor}>
-            {query.map((item) => <ComboboxChip key={item.value} className="h-7 max-w-full bg-primary text-primary-foreground hover:bg-primary/90"><span className="shrink-0 text-primary-foreground/75">{i18nItem(item.type)}</span><span className="min-w-0 truncate whitespace-nowrap">{item.text}</span></ComboboxChip>)}
+            {query.map((item) => <ComboboxChip key={item.value} className="max-w-full"><span className="shrink-0 text-muted-foreground">{i18nItem(item.type)}</span><span className="min-w-0 truncate whitespace-nowrap">{item.text}</span></ComboboxChip>)}
 	            <ComboboxChipsInput placeholder={t("component.search.topicOrgChannelPlaceholder")} />
 	          </ComboboxChips>
 	          <ComboboxContent anchor={filterAnchor}>
@@ -100,18 +100,18 @@ export function CalendarUsage({ initialQuery, showFavoritesCalendar = true }: { 
       </div>
     </div>
     <div className="space-y-2">
-      <Label className="text-sm text-[color:var(--color-muted-foreground)]">{t("component.calendar.liveCalendar")}</Label>
-      <Button type="button" variant="ghost" className="h-auto w-full justify-between rounded-xl border border-white/10 bg-white/6 px-3 py-2 text-left text-sm font-normal whitespace-normal text-[color:var(--color-foreground)] hover:bg-white/6 hover:text-[color:var(--color-foreground)]" onClick={(e) => { e.stopPropagation(); copyToClipboard(liveCalendarURL); }}>
+      <Label className="text-sm text-muted-foreground">{t("component.calendar.liveCalendar")}</Label>
+      <Button type="button" variant="outline" className="h-auto w-full justify-between text-left font-normal whitespace-normal" onClick={(e) => { e.stopPropagation(); copyToClipboard(liveCalendarURL); }}>
         <span className="truncate">{liveCalendarURL}</span>
-        <ClipboardPlus className="ml-3 size-4 shrink-0 text-[color:var(--color-primary)]" />
+        <ClipboardPlus className="ml-3 size-4 shrink-0 text-primary" />
       </Button>
     </div>
     {app.isLoggedIn && showFavoritesCalendar ? (
       <div className="space-y-2">
-        <Label className="text-sm text-[color:var(--color-muted-foreground)]">{t("component.calendar.favoritesCalendar")}</Label>
-        <Button type="button" variant="ghost" className="h-auto w-full justify-between rounded-xl border border-white/10 bg-white/6 px-3 py-2 text-left text-sm font-normal whitespace-normal text-[color:var(--color-foreground)] hover:bg-white/6 hover:text-[color:var(--color-foreground)]" onClick={(e) => { e.stopPropagation(); copyToClipboard(favoritesCalendarURL); }}>
+        <Label className="text-sm text-muted-foreground">{t("component.calendar.favoritesCalendar")}</Label>
+      <Button type="button" variant="outline" className="h-auto w-full justify-between text-left font-normal whitespace-normal" onClick={(e) => { e.stopPropagation(); copyToClipboard(favoritesCalendarURL); }}>
           <span className="truncate">{favoritesCalendarURL}</span>
-          <ClipboardPlus className="ml-3 size-4 shrink-0 text-[color:var(--color-primary)]" />
+          <ClipboardPlus className="ml-3 size-4 shrink-0 text-primary" />
         </Button>
       </div>
     ) : null}

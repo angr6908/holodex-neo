@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Maafkeun",
+      "title": "Tidak dapat memuat konten",
       "textBeforeTwitter": "Ada kesalahan saat memuat konten, silahkan cek twitter ",
       "textAfterTwitter": " atau laporkan hal ini melalui",
       "aboutPage": "halaman tentang",
@@ -96,31 +96,38 @@
         "channel": "kanal",
         "topic": "topik",
         "org": "organisasi",
-        "titledesc": "judul/deskripsi",
+        "titledesc": "Judul atau deskripsi",
         "title": "judul",
         "description": "deskripsi",
         "comments": "komentar",
         "videourl": "URL video"
       },
-      "placeholder": "Cari stream, klip, kanal",
+      "placeholder": "Cari stream, klip, atau kanal",
       "clear": "Hapus",
       "loading": "Memuat...",
-      "typeTwoCharacters": "Ketik 2 karakter",
+      "typeTwoCharacters": "Ketik minimal 2 karakter",
       "noChannelsFound": "Kanal tidak ditemukan",
       "noTopicsFound": "Topik tidak ditemukan",
       "noOrganizationsFound": "Organisasi tidak ditemukan",
       "noResultsFound": "Hasil tidak ditemukan",
       "searchChannels": "Cari kanal",
-      "filterByTopicOrgChannel": "Filter berdasarkan topik, organisasi, kanal ...",
+      "filterByTopicOrgChannel": "Filter berdasarkan topik, organisasi, atau kanal",
       "topicOrgChannelPlaceholder": "Topik, organisasi, atau kanal",
       "toggleSearch": "Alihkan pencarian",
       "organizations": "Organisasi",
       "searchOrganizations": "Cari organisasi",
       "quickSelect": "Pilih cepat",
       "allVtubers": "Semua VTuber",
-      "selectedOrgCount": "{count} org",
+      "selectedOrgCount": "{count} organisasi",
       "additionalOrgCount": "{count} lagi",
       "unset": "Belum diatur"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Blokir kanal",
+      "unblock": "Buka blokir"
     },
     "relatedVideo": {
       "clipsLabel": "Klip",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Hapus"
+      "remove": "Hapus",
+      "automatedSongHelper": "Pembantu lagu otomatis dari komentar",
+      "clickSearchableTimestamp": "Pilih timestamp atau istilah pencarian"
     },
     "comment": {
       "close": "Tutup",
@@ -364,12 +373,15 @@
       "liveLabel": "Live Sekarang",
       "upcomingLabel": "Akan Tayang",
       "controls": {
-        "sortBy": "Urutkan Berdasarkan",
+        "sortBy": "Urutkan berdasarkan",
         "viewers": "Penonton",
         "latest": "Terbaru",
         "uploadedBefore": "Diunggah sebelum",
         "pickDate": "Pilih tanggal",
-        "clipLanguages": "Melihat Klip dalam bahasa berikut:"
+        "clipLanguages": "Bahasa klip",
+        "displayMode": "Mode tampilan",
+        "list": "Daftar",
+        "denseList": "Daftar padat"
       },
       "apiError": "Tidak dapat memuat video."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Semua",
-        "official": "Resmi",
+        "official": "Stream",
         "clip": "Klip"
       },
       "unsupportedQuery": "Saat ini mencari klip dengan <kbd>Topik</kbd> dan <kbd>Organisasi</kbd> belum dapat dilakukan. Tidak ada <b>klip</b> yang akan muncul.",
-      "sortByLabel": "Urutkan Berdasarkan",
-      "typeDropdownLabel": "Tipe",
+      "sortByLabel": "Urutkan berdasarkan",
+      "typeDropdownLabel": "Jenis konten",
       "searching": "Mencari...",
-      "useSearchBar": "Gunakan bilah pencarian untuk menemukan stream, klip, atau kanal."
+      "useSearchBar": "Gunakan bilah pencarian untuk menemukan stream, klip, atau kanal.",
+      "sortBy": "Urutkan berdasarkan"
     },
     "settings": {
       "title": "Pengaturan",
@@ -499,9 +512,9 @@
         "tlStart": "Awal Pesan",
         "StickBottomSettingLabel": "Lekat Bawah",
         "StickBottomSettingsDesc": "Kolom TL akan diletakkan di bawah Chat Youtube",
-        "showVerifiedMessages": "Menampilkan Pesan Pengguna yang Terverifikasi",
-        "showModeratorMessages": "Menampilkan Pesan Moderator",
-        "showVtuberMessages": "Menampilkan Pesan Vtuber",
+        "showVerifiedMessages": "Tampilkan pesan terverifikasi",
+        "showModeratorMessages": "Tampilkan pesan moderator",
+        "showVtuberMessages": "Tampilkan pesan VTuber",
         "showLocalTime": "Menampilkan Waktu Lokal",
         "tlFontSize": "Ukuran Teks",
         "tlWindowSize": "Ukuran Kotak Terjemahan (%), biarkan 0% untuk otomatis menyesuaikan",
@@ -558,7 +571,8 @@
         "button": "Simpan (Perlu waktu ±5 menit untuk berpengaruh)",
         "unset": "Belum diatur",
         "inputPlaceholder": "Topik (kosongkan untuk menghapus)",
-        "saveTopic": "Simpan topik"
+        "saveTopic": "Simpan topik",
+        "updateSuccess": "Topik diperbarui: {topic}"
       },
       "channelMentions": {
         "title": "Mention Channel",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Dengarkan di Apple Music",
       "pickItunesResult": "Pilih salah satu hasil iTunes",
       "playFromHere": "Putar dari sini",
-      "timestampEditorHint": "Gunakan timestamp relatif untuk menyelaraskan musik dengan video."
+      "timestampEditorHint": "Gunakan timestamp relatif untuk menyelaraskan musik dengan video.",
+      "exportSummary": "{entries} entri, {profiles} profil"
     },
     "exitMode": "Keluar dari Mode Edit",
     "enterMode": "Edit video"

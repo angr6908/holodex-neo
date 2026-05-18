@@ -14,243 +14,175 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { MessageRenderer, WatchSubtitleOverlay, type MessageRendererHandle } from "@/components/chat/MessageRenderer";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
+
+const LIMIT = 20;
+
 export function LiveTranslations({
-  video,
-  currentTime = 0,
-  useLocalSubtitleToggle = false,
-  tlLang = "",
-  tlClient = false,
-  className = "",
-  style,
-  onVideoUpdate,
+  video, currentTime = 0, useLocalSubtitleToggle = false,
+  tlLang = "", tlClient = false, className = "", onVideoUpdate,
 }: {
-  video: Record<string, any>;
-  currentTime?: number;
-  useLocalSubtitleToggle?: boolean;
-  tlLang?: string;
-  tlClient?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-  onVideoUpdate?: (obj: any) => void;
+  video: Record<string, any>; currentTime?: number; useLocalSubtitleToggle?: boolean;
+  tlLang?: string; tlClient?: boolean; className?: string; onVideoUpdate?: (obj: any) => void;
 }) {
   const t = useTranslations();
-  const appStore = useAppState();
-  const [tlHistory, setTlHistory] = useState<any[]>([]);
+  const app = useAppState();
+  const [history, setHistory] = useState<any[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [liveTlLang, setLiveTlLang] = useState(tlLang || appStore.settings.liveTlLang);
-  const [showSubtitle, setShowSubtitle] = useState(useLocalSubtitleToggle ? true : appStore.settings.liveTlShowSubtitle);
-  const [overlayMessage, setOverlayMessage] = useState(t("views.watch.chat.loading"));
+  const [lang, setLang] = useState(tlLang || app.settings.liveTlLang);
+  const [showSub, setShowSub] = useState(useLocalSubtitleToggle || app.settings.liveTlShowSubtitle);
+  const [overlayMsg, setOverlayMsg] = useState(t("views.watch.chat.loading"));
   const [showOverlay, setShowOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const tlBody = useRef<MessageRendererHandle | null>(null);
-  const expandedMsgId = `tl-expanded-${useId().replace(/:/g, "")}`;
-  const limit = 20;
+  const body = useRef<MessageRendererHandle | null>(null);
+  const expandedId = `tl-expanded-${useId().replace(/:/g, "")}`;
+  const startMs = video?.available_at ? Number(dayjs(video.available_at)) : null;
 
-  const startTimeMillis = video?.available_at ? Number(dayjs(video.available_at)) : null;
-
-  const blockedNames = useMemo(() => new Set(appStore.settings.liveTlBlocked || []), [appStore.settings.liveTlBlocked]);
-  const filteredMessages = useMemo(() => tlHistory.filter((m: any) => !blockedNames.has(m.name)), [tlHistory, blockedNames]);
-  const [subtitleTarget, setSubtitleTarget] = useState<HTMLElement | null>(null);
+  const blocked = useMemo(() => new Set(app.settings.liveTlBlocked || []), [app.settings.liveTlBlocked]);
+  const filtered = useMemo(() => history.filter((m: any) => !blocked.has(m.name)), [history, blocked]);
+  const [subTarget, setSubTarget] = useState<HTMLElement | null>(null);
   const toDisplay = useMemo(() => {
-    if (!filteredMessages.length || !showSubtitle || tlClient) return [];
-    const buffer = filteredMessages.slice(-2);
-    if (!currentTime) return buffer;
-    return buffer.filter((m: any) => {
-      const displayTime = +m.duration || String(m.message || "").length * 65 + 1800;
-      const receivedRelativeMs = m.receivedAt ? m.receivedAt - (startTimeMillis ?? 0) : m.relativeMs;
-      const curRelativeMs = currentTime * 1000;
-      return curRelativeMs >= receivedRelativeMs && curRelativeMs < receivedRelativeMs + displayTime;
+    if (!filtered.length || !showSub || tlClient) return [];
+    const buf = filtered.slice(-2);
+    if (!currentTime) return buf;
+    return buf.filter((m: any) => {
+      const dur = +m.duration || String(m.message || "").length * 65 + 1800;
+      const recvMs = m.receivedAt ? m.receivedAt - (startMs ?? 0) : m.relativeMs;
+      const curMs = currentTime * 1000;
+      return curMs >= recvMs && curMs < recvMs + dur;
     });
-  }, [filteredMessages, showSubtitle, tlClient, currentTime, startTimeMillis]);
+  }, [filtered, showSub, tlClient, currentTime, startMs]);
 
+  useEffect(() => { if (tlLang) setLang(tlLang); }, [tlLang]);
   useEffect(() => {
-    if (tlLang) setLiveTlLang(tlLang);
-  }, [tlLang]);
+    if (typeof document === "undefined" || !video?.id) { setSubTarget(null); return; }
+    setSubTarget(document.getElementById(`overlay-${video.id}`));
+  }, [video?.id, expanded, showSub]);
+  useEffect(() => { if (!useLocalSubtitleToggle) setShowSub(app.settings.liveTlShowSubtitle); }, [app.settings.liveTlShowSubtitle, useLocalSubtitleToggle]);
+  useEffect(() => { body.current?.scrollToBottom(); }, [history]);
 
-  useEffect(() => {
-    if (typeof document === "undefined" || !video?.id) { setSubtitleTarget(null); return; }
-    setSubtitleTarget(document.getElementById(`overlay-${video.id}`));
-  }, [video?.id, expanded, showSubtitle]);
-
-  useEffect(() => {
-    if (!useLocalSubtitleToggle) setShowSubtitle(appStore.settings.liveTlShowSubtitle);
-  }, [appStore.settings.liveTlShowSubtitle, useLocalSubtitleToggle]);
-
-  useEffect(() => {
-    tlBody.current?.scrollToBottom();
-  }, [tlHistory]);
-
-  function parseMessage(msg: any) {
-    const next = { ...msg };
-    next.timestamp = +next.timestamp;
-    next.relativeMs = startTimeMillis ? next.timestamp - startTimeMillis : 0;
+  const parseMessage = (msg: any) => {
+    const next = { ...msg, timestamp: +msg.timestamp };
+    next.relativeMs = startMs ? next.timestamp - startMs : 0;
     next.key = next.name + next.timestamp + next.message;
     if (next.message?.includes?.("https://") && !next.parsed) {
-      const regex = /(\S+)(https:\/\/(yt\d+\.ggpht\.com\/[a-zA-Z0-9_\-=/]+-c-k-nd|www\.youtube\.com\/[a-zA-Z0-9_\-=/]+\.svg))/gi;
-      next.parsed = next.message
-        .replace(/<([^>]*)>/g, "($1)")
-        .replace(regex, '<img src="$2" />');
+      next.parsed = next.message.replace(/<([^>]*)>/g, "($1)")
+        .replace(/(\S+)(https:\/\/(yt\d+\.ggpht\.com\/[a-zA-Z0-9_\-=/]+-c-k-nd|www\.youtube\.com\/[a-zA-Z0-9_\-=/]+\.svg))/gi, '<img src="$2" />');
     }
     return next;
-  }
+  };
 
   function loadMessages(firstLoad = false, loadAll = false, asTlClient = tlClient) {
     if (!video?.id) return;
     const isCustom = video.isCustom;
     setHistoryLoading(true);
-    const lastTimestamp = !firstLoad && tlHistory[0]?.timestamp;
-    const query: Record<string, unknown> = {
-      lang: liveTlLang,
-      verified: !asTlClient && appStore.settings.liveTlShowVerified,
-      moderator: !asTlClient && appStore.settings.liveTlShowModerator,
-      vtuber: !asTlClient && appStore.settings.liveTlShowVtuber,
-      limit: loadAll ? 100000 : limit,
-      ...(lastTimestamp && { before: lastTimestamp }),
+    const last = !firstLoad && history[0]?.timestamp;
+    const q: Record<string, unknown> = {
+      lang,
+      verified: !asTlClient && app.settings.liveTlShowVerified,
+      moderator: !asTlClient && app.settings.liveTlShowModerator,
+      vtuber: !asTlClient && app.settings.liveTlShowVtuber,
+      limit: loadAll ? 100000 : LIMIT,
+      ...(last && { before: last }),
       ...(isCustom && { custom_video_id: video.id }),
     };
-    api.chatHistory(isCustom ? "custom" : video.id, query)
+    api.chatHistory(isCustom ? "custom" : video.id, q)
       .then(({ data }: { data: any[] }) => {
-        setCompleted(data.length !== limit || loadAll);
+        setCompleted(data.length !== LIMIT || loadAll);
         const parsed = data.map(parseMessage);
-        setTlHistory((prev) => {
+        setHistory((prev) => {
           const next = firstLoad ? parsed : [...parsed, ...prev];
           if (next.length) next[0] = { ...next[0], breakpoint: true };
           return next;
         });
       })
-      .catch((e: unknown) => {
-        console.error(e);
-      })
-      .finally(() => {
-        setHistoryLoading(false);
-        setIsLoading(false);
-        setShowOverlay(false);
-      });
+      .catch(console.error)
+      .finally(() => { setHistoryLoading(false); setIsLoading(false); setShowOverlay(false); });
   }
 
-  function refreshFallbackHistory() {
-    loadMessages(true, false, tlClient);
-    setShowOverlay(false);
-    setIsLoading(false);
-  }
+  const refresh = () => { loadMessages(true, false, tlClient); setShowOverlay(false); setIsLoading(false); };
 
   function tlJoin() {
     if (video?.status && video.status !== "live" && !dayjs().isAfter(dayjs(video.start_scheduled).subtract(15, "minutes"))) {
-      setOverlayMessage(t("views.watch.chat.status.notLive"));
-      setIsLoading(false);
-      setShowOverlay(true);
+      setOverlayMsg(t("views.watch.chat.status.notLive"));
+      setIsLoading(false); setShowOverlay(true);
       return;
     }
-    refreshFallbackHistory();
+    refresh();
   }
 
   useEffect(() => {
     setIsLoading(true);
-    setTlHistory([]);
+    setHistory([]);
     tlJoin();
-    const id = setInterval(() => refreshFallbackHistory(), 15000);
+    const id = setInterval(refresh, 15000);
     return () => clearInterval(id);
-  }, [video?.id, video?.isCustom, liveTlLang, appStore.settings.liveTlShowVerified, appStore.settings.liveTlShowModerator, appStore.settings.liveTlShowVtuber]);
+  }, [video?.id, video?.isCustom, lang, app.settings.liveTlShowVerified, app.settings.liveTlShowModerator, app.settings.liveTlShowVtuber]);
 
-  function toggleSubtitle() {
-    const next = !showSubtitle;
-    setShowSubtitle(next);
-    if (!useLocalSubtitleToggle) appStore.patchSettings({ liveTlShowSubtitle: next } as any);
-  }
+  const toggleSub = () => {
+    const n = !showSub;
+    setShowSub(n);
+    if (!useLocalSubtitleToggle) app.patchSettings({ liveTlShowSubtitle: n } as any);
+  };
+
+  const blockedCount = history.length - filtered.length;
 
   return (
-    <Card className={`box-border flex relative w-full flex-col overflow-hidden border-0 bg-transparent p-0 text-sm shadow-none ${className}`} style={style}>
+    <Card className={cn("relative box-border flex min-h-0 w-full flex-col overflow-hidden p-0 text-sm", className)}>
       {showOverlay ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-slate-950/90 px-4 text-center backdrop-blur-sm">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background px-4 text-center">
           {isLoading ? (
-            <div className="inline-flex items-center gap-2 text-sm text-slate-300">
-              <Spinner className="size-4" />
-              {t("views.watch.chat.loading")}
+            <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <Spinner className="size-4" />{t("views.watch.chat.loading")}
             </div>
           ) : (
             <>
-              <div className="text-sm text-slate-400">
-                {overlayMessage}
-              </div>
+              <div className="text-sm text-muted-foreground">{overlayMsg}</div>
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <Button variant="ghost" size="sm" className="h-7 rounded-lg text-xs text-slate-500" onClick={() => { setShowOverlay(false); }}>
-                  {t("views.app.close_btn")}
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowOverlay(false)}>{t("views.app.close_btn")}</Button>
               </div>
             </>
           )}
         </div>
       ) : null}
-      <div className="flex items-center justify-between gap-2 border-b border-white/8 px-3 py-1.5">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          TLdex [{liveTlLang}]
+      <div className="flex items-center justify-between gap-2 border-b px-3 py-1.5">
+        <div className="flex items-center gap-1.5 text-xs font-medium">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />TLdex [{lang}]
         </div>
         <div className="flex items-center gap-0.5">
           {!tlClient ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-full text-slate-400 hover:text-white"
-              title={t("views.watch.chat.showSubtitle")}
-              onClick={toggleSubtitle}
-            >
-              <Captions className={cn("size-3.5", showSubtitle ? "text-[color:var(--color-primary)]" : "")} />
+            <Button variant="ghost" size="icon" className="h-6 w-6" title={t("views.watch.chat.showSubtitle")} onClick={toggleSub}>
+              <Captions className={cn("size-3.5", showSub && "text-primary")} />
             </Button>
           ) : null}
           {!tlClient ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-full text-slate-400 hover:text-white"
-              title={t("views.watch.chat.expandTL")}
-              onClick={() => setExpanded(true)}
-            >
+            <Button variant="ghost" size="icon" className="h-6 w-6" title={t("views.watch.chat.expandTL")} onClick={() => setExpanded(true)}>
               <Maximize2 className="size-3.5" />
             </Button>
           ) : null}
           <Dialog open={expanded} onOpenChange={setExpanded}>
             <DialogContent className="max-w-4xl p-0">
-            <Card className="p-0">
-              <div id={expandedMsgId} className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full">
-                <MessageRenderer tlHistory={filteredMessages} fontSize={appStore.settings.liveTlFontSize}>
-                  {tlHistory.length - filteredMessages.length > 0 ? (
-                    <div className="text-caption">
-                      {tlHistory.length - filteredMessages.length} Blocked Messages
-                    </div>
-                  ) : null}
-                  {!completed && !historyLoading ? (
-                    <Button variant="ghost" size="sm" onClick={() => loadMessages(false, true)}>
-                      Load All
-                    </Button>
-                  ) : null}
-                </MessageRenderer>
-              </div>
-              <CardFooter className="justify-end border-t border-white/10 px-4 py-3">
-                <Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>
-                  {t("views.app.close_btn")}
-                </Button>
-              </CardFooter>
-            </Card>
+              <Card className="p-0">
+                <div id={expandedId} className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full">
+                  <MessageRenderer tlHistory={filtered} fontSize={app.settings.liveTlFontSize}>
+                    {blockedCount > 0 ? <div className="text-xs text-muted-foreground">{blockedCount} Blocked Messages</div> : null}
+                    {!completed && !historyLoading ? <Button variant="ghost" size="sm" onClick={() => loadMessages(false, true)}>Load All</Button> : null}
+                  </MessageRenderer>
+                </div>
+                <CardFooter className="justify-end">
+                  <Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>{t("views.app.close_btn")}</Button>
+                </CardFooter>
+              </Card>
             </DialogContent>
           </Dialog>
           <LiveTranslationsSetting />
         </div>
       </div>
-      {showSubtitle && subtitleTarget ? createPortal(<WatchSubtitleOverlay messages={toDisplay} />, subtitleTarget) : null}
-      <MessageRenderer ref={tlBody} tlHistory={filteredMessages} fontSize={appStore.settings.liveTlFontSize}>
-        {tlHistory.length - filteredMessages.length > 0 ? (
-          <div className="text-caption">
-            {tlHistory.length - filteredMessages.length} Blocked Messages
-          </div>
-        ) : null}
-        {!completed && !historyLoading && expanded ? (
-          <Button variant="ghost" size="sm" onClick={() => loadMessages(false, true)}>
-            Load All
-          </Button>
-        ) : null}
+      {showSub && subTarget ? createPortal(<WatchSubtitleOverlay messages={toDisplay} />, subTarget) : null}
+      <MessageRenderer ref={body} tlHistory={filtered} fontSize={app.settings.liveTlFontSize}>
+        {blockedCount > 0 ? <div className="text-xs text-muted-foreground">{blockedCount} Blocked Messages</div> : null}
+        {!completed && !historyLoading && expanded ? <Button variant="ghost" size="sm" onClick={() => loadMessages(false, true)}>Load All</Button> : null}
       </MessageRenderer>
     </Card>
   );

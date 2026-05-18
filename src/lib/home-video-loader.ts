@@ -2,130 +2,85 @@ import { api } from "@/lib/api";
 import { HOME_TABS as Tabs } from "@/lib/cookie-codec";
 import { dayjs } from "@/lib/time";
 import { dedupeVideos, extractItems, sortVideosForTab } from "@/lib/video-format";
-const API_MAX_LIMIT = 100;
 
-type MultiOrgCacheEntry = {
+const MAX = 100;
+
+type CacheEntry = {
   page1: Promise<any[]>;
   getCurrentItems: () => any[];
   fetchMore: () => Promise<void>;
   isExhausted: () => boolean;
 };
 
-const multiOrgDataCache = new Map<string, MultiOrgCacheEntry>();
+const dataCache = new Map<string, CacheEntry>();
 
 export function sortPayloadForHomeTab(payload: any, tab: number) {
   if (tab !== Tabs.ARCHIVE) return payload;
   if (Array.isArray(payload)) return sortVideosForTab(payload, true);
-  if (payload?.items && Array.isArray(payload.items))
-    return { ...payload, items: sortVideosForTab(payload.items, true) };
+  if (Array.isArray(payload?.items)) return { ...payload, items: sortVideosForTab(payload.items, true) };
   return payload;
 }
 
-export function buildHomeTabQuery({
-  tab,
-  clipLangs,
-  toDate,
-}: {
-  tab: number;
-  clipLangs: string[];
-  toDate?: string | null;
-}): Record<string, any> {
-  const inclusion = tab === Tabs.ARCHIVE ? "mentions,clips" : "mentions";
-  return {
-    status: tab === Tabs.ARCHIVE ? "past,missing" : "past",
-    type: tab === Tabs.ARCHIVE ? "stream" : "clip",
-    include: inclusion,
-    lang: clipLangs.join(","),
-    paginated: false,
-    ...(toDate && { to: dayjs(toDate).add(1, "day").toDate().toISOString() }),
-    max_upcoming_hours: 1,
-  };
-}
+export const buildHomeTabQuery = ({ tab, clipLangs, toDate }: { tab: number; clipLangs: string[]; toDate?: string | null }) => ({
+  status: tab === Tabs.ARCHIVE ? "past,missing" : "past",
+  type: tab === Tabs.ARCHIVE ? "stream" : "clip",
+  include: tab === Tabs.ARCHIVE ? "mentions,clips" : "mentions",
+  lang: clipLangs.join(","),
+  paginated: false,
+  ...(toDate && { to: dayjs(toDate).add(1, "day").toDate().toISOString() }),
+  max_upcoming_hours: 1,
+});
 
-export function clearHomeMultiOrgVideoCache() {
-  multiOrgDataCache.clear();
-}
+export const clearHomeMultiOrgVideoCache = () => dataCache.clear();
+export const hasHomeMultiOrgVideoCache = (k: string) => dataCache.has(k);
+export const getHomeMultiOrgVideoCache = (k: string) => dataCache.get(k);
 
-export function hasHomeMultiOrgVideoCache(cacheKey: string) {
-  return multiOrgDataCache.has(cacheKey);
-}
+export function ensureHomeMultiOrgVideoFetch(key: string, query: Record<string, any>, targets: string[], tab: number = Tabs.ARCHIVE) {
+  if (dataCache.has(key)) return;
+  const base = { ...query, paginated: false };
+  const archive = tab === Tabs.ARCHIVE;
 
-export function getHomeMultiOrgVideoCache(cacheKey: string) {
-  return multiOrgDataCache.get(cacheKey);
-}
+  const items: any[][] = targets.map(() => []);
+  const offsets: number[] = targets.map(() => 0);
+  const exhausted: boolean[] = targets.map(() => false);
+  let inflight: Promise<void> | null = null;
+  let current: any[] = [];
 
-export function ensureHomeMultiOrgVideoFetch(
-  cacheKey: string,
-  query: Record<string, any>,
-  orgTargets: string[],
-  tab: number = Tabs.ARCHIVE,
-) {
-  if (multiOrgDataCache.has(cacheKey)) return;
-  const baseQuery = { ...query, paginated: false };
-  const isArchive = tab === Tabs.ARCHIVE;
+  const merge = () => { current = sortVideosForTab(dedupeVideos(items.flat()), archive); };
 
-  const allOrgItems: any[][] = orgTargets.map(() => []);
-  const orgOffsets: number[] = orgTargets.map(() => 0);
-  const orgExhausted: boolean[] = orgTargets.map(() => false);
-  let inflightFetch: Promise<void> | null = null;
-  let currentItems: any[] = [];
-
-  const mergeAll = () => {
-    currentItems = sortVideosForTab(dedupeVideos(allOrgItems.flat()), isArchive);
-  };
-
-  const orgPage1Promises = orgTargets.map((org, i) =>
-    api
-      .videos({ ...baseQuery, org, limit: API_MAX_LIMIT, offset: 0 })
+  const page1Promises = targets.map((org, i) =>
+    api.videos({ ...base, org, limit: MAX, offset: 0 })
       .then((res: any) => {
-        allOrgItems[i] = extractItems(res.data);
-        orgOffsets[i] = API_MAX_LIMIT;
-        if (allOrgItems[i].length < API_MAX_LIMIT) orgExhausted[i] = true;
-        return allOrgItems[i];
+        items[i] = extractItems(res.data);
+        offsets[i] = MAX;
+        if (items[i].length < MAX) exhausted[i] = true;
+        return items[i];
       })
-      .catch(() => {
-        orgExhausted[i] = true;
-        return (allOrgItems[i] = [] as any[]);
-      }),
+      .catch(() => { exhausted[i] = true; return (items[i] = []); })
   );
 
-  const page1 = Promise.all(orgPage1Promises).then(() => {
-    mergeAll();
-    return currentItems;
-  });
+  const page1 = Promise.all(page1Promises).then(() => { merge(); return current; });
 
   const fetchMore = (): Promise<void> => {
-    if (inflightFetch) return inflightFetch;
-    if (orgExhausted.every(Boolean)) return Promise.resolve();
-    inflightFetch = Promise.all(
-      orgTargets.map(async (org, i) => {
-        if (orgExhausted[i]) return;
-        try {
-          const res: any = await api.videos({
-            ...baseQuery,
-            org,
-            limit: API_MAX_LIMIT,
-            offset: orgOffsets[i],
-          });
-          const items = extractItems(res.data);
-          allOrgItems[i] = [...allOrgItems[i], ...items];
-          orgOffsets[i] += API_MAX_LIMIT;
-          if (items.length < API_MAX_LIMIT) orgExhausted[i] = true;
-        } catch {
-          orgExhausted[i] = true;
-        }
-      }),
-    ).then(() => {
-      mergeAll();
-      inflightFetch = null;
-    });
-    return inflightFetch;
+    if (inflight) return inflight;
+    if (exhausted.every(Boolean)) return Promise.resolve();
+    inflight = Promise.all(targets.map(async (org, i) => {
+      if (exhausted[i]) return;
+      try {
+        const res: any = await api.videos({ ...base, org, limit: MAX, offset: offsets[i] });
+        const v = extractItems(res.data);
+        items[i] = [...items[i], ...v];
+        offsets[i] += MAX;
+        if (v.length < MAX) exhausted[i] = true;
+      } catch { exhausted[i] = true; }
+    })).then(() => { merge(); inflight = null; });
+    return inflight;
   };
 
-  multiOrgDataCache.set(cacheKey, {
+  dataCache.set(key, {
     page1,
-    getCurrentItems: () => currentItems,
+    getCurrentItems: () => current,
     fetchMore,
-    isExhausted: () => orgExhausted.every(Boolean),
+    isExhausted: () => exhausted.every(Boolean),
   });
 }

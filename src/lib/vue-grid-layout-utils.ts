@@ -1,70 +1,35 @@
-type VueGridLayoutItem = {
-  w: number;
-  h: number;
-  x: number;
-  y: number;
-  i: string | number;
-  minW?: number;
-  minH?: number;
-  maxW?: number;
-  maxH?: number;
-  moved?: boolean;
-  static?: boolean;
-  isDraggable?: boolean;
-  isResizable?: boolean;
+type Item = {
+  w: number; h: number; x: number; y: number; i: string | number;
+  minW?: number; minH?: number; maxW?: number; maxH?: number;
+  moved?: boolean; static?: boolean; isDraggable?: boolean; isResizable?: boolean;
   [key: string]: any;
 };
 
-type VueGridLayout = VueGridLayoutItem[];
+type Layout = Item[];
 
-export function cloneLayoutItem(layoutItem: VueGridLayoutItem): VueGridLayoutItem {
-  return structuredClone(layoutItem);
-}
+export const cloneLayoutItem = (i: Item): Item => structuredClone(i);
 
-function collides(l1: VueGridLayoutItem, l2: VueGridLayoutItem): boolean {
-  if (l1 === l2 || String(l1.i) === String(l2.i)) return false;
-  if (l1.x + l1.w <= l2.x) return false;
-  if (l1.x >= l2.x + l2.w) return false;
-  if (l1.y + l1.h <= l2.y) return false;
-  if (l1.y >= l2.y + l2.h) return false;
-  return true;
-}
+const collides = (a: Item, b: Item) =>
+  a !== b && String(a.i) !== String(b.i) && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-function sortLayoutItemsByRowCol(layout: VueGridLayout): VueGridLayout {
-  return [...layout].sort((a, b) => {
-    if (a.y === b.y && a.x === b.x) return 0;
-    return a.y > b.y || (a.y === b.y && a.x > b.x) ? 1 : -1;
-  });
-}
+const sortByRowCol = (l: Layout) => [...l].sort((a, b) => a.y - b.y || a.x - b.x);
 
-export function getLayoutItem(layout: VueGridLayout, id: string | number): VueGridLayoutItem | undefined {
-  return layout.find((item) => String(item.i) === String(id));
-}
+export const getLayoutItem = (l: Layout, id: string | number) => l.find((i) => String(i.i) === String(id));
 
-function getFirstCollision(layout: VueGridLayout, layoutItem: VueGridLayoutItem): VueGridLayoutItem | undefined {
-  return layout.find((item) => collides(item, layoutItem));
-}
+const firstCollision = (l: Layout, i: Item) => l.find((x) => collides(x, i));
 
-export function getAllCollisions(layout: VueGridLayout, layoutItem: VueGridLayoutItem): VueGridLayoutItem[] {
-  return layout.filter((item) => collides(item, layoutItem));
-}
+export const getAllCollisions = (l: Layout, i: Item) => l.filter((x) => collides(x, i));
 
-export function compact(layout: VueGridLayout, verticalCompact: boolean): VueGridLayout {
-  const compareWith = layout.filter((item) => item.static);
-  const sorted = sortLayoutItemsByRowCol(layout);
-  const out = Array(layout.length) as VueGridLayout;
-  sorted.forEach((item) => {
-    const l = item;
+export function compact(layout: Layout, verticalCompact: boolean): Layout {
+  const cmp = layout.filter((i) => i.static);
+  const sorted = sortByRowCol(layout);
+  const out = Array(layout.length) as Layout;
+  sorted.forEach((l) => {
     if (!l.static) {
-      if (verticalCompact) {
-        while (l.y > 0 && !getFirstCollision(compareWith, l)) l.y -= 1;
-      }
-      let collision = getFirstCollision(compareWith, l);
-      while (collision) {
-        l.y = collision.y + collision.h;
-        collision = getFirstCollision(compareWith, l);
-      }
-      compareWith.push(l);
+      if (verticalCompact) while (l.y > 0 && !firstCollision(cmp, l)) l.y -= 1;
+      let c = firstCollision(cmp, l);
+      while (c) { l.y = c.y + c.h; c = firstCollision(cmp, l); }
+      cmp.push(l);
     }
     out[layout.indexOf(l)] = l;
     l.moved = false;
@@ -72,86 +37,50 @@ export function compact(layout: VueGridLayout, verticalCompact: boolean): VueGri
   return out;
 }
 
-export function moveElement(
-  layout: VueGridLayout,
-  l: VueGridLayoutItem,
-  x: number | undefined,
-  y: number | undefined,
-  isUserAction: boolean,
-  preventCollision: boolean,
-): VueGridLayout {
+export function moveElement(layout: Layout, l: Item, x: number | undefined, y: number | undefined, isUserAction: boolean, preventCollision: boolean): Layout {
   if (l.static) return layout;
-
-  const oldX = l.x;
-  const oldY = l.y;
+  const oldX = l.x, oldY = l.y;
   const movingUp = y !== undefined && l.y > y;
   if (typeof x === "number") l.x = x;
   if (typeof y === "number") l.y = y;
   l.moved = true;
-
-  let sorted = sortLayoutItemsByRowCol(layout);
+  let sorted = sortByRowCol(layout);
   if (movingUp) sorted = sorted.reverse();
-  const collisions = getAllCollisions(sorted, l);
-
-  if (preventCollision && collisions.length) {
-    l.x = oldX;
-    l.y = oldY;
-    l.moved = false;
+  const cs = getAllCollisions(sorted, l);
+  if (preventCollision && cs.length) {
+    l.x = oldX; l.y = oldY; l.moved = false;
     return layout;
   }
-
-  collisions.forEach((collision) => {
-    if (collision.moved) return;
-    if (l.y > collision.y && l.y - collision.y > collision.h / 4) return;
-    if (collision.static) moveElementAwayFromCollision(layout, collision, l, isUserAction);
-    else moveElementAwayFromCollision(layout, l, collision, isUserAction);
+  cs.forEach((c) => {
+    if (c.moved) return;
+    if (l.y > c.y && l.y - c.y > c.h / 4) return;
+    if (c.static) moveAway(layout, c, l, isUserAction);
+    else moveAway(layout, l, c, isUserAction);
   });
-
   return layout;
 }
 
-function moveElementAwayFromCollision(
-  layout: VueGridLayout,
-  collidesWith: VueGridLayoutItem,
-  itemToMove: VueGridLayoutItem,
-  isUserAction: boolean,
-): VueGridLayout {
+function moveAway(layout: Layout, collidesWith: Item, toMove: Item, isUserAction: boolean): Layout {
   if (isUserAction) {
-    const fakeItem: VueGridLayoutItem = {
-      x: itemToMove.x,
-      y: Math.max(collidesWith.y - itemToMove.h, 0),
-      w: itemToMove.w,
-      h: itemToMove.h,
-      i: "-1",
-    };
-    if (!getFirstCollision(layout, fakeItem)) {
-      return moveElement(layout, itemToMove, undefined, fakeItem.y, false, false);
-    }
+    const fake: Item = { x: toMove.x, y: Math.max(collidesWith.y - toMove.h, 0), w: toMove.w, h: toMove.h, i: "-1" };
+    if (!firstCollision(layout, fake)) return moveElement(layout, toMove, undefined, fake.y, false, false);
   }
-  return moveElement(layout, itemToMove, undefined, itemToMove.y + 1, false, false);
+  return moveElement(layout, toMove, undefined, toMove.y + 1, false, false);
 }
 
-export function calcGridPosition(x: number, y: number, w: number, h: number, colWidth: number, rowHeight: number) {
-  return {
-    left: Math.round(colWidth * x),
-    top: Math.round(rowHeight * y),
-    width: w === Infinity ? w : Math.round(colWidth * w),
-    height: h === Infinity ? h : Math.round(rowHeight * h),
-  };
-}
+export const calcGridPosition = (x: number, y: number, w: number, h: number, cw: number, rh: number) => ({
+  left: Math.round(cw * x),
+  top: Math.round(rh * y),
+  width: w === Infinity ? w : Math.round(cw * w),
+  height: h === Infinity ? h : Math.round(rh * h),
+});
 
-export function calcGridXY(top: number, left: number, innerW: number, innerH: number, colWidth: number, rowHeight: number, cols = 24, maxRows = Infinity) {
-  let x = Math.round(left / colWidth);
-  let y = Math.round(top / rowHeight);
-  x = Math.max(Math.min(x, cols - innerW), 0);
-  y = Math.max(Math.min(y, maxRows - innerH), 0);
-  return { x, y };
-}
+export const calcGridXY = (top: number, left: number, innerW: number, innerH: number, cw: number, rh: number, cols = 24, maxRows = Infinity) => ({
+  x: Math.max(Math.min(Math.round(left / cw), cols - innerW), 0),
+  y: Math.max(Math.min(Math.round(top / rh), maxRows - innerH), 0),
+});
 
-export function calcGridWH(height: number, width: number, innerX: number, innerY: number, colWidth: number, rowHeight: number, cols = 24, maxRows = Infinity, autoSizeFlag = false) {
-  let w = Math.round(width / colWidth);
-  let h = autoSizeFlag ? Math.ceil(height / rowHeight) : Math.round(height / rowHeight);
-  w = Math.max(Math.min(w, cols - innerX), 0);
-  h = Math.max(Math.min(h, maxRows - innerY), 0);
-  return { w, h };
-}
+export const calcGridWH = (height: number, width: number, innerX: number, innerY: number, cw: number, rh: number, cols = 24, maxRows = Infinity, autoSize = false) => ({
+  w: Math.max(Math.min(Math.round(width / cw), cols - innerX), 0),
+  h: Math.max(Math.min(autoSize ? Math.ceil(height / rh) : Math.round(height / rh), maxRows - innerY), 0),
+});

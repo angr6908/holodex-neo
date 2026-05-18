@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomenasorry!",
+      "title": "A tartalom nem tölthető be",
       "textBeforeTwitter": "Hiba történt a tartalmak visszakeresése során, kérlek nézd a Twittert ",
       "textAfterTwitter": " vagy jelentsd itt:",
       "aboutPage": "Az oldalról",
@@ -96,31 +96,38 @@
         "channel": "csatorna",
         "topic": "téma",
         "org": "szervezet",
-        "titledesc": "cím/leírás",
+        "titledesc": "Cím vagy leírás",
         "title": "cím",
         "description": "leírás",
         "comments": "hozzászólások",
         "videourl": "videó URL"
       },
-      "placeholder": "Streamek, klipek, csatornák keresése",
+      "placeholder": "Streamek, klipek vagy csatornák keresése",
       "clear": "Törlés",
       "loading": "Betöltés...",
-      "typeTwoCharacters": "Írj be 2 karaktert",
+      "typeTwoCharacters": "Írj be legalább 2 karaktert",
       "noChannelsFound": "Nem található csatorna",
       "noTopicsFound": "Nem található téma",
       "noOrganizationsFound": "Nem található szervezet",
       "noResultsFound": "Nincs találat",
       "searchChannels": "Csatornák keresése",
-      "filterByTopicOrgChannel": "Szűrés téma, szervezet, csatorna szerint ...",
+      "filterByTopicOrgChannel": "Szűrés téma, szervezet vagy csatorna szerint",
       "topicOrgChannelPlaceholder": "Téma, szervezet vagy csatorna",
       "toggleSearch": "Keresés váltása",
       "organizations": "Szervezetek",
       "searchOrganizations": "Szervezetek keresése",
-      "quickSelect": "Gyors kijelölés",
+      "quickSelect": "Gyors választás",
       "allVtubers": "Összes VTuber",
       "selectedOrgCount": "{count} szervezet",
       "additionalOrgCount": "{count} további",
       "unset": "Nincs beállítva"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Csatorna letiltása",
+      "unblock": "Tiltás feloldása"
     },
     "relatedVideo": {
       "clipsLabel": "klipek",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Eltávolítás"
+      "remove": "Eltávolítás",
+      "automatedSongHelper": "Automatikus kommentes dal-segéd",
+      "clickSearchableTimestamp": "Időbélyeg vagy keresőkifejezés kiválasztása"
     },
     "comment": {
       "close": "Bezárás",
@@ -367,9 +376,12 @@
         "sortBy": "Rendezés",
         "viewers": "Nézők",
         "latest": "Legújabb",
-        "uploadedBefore": "Feltöltve ez előtt",
+        "uploadedBefore": "Feltöltve előtte",
         "pickDate": "Dátum kiválasztása",
-        "clipLanguages": "Klipek megjelenítése az alábbi nyelveken:"
+        "clipLanguages": "Klipnyelvek",
+        "displayMode": "Megjelenítési mód",
+        "list": "Lista",
+        "denseList": "Tömör lista"
       },
       "apiError": "Nem sikerült betölteni a videókat."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Összes",
-        "official": "Hivatalos",
-        "clip": "Klip"
+        "official": "Streamek",
+        "clip": "Klipek"
       },
       "unsupportedQuery": "Jelenleg klipek keresése <kbd>Téma</kbd> és <kbd>Szervezet</kbd> által nem támogatott. Nem lesznek <b>klipek</b> előhozva.",
       "sortByLabel": "Rendezés",
-      "typeDropdownLabel": "Típus",
+      "typeDropdownLabel": "Tartalomtípus",
       "searching": "Keresés...",
-      "useSearchBar": "Használd a keresősávot streamek, klipek vagy csatornák kereséséhez."
+      "useSearchBar": "Használd a keresősávot streamek, klipek vagy csatornák kereséséhez.",
+      "sortBy": "Rendezés"
     },
     "settings": {
       "title": "Beállítások",
@@ -499,9 +512,9 @@
         "tlStart": "Üzenetek kezdete",
         "StickBottomSettingLabel": "Alulra rögzítés",
         "StickBottomSettingsDesc": "A fordító doboz Youtube chat alá helyezése",
-        "showVerifiedMessages": "Igazolt felhasználók üzeneteinek megjelenítése",
-        "showModeratorMessages": "Moderátor üzenetek megjelenítése",
-        "showVtuberMessages": "Vtuber üzenetek megjelenítése",
+        "showVerifiedMessages": "Ellenőrzött üzenetek megjelenítése",
+        "showModeratorMessages": "Moderátorüzenetek megjelenítése",
+        "showVtuberMessages": "VTuber üzenetek megjelenítése",
         "showLocalTime": "Helyi idők mutatása",
         "tlFontSize": "Betű méret",
         "tlWindowSize": "Fordító mérete (%), 0%-on automatikus",
@@ -558,7 +571,8 @@
         "button": "Mentés (Igénybe vehet 5 percet)",
         "unset": "Nincs beállítva",
         "inputPlaceholder": "Téma (hagyd üresen a törléshez)",
-        "saveTopic": "Téma mentése"
+        "saveTopic": "Téma mentése",
+        "updateSuccess": "Téma frissítve: {topic}"
       },
       "channelMentions": {
         "title": "Csatorna említések",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Meghallgatás Apple Musicon",
       "pickItunesResult": "Válassz egy iTunes-találatot",
       "playFromHere": "Lejátszás innen",
-      "timestampEditorHint": "Relatív időbélyegekkel igazítsd a zenét a videóhoz."
+      "timestampEditorHint": "Relatív időbélyegekkel igazítsd a zenét a videóhoz.",
+      "exportSummary": "{entries} bejegyzés, {profiles} profil"
     },
     "exitMode": "Kilépés a szerkesztő módból",
     "enterMode": "Videó szerkesztése"

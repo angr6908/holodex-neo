@@ -147,15 +147,15 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
       <>
         {item.artworkUrl100 ? <img src={item.artworkUrl100} className="h-12 w-12 rounded-lg object-cover" alt="" /> : null}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm text-[color:var(--color-foreground)]">
+          <div className="truncate text-sm text-foreground">
             🎵 {item.trackName} [{formatDuration(item.trackTimeMillis)}]
           </div>
-          <div className="truncate text-xs text-[color:var(--color-muted-foreground)]">
+          <div className="truncate text-xs text-muted-foreground">
             🎤 {item.artistName}
             {item.collectionName ? ` / ${item.collectionName}` : ""}
             {item.releaseDate ? ` / ${item.releaseDate.slice(0, 7)}` : ""}
             {showSource && item.src ? (
-              <Badge variant="outline" className="ml-1 border-white/10 px-1.5 text-[10px] font-normal text-current uppercase opacity-60">
+              <Badge variant="outline" className="ml-1">
                 {item.src}
               </Badge>
             ) : null}
@@ -169,12 +169,12 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
     <Popover open={openMenu && results.length > 0} onOpenChange={setOpenMenu}>
       <PopoverTrigger
         nativeButton={false}
-        render={<Card className="gap-0 rounded-[calc(var(--radius)+4px)] border-white/10 bg-white/6 p-2 shadow-xl shadow-slate-950/20" />}
+        render={<Card className="gap-0 p-2" />}
       >
           {query ? (
-            <div className="mb-2 flex items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-3 py-2">
+            <div className="mb-2 flex items-center gap-3 rounded-xl border px-3 py-2">
               {renderSongSummary(query)}
-              <Button type="button" variant="ghost" size="icon-xs" className="text-[color:var(--color-primary)] hover:bg-white/6" onClick={clearSelection}>
+              <Button type="button" variant="ghost" size="icon-xs" onClick={clearSelection}>
                 <icons.XIcon className="h-4 w-4" />
               </Button>
             </div>
@@ -183,7 +183,6 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
             value={search}
             autoFocus={autofocus}
             placeholder={t("editor.music.itunesLookupPlaceholder")}
-            className="border-0 bg-transparent shadow-none focus:ring-0"
             onFocus={() => setOpenMenu(true)}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }}

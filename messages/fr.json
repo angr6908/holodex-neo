@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomenasorry!",
+      "title": "Impossible de charger le contenu",
       "textBeforeTwitter": "Il y a eu une erreur lors de la récupération du contenu, veuillez vérifier sur twitter ",
       "textAfterTwitter": " ou signaler le bug via",
       "aboutPage": "À propos",
@@ -96,22 +96,22 @@
         "channel": "chaîne",
         "topic": "sujet",
         "org": "organisation",
-        "titledesc": "titre/description",
+        "titledesc": "Titre ou description",
         "title": "titre",
         "description": "description",
         "comments": "commentaires",
         "videourl": "URL de la vidéo"
       },
-      "placeholder": "Rechercher des streams, clips, chaînes",
+      "placeholder": "Rechercher des streams, clips ou chaînes",
       "clear": "Effacer",
       "loading": "Chargement...",
-      "typeTwoCharacters": "Saisissez 2 caractères",
+      "typeTwoCharacters": "Saisissez au moins 2 caractères",
       "noChannelsFound": "Aucune chaîne trouvée",
       "noTopicsFound": "Aucun sujet trouvé",
       "noOrganizationsFound": "Aucune organisation trouvée",
       "noResultsFound": "Aucun résultat trouvé",
       "searchChannels": "Rechercher des chaînes",
-      "filterByTopicOrgChannel": "Filtrer par sujet, organisation, chaîne ...",
+      "filterByTopicOrgChannel": "Filtrer par sujet, organisation ou chaîne",
       "topicOrgChannelPlaceholder": "Sujet, organisation ou chaîne",
       "toggleSearch": "Afficher/masquer la recherche",
       "organizations": "Organisations",
@@ -121,6 +121,13 @@
       "selectedOrgCount": "{count} organisations",
       "additionalOrgCount": "{count} de plus",
       "unset": "Non défini"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Modo",
+      "openYouTube": "YouTube",
+      "blockChannel": "Bloquer la chaîne",
+      "unblock": "Débloquer"
     },
     "relatedVideo": {
       "clipsLabel": "Clips",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Supprimer"
+      "remove": "Supprimer",
+      "automatedSongHelper": "Assistant automatique des chansons en commentaire",
+      "clickSearchableTimestamp": "Sélectionner un horodatage ou un terme de recherche"
     },
     "comment": {
       "close": "Fermer",
@@ -367,9 +376,12 @@
         "sortBy": "Trier par",
         "viewers": "Spectateurs",
         "latest": "Plus récent",
-        "uploadedBefore": "Mis en ligne avant",
+        "uploadedBefore": "Importé avant",
         "pickDate": "Choisir une date",
-        "clipLanguages": "Voir des clips dans ces langues :"
+        "clipLanguages": "Langues des clips",
+        "displayMode": "Mode d'affichage",
+        "list": "Liste",
+        "denseList": "Liste compacte"
       },
       "apiError": "Impossible de charger les vidéos."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Tout",
-        "official": "Officiel",
-        "clip": "Clip"
+        "official": "Streams",
+        "clip": "Clips"
       },
       "unsupportedQuery": "Actuellement, la recherche de clips par <kbd>Sujet</kbd> et <kbd>Organisation</kbd> n'est pas supportée. Aucun <b>clips</b> n'apparaîtra.",
       "sortByLabel": "Trier par",
-      "typeDropdownLabel": "Type",
+      "typeDropdownLabel": "Type de contenu",
       "searching": "Recherche...",
-      "useSearchBar": "Utilisez la barre de recherche pour trouver des streams, clips ou chaînes."
+      "useSearchBar": "Utilisez la barre de recherche pour trouver des streams, clips ou chaînes.",
+      "sortBy": "Trier par"
     },
     "settings": {
       "title": "Paramètres",
@@ -501,7 +514,7 @@
         "StickBottomSettingsDesc": "La boîte TL est placée sous le chat YouTube",
         "showVerifiedMessages": "Afficher les messages vérifiés",
         "showModeratorMessages": "Afficher les messages des modérateurs",
-        "showVtuberMessages": "Afficher les messages des VTubers",
+        "showVtuberMessages": "Afficher les messages VTuber",
         "showLocalTime": "Afficher les heures locales",
         "tlFontSize": "Taille de la police",
         "tlWindowSize": "Taille de la fenêtre de traduction (%), laissez 0% pour la taille par défaut",
@@ -558,7 +571,8 @@
         "button": "Sauver (peut prendre 5 minutes pour prendre effet)",
         "unset": "Non défini",
         "inputPlaceholder": "Sujet (laisser vide pour retirer)",
-        "saveTopic": "Enregistrer le sujet"
+        "saveTopic": "Enregistrer le sujet",
+        "updateSuccess": "Sujet mis à jour : {topic}"
       },
       "channelMentions": {
         "title": "Mentions de la chaine",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Écouter sur Apple Music",
       "pickItunesResult": "Choisir un résultat iTunes",
       "playFromHere": "Lire à partir d'ici",
-      "timestampEditorHint": "Utilisez des horodatages relatifs pour aligner la musique avec la vidéo."
+      "timestampEditorHint": "Utilisez des horodatages relatifs pour aligner la musique avec la vidéo.",
+      "exportSummary": "{entries, plural, one {# entrée} other {# entrées}}, {profiles, plural, one {# profil} other {# profils}}"
     },
     "exitMode": "Quitter l'éditeur",
     "enterMode": "Éditer la vidéo"

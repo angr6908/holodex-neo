@@ -12,23 +12,23 @@ export const resizeChannelPhoto = (url: string) =>
   typeof url === "string" && url.includes("ggpht.com")
     ? `${url.split("=s")[0]}=s176-c-k-c0x00ffffff-no-rj-mo` : url;
 
-export function getVideoThumbnails(ytVideoKey: string, useWebP = false) {
-  const base = `https://i.ytimg.com/vi${useWebP ? "_webp" : ""}/${ytVideoKey}`;
-  const ext = useWebP ? "webp" : "jpg";
+export function getVideoThumbnails(key: string, webp = false) {
+  const base = `https://i.ytimg.com/vi${webp ? "_webp" : ""}/${key}`;
+  const ext = webp ? "webp" : "jpg";
   const src = (q: string) => `${base}/${q}.${ext}`;
   return { default: src("default"), medium: src("mqdefault"), standard: src("sddefault"), maxres: src("maxresdefault"), hq720: src("hq720") };
 }
 
 export function getUILang(weblang?: string) {
-  const value = String(weblang || "en");
-  if (validUiLangs.has(value)) return value;
-  const short = value.split("-")[0].toLowerCase();
-  return validUiLangs.has(short) ? short : "en";
+  const v = String(weblang || "en");
+  if (validUiLangs.has(v)) return v;
+  const s = v.split("-")[0].toLowerCase();
+  return validUiLangs.has(s) ? s : "en";
 }
 
 export function getLang(weblang?: string) {
-  const short = String(weblang || "en").split("-")[0].toLowerCase();
-  return validTlLangs.has(short) ? short : "en";
+  const s = String(weblang || "en").split("-")[0].toLowerCase();
+  return validTlLangs.has(s) ? s : "en";
 }
 
 export function getYTLangFromState(state: any) {
@@ -48,34 +48,23 @@ export function getBannerImages(url: string) {
 }
 
 const formatters: Record<string, Intl.NumberFormat> = {};
-const numberFormatAdjust: Record<string, string> = {
-  "lol-UWU": "en",
-  "lol-PEKO": "en",
-};
+const numFmtAdjust: Record<string, string> = { "lol-UWU": "en", "lol-PEKO": "en" };
 
 export function formatCount(n: any, lang = "en") {
-  const converted = numberFormatAdjust[lang] ?? lang;
-  formatters[converted] ||= new Intl.NumberFormat(converted, {
-    compactDisplay: "short",
-    notation: "compact",
-    maximumSignificantDigits: 3,
-  });
-  const num = typeof n === "string" ? +n : n;
-  return formatters[converted].format(num);
+  const k = numFmtAdjust[lang] ?? lang;
+  formatters[k] ||= new Intl.NumberFormat(k, { compactDisplay: "short", notation: "compact", maximumSignificantDigits: 3 });
+  return formatters[k].format(typeof n === "string" ? +n : n);
 }
 
-const toFiniteNumber = (v: unknown): number | null => {
+const toNum = (v: unknown) => {
   if (v == null || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
 
-export const getKnownLiveViewerCount = (v?: Record<string, any> | null) =>
-  toFiniteNumber(v?.live_viewers) ?? toFiniteNumber(v?.ccv);
-
+export const getKnownLiveViewerCount = (v?: Record<string, any> | null) => toNum(v?.live_viewers) ?? toNum(v?.ccv);
 export const getLiveViewerCount = (v?: Record<string, any> | null) => getKnownLiveViewerCount(v) ?? 0;
-
-export const decodeHTMLEntities = (str = "") => str.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
+export const decodeHTMLEntities = (s = "") => s.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 
 export const videoTemporalComparator = (a: any, b: any) =>
   a.available_at === b.available_at
@@ -87,11 +76,10 @@ export function getVideoIDFromUrl(url: string) {
   if (yt?.groups?.id) return { id: yt.groups.id, custom: true, channel: { name: yt.groups.id } };
   const tw = url?.match?.(TWITCH_VIDEO_URL_REGEX);
   if (tw?.groups?.id) return { id: tw.groups.id, type: "twitch", custom: true, channel: { name: tw.groups.id } };
-  return undefined;
 }
 
-export const videoCodeParser = (code: string) =>
-  code?.slice(0, 3) === "YT_" ? `https://www.youtube.com/watch?v=${code.slice(3)}` : code;
+export const videoCodeParser = (c: string) =>
+  c?.slice(0, 3) === "YT_" ? `https://www.youtube.com/watch?v=${c.slice(3)}` : c;
 
 export function checkIOS() {
   if (typeof navigator === "undefined") return false;
@@ -99,7 +87,7 @@ export function checkIOS() {
   return navigator.userAgent.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document;
 }
 
-export function forwardTransformSearchToAPIQuery(obj: any[], initialObject: any) {
+export function forwardTransformSearchToAPIQuery(obj: any[], init: any) {
   return (obj || []).reduceRight((req, item) => {
     const text = String(item.text || "").trim();
     if (item.type === "title & desc") req.conditions.push({ text });
@@ -108,7 +96,7 @@ export function forwardTransformSearchToAPIQuery(obj: any[], initialObject: any)
     else if (item.type === "topic") req.topic.push(item.value);
     else if (item.type === "org") req.org.push(item.value);
     return req;
-  }, initialObject);
+  }, init);
 }
 
 export async function buildSearchUrl(query: any[]) {
@@ -116,20 +104,16 @@ export async function buildSearchUrl(query: any[]) {
   return `/search?q=${encodeURIComponent(await json2csv(query))}`;
 }
 
-const NUMERIC_CHANNEL_FIELDS = new Set(["video_count", "subscriber_count", "clip_count"]);
+const NUMERIC_FIELDS = new Set(["video_count", "subscriber_count", "clip_count"]);
 
-export function localSortChannels(
-  channels: any[],
-  { sort, order = "asc" }: { sort?: string; order?: string },
-) {
+export function localSortChannels(channels: any[], { sort, order = "asc" }: { sort?: string; order?: string }) {
   if (!sort) return channels;
   const dir = order === "desc" ? -1 : 1;
-  const isNumeric = NUMERIC_CHANNEL_FIELDS.has(sort);
+  const numeric = NUMERIC_FIELDS.has(sort);
   channels.sort((a, b) => {
-    const aVal = isNumeric ? Number(a?.[sort]) : (a?.[sort] ?? "");
-    const bVal = isNumeric ? Number(b?.[sort]) : (b?.[sort] ?? "");
-    const cmp = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-    return cmp * dir;
+    const av = numeric ? Number(a?.[sort]) : (a?.[sort] ?? "");
+    const bv = numeric ? Number(b?.[sort]) : (b?.[sort] ?? "");
+    return (av > bv ? 1 : av < bv ? -1 : 0) * dir;
   });
   return channels;
 }

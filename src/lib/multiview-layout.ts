@@ -1,4 +1,5 @@
 import { Content, LayoutItem, decodeLayout, generateContentId, sortLayout } from "@/lib/mv-utils";
+
 interface DecodedPreset {
   id: string;
   layout: LayoutItem[];
@@ -8,7 +9,7 @@ interface DecodedPreset {
   [key: string]: any;
 }
 
-interface MultiviewLayoutStoreLike {
+interface Store {
   layout: LayoutItem[];
   layoutContent: Record<string, Content>;
   activeVideos: any[];
@@ -16,136 +17,120 @@ interface MultiviewLayoutStoreLike {
   autoLayout: Array<string | null>;
   decodedDesktopPresets: DecodedPreset[];
   decodedMobilePresets: DecodedPreset[];
-  setLayout: (layout: LayoutItem[]) => void;
-  setLayoutContent: (content: Record<string, Content>) => void;
-  setLayoutContentById: (payload: { id: string | number; content: Content }) => void;
+  setLayout: (l: LayoutItem[]) => void;
+  setLayoutContent: (c: Record<string, Content>) => void;
+  setLayoutContentById: (p: { id: string | number; content: Content }) => void;
   deleteLayoutContent: (id: string | number) => void;
   removeLayoutItem: (id: string | number) => void;
   addLayoutItem: () => void;
   reset: () => void;
-  fetchVideoData: (options?: { refreshLive?: boolean }) => Promise<void>;
+  fetchVideoData: (opts?: { refreshLive?: boolean }) => Promise<void>;
 }
 
-const decodedAutoLayout = (store: MultiviewLayoutStoreLike) =>
-  store.autoLayout.filter((l): l is string => !!l).map((p) => ({ id: p, ...decodeLayout(p) }));
+const decodedAuto = (s: Store) =>
+  s.autoLayout.filter((l): l is string => !!l).map((p) => ({ id: p, ...decodeLayout(p) }));
 
-const getPresets = (store: MultiviewLayoutStoreLike, isMobile: boolean) =>
-  isMobile ? store.decodedMobilePresets : (decodedAutoLayout(store) as DecodedPreset[]).concat(store.decodedDesktopPresets as DecodedPreset[]);
+const presetsFor = (s: Store, mobile: boolean) =>
+  mobile ? s.decodedMobilePresets : (decodedAuto(s) as DecodedPreset[]).concat(s.decodedDesktopPresets as DecodedPreset[]);
 
-const findPresetForCount = (presets: DecodedPreset[], target: number) =>
-  presets.find((p) => p.videoCellCount === target) ?? presets.find((p) => p.videoCellCount >= target);
+const findForCount = (presets: DecodedPreset[], n: number) =>
+  presets.find((p) => p.videoCellCount === n) ?? presets.find((p) => p.videoCellCount >= n);
 
-function isPreset(store: MultiviewLayoutStoreLike, currentLayout = store.layout, isMobile = false): boolean {
-  const comparable = getPresets(store, isMobile).filter((p) => p.layout.length === currentLayout.length);
-  if (!comparable.length) return false;
-  const clone = [...currentLayout].sort(sortLayout);
-  return comparable.some((preset) =>
-    preset.layout.every((c, i) => c.x === clone[i].x && c.y === clone[i].y && c.w === clone[i].w && c.h === clone[i].h));
+function isPreset(s: Store, layout = s.layout, mobile = false) {
+  const cmp = presetsFor(s, mobile).filter((p) => p.layout.length === layout.length);
+  if (!cmp.length) return false;
+  const sorted = [...layout].sort(sortLayout);
+  return cmp.some((p) => p.layout.every((c, i) => c.x === sorted[i].x && c.y === sorted[i].y && c.w === sorted[i].w && c.h === sorted[i].h));
 }
 
-export function setMultiview(store: MultiviewLayoutStoreLike, { layout, content, mergeContent = false, hintAdd = false, fillVideo = null }: { layout: LayoutItem[]; content: Record<string, Content>; mergeContent?: boolean; hintAdd?: boolean; fillVideo?: any }) {
-  const clonedLayout = layout.map((item) => ({ ...item, i: String(item.i) }));
-  const clonedContent: Record<string, Content> = { ...content };
-  let filledVideo = false;
+export function setMultiview(s: Store, { layout, content, mergeContent = false, hintAdd = false, fillVideo = null }: { layout: LayoutItem[]; content: Record<string, Content>; mergeContent?: boolean; hintAdd?: boolean; fillVideo?: any }) {
+  const cl = layout.map((i) => ({ ...i, i: String(i.i) }));
+  const cc: Record<string, Content> = { ...content };
+  let filled = false;
   if (mergeContent) {
-    const contentsToMerge: Record<string, Content> = {};
-    let videoIndex = 0;
-    const currentVideoContents = store.layout.filter(({ i }) => store.layoutContent[i]?.type === "video");
-    const newVideoIdToIndex: Record<string, number> = {};
+    const merge: Record<string, Content> = {};
+    let vi = 0;
+    const curVids = s.layout.filter(({ i }) => s.layoutContent[i]?.type === "video");
+    const newIdx: Record<string, number> = {};
 
-    clonedLayout.filter((item) => !clonedContent[item.i]).forEach((item) => {
-      if (videoIndex < store.activeVideos.length && currentVideoContents[videoIndex]) {
-        const key = currentVideoContents[videoIndex].i;
-        item.i = key;
-        contentsToMerge[key] = store.layoutContent[key];
-        newVideoIdToIndex[store.layoutContent[key].video!.id] = videoIndex;
-        videoIndex += 1;
+    cl.filter((i) => !cc[i.i]).forEach((i) => {
+      if (vi < s.activeVideos.length && curVids[vi]) {
+        const k = curVids[vi].i;
+        i.i = k;
+        merge[k] = s.layoutContent[k];
+        newIdx[s.layoutContent[k].video!.id] = vi++;
       } else {
-        const key = generateContentId();
-        item.i = key;
-        if (fillVideo && !filledVideo) {
-          contentsToMerge[key] = { id: fillVideo.id, type: "video", video: fillVideo };
-          filledVideo = true;
-        }
+        const k = generateContentId();
+        i.i = k;
+        if (fillVideo && !filled) { merge[k] = { id: fillVideo.id, type: "video", video: fillVideo }; filled = true; }
       }
     });
 
-    const activeChatsAsVideoId = Object.values(store.layoutContent)
-      .filter((o) => o.type === "chat")
-      .map((o) => store.activeVideos[o.currentTab ?? 0]?.id);
-    let chatIndex = 0;
-    const maxVideoLength = hintAdd ? videoIndex + 1 : videoIndex;
-    const uniqueIndexes = new Set([...Array(maxVideoLength).keys()]);
+    const chats = Object.values(s.layoutContent).filter((o) => o.type === "chat").map((o) => s.activeVideos[o.currentTab ?? 0]?.id);
+    let ci = 0;
+    const max = hintAdd ? vi + 1 : vi;
+    const free = new Set([...Array(max).keys()]);
 
-    clonedLayout.filter((item) => clonedContent[item.i]?.type === "chat").forEach((item) => {
-      if (chatIndex >= activeChatsAsVideoId.length) {
-        const uniqueIndex = uniqueIndexes.values().next().value;
-        clonedContent[item.i] = { ...clonedContent[item.i], currentTab: uniqueIndex };
-        uniqueIndexes.delete(uniqueIndex!);
+    cl.filter((i) => cc[i.i]?.type === "chat").forEach((i) => {
+      if (ci >= chats.length) {
+        const u = free.values().next().value;
+        cc[i.i] = { ...cc[i.i], currentTab: u };
+        free.delete(u!);
         return;
       }
-      const videoId = activeChatsAsVideoId[chatIndex];
-      clonedContent[item.i] = { ...clonedContent[item.i], currentTab: newVideoIdToIndex[videoId] };
-      uniqueIndexes.delete(newVideoIdToIndex[videoId]);
-      chatIndex += 1;
+      const vid = chats[ci++];
+      cc[i.i] = { ...cc[i.i], currentTab: newIdx[vid] };
+      free.delete(newIdx[vid]);
     });
 
-    store.setLayoutContent({ ...contentsToMerge, ...clonedContent });
+    s.setLayoutContent({ ...merge, ...cc });
   } else {
     if (fillVideo) {
-      const emptyCell = clonedLayout.find((item) => !clonedContent[item.i]);
-      if (emptyCell) clonedContent[emptyCell.i] = { id: fillVideo.id, type: "video", video: fillVideo };
+      const empty = cl.find((i) => !cc[i.i]);
+      if (empty) cc[empty.i] = { id: fillVideo.id, type: "video", video: fillVideo };
     }
-    store.setLayoutContent(clonedContent);
+    s.setLayoutContent(cc);
   }
-  store.setLayout(clonedLayout);
-  store.fetchVideoData();
+  s.setLayout(cl);
+  s.fetchVideoData();
 }
 
-export function addVideoWithId(store: MultiviewLayoutStoreLike, video: any, id: string | number) {
-  store.setLayoutContentById({ id, content: { id: video.id, type: "video", video } });
-  store.fetchVideoData();
+export function addVideoWithId(s: Store, video: any, id: string | number) {
+  s.setLayoutContentById({ id, content: { id: video.id, type: "video", video } });
+  s.fetchVideoData();
 }
 
-export function findEmptyCell(store: MultiviewLayoutStoreLike): LayoutItem | undefined {
-  return store.layout.find((item) => !store.layoutContent[item.i]);
-}
+export const findEmptyCell = (s: Store) => s.layout.find((i) => !s.layoutContent[i.i]);
 
-export function tryFillVideo(store: MultiviewLayoutStoreLike, video: any) {
+export function tryFillVideo(s: Store, video: any) {
   if (!video) return;
-  const emptyCells = store.layout.filter((l) => !store.layoutContent[l.i]).sort(sortLayout);
-  if (emptyCells.length) addVideoWithId(store, video, emptyCells[0].i);
+  const empties = s.layout.filter((l) => !s.layoutContent[l.i]).sort(sortLayout);
+  if (empties.length) addVideoWithId(s, video, empties[0].i);
 }
 
-export function addVideoAutoLayout(store: MultiviewLayoutStoreLike, video: any, isMobile: boolean, onConflict: (layout: DecodedPreset) => void) {
-  const newLayout = findPresetForCount(isMobile ? store.decodedMobilePresets : decodedAutoLayout(store), store.activeVideos.length + 1);
-  if (!newLayout) return;
-  const cloned = structuredClone(newLayout);
-  if (!store.layout.length || isPreset(store, store.layout, isMobile)) {
-    setMultiview(store, { ...cloned, mergeContent: true, hintAdd: true, fillVideo: video });
-  } else {
-    onConflict({ ...cloned, fillVideo: video });
-  }
+export function addVideoAutoLayout(s: Store, video: any, mobile: boolean, onConflict: (l: DecodedPreset) => void) {
+  const next = findForCount(mobile ? s.decodedMobilePresets : decodedAuto(s), s.activeVideos.length + 1);
+  if (!next) return;
+  const cloned = structuredClone(next);
+  if (!s.layout.length || isPreset(s, s.layout, mobile)) {
+    setMultiview(s, { ...cloned, mergeContent: true, hintAdd: true, fillVideo: video });
+  } else onConflict({ ...cloned, fillVideo: video });
 }
 
-export function addCellAutoLayout(store: MultiviewLayoutStoreLike, isMobile: boolean) {
-  const newLayout = findPresetForCount(isMobile ? store.decodedMobilePresets : decodedAutoLayout(store), store.nonChatCellCount + 1);
-  if (newLayout && (!store.layout.length || isPreset(store, store.layout, isMobile))) {
-    setMultiview(store, { ...structuredClone(newLayout), mergeContent: true, hintAdd: false });
-  } else {
-    store.addLayoutItem();
-  }
+export function addCellAutoLayout(s: Store, mobile: boolean) {
+  const next = findForCount(mobile ? s.decodedMobilePresets : decodedAuto(s), s.nonChatCellCount + 1);
+  if (next && (!s.layout.length || isPreset(s, s.layout, mobile))) {
+    setMultiview(s, { ...structuredClone(next), mergeContent: true, hintAdd: false });
+  } else s.addLayoutItem();
 }
 
-export function deleteVideoAutoLayout(store: MultiviewLayoutStoreLike, id: string, isMobile: boolean) {
-  if (!(isPreset(store, store.layout, isMobile) && store.layoutContent[id]?.type !== "chat")) {
-    store.removeLayoutItem(id);
-    return;
+export function deleteVideoAutoLayout(s: Store, id: string, mobile: boolean) {
+  if (!(isPreset(s, s.layout, mobile) && s.layoutContent[id]?.type !== "chat")) {
+    s.removeLayoutItem(id); return;
   }
-  if (store.nonChatCellCount === 1) { store.reset(); return; }
-  const presets = isMobile ? store.decodedMobilePresets : decodedAutoLayout(store);
-  const newLayout = presets.find((p) => p.videoCellCount === store.nonChatCellCount - 1);
-  if (!newLayout) { store.removeLayoutItem(id); return; }
-  store.deleteLayoutContent(id);
-  setMultiview(store, { ...structuredClone(newLayout), mergeContent: true });
+  if (s.nonChatCellCount === 1) { s.reset(); return; }
+  const next = (mobile ? s.decodedMobilePresets : decodedAuto(s)).find((p) => p.videoCellCount === s.nonChatCellCount - 1);
+  if (!next) { s.removeLayoutItem(id); return; }
+  s.deleteLayoutContent(id);
+  setMultiview(s, { ...structuredClone(next), mergeContent: true });
 }

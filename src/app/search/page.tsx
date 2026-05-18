@@ -69,20 +69,20 @@ export default function SearchPage() {
   }, [executedQuery, filterSort, filterType, clipLangsKey, app.settings.clipLangs]);
 
   return (
-    <section className="app-page">
+    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
       {searchVideo === null ? (
         <Empty className="relative z-0 flex-none gap-2 rounded-none px-0 py-16 md:px-0 md:py-16">
-          <EmptyMedia className="mb-0 text-[color:var(--color-muted-foreground)]">
+          <EmptyMedia className="mb-0 text-muted-foreground">
             <Search className="h-8 w-8" />
           </EmptyMedia>
-          <EmptyDescription className="leading-normal text-[color:var(--color-muted-foreground)]">
+          <EmptyDescription className="leading-normal text-muted-foreground">
             {t("views.search.useSearchBar")}
           </EmptyDescription>
         </Empty>
       ) : (
         <GenericListLoader key={filterType + filterSort + id + executedQuery} paginate perPage={pageLength} loadFn={searchVideo}>
           {({ data, isLoading }) => (
-            <div className="relative z-0">
+            <div className="relative z-0 px-2">
               {isLoading ? (
                 <div className="flex min-h-48 w-full items-center justify-center px-6 py-10">
                   <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3">

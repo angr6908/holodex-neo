@@ -116,8 +116,8 @@ export default function AddPlaceholderPage() {
     }
   }
   return (
-    <section className="app-page space-y-6">
-      <header className="space-y-2"><Badge variant="secondary">{t("component.form.placeholder.editorBadge")}</Badge><h1 className="text-3xl font-semibold tracking-tight text-white">{t("component.form.placeholder.title")}</h1><p className="max-w-3xl text-sm text-slate-400">{t("component.form.placeholder.description")}</p></header>
+    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-6">
+      <header className="space-y-2"><Badge variant="secondary">{t("component.form.placeholder.editorBadge")}</Badge><h1 className="text-3xl font-semibold tracking-tight">{t("component.form.placeholder.title")}</h1><p className="max-w-3xl text-sm text-muted-foreground">{t("component.form.placeholder.description")}</p></header>
       <div className="grid gap-6 xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
         <div className="space-y-4"><VideoCard video={videoObj} includeChannel /></div>
         <div className="space-y-4">

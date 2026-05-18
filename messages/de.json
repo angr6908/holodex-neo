@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomenasorry!",
+      "title": "Inhalte konnten nicht geladen werden",
       "textBeforeTwitter": "Es ist ein Fehler beim Abrufen der Inhalte aufgetreten, bitte check Twitter ",
       "textAfterTwitter": " oder melde den Fehler über die",
       "aboutPage": "Info-Seite",
@@ -96,31 +96,38 @@
         "channel": "Kanal",
         "topic": "Thema",
         "org": "Organisation",
-        "titledesc": "Titel/Beschreibung",
+        "titledesc": "Titel oder Beschreibung",
         "title": "Titel",
         "description": "Beschreibung",
         "comments": "Kommentare",
         "videourl": "Video-URL"
       },
-      "placeholder": "Streams, Clips, Kanäle suchen",
+      "placeholder": "Streams, Clips oder Kanäle suchen",
       "clear": "Löschen",
       "loading": "Wird geladen...",
-      "typeTwoCharacters": "2 Zeichen eingeben",
+      "typeTwoCharacters": "Mindestens 2 Zeichen eingeben",
       "noChannelsFound": "Keine Kanäle gefunden",
       "noTopicsFound": "Keine Themen gefunden",
       "noOrganizationsFound": "Keine Organisationen gefunden",
       "noResultsFound": "Keine Ergebnisse gefunden",
       "searchChannels": "Kanäle suchen",
-      "filterByTopicOrgChannel": "Nach Thema, Organisation, Kanal filtern ...",
+      "filterByTopicOrgChannel": "Nach Thema, Organisation oder Kanal filtern",
       "topicOrgChannelPlaceholder": "Thema, Organisation oder Kanal",
       "toggleSearch": "Suche umschalten",
       "organizations": "Organisationen",
       "searchOrganizations": "Organisationen suchen",
       "quickSelect": "Schnellauswahl",
       "allVtubers": "Alle VTuber",
-      "selectedOrgCount": "{count} Orgs",
+      "selectedOrgCount": "{count} Organisationen",
       "additionalOrgCount": "{count} weitere",
       "unset": "Nicht festgelegt"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Kanal blockieren",
+      "unblock": "Entsperren"
     },
     "relatedVideo": {
       "clipsLabel": "Clips",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Entfernen"
+      "remove": "Entfernen",
+      "automatedSongHelper": "Automatischer Kommentar-Song-Helfer",
+      "clickSearchableTimestamp": "Zeitstempel oder Suchbegriff auswählen"
     },
     "comment": {
       "close": "Schließen",
@@ -369,7 +378,10 @@
         "latest": "Neuestes",
         "uploadedBefore": "Hochgeladen vor",
         "pickDate": "Datum wählen",
-        "clipLanguages": "Clips in diesen Sprachen anzeigen:"
+        "clipLanguages": "Clip-Sprachen",
+        "displayMode": "Anzeigemodus",
+        "list": "Liste",
+        "denseList": "Kompakte Liste"
       },
       "apiError": "Videos konnten nicht geladen werden."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Alle",
-        "official": "Offiziell",
-        "clip": "Clip"
+        "official": "Streams",
+        "clip": "Clips"
       },
       "unsupportedQuery": "Derzeit wird das Suchen von Clips nach <kbd>Thema</kbd> und <kbd>Organisation</kbd> nicht unterstützt. Es werden keine <b>Clips</b> angezeigt.",
       "sortByLabel": "Sortieren nach",
-      "typeDropdownLabel": "Art",
+      "typeDropdownLabel": "Inhaltstyp",
       "searching": "Suche läuft...",
-      "useSearchBar": "Nutze die Suchleiste, um Streams, Clips oder Kanäle zu finden."
+      "useSearchBar": "Nutze die Suchleiste, um Streams, Clips oder Kanäle zu finden.",
+      "sortBy": "Sortieren nach"
     },
     "settings": {
       "title": "Einstellungen",
@@ -500,7 +513,7 @@
         "StickBottomSettingLabel": "Unten anzeigen",
         "StickBottomSettingsDesc": "TL-Box unter YouTube-Chat",
         "showVerifiedMessages": "Verifizierte Nachrichten anzeigen",
-        "showModeratorMessages": "Moderator-Nachrichten anzeigen",
+        "showModeratorMessages": "Moderatornachrichten anzeigen",
         "showVtuberMessages": "VTuber-Nachrichten anzeigen",
         "showLocalTime": "Lokale Zeiten anzeigen",
         "tlFontSize": "Schriftgröße",
@@ -558,7 +571,8 @@
         "button": "Speichern (Es kann bis zu 5 Minuten dauern, bevor die Änderung sichtbar wird)",
         "unset": "Nicht festgelegt",
         "inputPlaceholder": "Thema (leer lassen zum Entfernen)",
-        "saveTopic": "Thema speichern"
+        "saveTopic": "Thema speichern",
+        "updateSuccess": "Thema aktualisiert: {topic}"
       },
       "channelMentions": {
         "title": "Kanalerwähnungen",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Auf Apple Music anhören",
       "pickItunesResult": "Eines der iTunes-Ergebnisse auswählen",
       "playFromHere": "Ab hier abspielen",
-      "timestampEditorHint": "Verwende relative Zeitstempel, um Musik am Video auszurichten."
+      "timestampEditorHint": "Verwende relative Zeitstempel, um Musik am Video auszurichten.",
+      "exportSummary": "{entries, plural, one {# Eintrag} other {# Einträge}}, {profiles, plural, one {# Profil} other {# Profile}}"
     },
     "exitMode": "Bearbeitungsmodus verlassen",
     "enterMode": "Video bearbeiten"

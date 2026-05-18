@@ -1,7 +1,7 @@
 {
   "component": {
     "apiError": {
-      "title": "Gomenasorry!",
+      "title": "Không thể tải nội dung",
       "textBeforeTwitter": "Đã xảy ra lỗi khi truy xuất nội dung, vui lòng kiểm tra thông báo tại Twitter ",
       "textAfterTwitter": " hoặc báo cáo lỗi qua",
       "aboutPage": "trang Giới thiệu",
@@ -96,22 +96,22 @@
         "channel": "kênh",
         "topic": "chủ đề",
         "org": "tổ chức",
-        "titledesc": "tiêu đề/mô tả",
+        "titledesc": "Tiêu đề hoặc mô tả",
         "title": "tiêu đề",
         "description": "mô tả",
         "comments": "bình luận",
         "videourl": "URL video"
       },
-      "placeholder": "Tìm stream, clip, kênh",
+      "placeholder": "Tìm stream, clip hoặc kênh",
       "clear": "Xóa",
       "loading": "Đang tải...",
-      "typeTwoCharacters": "Nhập 2 ký tự",
+      "typeTwoCharacters": "Nhập ít nhất 2 ký tự",
       "noChannelsFound": "Không tìm thấy kênh",
       "noTopicsFound": "Không tìm thấy chủ đề",
       "noOrganizationsFound": "Không tìm thấy tổ chức",
       "noResultsFound": "Không tìm thấy kết quả",
       "searchChannels": "Tìm kênh",
-      "filterByTopicOrgChannel": "Lọc theo chủ đề, tổ chức, kênh ...",
+      "filterByTopicOrgChannel": "Lọc theo chủ đề, tổ chức hoặc kênh",
       "topicOrgChannelPlaceholder": "Chủ đề, tổ chức hoặc kênh",
       "toggleSearch": "Bật/tắt tìm kiếm",
       "organizations": "Tổ chức",
@@ -121,6 +121,13 @@
       "selectedOrgCount": "{count} tổ chức",
       "additionalOrgCount": "thêm {count}",
       "unset": "Chưa đặt"
+    },
+    "chatMessage": {
+      "vtuberBadge": "VTuber",
+      "moderatorBadge": "Mod",
+      "openYouTube": "YouTube",
+      "blockChannel": "Chặn kênh",
+      "unblock": "Bỏ chặn"
     },
     "relatedVideo": {
       "clipsLabel": "clip",
@@ -176,7 +183,9 @@
       }
     },
     "media": {
-      "remove": "Xoá"
+      "remove": "Xoá",
+      "automatedSongHelper": "Trợ lý tự động tìm bài hát trong bình luận",
+      "clickSearchableTimestamp": "Chọn mốc thời gian hoặc từ khóa tìm kiếm"
     },
     "comment": {
       "close": "Đóng",
@@ -367,9 +376,12 @@
         "sortBy": "Sắp xếp theo",
         "viewers": "Người xem",
         "latest": "Mới nhất",
-        "uploadedBefore": "Tải lên trước",
+        "uploadedBefore": "Đã tải lên trước",
         "pickDate": "Chọn ngày",
-        "clipLanguages": "Hiển thị những clip trong các ngôn ngữ sau:"
+        "clipLanguages": "Ngôn ngữ clip",
+        "displayMode": "Chế độ hiển thị",
+        "list": "Danh sách",
+        "denseList": "Danh sách dày"
       },
       "apiError": "Không thể tải video."
     },
@@ -409,14 +421,15 @@
       },
       "type": {
         "all": "Tất cả",
-        "official": "Chính thức",
+        "official": "Stream",
         "clip": "Clip"
       },
       "unsupportedQuery": "Tìm kiếm clip dựa trên <kbd>Chủ đề</kbd> và <kbd>Tổ chức</kbd> hiện không được hỗ trợ. Sẽ không có <b>clip</b> nào được hiển thị.",
       "sortByLabel": "Sắp xếp theo",
-      "typeDropdownLabel": "Thể loại",
+      "typeDropdownLabel": "Loại nội dung",
       "searching": "Đang tìm kiếm...",
-      "useSearchBar": "Dùng thanh tìm kiếm để tìm stream, clip hoặc kênh."
+      "useSearchBar": "Dùng thanh tìm kiếm để tìm stream, clip hoặc kênh.",
+      "sortBy": "Sắp xếp theo"
     },
     "settings": {
       "title": "Cài đặt",
@@ -499,9 +512,9 @@
         "tlStart": "Khởi đầu tin nhắn",
         "StickBottomSettingLabel": "Di chuyển xuống dưới",
         "StickBottomSettingsDesc": "Đặt hộp thoại dịch trực tiếp bên dưới Youtube Chat",
-        "showVerifiedMessages": "Hiển thị tin nhắn từ các kênh Verified",
-        "showModeratorMessages": "Hiển thị tin nhắn từ Moderator",
-        "showVtuberMessages": "Hiển thị tin nhắn từ Vtuber",
+        "showVerifiedMessages": "Hiển thị tin nhắn đã xác minh",
+        "showModeratorMessages": "Hiển thị tin nhắn của quản trị viên",
+        "showVtuberMessages": "Hiển thị tin nhắn từ VTuber",
         "showLocalTime": "Hiển thị giờ tại địa phương",
         "tlFontSize": "Cỡ chữ",
         "tlWindowSize": "Kích thước khung dịch (%), đặt 0% để tự động điều chỉnh",
@@ -558,7 +571,8 @@
         "button": "Lưu (có thể mất 5 phút mới có hiệu lực)",
         "unset": "Chưa đặt",
         "inputPlaceholder": "Chủ đề (để trống để bỏ đặt)",
-        "saveTopic": "Lưu chủ đề"
+        "saveTopic": "Lưu chủ đề",
+        "updateSuccess": "Đã cập nhật chủ đề: {topic}"
       },
       "channelMentions": {
         "title": "Các kênh được nhắc đến",
@@ -885,7 +899,8 @@
       "listenOnAppleMusic": "Nghe trên Apple Music",
       "pickItunesResult": "Chọn một kết quả iTunes",
       "playFromHere": "Phát từ đây",
-      "timestampEditorHint": "Dùng mốc thời gian tương đối để căn nhạc với video."
+      "timestampEditorHint": "Dùng mốc thời gian tương đối để căn nhạc với video.",
+      "exportSummary": "{entries} mục, {profiles} hồ sơ"
     },
     "exitMode": "Thoát khỏi Chế độ Chỉnh sửa",
     "enterMode": "Chỉnh sửa Video"
