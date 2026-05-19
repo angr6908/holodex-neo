@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronLeft, CircleUser, Heart, Link, ListPlus, Radio, RefreshCw } from "lucide-react";
+import { Check, ChevronLeft, CircleUser, Heart, Link, ListPlus, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
 import { dayjs, formatDurationShort } from "@/lib/time";
@@ -210,7 +210,7 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
       forOrg: selectedOrgNames.length === 1 ? selectedOrgNames[0] : ALL_VTUBERS_ORG,
       forOrgs: selectedOrgNames.length > 1 ? selectedOrgNames : undefined,
       hideIgnoredTopics: true,
-      hidePlaceholder: hidePlaceholder ?? true,
+      hidePlaceholder: false,
       hideMissing: hideMissing ?? true,
       hideUpcoming,
       hideGroups: true,
@@ -218,7 +218,7 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
     const isTwitchPlaceholder = (v: any) => v.type === "placeholder" && v.link?.includes("twitch.tv");
     const isPlayable = (v: any) => v.type === "stream" || isTwitchPlaceholder(v);
     return live.filter((item) => filterVideo(item, app, filterConfig) && isPlayable(item));
-  }, [live, shouldHideCollabs, selectedOrgNames, hidePlaceholder, hideMissing, hideUpcoming, app]);
+  }, [live, shouldHideCollabs, selectedOrgNames, hideMissing, hideUpcoming, app]);
 
   const topFilteredLive = useMemo(() => {
     let count = 0;
@@ -367,7 +367,8 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
 
   function handleVideoClick(video: any) { onVideoClicked?.(video); }
   function dragVideo(ev: React.DragEvent, video: any) {
-    ev.dataTransfer.setData("text", `https://holodex.net/watch/${video.id}`);
+    const twitchId = video.type === "placeholder" && video.link?.match(/twitch\.tv\/(?<id>[\w-]+)/)?.groups?.id;
+    ev.dataTransfer.setData("text", twitchId ? `https://www.twitch.tv/${twitchId}` : `https://holodex.net/watch/${video.id}`);
     ev.dataTransfer.setData("application/json", JSON.stringify(video));
   }
   function scrollHandler(e: React.WheelEvent) {
@@ -509,7 +510,7 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
                   {topFilteredLive.map((video, index) => (
                     <div key={`${video.id || video.link || "video"}-${index}`} className="group relative flex shrink-0 items-center" title={video.title} draggable onDragStart={(event) => dragVideo(event, video)}>
                       <div className="relative">
-                        {video?.link && !compact ? <Badge variant="secondary" className="absolute left-0 top-0 z-10"><Radio className="size-3.5" /></Badge> : null}
+
                         {!compact ? <Badge variant="secondary" className="absolute bottom-[-3px] right-[-3px] z-10 h-4 px-1 text-[0.6rem] leading-none">{formatDurationLive(video)}</Badge> : null}
                         <button type="button" className="block rounded-full" onClick={() => handleVideoClick(video)}>
                           {video.channel?.id ? <ChannelImg channel={video.channel} size={compact ? 28 : 36} noLink className="bg-muted" /> : <div className={cn("flex items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground", compact ? "size-7" : "size-9")}><CircleUser className="size-4" /></div>}

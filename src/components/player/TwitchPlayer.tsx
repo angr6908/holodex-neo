@@ -2,16 +2,25 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 let pid = 0;
+let twitchScriptPromise: Promise<void> | null = null;
 
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+function loadTwitchScript(src: string): Promise<void> {
+  if (twitchScriptPromise) return twitchScriptPromise;
+  twitchScriptPromise = new Promise((resolve, reject) => {
+    if ((window as any).Twitch?.Player) { resolve(); return; }
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
     const s = document.createElement("script");
     s.src = src;
     s.onload = () => resolve();
-    s.onerror = (e) => reject(e);
+    s.onerror = (e) => { twitchScriptPromise = null; reject(e); };
     document.head.appendChild(s);
   });
+  return twitchScriptPromise;
 }
 
 export type TwitchPlayerHandle = {
@@ -99,7 +108,7 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
 
   useEffect(() => {
     let cancelled = false;
-    loadScript("https://player.twitch.tv/js/embed/v1.js")
+    loadTwitchScript("https://player.twitch.tv/js/embed/v1.js")
       .then(() => {
         if (cancelled) return;
         const options: Record<string, any> = { width, height, parent: [window.location.hostname], autoplay: false };

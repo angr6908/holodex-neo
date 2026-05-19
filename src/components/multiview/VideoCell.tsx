@@ -115,7 +115,7 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
     } else updatePaused(paused);
   }
 
-  const onReady = (p: PH) => { player.current = p; p.setMute?.(muted); };
+  const onReady = (p: PH) => { player.current = p; p.setMute?.(mutedRef.current); p.setPlaying?.(!editModeRef.current); };
 
   const exposed = useMemo<MultiviewVideoCellHandle>(() => ({
     get id() { return String(item.i); },

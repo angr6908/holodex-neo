@@ -135,12 +135,13 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
     const json = ev.dataTransfer.getData("application/json");
     if (json) {
       const video = JSON.parse(json);
-      if (!(video.id?.length === 11 && video.channel?.name)) return;
       let v = video;
       if (video.type === "placeholder") {
         const tw = video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
         if (!tw) return;
         v = { ...video, id: tw, type: "twitch" };
+      } else if (video.type !== "twitch" && !(video.id?.length === 11 && video.channel?.name)) {
+        return;
       }
       setContent({ type: "video", id: v.id, video: v });
       return;

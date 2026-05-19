@@ -43,14 +43,14 @@ function isPreset(s: Store, layout = s.layout, mobile = false) {
   return cmp.some((p) => p.layout.every((c, i) => c.x === sorted[i].x && c.y === sorted[i].y && c.w === sorted[i].w && c.h === sorted[i].h));
 }
 
-export function setMultiview(s: Store, { layout, content, mergeContent = false, hintAdd = false, fillVideo = null }: { layout: LayoutItem[]; content: Record<string, Content>; mergeContent?: boolean; hintAdd?: boolean; fillVideo?: any }) {
+export function setMultiview(s: Store, { layout, content, mergeContent = false, hintAdd = false, fillVideo = null, excludeId = null }: { layout: LayoutItem[]; content: Record<string, Content>; mergeContent?: boolean; hintAdd?: boolean; fillVideo?: any; excludeId?: string | null }) {
   const cl = layout.map((i) => ({ ...i, i: String(i.i) }));
   const cc: Record<string, Content> = { ...content };
   let filled = false;
   if (mergeContent) {
     const merge: Record<string, Content> = {};
     let vi = 0;
-    const curVids = s.layout.filter(({ i }) => s.layoutContent[i]?.type === "video");
+    const curVids = s.layout.filter(({ i }) => s.layoutContent[i]?.type === "video" && i !== excludeId);
     const newIdx: Record<string, number> = {};
 
     cl.filter((i) => !cc[i.i]).forEach((i) => {
@@ -131,6 +131,5 @@ export function deleteVideoAutoLayout(s: Store, id: string, mobile: boolean) {
   if (s.nonChatCellCount === 1) { s.reset(); return; }
   const next = (mobile ? s.decodedMobilePresets : decodedAuto(s)).find((p) => p.videoCellCount === s.nonChatCellCount - 1);
   if (!next) { s.removeLayoutItem(id); return; }
-  s.deleteLayoutContent(id);
-  setMultiview(s, { ...structuredClone(next), mergeContent: true });
+  setMultiview(s, { ...structuredClone(next), mergeContent: true, excludeId: id });
 }
