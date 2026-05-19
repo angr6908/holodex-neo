@@ -2,17 +2,20 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { FastForward, Pause } from "@/lib/icons";
+import { FastForward, Pause, Play, RefreshCw, Trash2, Volume2, VolumeX } from "lucide-react";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Field, FieldContent, FieldDescription, FieldGroup, FieldTitle } from "@/components/ui/field";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { useTranslations } from "next-intl";
 import { getChannelPhoto } from "@/lib/functions";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
-import * as icons from "@/lib/icons";
 
 export function MediaControls({ open }: { open?: boolean }) {
   const t = useTranslations();
@@ -34,6 +37,16 @@ export function MediaControls({ open }: { open?: boolean }) {
   if (!open) return null;
 
   const allVolume = cells.length && cells.every((cell) => cell.volume === cells[0].volume) ? cells[0].volume : 0;
+
+  const renderAvatar = (cell: any) => {
+    const channelId = cell.video?.channel?.id;
+    const avatar = (
+      <Avatar size="sm">
+        {channelId ? <AvatarImage src={getChannelPhoto(channelId)} alt="" /> : null}
+      </Avatar>
+    );
+    return channelId?.startsWith("UC") ? <Link href={`/channel/${channelId}`}>{avatar}</Link> : avatar;
+  };
 
   function setAllVolume(val: number) {
     cells.forEach((cell) => cell.setVolume(val));
@@ -57,47 +70,75 @@ export function MediaControls({ open }: { open?: boolean }) {
   }
 
   return (
-    <div className="media-controls-dropdown absolute right-0 top-full z-40 mt-2 w-[min(92vw,24rem)]">
-      <Card className="max-h-[60vh] overflow-y-auto p-4">
-        <div className="text-base font-semibold text-foreground">{t("views.multiview.mediaControls")}</div>
-        <div className="mt-3 space-y-2">
-          <section className="rounded-lg border p-2.5">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => allCellAction("play")}><icons.Play className="size-4" /></Button>
-              <Button type="button" size="icon-sm" variant="ghost" title={t("views.multiview.syncLabel")} onClick={() => allCellAction("sync")}><FastForward className="size-4" /></Button>
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => allCellAction("pause")}><Pause className="size-4" /></Button>
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => allCellAction("refresh")}><icons.RefreshCw className="size-4" /></Button>
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => allCellAction("unmute")}><icons.Volume2 className="size-4" /></Button>
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => allCellAction("mute")}><icons.VolumeX className="size-4" /></Button>
-              <Slider className="ml-auto w-24" min={0} max={100} step={1} value={[allVolume]} onValueChange={(value) => setAllVolume(Array.isArray(value) ? value[0] ?? 0 : value)} />
-            </div>
-          </section>
-          {cells.length ? cells.map((cell) => (
-            <section key={cell.id} className="rounded-lg border p-2.5">
-              <div className="flex items-start gap-2.5">
-                <Link href={cell.video?.channel?.id?.startsWith("UC") ? `/channel/${cell.video?.channel?.id}` : ""}>
-                  <img className="h-8 w-8 rounded-full object-cover" src={cell.video?.channel?.id ? getChannelPhoto(cell.video.channel.id) : ""} alt="" />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-medium">{cell.video?.title || cell.video?.channel?.name}</div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <Button type="button" size="icon-sm" variant="ghost" onClick={() => cell.setPlaying(cell.editMode)}>{cell.editMode ? <icons.Play className="size-4" /> : <Pause className="size-4" />}</Button>
-                    {!cell.isTwitchVideo ? <Button type="button" size="icon-sm" variant="ghost" onClick={() => cell.togglePlaybackRate()}><FastForward className="size-4" /></Button> : null}
-                    <Button type="button" size="icon-sm" variant="ghost" onClick={() => cell.refresh()}><icons.RefreshCw className="size-4" /></Button>
-                    <Button type="button" size="icon-sm" variant="ghost" onClick={() => cell.deleteCell()}><icons.Trash2 className="size-4" /></Button>
-                    <Button type="button" size="icon-sm" variant="ghost" onClick={() => cell.setMuted(!cell.muted)}>{cell.muted ? <icons.VolumeX className="size-4" /> : <icons.Volume2 className="size-4" />}</Button>
-                    <Slider className="ml-auto w-24" min={0} max={100} step={1} value={[cell.volume]} onValueChange={(value) => cell.setVolume(Array.isArray(value) ? value[0] ?? 0 : value)} />
-                  </div>
-                </div>
-              </div>
-            </section>
-          )) : <div className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">{t("views.multiview.mediaControlsEmpty")}</div>}
-          <Label className="items-start rounded-lg border p-2.5 text-xs">
-            <Checkbox checked={store.muteOthers} onCheckedChange={(checked) => store.setMuteOthers(checked === true)} />
-            <span><span className="block text-xs font-medium text-foreground">{t("views.multiview.muteOthers")}</span><span className="block text-muted-foreground">{t("views.multiview.muteOthersDetail")}</span></span>
-          </Label>
-        </div>
-      </Card>
-    </div>
+    <FieldGroup className="gap-3">
+      <Field orientation="horizontal" className="items-center">
+        <ButtonGroup>
+          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("play")}>
+            <Play />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" title={t("views.multiview.syncLabel")} onClick={() => allCellAction("sync")}>
+            <FastForward />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("pause")}>
+            <Pause />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("refresh")}>
+            <RefreshCw />
+          </Button>
+          <ButtonGroupSeparator />
+          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("unmute")}>
+            <Volume2 />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("mute")}>
+            <VolumeX />
+          </Button>
+        </ButtonGroup>
+        <Slider className="min-w-24 flex-1" min={0} max={100} step={1} value={[allVolume]} onValueChange={(value) => setAllVolume(Array.isArray(value) ? value[0] ?? 0 : value)} />
+      </Field>
+      <ScrollArea className="max-h-[min(52vh,28rem)]">
+        {cells.length ? (
+          <ItemGroup data-size="sm" className="pr-3">
+            {cells.map((cell) => (
+              <Item key={cell.id} variant="outline" size="sm" className="items-start">
+                <ItemMedia>{renderAvatar(cell)}</ItemMedia>
+                <ItemContent className="min-w-0 gap-2">
+                  <ItemTitle className="max-w-full truncate">{cell.video?.title || cell.video?.channel?.name}</ItemTitle>
+                  <ItemActions>
+                    <ButtonGroup>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => cell.setPlaying(cell.editMode)}>
+                        {cell.editMode ? <Play /> : <Pause />}
+                      </Button>
+                      {!cell.isTwitchVideo ? (
+                        <Button type="button" variant="ghost" size="icon" onClick={() => cell.togglePlaybackRate()}>
+                          <FastForward />
+                        </Button>
+                      ) : null}
+                      <Button type="button" variant="ghost" size="icon" onClick={() => cell.refresh()}>
+                        <RefreshCw />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => cell.deleteCell()}>
+                        <Trash2 />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => cell.setMuted(!cell.muted)}>
+                        {cell.muted ? <VolumeX /> : <Volume2 />}
+                      </Button>
+                    </ButtonGroup>
+                    <Slider className="min-w-20 flex-1" min={0} max={100} step={1} value={[cell.volume]} onValueChange={(value) => cell.setVolume(Array.isArray(value) ? value[0] ?? 0 : value)} />
+                  </ItemActions>
+                </ItemContent>
+              </Item>
+            ))}
+          </ItemGroup>
+        ) : <div className="rounded-lg border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">{t("views.multiview.mediaControlsEmpty")}</div>}
+      </ScrollArea>
+      <Separator />
+      <Field orientation="horizontal" className="rounded-lg border p-2.5">
+        <Checkbox checked={store.muteOthers} onCheckedChange={(checked) => store.setMuteOthers(checked === true)} />
+        <FieldContent>
+          <FieldTitle>{t("views.multiview.muteOthers")}</FieldTitle>
+          <FieldDescription>{t("views.multiview.muteOthersDetail")}</FieldDescription>
+        </FieldContent>
+      </Field>
+    </FieldGroup>
   );
 }

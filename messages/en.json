@@ -621,9 +621,6 @@
       "unmuteAll": "Unmute all",
       "muteOthers": "Mute others",
       "muteOthersDetail": "Mute all but one stream",
-      "autoLayoutTip": "Click on a channel to start watching using auto layout mode",
-      "createLayoutTip": "Create your own layout by adding a cell, or using a preset",
-      "openToolbarTip": "Open the toolbar to start using multiview",
       "archiveSync": "Archive sync",
       "preset": {
         "shareOnDiscord": "Have a cool layout to share? Use the share button and let us know on our <a href=\"https://discord.gg/jctkgHBt4b\">Discord server</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Edit auto layout",
       "changeLayout": "Change layout",
       "done": "Done",
-      "hints": "Hints",
-      "presetsHint": "Open the presets menu to switch layouts and configure auto layout",
-      "mediaControlsHint1": "Use media controls to mute and sync (",
-      "mediaControlsHint2": ") live streams",
-      "dragDropHint": "Drag and drop streams from toolbar to cells to organize streams",
-      "reorderHint": "Use the reorder layout menu to change video and chat positions",
       "reorderLayout": "Reorder layout",
       "reorderLayoutDetail": "Drag and drop icons to the desired position",
       "sync": {

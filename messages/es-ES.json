@@ -621,9 +621,6 @@
       "unmuteAll": "Desilenciar a todos",
       "muteOthers": "Silenciar a otros",
       "muteOthersDetail": "Silenciar a todos menos un directo",
-      "autoLayoutTip": "Haz click para empezar a ver streams usando un diseño automático",
-      "createLayoutTip": "Crea tu propio diseño añadiendo una celda o usa una plantilla",
-      "openToolbarTip": "Abre la barra de herramientas para empezar a usar la multivista",
       "archiveSync": "Sincronización de Archivo",
       "preset": {
         "shareOnDiscord": "¿Has hecho un diseño perfecto? ¡Usa el botón de compartir y enséñanos tu desiño en nuestro <a href=\"https://discord.gg/jctkgHBt4b\">servidor de discord</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Ediitar diseño automático",
       "changeLayout": "Cambiar diseño",
       "done": "Hecho",
-      "hints": "Sugerencias",
-      "presetsHint": "Abre el menú de plantillas para cambiar diseños y configurar el diseño automático",
-      "mediaControlsHint1": "Usa los controles multimedia para silenciar y sincronizar (",
-      "mediaControlsHint2": ") directos",
-      "dragDropHint": "Arrastra y suelta directos de la barra de herramientas hacia las celdad para organizar los directos",
-      "reorderHint": "Usa el menú de reorganizar diseño para cambiar las posiciones del video/chat",
       "reorderLayout": "Reorganizar diseño",
       "reorderLayoutDetail": "Arrastra y suelta iconos a la posicion deseada",
       "sync": {

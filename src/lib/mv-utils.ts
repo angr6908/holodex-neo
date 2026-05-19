@@ -45,22 +45,23 @@ export function decodeLayout(encoded) {
   parts.forEach((s) => {
     const idx = generateContentId();
     const code = s.substring(4, 15);
+    let isVideoCell = true;
     const item: LayoutItem = {
       x: b64.indexOf(s[0]), y: b64.indexOf(s[1]), w: b64.indexOf(s[2]), h: b64.indexOf(s[3]),
       i: idx, isDraggable: true, isResizable: true, moved: false,
     };
     if (code.startsWith("chat")) {
+      isVideoCell = false;
       const tab = code.length === 5 ? Number(code[4]) : -1;
       content[idx] = { type: "chat", ...(tab >= 0 && { currentTab: tab }) };
     } else if (code.startsWith("twitch")) {
       const tw = s.substring(10);
       content[idx] = { type: "video", id: tw, video: { id: tw, type: "twitch", channel: { name: tw } } };
-      videoCellCount++;
     } else if (code.length === 11) {
       const name = s.substring(15);
       content[idx] = { type: "video", id: code, video: { id: code, channel: { name: name || code } } };
-      videoCellCount++;
     }
+    if (isVideoCell) videoCellCount++;
     layout.push(item);
   });
   return { id: encoded, layout, content, videoCellCount };

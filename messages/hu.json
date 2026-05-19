@@ -621,9 +621,6 @@
       "unmuteAll": "Minden némítás visszavonása",
       "muteOthers": "Többi némítása",
       "muteOthersDetail": "Minden streamet -kivéve egyet- némít",
-      "autoLayoutTip": "Kattints egy csatornára, hogy elkezdd nézni auto elrendezéssel",
-      "createLayoutTip": "Készítsd el a saját elrendezésed több cella hozzáadásával, vagy egy előrendezés használatával",
-      "openToolbarTip": "Nyisd meg az eszköztárat a MultiView használatához",
       "archiveSync": "Archív szinkronizáció",
       "preset": {
         "shareOnDiscord": "Van egy jópofa elrendezésed? Használd a megosztás gombot és mutasd meg a <a href=\"https://discord.gg/jctkgHBt4b\"> Discord szerverünkön</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Auto-elrendezés szerkesztése",
       "changeLayout": "Elrendezés megváltoztatása",
       "done": "Kész",
-      "hints": "Súgó",
-      "presetsHint": "Nyisd meg az előrendezések menüt az elrendezések váltásához és auto-elrendezés beállításához",
-      "mediaControlsHint1": "Használd a Média irányításokat, hogy némíts és összehangolj (",
-      "mediaControlsHint2": ") élő közvetítéseket",
-      "dragDropHint": "Húzz streameket az eszköztárból a cellákhoz, hogy elrendezd a streameket",
-      "reorderHint": "Használd a Kiosztás átrendezése gombot, hogy megcserélje a chat és videó pozícióját",
       "reorderLayout": "Kiosztás átrendezése",
       "reorderLayoutDetail": "Húzz ikonokat a kívánt pozícióba",
       "sync": {

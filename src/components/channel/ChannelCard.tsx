@@ -37,7 +37,7 @@ export function ChannelCard({ channel }: { channel: Record<string, any> }) {
         <Link href={`/channel/${channel.id}`} className="flex flex-col items-center gap-1.5 px-3 pt-4 pb-2.5 no-underline">
           <ChannelImg channel={channel} size={52} noLink />
           <div className="w-full min-w-0 text-center">
-            <div className="truncate text-sm font-semibold leading-tight text-foreground">
+            <div className="truncate text-sm font-normal leading-tight text-foreground">
               {channel.inactive ? <icons.GraduationCap className="mr-0.5 inline-block h-3.5 w-3.5 align-[-2px]" /> : null}
               {channelName}
             </div>

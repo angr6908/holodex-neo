@@ -47,12 +47,18 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     if (s.twUrlHistory) setTwUrlHistory(s.twUrlHistory);
     if (typeof s.muteOthers === "boolean") setMuteOthersState(s.muteOthers);
     if (s.presetLayout) setPresetLayout(s.presetLayout);
+    if (Array.isArray(s.layout) && s.layout.length && !initialLayout.length) setLayoutState(s.layout);
+    if (s.layoutContent && typeof s.layoutContent === "object" && !Object.keys(initialContent).length) setLayoutContentState(s.layoutContent);
     initialized.current = true;
   }, []);
 
   useEffect(() => {
-    if (initialized.current) writeJSON(STORAGE_KEY, { autoLayout, ytUrlHistory, twUrlHistory, muteOthers, presetLayout });
-  }, [autoLayout, ytUrlHistory, twUrlHistory, muteOthers, presetLayout]);
+    if (!initialized.current) return;
+    const handle = setTimeout(() => {
+      writeJSON(STORAGE_KEY, { autoLayout, ytUrlHistory, twUrlHistory, muteOthers, presetLayout, layout, layoutContent });
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [autoLayout, ytUrlHistory, twUrlHistory, muteOthers, presetLayout, layout, layoutContent]);
 
   const activeVideos = useMemo(
     () => layout.filter((i) => layoutContent[i.i]?.type === "video").map((i) => layoutContent[i.i].video),
@@ -84,10 +90,19 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     return next;
   };
 
-  const setItemLock = (id: string | number, locked: boolean) =>
-    setLayoutState((prev) => prev.map((item) =>
-      item.i === String(id) && (item.isResizable !== !locked || item.isDraggable !== !locked)
-        ? { ...item, isResizable: !locked, isDraggable: !locked } : item));
+  const setItemLock = (id: string | number, locked: boolean) => {
+    const key = String(id);
+    const unlocked = !locked;
+    setLayoutState((prev) => {
+      let changed = false;
+      const next = prev.map((item) => {
+        if (String(item.i) !== key || (item.isResizable === unlocked && item.isDraggable === unlocked)) return item;
+        changed = true;
+        return { ...item, isResizable: unlocked, isDraggable: unlocked };
+      });
+      return changed ? next : prev;
+    });
+  };
 
   const setVideoData = (videos: any[]) => {
     if (!videos) return;

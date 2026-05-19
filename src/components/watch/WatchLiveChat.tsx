@@ -51,7 +51,7 @@ export function WatchLiveChat({ video, currentTime = 0, modelValue, className = 
   useEffect(() => { if (video?.status === "past") postFrameTime(currentTime); }, [currentTime, video?.status]);
 
   return (
-    <div className={cn("relative z-0 flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit] text-base", fluid && "w-full min-w-0", className)}>
+    <div className={cn("relative z-0 flex min-h-0 flex-col overflow-hidden rounded-[inherit] text-base", fluid && "h-full w-full min-w-0", className)}>
       {showYtChat && !needExtension && !chatLoaded ? <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm text-muted-foreground">{t("views.watch.chat.loading")}</span> : null}
       {showTlChat && video && isLiveTLVideo ? (
         <LiveTranslations

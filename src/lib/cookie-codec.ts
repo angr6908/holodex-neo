@@ -11,12 +11,15 @@ export type AppBootState = {
   selectedHomeOrgs?: string[];
   orgFavorites?: any[];
   currentGridSize?: number;
+  homeLiveCount?: number;
+  favoritesLiveCount?: number;
   settings?: {
     lang?: string;
     defaultOpen?: "home" | "favorites" | "multiview";
     homeViewMode?: "grid" | "list" | "denseList";
     scrollMode?: boolean;
     hideUpcoming?: boolean;
+    hideLive?: boolean;
     darkMode?: boolean;
     followSystemTheme?: boolean;
   };

@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import throttle from "lodash-es/throttle";
 import { toast } from "sonner";
-import { FastForward, Link, Pause, Gauge } from "@/lib/icons";
+import { FastForward, Gauge, Link, Pause, Play, Rewind, Settings, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -19,28 +20,30 @@ import { useTranslations } from "next-intl";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
 import { cn } from "@/lib/utils";
-import * as icons from "@/lib/icons";
 
 const availablePlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-export function MultiviewSyncBar({ className = "" }: { className?: string }) {
+export function MultiviewSyncBar({ className = "", onClose }: { className?: string; onClose?: () => void }) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const store = useMultiviewStore();
   const cells = useOrderedMultiviewVideoCells(store.layout);
   const [paused, setPausedState] = useState(true);
   const [hovering, setHovering] = useState(false);
+  const [tooltipX, setTooltipX] = useState(0);
   const [currentTs, setCurrentTsState] = useState(0);
   const [currentProgressByVideo, setCurrentProgressByVideo] = useState<Record<string, number>>({});
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [timeTooltipText, setTimeTooltipText] = useState("");
-  const [showConfiguration, setShowConfiguration] = useState(false);
   const lastSyncTimeMillis = useRef(Date.now());
   const currentTsRef = useRef(0);
   const pausedRef = useRef(true);
   const playbackRateRef = useRef(1);
   const firstPlay = useRef(true);
   const onSliderInputThrottled = useRef<((percent: number) => void) | null>(null);
+  const lastSeekByCellRef = useRef<Record<string, number>>({});
+  const prevPausedRef = useRef(true);
+  const syncRef = useRef<(() => void) | null>(null);
 
   const routeCurrentTs = searchParams.get("t") || undefined;
   const routeOffsets = searchParams.get("offsets")?.split(",");
@@ -72,6 +75,7 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
   const currentProgress = getPercentForTime(currentTs);
   const currentDuration = minTs ? formatDuration(Math.round(currentTs - minTs) * 1000) : "0:00";
   const totalDuration = minTs ? formatDuration((maxTs - minTs) * 1000) : "0:00";
+  const syncDisabled = !hasVideosToSync || !cells.length;
   const offsets = useMemo(() => {
     const local = store.syncOffsets;
     if (routeOffsets && overlapVideos.length) {
@@ -134,6 +138,7 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
 
   const setTime = useCallback((ts: number) => {
     setCurrentTs(ts);
+    lastSeekByCellRef.current = {};
     cells.forEach((cell) => {
       const { video } = cell;
       const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
@@ -169,7 +174,7 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
     }
     setCurrentTs(nextTs);
 
-    const deltaThreshold = 1.5 * playbackRateRef.current;
+    const deltaThreshold = 2.5 * playbackRateRef.current;
     const nextProgress: Record<string, number> = {};
     cells.forEach((cell) => {
       const { video, currentTime: cellCurrentTime } = cell;
@@ -186,26 +191,35 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
       if (isBefore || isAfter) {
         cell.setPlaying(false);
       } else if (expectedDuration > 0 && delta > deltaThreshold) {
-        cell.setPlaying(!pausedRef.current);
+        // Don't seek again while the player is still settling from the previous seek.
+        const lastSeek = lastSeekByCellRef.current[cell.id] || 0;
+        if (currentSyncTimeMillis - lastSeek < 2500) return;
+        lastSeekByCellRef.current[cell.id] = currentSyncTimeMillis;
         cell.seekTo(expectedDuration);
-        cell.setPlaybackRate(playbackRateRef.current);
+        cell.setPlaying(!pausedRef.current);
       }
     });
     setCurrentProgressByVideo(nextProgress);
   }, [cells, findStartTime, hasVideosToSync, maxTs, minTs, offsets, overlapVideos]);
 
+  useEffect(() => { syncRef.current = sync; }, [sync]);
   useEffect(() => {
-    const timer = setInterval(sync, 500);
+    const timer = setInterval(() => syncRef.current?.(), 500);
     return () => clearInterval(timer);
-  }, [sync]);
+  }, []);
 
   useEffect(() => {
-    cells.forEach((cell) => {
-      const { video } = cell;
-      const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
-      if (olVideo && paused) cell.setPlaying(false);
-      else setTime(currentTsRef.current);
-    });
+    if (prevPausedRef.current === paused) return;
+    prevPausedRef.current = paused;
+    if (paused) {
+      cells.forEach((cell) => {
+        const { video } = cell;
+        const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
+        if (olVideo) cell.setPlaying(false);
+      });
+    } else if (currentTsRef.current > 0) {
+      setTime(currentTsRef.current);
+    }
   }, [paused, cells, overlapVideos, setTime]);
 
   useEffect(() => {
@@ -253,19 +267,134 @@ export function MultiviewSyncBar({ className = "" }: { className?: string }) {
   }
 
   return (
-    <Card className={cn("sticky bottom-0 flex h-[100px] w-full flex-row items-center justify-center gap-0 p-2", className)}>
-      <div className="mr-2 flex h-full w-[120px] flex-col items-center">
-        {minTs ? <div className="text-center text-sm">{currentDuration} / {totalDuration}</div> : null}
-        <div className="flex items-center justify-between"><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current - 10)}><FastForward className="size-4" /></Button><Button variant="ghost" size="icon" onClick={() => setPaused(!paused)}>{paused ? <icons.Play className="size-6" /> : <Pause className="size-6" />}</Button><Button variant="ghost" size="icon" onClick={() => setTime(currentTsRef.current + 10)}><FastForward className="size-4" /></Button></div>
-        <div className="flex items-center"><Button variant="ghost" size="icon" onClick={() => setShowConfiguration(!showConfiguration)}><icons.Settings className="size-4" /></Button><Select value={String(playbackRate)} onValueChange={(value) => setPlaybackRate(Number(value))}><SelectTrigger className="h-10 w-10 p-0 [&>svg:last-child]:hidden"><Gauge className="size-4" /><SelectValue className="sr-only" /></SelectTrigger><SelectContent>{availablePlaybackRates.map((rate) => <SelectItem key={rate} value={String(rate)}>{rate}</SelectItem>)}</SelectContent></Select><Button variant="ghost" size="icon" onClick={onShareClick}><Link className="size-4" /></Button></div>
+    <Card size="sm" className={cn("sticky bottom-0 z-20 w-full overflow-visible rounded-none border-x-0 border-b-0 bg-card/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/90", className)}>
+      <div className="flex items-center gap-1">
+        {/* Playback controls */}
+        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setTime(currentTsRef.current - 10)}>
+          <Rewind />
+        </Button>
+        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setPaused(!paused)}>
+          {paused ? <Play /> : <Pause />}
+        </Button>
+        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setTime(currentTsRef.current + 10)}>
+          <FastForward />
+        </Button>
+        <Popover>
+          <PopoverTrigger
+            render={<Button type="button" variant="ghost" size="icon-sm" disabled={!overlapVideos.length} aria-label={t("views.multiview.sync.syncSettings")} />}
+          >
+            <Settings />
+          </PopoverTrigger>
+          <PopoverContent side="top" align="start" className="w-[28rem] max-w-[calc(100vw-1rem)] gap-3 p-3">
+            <PopoverTitle>{t("views.multiview.sync.syncSettings")}</PopoverTitle>
+            <p className="text-sm text-muted-foreground">{t("views.multiview.sync.syncSettingsDetail")}</p>
+
+            {splitProgressBarData.length > 0 && (
+              <div className="space-y-1.5 rounded-lg border p-3">
+                <p className="text-xs font-medium text-muted-foreground">Playback progress</p>
+                {splitProgressBarData.map((video: any, index: number) => (
+                  <div key={`progress-${video.id || index}`} className="flex items-center gap-2">
+                    <ChannelImg channel={video.channel} size={16} noLink />
+                    <Progress value={currentProgressByVideo[video.id] || 0} className="h-1.5 flex-1" />
+                    <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
+                      {Math.round(currentProgressByVideo[video.id] || 0)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {overlapVideos.map((video: any, index: number) => (
+                <div key={`${video.id || "video"}-${index}`} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <ChannelImg channel={video.channel} size={36} noLink />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">{video.channel?.name || video.id}</div>
+                      <div className="text-xs text-muted-foreground">{formatDuration((video.duration || 0) * 1000)}</div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}>-0.5</Button>
+                    <Input value={offsets[video.id] ?? "0"} className="w-20" type="number" onChange={(event) => setOffset(video.id, +event.target.value)} />
+                    <span className="text-sm text-muted-foreground">s</span>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}>+0.5</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <Button type="button" variant="ghost" size="icon-sm" disabled={!store.layout.length} onClick={onShareClick}>
+          <Link />
+        </Button>
+        {onClose ? (
+          <Button type="button" variant="ghost" size="icon-sm" aria-label="Delete archive sync panel" title="Delete archive sync panel" onClick={onClose}>
+            <Trash2 />
+          </Button>
+        ) : null}
+
+        {/* Speed */}
+        <Select value={String(playbackRate)} onValueChange={(value) => setPlaybackRate(Number(value))}>
+          <SelectTrigger size="sm" className="ml-1 h-7 w-[4.5rem] shrink-0 px-2">
+            <Gauge className="size-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent side="top">
+            {availablePlaybackRates.map((rate) => <SelectItem key={rate} value={String(rate)}>{rate}x</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        {/* Time readout */}
+        <Badge variant="outline" className="h-auto shrink-0 gap-1 px-2.5 py-1 text-sm tabular-nums font-normal">
+          {currentDuration}
+          <span className="opacity-30">/</span>
+          {totalDuration}
+        </Badge>
+
+        {/* Scrubber */}
+        <div className="relative min-w-0 flex-1">
+          {!hasVideosToSync ? (
+            <div className="truncate rounded-md border border-dashed px-2 py-1 text-sm text-muted-foreground">
+              {t("views.multiview.sync.nothingToSync")}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="hidden shrink-0 whitespace-nowrap text-sm tabular-nums text-muted-foreground xl:block">{formatUnixTime(minTs)}</span>
+              <div
+                className="relative min-w-0 flex-1 py-1.5"
+                onMouseEnter={() => setHovering(true)}
+                onMouseMove={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  setTooltipX(Math.max(0, Math.min(rect.width, event.clientX - rect.left)));
+                  onMouseOverThrottled(event.clientX, rect.x, event.currentTarget.clientWidth);
+                }}
+                onMouseLeave={() => setHovering(false)}
+              >
+                {hovering && (
+                  <div
+                    style={{ left: tooltipX }}
+                    className="pointer-events-none absolute bottom-full z-30 mb-2 -translate-x-1/2 whitespace-pre rounded-md bg-popover px-2 py-1 text-center text-xs text-popover-foreground shadow-md ring-1 ring-foreground/10"
+                  >
+                    {timeTooltipText}
+                  </div>
+                )}
+                <Slider
+                  min={0}
+                  max={100}
+                  value={[currentProgress]}
+                  step={0.01}
+                  onWheel={(event) => (event.currentTarget as HTMLElement).blur()}
+                  onValueChange={(value) => onSliderInputThrottled.current?.(Array.isArray(value) ? value[0] : value)}
+                  onValueCommitted={(value) => setTime(getTimeForPercent(Array.isArray(value) ? value[0] : value))}
+                />
+              </div>
+              <span className="hidden shrink-0 whitespace-nowrap text-right text-sm tabular-nums text-muted-foreground xl:block">{formatUnixTime(maxTs)}</span>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="relative grow self-start">
-        {hovering ? <div className="absolute left-1/2 top-[-30px] z-[5] inline-block -translate-x-1/2 -translate-y-1/2 whitespace-pre rounded bg-popover p-1 text-center text-popover-foreground opacity-90">{timeTooltipText}</div> : null}
-        <div className="h-[90px] overflow-y-scroll overflow-x-hidden pr-2"><div>{!hasVideosToSync ? t("views.multiview.sync.nothingToSync") : null}</div><div className={cn("relative", !hasVideosToSync && "hidden")}><div className="sticky left-8 top-0 z-[5] -mt-[90px] h-[90px] w-[calc(100%-32px)] border-0" onMouseEnter={() => setHovering(true)} onMouseMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); onMouseOverThrottled(event.clientX, rect.x, event.currentTarget.clientWidth); }} onMouseLeave={() => setHovering(false)}><Slider min={0} max={100} value={[currentProgress]} step={0.01} className="h-full w-full opacity-70 [&_[data-slot=slider-range]]:bg-transparent [&_[data-slot=slider-thumb]]:h-[90px] [&_[data-slot=slider-thumb]]:w-[3px] [&_[data-slot=slider-thumb]]:rounded-none [&_[data-slot=slider-thumb]]:border-0 [&_[data-slot=slider-thumb]]:bg-primary [&_[data-slot=slider-thumb]]:opacity-80 [&_[data-slot=slider-thumb]]:ring-0 [&_[data-slot=slider-track]]:h-full [&_[data-slot=slider-track]]:bg-transparent" onWheel={(event) => (event.currentTarget as HTMLElement).blur()} onValueChange={(value) => onSliderInputThrottled.current?.(Array.isArray(value) ? value[0] : value)} onValueCommitted={(value) => setTime(getTimeForPercent(Array.isArray(value) ? value[0] : value))} /></div>{splitProgressBarData.map((video: any, index: number) => (
-          <div key={`${video.id || "video"}-${index}`} className="my-1 flex items-center gap-2"><ChannelImg channel={video.channel} size={24} noLink /><Progress value={currentProgressByVideo[video.id] || 0} className="h-2 flex-1" /></div>
-        ))}</div></div>
-      </div>
-      <Dialog open={showConfiguration} onOpenChange={setShowConfiguration}><DialogContent className="max-w-lg"><DialogTitle>{t("views.multiview.sync.syncSettings")}</DialogTitle><div className="text-sm">{t("views.multiview.sync.syncSettingsDetail")} {overlapVideos.map((video: any, index: number) => <div key={`${video.id || "video"}-${index}`} className="my-3 flex justify-between gap-3"><ChannelImg channel={video.channel} size={40} noLink /><div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}>-0.5</Button><Input value={offsets[video.id] || "0"} className="w-24" type="number" onChange={(event) => setOffset(video.id, +event.target.value)} /><span className="text-xs text-muted-foreground">sec</span><Button variant="outline" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}>+0.5</Button></div></div>)}</div></DialogContent></Dialog>
+
     </Card>
   );
 }

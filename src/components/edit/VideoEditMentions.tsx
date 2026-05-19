@@ -55,7 +55,7 @@ export function VideoEditMentions({ video }: { video: any }) {
 
   return (
     <div>
-      <div className="text-lg font-semibold">
+      <div className="text-lg font-normal">
         <AtSign className="size-4" /> {t("views.editor.channelMentions.tagsTitle")}
       </div>
       {alert ? (

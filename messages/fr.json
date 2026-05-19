@@ -621,9 +621,6 @@
       "unmuteAll": "Réactiver le son",
       "muteOthers": "Couper les autres",
       "muteOthersDetail": "Couper tous les streams sauf un",
-      "autoLayoutTip": "Cliquez sur une chaine pour la regarder en utilisant la disposition automatique",
-      "createLayoutTip": "Créez votre propre disposition en ajoutant une cellule ou en utilisant un modèle",
-      "openToolbarTip": "Ouvrez la barre d'outils pour commencer à utiliser le multiview",
       "archiveSync": "Synchronisation des archives",
       "preset": {
         "shareOnDiscord": "Vous avez une mise en page sympa à partager ? Appuyez sur partager et faites le nous savoir sur notre <a href=\"https://discord.gg/jctkgHBt4b\">serveur Discord</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Modifier la disposition automatique",
       "changeLayout": "Changer la disposition",
       "done": "Terminé",
-      "hints": "Conseils",
-      "presetsHint": "Ouvrez le menu des préréglages pour changer de disposition et configurer la disposition automatique",
-      "mediaControlsHint1": "Utilisez les contrôles média pour couper le son et synchroniser (",
-      "mediaControlsHint2": ") les streams en direct",
-      "dragDropHint": "Glissez-déposez les streams depuis la barre d'outils vers les cellules pour les organiser",
-      "reorderHint": "Utilisez le menu de réorganisation pour changer la position des vidéos/chats",
       "reorderLayout": "Réorganiser la disposition",
       "reorderLayoutDetail": "Glissez-déposez les icônes à la position souhaitée",
       "sync": {

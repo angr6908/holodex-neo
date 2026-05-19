@@ -3,7 +3,6 @@
 import { cn, getBreakpoint } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
 import { useState } from "react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -26,10 +25,13 @@ export function SkeletonCardList({
   count,
   expectedSize = 24,
   cols = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
-  dense = false,
   denseList = false,
   horizontal = false,
-  includeAvatar = true,
+  autoFit = false,
+  autoFitMin = "13rem",
+  includeAvatar = false,
+  includeChannel = false,
+  hideThumbnail = false,
 }: {
   count?: number;
   expectedSize?: number | string;
@@ -37,7 +39,11 @@ export function SkeletonCardList({
   dense?: boolean;
   denseList?: boolean;
   horizontal?: boolean;
+  autoFit?: boolean;
+  autoFitMin?: string;
   includeAvatar?: boolean;
+  includeChannel?: boolean;
+  hideThumbnail?: boolean;
   [key: string]: any;
 }) {
   const app = useAppState();
@@ -47,51 +53,94 @@ export function SkeletonCardList({
     app.windowWidth ||
     (typeof window !== "undefined" ? window.innerWidth : 1440);
   const isFlat = horizontal || denseList;
-  const colSize = isFlat ? 1 : cols[getBreakpoint(width)];
+  const autoFitGrid = autoFit && !isFlat;
+  const colSize = isFlat ? 1 : autoFit ? 2 : cols[getBreakpoint(width)];
+  const gridAvatarSize = colSize >= 2 ? "size-[42px]" : "size-12";
+  const showGridAvatar = includeAvatar && !isFlat;
+  const showDenseAvatar = denseList;
+  const articleClass = cn(
+    "group relative flex w-full",
+    horizontal && "flex-row",
+    denseList && "min-h-12 flex-row",
+    !isFlat && "flex-col",
+  );
+  const shellClass = cn(
+    "video-card-shell flex w-full gap-0 overflow-hidden p-0 transition-all duration-200",
+    isFlat ? "flex-row" : "flex-col",
+    denseList && "min-h-12",
+  );
+  const thumbnailClass = cn(
+    "relative flex w-full shrink-0 overflow-hidden bg-muted",
+    horizontal && "my-1.5 ml-1.5 h-[72px] w-[128px] self-center rounded-lg",
+  );
+  const textClass = cn(
+    "video-card-text flex flex-1 flex-row gap-2.5",
+    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 pt-2 pb-1.5",
+  );
+  const linesClass = cn(
+    "flex min-w-0 flex-1",
+    denseList ? "flex-row flex-nowrap items-center gap-2.5" : "flex-col gap-0.5",
+    horizontal && "justify-around",
+  );
 
   return (
     <div className="relative py-0">
       <div
         className={cn(
-          "grid gap-x-1 gap-y-1.5",
-          gridColumnClasses[colSize] || "grid-cols-1",
+          "grid gap-x-2 gap-y-2.5",
+          !autoFitGrid && (gridColumnClasses[colSize] || "grid-cols-1"),
           isFlat && "overflow-hidden rounded-xl border gap-y-0 empty:border-0",
         )}
+        style={autoFitGrid ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` } : undefined}
       >
         {Array.from({ length: itemCount }).map((_, index) => (
           <div key={`${index}-${keyBase + index}`} className={cn("min-w-0 overflow-visible", isFlat && "[&:not(:last-child)]:border-b")}>
-            {denseList ? (
-              <div className="flex h-12 items-center gap-2 px-2">
-                <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
-                <div className="min-w-0 flex-1">
-                  <Skeleton className="h-3 w-3/4" />
-                </div>
-                <Skeleton className="h-3 w-16 shrink-0" />
-                <Skeleton className="h-3 w-12 shrink-0" />
-              </div>
-            ) : horizontal ? (
-              <div className="flex items-center py-1.5">
-                <Skeleton className="m-1.5 h-[72px] w-[128px] shrink-0 rounded-lg" />
-                <div className="flex min-w-0 flex-1 flex-col gap-2 p-2">
-                  <Skeleton className="h-3.5 w-4/5" />
-                  <Skeleton className="h-3 w-2/5" />
-                </div>
-              </div>
-            ) : (
-              <Card className="gap-0 overflow-hidden p-0">
-                <AspectRatio ratio={16 / 9} className="w-full">
-                  <Skeleton className="size-full rounded-t-[1rem] rounded-b-none" />
-                </AspectRatio>
-                <div className="flex items-start gap-[0.625rem] border-t px-[0.625rem] py-2">
-                  {includeAvatar ? <Skeleton className="h-[48px] w-[48px] shrink-0 rounded-full" /> : null}
-                  <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5">
-                    <Skeleton className="h-3.5 w-11/12" />
-                    <Skeleton className="h-3 w-3/5" />
-                    <Skeleton className="h-2.5 w-2/5" />
+            <article className={articleClass}>
+              <Card className={shellClass}>
+                {!denseList ? (
+                  <div className={thumbnailClass}>
+                    {!horizontal && hideThumbnail ? (
+                      <Skeleton className="pointer-events-none aspect-[60/9] w-full rounded-none" />
+                    ) : horizontal ? (
+                      <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
+                    ) : (
+                      <Skeleton className="pointer-events-none aspect-video w-full rounded-none" />
+                    )}
+                  </div>
+                ) : null}
+                <div className={textClass}>
+                  {showDenseAvatar || showGridAvatar ? (
+                    <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}>
+                      <Skeleton className={cn(denseList ? "size-10" : gridAvatarSize, "rounded-full")} />
+                    </div>
+                  ) : null}
+                  <div className={linesClass}>
+                    {denseList ? (
+                      <>
+                        <Skeleton className="h-4 min-w-0 flex-1" />
+                        {includeChannel ? <Skeleton className="hidden h-4 w-[min(180px,24vw)] shrink sm:block" /> : null}
+                        <Skeleton className="h-4 w-20 shrink-0" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex-none">
+                          <div className="flex min-h-[2.625rem] flex-col gap-1.5">
+                            <Skeleton className="h-4 w-11/12" />
+                            <Skeleton className="h-4 w-3/5" />
+                          </div>
+                        </div>
+                        <div className="flex min-h-0 flex-1 flex-col justify-end">
+                          <div className={cn("flex min-h-4 items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", includeChannel && "justify-between gap-3")}>
+                            <Skeleton className={cn("h-3.5", includeChannel ? "w-2/5" : "w-24")} />
+                            {includeChannel ? <Skeleton className="h-3.5 w-14 shrink-0" /> : null}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
-            )}
+            </article>
           </div>
         ))}
       </div>

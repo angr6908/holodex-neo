@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { langs } from "@/lib/consts";
-import themeSet, { readStoredThemeId } from "@/lib/themes";
+import themeSet, { readStoredThemeId, applyThemeColor } from "@/lib/themes";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { setLocaleCookie } from "@/lib/browser";
@@ -44,8 +44,15 @@ export function SettingsPage({ className = "" }: { className?: string }) {
     });
   }, []);
   useEffect(() => {
-    try { localStorage.setItem("theme", `${themeId}`); } catch {}
-  }, [themeId]);
+    try {
+      const theme = themeOptions.find((t) => t.id === Number(themeId));
+      localStorage.setItem("theme", `${themeId}`);
+      if (theme) {
+        localStorage.setItem("theme-color", theme.computedColor);
+        applyThemeColor(theme.computedColor);
+      }
+    } catch {}
+  }, [themeId, themeOptions]);
 
   function clearOverrideLanguage() {
     const params = new URLSearchParams(searchParams.toString());
@@ -90,7 +97,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
           <Select value={String(themeId)} onValueChange={(value) => setThemeId(value)}>
             <SelectTrigger>
               <span className="flex min-w-0 items-center gap-2">
-                <ThemeSwatch />
+                <ThemeSwatch color={selectedTheme?.computedColor} />
                 <span className="truncate">{themeName(selectedTheme?.name)}</span>
               </span>
             </SelectTrigger>
@@ -98,7 +105,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
               {themeOptions.map((theme) => (
                 <SelectItem key={theme.id} value={String(theme.id)}>
                   <span className="flex min-w-0 items-center gap-2">
-                    <ThemeSwatch />
+                    <ThemeSwatch color={theme.computedColor} />
                     <span className="truncate">{themeName(theme.name)}</span>
                   </span>
                 </SelectItem>
@@ -144,6 +151,11 @@ export function SettingsPage({ className = "" }: { className?: string }) {
   </div>;
 }
 
-function ThemeSwatch() {
-  return <span className="size-3 shrink-0 rounded-full border border-border bg-primary shadow-sm" />;
+function ThemeSwatch({ color }: { color?: string }) {
+  return (
+    <span
+      className="size-3 shrink-0 rounded-full border border-border shadow-sm"
+      style={{ backgroundColor: color ?? "var(--primary)" }}
+    />
+  );
 }

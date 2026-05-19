@@ -37,7 +37,7 @@ export function TlEntryRow({
       <TableCell className={isEditor ? "whitespace-nowrap" : undefined}>{start}</TableCell>
       <TableCell className={isEditor ? "whitespace-nowrap" : undefined}>{end}</TableCell>
       {isEditor ? <TableCell>{profileName}</TableCell> : null}
-      <TableCell className="font-bold" colSpan={2}>
+      <TableCell className="font-normal" colSpan={2}>
         <span className="break-words">{stext}</span>
       </TableCell>
     </TableRow>
@@ -62,5 +62,5 @@ function TlExportButtons({ onExportSrt, onExportAss, onExportTtml }: TlExportBut
 
 export function ScriptEditorExportToFile({ entries = [], profile = [], title = "Holodex" }: { entries?: any[]; profile?: any[]; title?: string }) {
   const t = useTranslations();
-  return <div className="space-y-4 p-4"><h2 className="text-center text-xl font-semibold text-foreground">{t("views.scriptEditor.menu.exportFile")}</h2><h4 className="text-center text-sm text-muted-foreground">{t("editor.music.exportSummary", { entries: entries.length, profiles: profile.length })}</h4><TlExportButtons onExportSrt={() => downloadTextFile(`${title}.srt`, buildTlSrtExport(entries))} onExportAss={() => downloadTextFile(`${title}.ass`, buildTlAssExport(entries, profile))} onExportTtml={() => downloadTextFile(`${title}.ttml`, buildTlTtmlExport(entries, profile))} /></div>;
+  return <div className="space-y-4 p-4"><h2 className="text-center text-xl font-normal text-foreground">{t("views.scriptEditor.menu.exportFile")}</h2><h4 className="text-center text-sm text-muted-foreground">{t("editor.music.exportSummary", { entries: entries.length, profiles: profile.length })}</h4><TlExportButtons onExportSrt={() => downloadTextFile(`${title}.srt`, buildTlSrtExport(entries))} onExportAss={() => downloadTextFile(`${title}.ass`, buildTlAssExport(entries, profile))} onExportTtml={() => downloadTextFile(`${title}.ttml`, buildTlTtmlExport(entries, profile))} /></div>;
 }

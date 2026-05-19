@@ -84,7 +84,7 @@ export function ChannelList({
       <div className="space-y-4">
         {channelsByGroup.map((g, i) => (
           <div key={`card-group-${i}`}>
-            <div className="px-2 py-3 text-xl font-medium tracking-tight text-foreground">{g.title}</div>
+            <div className="px-2 py-3 text-xl font-semibold tracking-tight text-foreground">{g.title}</div>
             <div className={gridClass}>
               {g.items.map((c: any, j: number) => (
                 <div key={`${c.id || "channel"}-${i}-${j}`} className={c.inactive ? "opacity-50" : undefined}>
@@ -112,7 +112,7 @@ export function ChannelList({
       {channelsByGroup.map((g, i) => (
         <Collapsible key={`list-group-${i}`} defaultOpen className="overflow-hidden rounded-xl border border-border">
           <div className="flex justify-between gap-3 px-4 py-3">
-            <CollapsibleTrigger render={<Button type="button" variant="ghost" className="h-auto flex-1 justify-start p-0 text-left text-lg font-medium tracking-tight hover:bg-transparent" />}>
+            <CollapsibleTrigger render={<Button type="button" variant="ghost" className="h-auto flex-1 justify-start p-0 text-left text-lg font-semibold tracking-tight hover:bg-transparent" />}>
               {g.title}
             </CollapsibleTrigger>
             <div className="flex items-center gap-2">

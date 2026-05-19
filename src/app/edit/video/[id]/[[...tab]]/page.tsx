@@ -206,7 +206,7 @@ export default function EditVideoPage() {
               </TabsList>
 
               <TabsContent value={TABS.TOPIC} className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <div className="flex items-center gap-2 text-lg font-normal text-foreground">
                   <icons.CirclePlay className="size-5" />
                   <h2>{t("views.editor.changeTopic.title")}</h2>
                 </div>

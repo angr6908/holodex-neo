@@ -6,7 +6,7 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+  --font-mono: var(--font-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -50,6 +50,13 @@
 
 :root {
   --radius: 0.625rem;
+  /* Top-nav height defaults so pages reserve space on first paint, before
+     MainNav's layout effect measures and overrides these. Matches the actual
+     rendered height of the desktop header (h-9 controls + py-2 padding = 52px)
+     and navRoot wrapper (header + pb-1 = 56px). */
+  --nav-header-height: 52px;
+  --nav-total-height: 56px;
+  --nav-h: 52px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -117,6 +124,23 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@layer utilities {
+  .font-ibm {
+    font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+
+  /* Hide the SSR-rendered nav controls skeleton once the real interactive
+     controls are portaled in by ConnectedVideoList / ChannelsPage. Prevents
+     the filter/grid buttons from disappearing for a moment on refresh. */
+  #mainNavPageControls:has(#date-selectorfalse:not(:empty)) [data-nav-controls-skeleton],
+  #mainNavPageControls:has(#date-selectortrue:not(:empty)) [data-nav-controls-skeleton],
+  #mainNavPageControls:has(#channels-panel-portal:not(:empty)) [data-nav-controls-skeleton] {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -124,5 +148,8 @@
 
   body {
     @apply bg-background text-foreground;
+    font-weight: 350;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
   }
 }

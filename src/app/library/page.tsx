@@ -68,7 +68,7 @@ export default function LibraryPage() {
   return (
     <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-4">
       <div>
-        <div className="mb-2 text-xl font-semibold text-foreground">{t("views.library.savedVideosTitle")}</div>
+        <div className="mb-2 text-xl font-normal text-foreground">{t("views.library.savedVideosTitle")}</div>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="secondary" onClick={() => showReset ? reset() : selectAll()}>{showReset ? t("views.library.selectionReset") : t("views.library.selectionSelectAll")}</Button>
           {!showReset ? <Button type="button" variant="secondary" onClick={() => select(50)}>{t("views.library.selectionSelect50")}</Button> : null}

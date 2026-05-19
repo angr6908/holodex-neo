@@ -9,19 +9,30 @@ import { ReportDialog } from "@/components/app/ReportDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { AppBootState } from "@/lib/cookie-codec";
 import { configureDayjsLocale } from "@/lib/time";
 import { openUserMenu, setLocaleCookie } from "@/lib/browser";
 import { pullToRefresh } from "@/lib/mobile-pull-to-refresh";
 import * as icons from "@/lib/icons";
+import { applyThemeColor, getComputedThemeColor } from "@/lib/themes";
+import type { AppBootState, HomeUiState } from "@/lib/cookie-codec";
 
-export function AppProviders({ children, initialBootState }: { children: React.ReactNode; initialBootState?: AppBootState | null }) {
+export function AppProviders({
+  children,
+  initialBootState,
+  initialHomeState,
+}: {
+  children: React.ReactNode;
+  initialBootState?: AppBootState | null;
+  initialHomeState?: HomeUiState | null;
+}) {
   return (
     <AppStateProvider initialBootState={initialBootState}>
       <LocaleRuntime />
+      <DarkModeRuntime />
+      <ThemeRuntime />
       <ViewportRuntime />
       <RouteQueryRuntime />
-      <AppChrome />
+      <AppChrome initialHomeState={initialHomeState} initialBootState={initialBootState} />
       {children}
     </AppStateProvider>
   );
@@ -30,6 +41,50 @@ export function AppProviders({ children, initialBootState }: { children: React.R
 function LocaleRuntime() {
   const locale = useLocale();
   useEffect(() => { configureDayjsLocale(locale); document.documentElement.lang = locale; }, [locale]);
+  return null;
+}
+
+function DarkModeRuntime() {
+  const { settings } = useAppState();
+  const { darkMode, followSystemTheme } = settings;
+
+  useLayoutEffect(() => {
+    const apply = (dark: boolean) => {
+      document.documentElement.classList.toggle("dark", dark);
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
+    };
+    if (followSystemTheme) {
+      apply(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    } else {
+      apply(darkMode);
+    }
+  }, [darkMode, followSystemTheme]);
+
+  useEffect(() => {
+    if (!followSystemTheme) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      document.documentElement.classList.toggle("dark", e.matches);
+      document.documentElement.style.colorScheme = e.matches ? "dark" : "light";
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [followSystemTheme]);
+
+  return null;
+}
+
+function ThemeRuntime() {
+  useEffect(() => {
+    const stored = localStorage.getItem("theme-color");
+    if (stored && /^#[0-9a-f]{6}$/i.test(stored)) {
+      applyThemeColor(stored);
+    } else {
+      const color = getComputedThemeColor();
+      applyThemeColor(color);
+      try { localStorage.setItem("theme-color", color); } catch {}
+    }
+  }, []);
   return null;
 }
 
@@ -137,7 +192,13 @@ function PullToRefresh() {
   );
 }
 
-function AppChrome() {
+function AppChrome({
+  initialHomeState,
+  initialBootState,
+}: {
+  initialHomeState?: HomeUiState | null;
+  initialBootState?: AppBootState | null;
+}) {
   const app = useAppState();
   const t = useTranslations();
   const [showTwitter, setShowTwitter] = useState(false);
@@ -149,12 +210,12 @@ function AppChrome() {
 
   return (
     <>
-      <MainNav />
+      <MainNav initialHomeState={initialHomeState} initialBootState={initialBootState} />
       <PullToRefresh />
       {showTwitter ? (
         <Alert className="fixed inset-x-3 top-20 z-40 mx-auto max-w-lg">
           <AlertDescription className="gap-3">
-            <div className="text-sm font-semibold">{t("views.login.twitterMsg.0")}</div>
+            <div className="text-sm font-normal">{t("views.login.twitterMsg.0")}</div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={() => { setShowTwitter(false); openUserMenu(); }}>{t("views.login.linkAcc")}</Button>
               <Button variant="ghost" size="sm" onClick={() => setShowTwitter(false)}>{t("views.app.close_btn")}</Button>

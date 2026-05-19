@@ -52,7 +52,7 @@ function TwitterFeed() {
   }, [metrics]);
 
   return <div ref={elRef} className="space-y-4 p-5">
-    {s ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{statCards.map((item) => <Card key={item.label} role="article" size="sm"><div className="text-2xl font-semibold" data-stat-value data-value={item.value}>0</div><div className="text-xs font-medium text-muted-foreground">{item.label}</div><div className="text-xs text-muted-foreground">{item.delta}</div></Card>)}</div> : null}
+    {s ? <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{statCards.map((item) => <Card key={item.label} role="article" size="sm"><div className="text-2xl font-normal" data-stat-value data-value={item.value}>0</div><div className="text-xs font-medium text-muted-foreground">{item.label}</div><div className="text-xs text-muted-foreground">{item.delta}</div></Card>)}</div> : null}
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{links.filter((l) => l.bucket === "top").map((item) => <SocialLink key={item.title} item={item} />)}</div>
     <div className="grid gap-2 min-[1100px]:grid-cols-2">
       <div className="grid gap-2">{links.filter((l) => l.bucket === "bottom").map((item) => <SocialLink key={item.title} item={item} />)}</div>

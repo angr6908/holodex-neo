@@ -137,11 +137,15 @@ const liveCacheKey = (orgs: string[]) => {
   return JSON.stringify(t.length ? [...t].sort() : [ALL_VTUBERS_ORG]);
 };
 
+const countLiveVideos = (videos: any[]) => (videos || []).filter((v) => v?.status === "live").length;
+
 function writeBootCookie(s: State) {
   if (typeof document === "undefined") return;
   const enc = encodeCookieJson({
     isMobile: s.isMobile, windowWidth: s.windowWidth, currentOrg: s.currentOrg,
     selectedHomeOrgs: s.selectedHomeOrgs, orgFavorites: s.orgFavorites, currentGridSize: s.currentGridSize,
+    homeLiveCount: countLiveVideos(s.homeLive),
+    favoritesLiveCount: countLiveVideos(s.favoritesLive),
     settings: {
       lang: s.settings.lang, defaultOpen: s.settings.defaultOpen,
       homeViewMode: s.settings.homeViewMode, scrollMode: s.settings.scrollMode,
@@ -240,8 +244,18 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
   useEffect(() => { if (hydrated) { writeJSON(KEYS.APP, appPersist(state)); writeBootCookie(state); } }, [hydrated, state.firstVisit, state.showOrgTip, state.showUpdateDetails, state.firstVisitMugen, state.currentOrg, state.selectedHomeOrgs, state.orgFavorites, state.currentGridSize, state.userdata, state.TPCookieEnabled, state.TPCookieAlertDismissed]);
   useEffect(() => { if (hydrated) writeBootCookie(state); }, [hydrated, state.isMobile, state.windowWidth]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.ORGS, { orgs: state.orgs }); }, [hydrated, state.orgs]);
-  useEffect(() => { if (hydrated) writeJSON(KEYS.HOME, { live: state.homeLive, lastLiveUpdate: state.homeLastLiveUpdate, liveCacheKey: state.homeLiveCacheKey }); }, [hydrated, state.homeLive, state.homeLastLiveUpdate, state.homeLiveCacheKey]);
-  useEffect(() => { if (hydrated) writeJSON(KEYS.FAVS, { favorites: state.favorites, live: state.favoritesLive, lastLiveUpdate: state.favoritesLastLiveUpdate }); }, [hydrated, state.favorites, state.favoritesLive, state.favoritesLastLiveUpdate]);
+  useEffect(() => {
+    if (hydrated) {
+      writeJSON(KEYS.HOME, { live: state.homeLive, lastLiveUpdate: state.homeLastLiveUpdate, liveCacheKey: state.homeLiveCacheKey });
+      writeBootCookie(state);
+    }
+  }, [hydrated, state.homeLive, state.homeLastLiveUpdate, state.homeLiveCacheKey]);
+  useEffect(() => {
+    if (hydrated) {
+      writeJSON(KEYS.FAVS, { favorites: state.favorites, live: state.favoritesLive, lastLiveUpdate: state.favoritesLastLiveUpdate });
+      writeBootCookie(state);
+    }
+  }, [hydrated, state.favorites, state.favoritesLive, state.favoritesLastLiveUpdate]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.LIB, { savedVideos: state.savedVideos }); }, [hydrated, state.savedVideos]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.PLAYLIST, { active: { ...state.playlistActive, videos: state.playlist }, isSaved: state.playlistIsSaved }); }, [hydrated, state.playlist, state.playlistActive, state.playlistIsSaved]);
 

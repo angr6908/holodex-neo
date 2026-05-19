@@ -1,8 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CircleUser } from "@/lib/icons";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
 
@@ -51,9 +50,7 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "" 
       {!err && photo ? (
         <AvatarImage key={photo} src={photo} decoding="async" width={px} height={px} className="object-cover" onError={onImgError} alt="" />
       ) : null}
-      <AvatarFallback>
-        <CircleUser className="size-6" />
-      </AvatarFallback>
+
     </Avatar>
   );
 

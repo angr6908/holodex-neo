@@ -13,7 +13,7 @@ export default function NotFound() {
     <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 flex items-center justify-center">
       <Card className="w-full max-w-lg p-8 text-center">
         <Empty className="flex-none gap-6 rounded-none p-0 md:p-0">
-          <EmptyMedia className="mx-auto mb-0 h-14 w-14 text-2xl font-semibold">
+          <EmptyMedia className="mx-auto mb-0 h-14 w-14 text-2xl font-normal">
             404
           </EmptyMedia>
           <EmptyHeader className="max-w-none gap-6">

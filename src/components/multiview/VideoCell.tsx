@@ -45,9 +45,8 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
 
   useEffect(() => {
     if (!c) return;
-    if (editMode) store.unfreezeLayoutItem(item.i); else store.freezeLayoutItem(item.i);
     player.current?.setPlaying?.(!editMode);
-  }, [editMode, item.i, !!c]);
+  }, [editMode, c?.id]);
 
   useEffect(() => { player.current?.setMute?.(muted); }, [muted]);
 
@@ -134,8 +133,8 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
   useRegisterMultiviewVideoCell(String(item.i), c && video ? exposed : null);
 
   if (!c || !video) return null;
-  const ytClass = "absolute inset-0 h-full w-full [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&>div>iframe]:absolute [&>div>iframe]:inset-0 [&>div>iframe]:h-full [&>div>iframe]:w-full";
-  const twClass = "absolute inset-0 h-full w-full [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full";
+  const ytClass = "absolute inset-0 h-full w-full overflow-hidden [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&>div>iframe]:absolute [&>div>iframe]:inset-0 [&>div>iframe]:h-full [&>div>iframe]:w-full [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full";
+  const twClass = "absolute inset-0 h-full w-full overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full";
 
   return (
     <div key={`uid-${uid}`} className="flex h-full max-h-full min-h-0 w-full grow basis-full shrink flex-col overflow-hidden">

@@ -621,9 +621,6 @@
       "unmuteAll": "全てミュート解除",
       "muteOthers": "他をミュート",
       "muteOthersDetail": "1つの配信以外をすべてミュートにする",
-      "autoLayoutTip": "チャンネルをクリックすると自動でレイアウトされた状態で視聴できます",
-      "createLayoutTip": "セルを追加してオリジナルのレイアウトを作成するか、プリセットを使用してください",
-      "openToolbarTip": "ツールバーを開いてマルチビューを開始",
       "archiveSync": "アーカイブ同期",
       "preset": {
         "shareOnDiscord": "なにか良いレイアウトが思いついたら私達の <a href=\"https://discord.gg/jctkgHBt4b\">Discordサーバー</a>でお知らせください!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "自動レイアウトを編集",
       "changeLayout": "レイアウトを変更",
       "done": "完了",
-      "hints": "ヒント",
-      "presetsHint": "プリセットメニューを開くとレイアウトを切り替えたり自動レイアウトについて設定したりできます",
-      "mediaControlsHint1": "メディアコントロールを使うとライブストリームのミュートや同期 (",
-      "mediaControlsHint2": ") ができます",
-      "dragDropHint": "ツールバーからセルに配信をドラッグ&ドロップして配信を整理します",
-      "reorderHint": "動画/チャットの位置を変更するには、レイアウトの並べ替えメニューを使用します",
       "reorderLayout": "レイアウトの並べ替え",
       "reorderLayoutDetail": "アイコンを目的の位置にドラッグ&ドロップします",
       "sync": {

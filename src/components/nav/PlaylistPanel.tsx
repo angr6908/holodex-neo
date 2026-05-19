@@ -158,7 +158,7 @@ export function PlaylistPanel({ open, onOpenChange }: { open: boolean; onOpenCha
                 className="group/name justify-start text-left"
                 title={t("component.playlist.menu.rename-playlist")}
                 onClick={() => setEditName(true)}>
-                <span className="max-w-[10rem] truncate text-sm font-semibold text-foreground">{activeName}</span>
+                <span className="max-w-[10rem] truncate text-sm font-normal text-foreground">{activeName}</span>
                 <Pencil className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/name:opacity-100" />
               </Button>
             )}

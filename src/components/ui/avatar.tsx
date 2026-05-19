@@ -38,21 +38,6 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   )
 }
 
-function AvatarFallback({
-  className,
-  ...props
-}: AvatarPrimitive.Fallback.Props) {
-  return (
-    <AvatarPrimitive.Fallback
-      data-slot="avatar-fallback"
-      className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
-        className
-      )}
-      {...props}
-    />
-  )
-}
 
 function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   return (
@@ -102,7 +87,6 @@ function AvatarGroupCount({
 export {
   Avatar,
   AvatarImage,
-  AvatarFallback,
   AvatarGroup,
   AvatarGroupCount,
   AvatarBadge,

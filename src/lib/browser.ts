@@ -85,15 +85,47 @@ const getDb = () => {
   return dbPromise;
 };
 
+// Synchronous in-memory mirror of the watched-id set, backed by localStorage so
+// the watched-title style applies on the very first paint (no async flash from
+// white → muted) and survives reloads.
+const WATCHED_IDS_KEY = "holodex-watched-ids";
+let watchedCache: Set<string> | null = null;
+function getWatchedSet(): Set<string> {
+  if (watchedCache) return watchedCache;
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage?.getItem(WATCHED_IDS_KEY);
+    watchedCache = new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch { watchedCache = new Set<string>(); }
+  return watchedCache;
+}
+function persistWatchedSet() {
+  if (!watchedCache || typeof window === "undefined") return;
+  try { window.localStorage?.setItem(WATCHED_IDS_KEY, JSON.stringify([...watchedCache])); } catch {}
+}
+
+export function hasWatchedSync(id?: string | null): boolean {
+  return !!id && getWatchedSet().has(id);
+}
+
 export async function hasWatched(id: string) {
+  if (!id) return false;
+  if (getWatchedSet().has(id)) return true;
   const db = await getDb();
-  if (!db || !id) return false;
-  try { return !!(await db.get(id)); } catch { return false; }
+  if (!db) return false;
+  try {
+    const found = !!(await db.get(id));
+    if (found) { getWatchedSet().add(id); persistWatchedSet(); }
+    return found;
+  } catch { return false; }
 }
 
 export async function addWatchedVideo(video: { id?: string | null }) {
+  if (!video?.id) return;
+  getWatchedSet().add(video.id);
+  persistWatchedSet();
   const db = await getDb();
-  if (db && video?.id) db.put(video.id, 1).catch(() => {});
+  if (db) db.put(video.id, 1).catch(() => {});
 }
 
 export const readWatchControlsState = (): WatchControlsState => readJSON(WATCH_KEY, defaultWatchControlsState);

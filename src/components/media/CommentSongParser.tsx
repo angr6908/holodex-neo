@@ -129,7 +129,7 @@ export function CommentSongParser({
           {t("component.media.automatedSongHelper")}
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-4">
-          <h5 className="mb-3 text-sm font-semibold">{t("component.media.clickSearchableTimestamp")}</h5>
+          <h5 className="mb-3 text-sm font-normal">{t("component.media.clickSearchableTimestamp")}</h5>
 
           {selection.map((timeframe, idx) => (
             <div key={`s${timeframe.index}`} className="mb-4">

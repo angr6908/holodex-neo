@@ -621,9 +621,6 @@
       "unmuteAll": "Nyalakan Suara Semua Video",
       "muteOthers": "Senyapkan yang lain",
       "muteOthersDetail": "Senyapkan semua kecuali satu siaran",
-      "autoLayoutTip": "Tekan channel untuk mulai menonton menggunakan mode tataletak otomatis",
-      "createLayoutTip": "Membuat tataletak kreasimu sendiri dengan menambahkan kolom, atau menggunakan preset",
-      "openToolbarTip": "Buka bilah alat untuk mulai menggunakan multiview",
       "archiveSync": "Sinkronisasi Arsip",
       "preset": {
         "shareOnDiscord": "Punya usulan tataletak yang keren untuk dibagikan? Gunakan tombol buat tautan dan beritahu di <a href=\"https://discord.gg/jctkgHBt4b\">Server Discord</a> kami!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Atur Tataletak Otomatis",
       "changeLayout": "Ubah Tataletak",
       "done": "Selesai",
-      "hints": "Petunjuk",
-      "presetsHint": "Buka menu preset untuk mengganti tataletak dan mengatur tataletak otomatis",
-      "mediaControlsHint1": "Gunakan Kontrol Media untuk menyenyapkan dan menyinkronkan (",
-      "mediaControlsHint2": ") siaran langsung",
-      "dragDropHint": "Seret dan lepas siaran dari bilah alat ke kolom skema untuk mengatur siaran",
-      "reorderHint": "Gunakan menu Tata Ulang untuk mengganti posisi video/chat",
       "reorderLayout": "Tata Ulang",
       "reorderLayoutDetail": "Seret dan lepas ikon ke posisi yang diinginkan",
       "sync": {

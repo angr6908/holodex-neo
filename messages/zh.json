@@ -621,9 +621,6 @@
       "unmuteAll": "全部取消靜音",
       "muteOthers": "靜音其餘影片",
       "muteOthersDetail": "僅啟用單一影片的聲音輸出",
-      "autoLayoutTip": "點擊任意頻道即可使用自動排版模式觀看實況",
-      "createLayoutTip": "增加新分割以創造專屬排版，亦能使用預設佈局",
-      "openToolbarTip": "開啟控制欄以開始使用多窗工具",
       "archiveSync": "存檔同步",
       "preset": {
         "shareOnDiscord": "想到了什麼很棒的分割方式嗎？將該分割佈局的永久連結分享至我們的 <a href=\"https://discord.gg/jctkgHBt4b\">Discord伺服器</a> 吧！",
@@ -657,12 +654,6 @@
       "editAutoLayout": "自動排版設定",
       "changeLayout": "變更版面配置",
       "done": "儲存設定",
-      "hints": "使用小技巧",
-      "presetsHint": "開啟版面配置視窗來變更布局與自動排版模式的設定",
-      "mediaControlsHint1": "使用媒體控制面板來靜音或是同步 (",
-      "mediaControlsHint2": ") 複數實況",
-      "dragDropHint": "從置頂欄拖曳實況至不同分割來自訂顯示位置",
-      "reorderHint": "使用佈局調整面板來快速更改影片/聊天室位置",
       "reorderLayout": "佈局調整面板",
       "reorderLayoutDetail": "拖曳圖示以重新配置分割",
       "sync": {

@@ -621,9 +621,6 @@
       "unmuteAll": "No Urusai",
       "muteOthers": "Mute Others peko",
       "muteOthersDetail": "Mute all but one raibu peko",
-      "autoLayoutTip": "Click on a channeru to start watching using auto layout mode peko",
-      "createLayoutTip": "Create your own layout by adding a cell, or using a preset peko",
-      "openToolbarTip": "hiraku the toolbar to start using multiview peko",
       "archiveSync": "Archive Sync peko",
       "preset": {
         "shareOnDiscord": "Have a cool layout to share? Use the share button and let us know on our peko <a href=\"https://discord.gg/jctkgHBt4b\">Discord server peko</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Oto reiouto ejito",
       "changeLayout": "Reiouto change",
       "done": "Ogey",
-      "hints": "Hint peko",
-      "presetsHint": "hiraku presets menu to switch layouts and configure auto layout peko",
-      "mediaControlsHint1": "Media Contororu use streaming mute and sync (",
-      "mediaControlsHint2": ") peko",
-      "dragDropHint": "Drag and drop raibus from toolbar to cells to organize raibus peko",
-      "reorderHint": "Use Reorder Layout menu to change bideo/chat positions peko",
       "reorderLayout": "Reorder Layout peko",
       "reorderLayoutDetail": "Drag and drop icons to the desired position peko",
       "sync": {

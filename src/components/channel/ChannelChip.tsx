@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { channelAvatarSizeClass } from "@/components/channel/ChannelImg";
@@ -48,9 +48,7 @@ export function ChannelChip({
       >
         <Avatar className={channelAvatarSizeClass(size)}>
           <AvatarImage src={photo} alt={`${channel.name}'s profile picture`} width={size} height={size} decoding="async" />
-          <AvatarFallback>
-            <icons.CircleUser className="size-5" />
-          </AvatarFallback>
+
         </Avatar>
         {children ? children({ isHover: open }) : open ? (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70">

@@ -140,6 +140,71 @@ export function sortVideosForTab(items: any[], isArchive: boolean) {
 
 export const absoluteTime = (v: any, lang: string) => titleTimeString(videoDisplayTime(v), lang);
 
+/**
+ * Compact, space-saving time label for the video card meta row.
+ *
+ * Rules:
+ *  - live           → ""           (caller shows a LIVE indicator instead)
+ *  - upcoming
+ *      < 4h         → "in 2h"      (short relative)
+ *      same day     → "8:30 PM"    (clock only)
+ *      tomorrow     → "Tom 8:30p"
+ *      same week    → "Wed 8:30p"
+ *      else         → "12/15"
+ *  - past
+ *      < 1h         → "5m ago"
+ *      < 6h         → "2h ago"
+ *      yesterday    → "Yest"
+ *      same week    → "Wed"
+ *      same year    → "12/15"
+ *      else         → "12/15/24"
+ */
+export function compactVideoTime(v: any, lang: string, now = Date.now()): string {
+  if (!v) return "";
+  if (v.status === "live") return "";
+  const target = dayjs(v.status === "upcoming" ? (v.start_scheduled || v.available_at) : videoDisplayTime(v));
+  if (!target.isValid()) return "";
+  const n = dayjs(now);
+  const diffMs = target.valueOf() - n.valueOf();
+  const absMs = Math.abs(diffMs);
+  const fmtTime = target.locale(getDayjsLocale(lang)).format("LT");
+  const fmtDay = target.locale(getDayjsLocale(lang)).format("ddd");
+  const dateLabel = sameYear(target, n) ? target.format("M/D") : target.format("M/D/YY");
+  if (v.status === "upcoming") {
+    if (absMs < 4 * 3_600_000) return shortDur(absMs);
+    if (isSameDay(target, n)) return fmtTime;
+    if (isNextDay(target, n)) return `${shortLabel("tom", lang)} ${fmtTime}`;
+    if (absMs < 7 * 86_400_000) return `${fmtDay} ${fmtTime}`;
+    return dateLabel;
+  }
+  // past
+  if (absMs < 3_600_000) return `${Math.max(1, Math.round(absMs / 60_000))}m ago`;
+  if (absMs < 6 * 3_600_000) return `${Math.round(absMs / 3_600_000)}h ago`;
+  if (isSameDay(target, n)) return fmtTime;
+  if (isPrevDay(target, n)) return shortLabel("yest", lang);
+  if (absMs < 7 * 86_400_000) return fmtDay;
+  return dateLabel;
+}
+
+function getDayjsLocale(lang: string) { return (lang || "en").toLowerCase(); }
+function isSameDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.format("YYYY-MM-DD"); }
+function isNextDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.add(1, "day").format("YYYY-MM-DD"); }
+function isPrevDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.subtract(1, "day").format("YYYY-MM-DD"); }
+function sameYear(a: any, b: any) { return a.format("YYYY") === b.format("YYYY"); }
+function shortDur(ms: number) {
+  const m = Math.round(ms / 60_000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60), rem = m % 60;
+  return rem ? `${h}h ${rem}m` : `${h}h`;
+}
+function shortLabel(key: "tom" | "yest", lang: string) {
+  const en = key === "tom" ? "Tom" : "Yest";
+  const l = (lang || "en").toLowerCase();
+  if (l.startsWith("ja")) return key === "tom" ? "明日" : "昨日";
+  if (l.startsWith("zh")) return key === "tom" ? "明天" : "昨天";
+  return en;
+}
+
 export const elapsedLiveDuration = (start: string | number | Date, now = Date.now()) =>
   formatDuration(dayjs(now).diff(dayjs(start)));
 

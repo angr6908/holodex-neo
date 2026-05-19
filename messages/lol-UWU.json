@@ -621,9 +621,6 @@
       "unmuteAll": "Unmute aww",
       "muteOthers": "Mute othews",
       "muteOthersDetail": "Mute aww but one stweam",
-      "autoLayoutTip": "Cwick on a channew to stawt watching using auto wayout mode",
-      "createLayoutTip": "Cweate youw own wayout by adding a ceww, ow using a pweset",
-      "openToolbarTip": "Open da toowbaw to stawt using muwtiview",
       "archiveSync": "Awchive sync",
       "preset": {
         "shareOnDiscord": "Have a coow wayout to shawe? use da shawe button and wet us know on ouw <a href=\"https://discord.gg/jctkgHBt4b\">discowd sewvew</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Edit auto layout",
       "changeLayout": "Change layout",
       "done": "Donye",
-      "hints": "Hints uwu",
-      "presetsHint": "Open pwesets menu to switch wayouts and configuwe auto wayout",
-      "mediaControlsHint1": "Use media contwows to mute and sync (",
-      "mediaControlsHint2": ") wive stweams",
-      "dragDropHint": "Dwag and dwop stweams fwom toowbaw to cewws to owganize stweams",
-      "reorderHint": "Use reowdew layout menu to change bideo/chat positions",
       "reorderLayout": "Reowdew layout",
       "reorderLayoutDetail": "Dwag and dwop icons to da desiwed position",
       "sync": {

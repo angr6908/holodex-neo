@@ -35,7 +35,7 @@ export const MessageRenderer = forwardRef<MessageRendererHandle, { tlHistory?: a
   useImperativeHandle(ref, () => ({ scrollToBottom }));
   const iosClass = checkIOS() ? "scale-y-[-1] !flex-col" : "";
   return (
-    <div ref={tlBody} className={cn("flex min-h-0 flex-1 flex-col-reverse overflow-y-auto overscroll-contain p-1 leading-[1.35] tracking-[0.018em] lg:p-3", liveTlFontSizeClass(fontSize), iosClass)}>
+    <div ref={tlBody} className={cn("flex min-h-0 flex-1 flex-col-reverse overflow-y-auto overscroll-contain p-1 leading-[1.35] lg:p-3", liveTlFontSizeClass(fontSize), iosClass)}>
       <div className={iosClass}>
         {tlHistory.map((item, index) => (
           <ChatMessage key={item.key || `${item.name}-${item.timestamp}-${index}`} source={item} hideAuthor={hideAuthor(item, index)} />

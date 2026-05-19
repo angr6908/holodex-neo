@@ -92,7 +92,7 @@ export function UploadScript({ videoData, onClose }: { videoData: any; onClose?:
   return (
     <div className="space-y-5 p-6">
       <div>
-        <h2 className="text-lg font-semibold">{t("views.watch.uploadPanel.title")}</h2>
+        <h2 className="text-lg font-normal">{t("views.watch.uploadPanel.title")}</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {t("views.watch.uploadPanel.usernameText") + " : " + user.user?.username + " "}
           <Button type="button" variant="link" className="h-auto p-0 align-baseline text-sm font-normal" onClick={openUserMenu}>

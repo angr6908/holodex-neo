@@ -94,7 +94,7 @@ export function ExportToFile({ videoData }: { videoData: any }) {
 
   return (
     <div className="space-y-5 p-6">
-	      <h2 className="text-center text-lg font-semibold">
+	      <h2 className="text-center text-lg font-normal">
         {t("views.tlManager.download")}
       </h2>
       <div className="space-y-2">

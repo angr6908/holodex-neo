@@ -621,9 +621,6 @@
       "unmuteAll": "Bật âm tất cả",
       "muteOthers": "Tắt tiếng các stream khác",
       "muteOthersDetail": "Tắt tiếng tất cả trừ một stream",
-      "autoLayoutTip": "Nhấn vào một kênh để bắt đầu xem bằng chế độ bố cục tự động",
-      "createLayoutTip": "Tự tạo bố cục của riêng mình bằng cách thêm các ô hoặc sử dụng mẫu có sẵn",
-      "openToolbarTip": "Mở thanh công cụ để bắt đầu sử dụng multiview",
       "archiveSync": "Đồng bộ hoá archive",
       "preset": {
         "shareOnDiscord": "Muốn chia sẻ bố cục của mình? Hãy sử dụng nút chia sẻ và liên hệ với chúng tôi trên <a href=\"https://discord.gg/jctkgHBt4b\">Discord</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Chỉnh sửa bố cục tự động",
       "changeLayout": "Thay đổi bố cục",
       "done": "Hoàn tất",
-      "hints": "Gợi ý",
-      "presetsHint": "Mở menu mẫu có sẵn để thay đổi bố cục và cài đặt bố cục tự động",
-      "mediaControlsHint1": "Sử dụng Điều khiển để tắt tiếng và đồng bộ hoá (",
-      "mediaControlsHint2": ") các stream",
-      "dragDropHint": "Kéo và thả các stream từ thanh công cụ đến các ô để sắp xếp",
-      "reorderHint": "Sử dụng menu Điều chỉnh bố cục để thay đổi vị trí video và chat",
       "reorderLayout": "Điều chỉnh bố cục",
       "reorderLayoutDetail": "Kéo và thả biểu tượng đến vị trí thích hợp",
       "sync": {

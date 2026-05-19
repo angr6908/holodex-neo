@@ -621,9 +621,6 @@
       "unmuteAll": "Riattiva Volume",
       "muteOthers": "Disattiva gli altri",
       "muteOthersDetail": "Disattiva tutti gli stream tranne uno",
-      "autoLayoutTip": "Clicca su un canale per iniziare a guardare usando la modalità layout automatico",
-      "createLayoutTip": "Crea il tuo layout aggiungendo una cella, o usando un preset",
-      "openToolbarTip": "Apri la barra degli strumenti per iniziare a usare multiview",
       "archiveSync": "Sincronizzazione archivio",
       "preset": {
         "shareOnDiscord": "Hai un bel layout da condividerci? Usa il pulsante condividi e facci sapere sul nostro <a href=\"https://discord.gg/jctkgHBt4b\">Server Discord</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Modifica layout automatico",
       "changeLayout": "Cambia layout",
       "done": "Fatto",
-      "hints": "Suggerimenti",
-      "presetsHint": "Apri il menu dei preset per cambiare layout e configurare il layout automatico",
-      "mediaControlsHint1": "Usa i controlli media per disattivare audio e sincronizzare (",
-      "mediaControlsHint2": ") gli stream live",
-      "dragDropHint": "Trascina gli stream dalla barra degli strumenti alle celle per organizzarli",
-      "reorderHint": "Usa il menu di riordino del layout per cambiare posizione a video/chat",
       "reorderLayout": "Riordina layout",
       "reorderLayoutDetail": "Trascina le icone nella posizione desiderata",
       "sync": {

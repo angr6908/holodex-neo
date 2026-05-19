@@ -1,21 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Heart } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
-import { encodeCookieJson, HOME_STATE_COOKIE, type HomeUiState } from "@/lib/cookie-codec";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
-import { HomeNavSegments } from "@/components/nav/HomeNavSegments";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
-import { ConnectedVideoList } from "@/components/video/ConnectedVideoList";
+import { ConnectedVideoList } from "@/components/nav/MainNav";
 import { openUserMenu, readJSON, writeJSON } from "@/lib/browser";
 import { ChannelsPage } from "@/components/channel/ChannelsPage";
-import { useDomElement, useSwipeTabs } from "@/lib/hooks";
-import { clearSavedHomePageState, getSavedHomePageState, HOME_STATE_STORAGE_KEY, HOME_TABS as Tabs, primeHomePageState } from "@/lib/cookie-codec";
+import { useSwipeTabs } from "@/lib/hooks";
+import { clearSavedHomePageState, encodeCookieJson, getSavedHomePageState, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS as Tabs, primeHomePageState, type HomeUiState } from "@/lib/cookie-codec";
 
 const scrollStore = new Map<string, number>();
 
@@ -51,10 +48,13 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
   const initialRef = useRef(initial);
   const lastLogoTrigger = useRef<number | null>(null);
   const root = useRef<HTMLElement | null>(null);
-  const navTarget = useDomElement("mainNavHomeControls");
 
   useEffect(() => { appRef.current = app; }, [app]);
-  useEffect(() => { favRef.current = isFavPage; stateRef.current = { viewMode, isFavPage, tab }; }, [viewMode, isFavPage, tab]);
+  useEffect(() => {
+    favRef.current = isFavPage;
+    stateRef.current = { viewMode, isFavPage, tab };
+    window.dispatchEvent(new CustomEvent("holodex-home-nav-state", { detail: { viewMode, isFavPage, tab } }));
+  }, [viewMode, isFavPage, tab]);
 
   useEffect(() => {
     const key = scrollKeyFor(isFavPage, viewMode, tab);
@@ -69,13 +69,7 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     saveState({ ...s, scrollY: 0 });
   }, []);
 
-  const live = isFavPage ? app.favoritesLive : app.homeLive;
   const hasError = isFavPage ? app.favoritesError : app.homeError;
-  const { hideUpcoming, hideLive } = app.settings;
-  const hideBoth = hideLive && hideUpcoming;
-  const livesVisible = hideLive ? [] : live.filter((v: any) => v.status === "live");
-  const streamMode = viewMode === "channels" ? "channels"
-    : tab === Tabs.ARCHIVE ? "archive" : tab === Tabs.CLIPS ? "clips" : "live-upcoming";
 
   const currentScrollKey = () => scrollKeyFor(isFavPage, viewMode, tab);
 
@@ -123,10 +117,10 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
 
   function setTab(next: number) {
     if (next === tab) return;
-    scrollStore.set(currentScrollKey(), window.scrollY);
+    scrollStore.set(scrollKeyFor(isFavPage, viewMode, next), 0);
     setTabState(next);
-    saveState({ viewMode, isFavPage, tab: next });
-    restoreScroll(scrollKeyFor(isFavPage, viewMode, next));
+    saveState({ viewMode, isFavPage, tab: next, scrollY: 0 });
+    window.scrollTo(0, 0);
   }
 
   const swipeTabs = useSwipeTabs((d) => setTab(Math.max(0, Math.min(2, tab + d))));
@@ -139,9 +133,6 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     if (refetch) setTimeout(() => { init(true, nextFav); restoreScroll(key); }, 0);
     else restoreScroll(key);
   }
-  const switchToHome = () => { if (isFavPage || viewMode !== "streams") switchTo(false, "streams", tab, true); };
-  const switchToFavorites = () => { if (!isFavPage || viewMode !== "streams") switchTo(true, "streams", tab, true); };
-  const switchToStreams = (t: number) => switchTo(isFavPage, "streams", t);
   const switchToChannels = () => switchTo(isFavPage, "channels", tab);
 
   useEffect(() => {
@@ -177,7 +168,19 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
   useEffect(() => { document.title = isFavPage ? `${t("component.mainNav.favorites")} - Holodex` : "Holodex"; }, [isFavPage, t]);
   useEffect(() => { if (app.visibilityState === "visible") refreshLive(app, isFavPage); }, [app.visibilityState]);
   useEffect(() => { if (isFavPage) init(false); }, [app.favoriteChannelIDs.size]);
-  useEffect(() => { if (hideBoth && tab === Tabs.LIVE_UPCOMING) setTab(Tabs.ARCHIVE); }, [hideBoth]);
+  useEffect(() => {
+    if (app.settings.hideLive && app.settings.hideUpcoming && tab === Tabs.LIVE_UPCOMING) setTab(Tabs.ARCHIVE);
+  }, [app.settings.hideLive, app.settings.hideUpcoming, tab]);
+
+  useEffect(() => {
+    const onHomeNav = (event: Event) => {
+      const next = normalizeHomeState((event as CustomEvent<HomeUiState>).detail);
+      if (!next) return;
+      switchTo(next.isFavPage ?? isFavPage, next.viewMode ?? viewMode, next.tab ?? tab, true);
+    };
+    window.addEventListener("holodex-home-nav", onHomeNav);
+    return () => window.removeEventListener("holodex-home-nav", onHomeNav);
+  }, [isFavPage, viewMode, tab]);
 
   useEffect(() => {
     const tr = app.reloadTrigger;
@@ -197,40 +200,21 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     }, 0);
   }, [app.reloadTrigger]);
 
-  const navControls = navTarget ? createPortal(
-    <div className="flex items-center gap-1.5">
-      <HomeNavSegments
-        selection={{ fav: isFavPage, mode: streamMode as any }}
-        hideBoth={hideBoth}
-        hideLive={hideLive}
-        liveCount={livesVisible.length}
-        onHome={switchToHome}
-        onFavorites={switchToFavorites}
-        onTab={switchToStreams}
-        onChannels={switchToChannels}
-      />
-      {viewMode === "streams" ? <div id={`date-selector${isFavPage}`} className="flex shrink-0 items-center gap-1.5 empty:hidden" /> : null}
-      {viewMode === "channels" ? <div id="channels-panel-portal" className="flex shrink-0 items-center gap-1.5 empty:hidden" /> : null}
-    </div>, navTarget) : null;
-
   return (
-    <>
-      {navControls}
-      <section ref={root} className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12" onTouchStart={swipeTabs.onTouchStart} onTouchEnd={swipeTabs.onTouchEnd}>
-        {viewMode === "streams" ? (
-          <>
-            {isFavPage && !(app.isLoggedIn && app.favoriteChannelIDs.size > 0) ? (
-              <Empty className="py-24">
-                <EmptyMedia variant="icon"><Heart className="h-6 w-6" /></EmptyMedia>
-                <EmptyHeader><EmptyDescription><span dangerouslySetInnerHTML={{ __html: t.raw("views.favorites.promptForAction") }} /></EmptyDescription></EmptyHeader>
-                <EmptyContent><Button variant="outline" onClick={() => app.isLoggedIn ? switchToChannels() : openUserMenu()}>{app.isLoggedIn ? t("views.favorites.manageFavorites") : t("component.mainNav.login")}</Button></EmptyContent>
-              </Empty>
-            ) : null}
-            {hasError ? <ApiErrorMessage /> : null}
-            <ConnectedVideoList isFavPage={isFavPage} tab={tab} isActive />
-          </>
-        ) : <ChannelsPage embedded />}
-      </section>
-    </>
+    <section ref={root} className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12" onTouchStart={swipeTabs.onTouchStart} onTouchEnd={swipeTabs.onTouchEnd}>
+      {viewMode === "streams" ? (
+        <>
+          {isFavPage && !(app.isLoggedIn && app.favoriteChannelIDs.size > 0) ? (
+            <Empty className="py-24">
+              <EmptyMedia variant="icon"><Heart className="h-6 w-6" /></EmptyMedia>
+              <EmptyHeader><EmptyDescription><span dangerouslySetInnerHTML={{ __html: t.raw("views.favorites.promptForAction") }} /></EmptyDescription></EmptyHeader>
+              <EmptyContent><Button variant="outline" onClick={() => app.isLoggedIn ? switchToChannels() : openUserMenu()}>{app.isLoggedIn ? t("views.favorites.manageFavorites") : t("component.mainNav.login")}</Button></EmptyContent>
+            </Empty>
+          ) : null}
+          {hasError ? <ApiErrorMessage /> : null}
+          <ConnectedVideoList isFavPage={isFavPage} tab={tab} isActive />
+        </>
+      ) : <ChannelsPage embedded />}
+    </section>
   );
 }

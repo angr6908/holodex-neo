@@ -621,9 +621,6 @@
       "unmuteAll": "取消全部静音",
       "muteOthers": "静音其余视频",
       "muteOthersDetail": "仅开启指定一个视频的声音输出",
-      "autoLayoutTip": "点击任意频道即可使用自动布局模式开始观看",
-      "createLayoutTip": "通过添加单元格或使用预设来创建你自己的布局",
-      "openToolbarTip": "开启控制栏以开始使用多窗工具",
       "archiveSync": "存档同步",
       "preset": {
         "shareOnDiscord": "有一个很棒的布局要分享？将该布局的永久链接分享至我们的 <a href=\"https://discord.gg/jctkgHBt4b\">Discord服务器</a> 吧！",
@@ -657,12 +654,6 @@
       "editAutoLayout": "自动排版设定",
       "changeLayout": "调整布局",
       "done": "完成",
-      "hints": "小贴士",
-      "presetsHint": "开启版面配置来变更布局与自动排版模式的设定",
-      "mediaControlsHint1": "使用媒体控制面板来静音或是同步 (",
-      "mediaControlsHint2": ") 直播",
-      "dragDropHint": "从置顶栏拖曳直播至不同单元格来自定义显示位置",
-      "reorderHint": "使用布局调整面板来快速更改视频/聊天室位置",
       "reorderLayout": "布局调整面板",
       "reorderLayoutDetail": "将图标拖放到所需位置",
       "sync": {

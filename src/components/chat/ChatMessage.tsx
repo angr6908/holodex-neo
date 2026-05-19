@@ -41,7 +41,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
       <div className="basis-full">
         {!hideAuthor && !source.shouldHideAuthor ? (
           <div
-            className={`text-[0.85em] tracking-[0.033em] text-muted-foreground ${source.is_owner || source.is_verified || source.is_moderator || source.is_vtuber ? "text-primary" : ""}`}
+            className={`text-[0.85em] text-muted-foreground ${source.is_owner || source.is_verified || source.is_moderator || source.is_vtuber ? "text-primary" : ""}`}
           >
             <Button type="button" variant="ghost" className="group/tl-name relative h-auto cursor-pointer justify-start border-0 bg-transparent p-0 text-left break-words hover:bg-transparent" onClick={() => setShowBlockChannelDialog(true)}>
               {source.is_vtuber ? <span>[{t("component.chatMessage.vtuberBadge")}]</span> : null}
@@ -53,7 +53,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
         ) : null}
         <a className="tl-message break-words [&_img]:h-[1.3em] [&_img]:w-auto [&_img]:align-middle" data-time={source.relativeMs / 1000}>
           {source.timestamp ? (
-            <span className="mr-1 text-[0.85em] tracking-[0.033em] text-muted-foreground">
+            <span className="mr-1 text-[0.85em] text-muted-foreground">
               {app.settings.liveTlShowLocalTime || !displayTime ? realTime : displayTime}
             </span>
           ) : null}
@@ -64,7 +64,7 @@ export function ChatMessage({ source, hideAuthor = false }: { source: Record<str
         <Dialog open={showBlockChannelDialog} onOpenChange={setShowBlockChannelDialog}>
           <DialogContent className="max-w-lg">
           <Card>
-            <DialogTitle className="text-lg font-semibold leading-7">
+            <DialogTitle className="text-lg font-normal leading-7">
               {source.name}
             </DialogTitle>
             <div className="flex flex-wrap gap-2">

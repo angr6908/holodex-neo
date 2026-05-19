@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { Theater, ThumbsUp } from "@/lib/icons";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Maximize, ThumbsUp } from "@/lib/icons";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
@@ -44,15 +44,18 @@ export default function WatchPage() {
   const [showLiveChat, setShowLiveChat] = useState(true);
   const [theater, setTheater] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [mobileChatHeight, setMobileChatHeight] = useState("65dvh");
   const [plIdx, setPlIdx] = useState(-1);
   const player = useRef<YoutubePlayerHandle | null>(null);
   const layout = useRef<HTMLDivElement | null>(null);
+  const toolbarShell = useRef<HTMLDivElement | null>(null);
   const timeOffset = Number(sp.get("t") || 0) || 0;
   const title = (video.title && decodeHTMLEntities(video.title)) || "";
   const hasLiveChat = video.type === "stream" && (["upcoming", "live"].includes(video.status) || (video.status === "past" && !app.isMobile));
   const hasLiveTL = video.type === "stream";
   const showChat = (hasLiveChat && showLiveChat) || (showTL && hasLiveTL);
   const comments = video.comments || [];
+  const hasComments = comments.length > 0;
   const isPlaylist = !!sp.get("playlist");
   const role = app.userdata?.user?.role;
   const isEditor = role === "admin" || role === "editor";
@@ -90,6 +93,37 @@ export default function WatchPage() {
     window.addEventListener("keyup", onKey);
     return () => window.removeEventListener("keyup", onKey);
   }, []);
+  useEffect(() => {
+    if (!app.isMobile || !showChat) return;
+
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const toolbarBottom = toolbarShell.current?.getBoundingClientRect().bottom ?? 0;
+        const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+        const next = `${Math.max(0, Math.floor(viewportHeight - toolbarBottom))}px`;
+        setMobileChatHeight((current) => current === next ? current : next);
+      });
+    };
+
+    update();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    if (toolbarShell.current) observer?.observe(toolbarShell.current);
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
+    };
+  }, [app.isMobile, showChat, showHighlights, video.id]);
 
   function seekTo(time: number) {
     if (!player.current) return;
@@ -103,11 +137,22 @@ export default function WatchPage() {
     requestAnimationFrame(() => { if (layout.current) layout.current.scrollTop = 0; });
   }
 
+  function handleVideoUpdate(u: any) {
+    if (!u?.status || !u?.start_actual) return;
+
+    setVideo((v) => ({
+      ...v,
+      live_viewers: u.live_viewers,
+      status: u.status,
+      start_actual: typeof u.start_actual === "string" ? u.start_actual : v.start_actual,
+    }));
+  }
+
   const cinema = theater && !app.isMobile;
   const pageClass = cn(
     "relative z-0 box-border flex min-h-screen w-full overflow-x-clip",
-    "min-[960px]:items-start min-[960px]:gap-[clamp(12px,1.6vw,20px)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[clamp(12px,1.8vw,24px)] min-[960px]:pb-[clamp(1.5rem,3vw,3rem)]",
-    "max-[959px]:flex-col max-[959px]:pt-[clamp(12px,1.8vw,24px)]",
+    "min-[960px]:items-start min-[960px]:gap-[clamp(12px,1.6vw,20px)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[calc(var(--nav-header-height,0px)+0.5rem)] min-[960px]:pb-[clamp(1.5rem,3vw,3rem)]",
+    "max-[959px]:flex-col max-[959px]:pt-[calc(var(--nav-header-height,0px)+0.5rem)]",
     showChat && !app.isMobile && (cinema ? "min-[960px]:pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.8vw,24px))]" : "min-[960px]:pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.6vw,20px)+clamp(12px,1.8vw,24px))]"),
   );
   const contentClass = cn("relative z-[1] flex w-full min-w-0 grow items-start overflow-visible", cinema ? "flex-col items-stretch" : "flex-row", "max-[959px]:flex-col");
@@ -122,19 +167,38 @@ export default function WatchPage() {
   const sectionClass = "mt-[clamp(12px,1.4vw,18px)]";
   const chatClass = cn(
     "z-[1] w-full min-w-0",
-    "min-[960px]:fixed min-[960px]:bottom-[clamp(12px,1.8vw,24px)] min-[960px]:right-[clamp(12px,1.8vw,24px)] min-[960px]:top-[clamp(12px,1.8vw,24px)] min-[960px]:w-[clamp(320px,24vw,360px)] min-[960px]:overflow-hidden min-[960px]:rounded-xl",
-    "max-[959px]:relative max-[959px]:mt-[clamp(12px,1.6vw,20px)] max-[959px]:h-[65dvh] max-[959px]:min-h-[min(56dvh,420px)] max-[959px]:overflow-hidden",
-    cinema && "min-[960px]:bottom-0 min-[960px]:right-0 min-[960px]:top-0 min-[960px]:rounded-none min-[960px]:border-l min-[960px]:border-border min-[960px]:bg-card",
+    "min-[960px]:fixed min-[960px]:bottom-[clamp(12px,1.8vw,24px)] min-[960px]:right-[clamp(12px,1.8vw,24px)] min-[960px]:top-[calc(var(--nav-header-height,0px)+0.5rem)] min-[960px]:w-[clamp(320px,24vw,360px)] min-[960px]:overflow-hidden min-[960px]:rounded-xl",
+    "max-[959px]:relative max-[959px]:mt-0 max-[959px]:h-[var(--watch-mobile-chat-height,65dvh)] max-[959px]:min-h-0 max-[959px]:overflow-hidden",
+    cinema && "min-[960px]:bottom-0 min-[960px]:right-0 min-[960px]:top-[var(--nav-header-height,0px)] min-[960px]:rounded-none min-[960px]:border-l min-[960px]:border-border min-[960px]:bg-card",
   );
+  const pageStyle = app.isMobile && showChat ? ({ "--watch-mobile-chat-height": mobileChatHeight } as CSSProperties) : undefined;
+  const youtubeLikeButton = hasExt ? (
+    <Tooltip>
+      <TooltipTrigger render={<Button type="button" size="icon-sm" variant="ghost" aria-label={likeLbl} onClick={() => player.current?.sendLikeEvent()} />}>
+        <ThumbsUp className="size-4" />
+      </TooltipTrigger>
+      <TooltipContent>{likeLbl}</TooltipContent>
+    </Tooltip>
+  ) : null;
+  const chatPanel = showChat ? (
+    <WatchLiveChat
+      className={chatClass}
+      video={video}
+      currentTime={currentTime}
+      modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }}
+      onTimeJump={seekTo}
+      onVideoUpdate={handleVideoUpdate}
+    />
+  ) : null;
 
   if (isLoading || hasError) return (
-    <div className="flex min-h-[calc(100vh-65px)] w-full items-start justify-center px-4 pt-[calc(10px+5.5rem)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[calc(10px+8rem)]">
+    <div className="flex min-h-[calc(100vh-65px)] w-full items-start justify-center px-4 pt-[calc(var(--nav-header-height,0px)+1rem)] min-[960px]:px-[clamp(12px,1.8vw,24px)] min-[960px]:pt-[calc(var(--nav-header-height,0px)+1.5rem)]">
       {isLoading && !hasError ? <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3"><Spinner /></Card> : null}
       {hasError ? <ApiErrorMessage /> : null}
     </div>
   );
   return (
-    <div className={pageClass}>
+    <div className={pageClass} style={pageStyle}>
       <div ref={layout} className={contentClass}>
         <div className={mainClass}>
           <div className={groupClass}>
@@ -145,18 +209,24 @@ export default function WatchPage() {
               </div>
             </div>
             {showHighlights ? <WatchHighlights key="highlights" comments={comments} video={video} limit={app.isMobile ? 8 : 0} onTimeJump={seekTo} /> : null}
-            <div className={toolbarShellClass}>
+            <div ref={toolbarShell} className={toolbarShellClass}>
               <WatchToolbar video={video}>
-                {hasExt ? <Tooltip><TooltipTrigger render={<Button type="button" size="icon" variant="ghost" aria-label={likeLbl} onClick={() => player.current?.sendLikeEvent()} />}><ThumbsUp className="size-5" /></TooltipTrigger><TooltipContent>{likeLbl}</TooltipContent></Tooltip> : null}
-                {!app.isMobile ? <Tooltip><TooltipTrigger render={<Toggle pressed={theater} aria-label={theaterLbl} onPressedChange={() => toggleTheater()} />}><Theater className="size-5" /></TooltipTrigger><TooltipContent>{theaterLbl}</TooltipContent></Tooltip> : null}
+                {!app.isMobile ? <Tooltip><TooltipTrigger render={<Toggle pressed={theater} aria-label={theaterLbl} onPressedChange={() => toggleTheater()} />}><Maximize className="size-5" /></TooltipTrigger><TooltipContent>{theaterLbl}</TooltipContent></Tooltip> : null}
                 {hasLiveTL ? <Tooltip><TooltipTrigger render={<Toggle pressed={showTL} aria-label={tlLbl} onPressedChange={setShowTL} />}><icons.TlChatIcon className="size-5" /></TooltipTrigger><TooltipContent>{tlLbl}</TooltipContent></Tooltip> : null}
                 {hasLiveChat ? <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}><icons.YtChatIcon className="size-5" /></Toggle> : null}
               </WatchToolbar>
             </div>
           </div>
+          {app.isMobile ? chatPanel : null}
+          {app.isMobile && hasComments ? <WatchComments key="comments-mobile" comments={comments} video={video} limit={5} onTimeJump={seekTo} /> : null}
           {video?.songcount ? <WatchSideBar key="songs" video={video} className={sectionClass} showSongs showRelations={false} onTimeJump={seekTo} /> : null}
-          <WatchInfo key="info" video={video} onTimeJump={seekTo} />
-          {comments.length ? <WatchComments key="comments" comments={comments} video={video} limit={app.isMobile ? 5 : 0} onTimeJump={seekTo} /> : null}
+          <WatchInfo
+            key="info"
+            video={video}
+            onTimeJump={seekTo}
+            actions={youtubeLikeButton}
+          />
+          {!app.isMobile && hasComments ? <WatchComments key="comments" comments={comments} video={video} limit={0} onTimeJump={seekTo} /> : null}
           {hasRelated ? <WatchSideBar key="related" video={video} className={sectionClass} showSongs={false} showRelations onTimeJump={seekTo} /> : null}
           {showRail ? <div className={cn(sectionClass, "flex flex-col gap-4")}>
             {isEditor ? <WatchQuickEditor video={video} /> : null}
@@ -164,10 +234,7 @@ export default function WatchPage() {
           </div> : null}
         </div>
       </div>
-      {showChat ? <WatchLiveChat className={chatClass} video={video} currentTime={currentTime} modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }} onTimeJump={seekTo} onVideoUpdate={(u) => {
-        if (!u?.status || !u?.start_actual) return;
-        setVideo((v) => ({ ...v, live_viewers: u.live_viewers, status: u.status, start_actual: typeof u.start_actual === "string" ? u.start_actual : v.start_actual }));
-      }} /> : null}
+      {!app.isMobile ? chatPanel : null}
       <Dialog open={app.uploadPanel} onOpenChange={app.setUploadPanel}>
         <DialogContent className="max-h-[500px] max-w-[80%] p-0">
           <UploadScript videoData={video} onClose={() => app.setUploadPanel(false)} />

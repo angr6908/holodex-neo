@@ -621,9 +621,6 @@
       "unmuteAll": "Alle Stummschaltungen aufheben",
       "muteOthers": "Andere stummschalten",
       "muteOthersDetail": "Alle außer einen Stream stummschalten",
-      "autoLayoutTip": "Klicke auf einen Kanal, um im automatischen Layout-Modus zu schauen",
-      "createLayoutTip": "Erstelle dein eigenes Layout, indem du eine Zelle hinzufügst oder eine Vorlage verwendest",
-      "openToolbarTip": "Öffne die Symbolleiste, um Multiview zu verwenden",
       "archiveSync": "Archiv-Synchronisierung",
       "preset": {
         "shareOnDiscord": "Hast du ein cooles Layout, das du teilen möchtest? Benutze den Teilen-Button und lass es uns wissen auf unserem <a href=\"https://discord.gg/jctkgHBt4b\">Discord server</a>!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Auto-Layout bearbeiten",
       "changeLayout": "Layout ändern",
       "done": "Fertig",
-      "hints": "Tipps",
-      "presetsHint": "Öffne das Vorlagenmenü, um Layouts zu tauschen und um das automatische Layout zu konfigurieren",
-      "mediaControlsHint1": "Benutze Mediensteuerelemente, um Streams zu muten und zu synchronisieren (",
-      "mediaControlsHint2": ")",
-      "dragDropHint": "Bewege Streams per Drag-and-Drop aus der Symbolleiste in Zellen, um sie zu organisieren",
-      "reorderHint": "Benutze das Layout-umordnen-Menü, um Video/Chat-Positionen abzuändern",
       "reorderLayout": "Layout umordnen",
       "reorderLayoutDetail": "Verschiebe die Symbole per Drag-and-Drop an die gewünschte Position",
       "sync": {

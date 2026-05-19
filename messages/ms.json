@@ -621,9 +621,6 @@
       "unmuteAll": "Nyahsenyap Semua",
       "muteOthers": "Senyapkan siaran lain",
       "muteOthersDetail": "Cuma satu siaran yang tidak disenyapkan",
-      "autoLayoutTip": "Tekan pada mana-mana saluran bagi memulakan tontonan menggunakan ragam tataletak suai kendiri",
-      "createLayoutTip": "Perbuat tataletak ciptaanmu sendiri dengan menambahkan petak atau menggunakan tataletak tersedia",
-      "openToolbarTip": "Mulakan berbilang tontonan dengan membuka ruangan alat",
       "archiveSync": "Penyegerakan Arkib",
       "preset": {
         "shareOnDiscord": "Mahu berkongsi tataletak yang hebat? Kongsikan bersama kami di <a href=\"https://discord.gg/jctkgHBt4b\">pelayan Discord</a> kami!",
@@ -657,12 +654,6 @@
       "editAutoLayout": "Sunting Tataletak Kendiri",
       "changeLayout": "Ubah Tataletak",
       "done": "Selesaikan",
-      "hints": "Petunjuk",
-      "presetsHint": "Ubah tataletak dan sesuaikan susunan tataletak kendiri di tetingkap tataletak",
-      "mediaControlsHint1": "Senyap atau segerakkan (",
-      "mediaControlsHint2": ") video dengan Kawalan Bahantara",
-      "dragDropHint": "Urus siaran langsung dengan menarik dan melepaskan siaran berkenaan dari ruangan alat ke petak masing-masing",
-      "reorderHint": "Ubah kedudukan video atau sembang langsung dengan menggunakan pilihan Susun Semula Tataletak",
       "reorderLayout": "Susun Semula Tataletak",
       "reorderLayoutDetail": "Tarik dan lepaskan arca ke kedudukan yang diingini",
       "sync": {

@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { filterVideo } from "@/lib/filter-videos";
 import { ChannelChip } from "@/components/channel/ChannelChip";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
-import { VideoListFilters } from "@/components/setting/VideoListFilters";
+import { VideoListFilters } from "@/components/nav/MainNav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

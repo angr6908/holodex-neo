@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowDownAZ, ArrowUpAZ, Grid2x2, LayoutDashboard, LayoutGrid } from "@/lib/icons";
@@ -10,7 +10,6 @@ import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import linkifyHtml from "linkifyjs/html";
 import { useDomElement } from "@/lib/hooks";
-import { encodeCookieJson, HOME_STATE_COOKIE, type HomeUiState, HOME_STATE_STORAGE_KEY, HOME_TABS, primeHomePageState } from "@/lib/cookie-codec";
 import { formatCount, getBannerImages } from "@/lib/functions";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
@@ -18,8 +17,6 @@ import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
-import { HomeNavSegments } from "@/components/nav/HomeNavSegments";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { SkeletonCardList } from "@/components/video/SkeletonCardList";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
@@ -30,13 +27,11 @@ import { channelDisplayName, channelGroup } from "@/lib/video-format";
 export default function ChannelPage() {
   const params = useParams<{ id: string; tab?: string[] }>();
   const pathname = usePathname();
-  const router = useRouter();
   const id = params.id;
   const routeTab = params.tab?.[0];
   const tab = routeTab === "clips" || routeTab === "collabs" || routeTab === "about" ? routeTab : "videos";
   const app = useAppState();
   const t = useTranslations();
-  const navTarget = useDomElement("mainNavHomeControls");
   const [channel, setChannel] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -88,52 +83,13 @@ export default function ChannelPage() {
     const render = ext ? <a href={i.path} target="_blank" rel="noreferrer" /> : <Link href={i.path} />;
     return <Button nativeButton={false} key={i.path} render={render} variant={isActiveTab(i) ? "secondary" : "ghost"} size="sm" className={tabBtnClass(compact)}>{i.name}</Button>;
   };
-  const { hideUpcoming, hideLive } = app.settings;
-  const hideBoth = hideLive && hideUpcoming;
-  const live = app.homeLive || [];
-  const livesVisible = hideLive ? [] : live.filter((v: any) => v.status === "live");
-  const upcoming = hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming");
-
-  function openHome(next: HomeUiState) {
-    const v = {
-      viewMode: next.viewMode ?? "streams",
-      isFavPage: next.isFavPage ?? false,
-      tab: next.tab ?? HOME_TABS.LIVE_UPCOMING,
-      scrollY: 0,
-    };
-    try {
-      localStorage.setItem(HOME_STATE_STORAGE_KEY, JSON.stringify(v));
-      const enc = encodeCookieJson(v);
-      if (enc) document.cookie = `${HOME_STATE_COOKIE}=${enc}; Path=/; SameSite=Lax`;
-    } catch {}
-    primeHomePageState(v);
-    router.push("/");
-  }
-
-  const navControls = navTarget ? createPortal(
-    <HomeNavSegments
-      selection={null}
-      hideBoth={hideBoth}
-      hideLive={hideLive}
-      hideUpcoming={hideUpcoming}
-      liveCount={livesVisible.length}
-      upcomingCount={upcoming.length}
-      onHome={() => openHome({ viewMode: "streams", isFavPage: false, tab: HOME_TABS.LIVE_UPCOMING })}
-      onFavorites={() => openHome({ viewMode: "streams", isFavPage: true, tab: HOME_TABS.LIVE_UPCOMING })}
-      onTab={(tab) => openHome({ viewMode: "streams", isFavPage: false, tab })}
-      onChannels={() => openHome({ viewMode: "channels", isFavPage: false, tab: HOME_TABS.LIVE_UPCOMING })}
-    />, navTarget) : null;
-
-  if (isLoading || hasError) return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[1600px] items-center justify-center px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
-      {isLoading && !hasError ? <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3"><Spinner /></Card> : null}
-      {hasError ? <ApiErrorMessage /> : null}
+  if (hasError) return (
+    <div className="mx-auto flex min-h-screen w-full max-w-[1600px] items-center justify-center px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
+      <ApiErrorMessage />
     </div>
   );
   return (
-    <>
-      {navControls}
-      <section className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
+    <section className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
         <Card className="mx-auto mt-2 aspect-[6.2/1] w-[calc(100%-1rem)] gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-none sm:m-0 sm:w-full">
           {bannerImage ? <img key={bannerImage} src={bannerImage} className="block h-full w-full object-cover" alt="" onError={onBannerError} /> : null}
         </Card>
@@ -163,8 +119,7 @@ export default function ChannelPage() {
         <div className="channel min-h-[85vh] px-2 py-3">
           {tab === "about" ? <ChannelAbout channel={channel} /> : <ChannelVideos channel={channel} tab={tab} id={id} />}
         </div>
-      </section>
-    </>
+    </section>
   );
 }
 
@@ -212,7 +167,7 @@ function ChannelVideos({ channel, tab, id }: { channel: any; tab: "videos" | "cl
         {({ data, isLoading }) => (
           <>
             <VideoCardList videos={data} includeChannel={hasCh} cols={cols} dense className={isLoading ? "hidden" : undefined} />
-            {isLoading ? <SkeletonCardList cols={cols} includeAvatar={hasCh} dense /> : null}
+            {isLoading ? <SkeletonCardList cols={cols} includeChannel={hasCh} includeAvatar={false} dense /> : null}
           </>
         )}
       </GenericListLoader>
