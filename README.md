@@ -1,19 +1,25 @@
 # holodex-neo
 
-A remake of the Holodex frontend, migrating from legacy Vue 2 to Next.js 16.
+A Next.js + shadcn/ui remake of the Holodex frontend.
 
-### Holodex Nano: Minimal & Vanilla Shadcn Frontend (Recommended)
-GitHub Repo: [holodex-nano](https://github.com/angr6908/holodex-nano)
-
-Demo: https://nano.001920.xyz
-
-### Demo
-https://001920.xyz
+## Demo site
+https://holodex-neo.vercel.app
 
 <img src="preview.avif" width="800" alt="preview">
 
-### Install (Docker)
+## Deploy with Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fangr6908%2Fholodex-neo)
+
+
+## Deploy with Docker
 Please refer to the `compose.yml` and the `Caddyfile`.
+
+## Holodex Nano
+
+Minimal Holodex Frontend
+
+https://github.com/angr6908/holodex-nano
 
 
 ### License
