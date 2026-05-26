@@ -48,7 +48,7 @@ import { SkeletonCardList } from "@/components/video/SkeletonCardList";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { ALL_VTUBERS_ORG, musicdexURL, TL_LANGS } from "@/lib/consts";
 import { getLiveViewerCount } from "@/lib/functions";
-import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache, sortPayloadForHomeTab } from "@/lib/home-video-loader";
+import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureFavoritesVideoFetch, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache, refreshFavoritesVideoFetch, refreshHomeMultiOrgVideoFetch } from "@/lib/home-video-loader";
 import { useDomElement } from "@/lib/hooks";
 import { fetchTwitchViewerCounts, getTwitchLogin, getTwitchViewerCountFingerprint, mergeTwitchViewerCountsIntoVideos, readCachedTwitchViewerCounts } from "@/lib/twitch";
 import { cn, getBreakpoint } from "@/lib/utils";
@@ -159,12 +159,11 @@ function readStoredHomeNavState(): HomeNavState | null {
 
 function writeHomeNavState(next: HomeNavState) {
   if (typeof window === "undefined") return;
-  const value = { ...next, scrollY: 0 };
   try {
-    localStorage.setItem(HOME_STATE_STORAGE_KEY, JSON.stringify(value));
-    const encoded = encodeCookieJson(value);
+    localStorage.setItem(HOME_STATE_STORAGE_KEY, JSON.stringify(next));
+    const encoded = encodeCookieJson(next);
     if (encoded) document.cookie = `${HOME_STATE_COOKIE}=${encoded}; Path=/; SameSite=Lax`;
-    primeHomePageState(value);
+    primeHomePageState(next);
   } catch {}
 }
 
@@ -632,6 +631,8 @@ const DISPLAY_OPTIONS: { value: DisplayMode; icon: AnyIcon; labelKey: string; fa
   { value: "denseList", icon: Rows3, labelKey: "views.home.controls.denseList", fallback: "Dense list" },
 ];
 
+const topControlTriggerClass = "transition-colors";
+
 export function VideoListTopControls({
   tab,
   isActive,
@@ -674,13 +675,41 @@ export function VideoListTopControls({
 
   return (
     <ButtonGroup className="shrink-0">
-      {showDate ? (
-        <Popover open={dateOpen} onOpenChange={setDateOpen}>
+      {showFilter ? (
+        <Popover key="filter" open={filterOpen} onOpenChange={setFilterOpen}>
           <PopoverTrigger
             render={
               <Toggle
                 variant="outline"
                 size="lg"
+                className={topControlTriggerClass}
+                pressed={filterOpen}
+                aria-label={t("views.settings.filters.hideStreams")}
+                title={t("views.settings.filters.hideStreams")}
+              />
+            }
+          >
+            <ListFilter className="size-4" />
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-[min(92vw,22rem)]">
+            <VideoListFilters
+              showDescriptions={false}
+              compact
+              sortBy={tab === HOME_TABS.LIVE_UPCOMING ? sortBy : undefined}
+              onSortByChange={tab === HOME_TABS.LIVE_UPCOMING ? onSortByChange : undefined}
+            />
+          </PopoverContent>
+        </Popover>
+      ) : null}
+
+      {showDate ? (
+        <Popover key="date" open={dateOpen} onOpenChange={setDateOpen}>
+          <PopoverTrigger
+            render={
+              <Toggle
+                variant="outline"
+                size="lg"
+                className={topControlTriggerClass}
                 pressed={dateOpen || !!toDate}
                 aria-label={t("views.home.controls.pickDate")}
                 title={t("views.home.controls.pickDate")}
@@ -704,12 +733,13 @@ export function VideoListTopControls({
       ) : null}
 
       {showClipLangs ? (
-        <Popover open={clipOpen} onOpenChange={setClipOpen}>
+        <Popover key="clip-langs" open={clipOpen} onOpenChange={setClipOpen}>
           <PopoverTrigger
             render={
               <Toggle
                 variant="outline"
                 size="lg"
+                className={topControlTriggerClass}
                 pressed={clipOpen}
                 aria-label={t("views.home.controls.clipLanguages")}
                 title={t("views.home.controls.clipLanguages")}
@@ -738,33 +768,7 @@ export function VideoListTopControls({
         </Popover>
       ) : null}
 
-      {showFilter ? (
-        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-          <PopoverTrigger
-            render={
-              <Toggle
-                variant="outline"
-                size="lg"
-                pressed={filterOpen}
-                aria-label={t("views.settings.filters.hideStreams")}
-                title={t("views.settings.filters.hideStreams")}
-              />
-            }
-          >
-            <ListFilter className="size-4" />
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-[min(92vw,22rem)]">
-            <VideoListFilters
-              showDescriptions={false}
-              compact
-              sortBy={tab === HOME_TABS.LIVE_UPCOMING ? sortBy : undefined}
-              onSortByChange={tab === HOME_TABS.LIVE_UPCOMING ? onSortByChange : undefined}
-            />
-          </PopoverContent>
-        </Popover>
-      ) : null}
-
-      <Select value={displayMode} onValueChange={(value) => onDisplayModeChange(value as DisplayMode)}>
+      <Select key="display" value={displayMode} onValueChange={(value) => onDisplayModeChange(value as DisplayMode)}>
         <SelectTrigger
           aria-label={t("views.home.controls.displayMode") || "Display mode"}
           className="h-9! gap-1 bg-transparent px-2.5 hover:bg-muted data-[popup-open]:bg-muted dark:bg-transparent dark:hover:bg-muted dark:data-[popup-open]:bg-muted"
@@ -838,8 +842,8 @@ export function ConnectedVideoList({
   const activeOrgs = isFavPage ? [] : app.selectedHomeOrgs || [];
   const activeOrgsKey = activeOrgs.join("\0");
 
-  const keyFor = (tv: number) =>
-    ["vlx", isFavPage ? "fav" : "home", tv, scrollMode ? "scroll" : "page", gs, orgsKey, overrideKey, toDate || "", langsKey].join("-");
+  const keyFor = (tv: number, fav = isFavPage) =>
+    ["vlx", fav ? "fav" : "home", tv, scrollMode ? "scroll" : "page", gs, fav ? "" : orgsKey, fav ? "" : overrideKey, toDate || "", langsKey].join("-");
   const cacheKey = keyFor(tab);
   const hideCollabs = tab !== HOME_TABS.CLIPS && app.settings.hideCollabStreams && (isFavPage || activeOrgs.length > 0);
   const targets = useMemo(() => orgTargetsOverride?.length ? orgTargetsOverride : (activeOrgs.length ? activeOrgs : [ALL_VTUBERS_ORG]), [overrideKey, activeOrgsKey]);
@@ -944,9 +948,35 @@ export function ConnectedVideoList({
   }, [tab, isActive]);
 
   useEffect(() => {
-    if (targets.length > 1 && !isFavPage)
-      [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((tv) => ensureHomeMultiOrgVideoFetch(keyFor(tv), buildQuery(tv), targets, tv));
-  }, [targets.join("\0"), isFavPage, scrollMode, langsKey, toDate]);
+    if (!isActive || !app.hydrated) return;
+    const jwt = app.userdata.jwt;
+    const loggedInFav = !!jwt && app.isLoggedIn && app.favoriteChannelIDs.size > 0;
+    const allTabs = [HOME_TABS.LIVE_UPCOMING, HOME_TABS.ARCHIVE, HOME_TABS.CLIPS];
+    const contexts = loggedInFav && !isFavPage ? [false, true] : [isFavPage];
+    const warm = (refresh: boolean) => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      contexts.forEach((fav) => {
+        allTabs.forEach((tv) => {
+          if (fav === isFavPage && tv === tab) return;
+          if (tv === HOME_TABS.LIVE_UPCOMING) {
+            if (fav) app.fetchFavoritesLive({ force: refresh, minutes: 1 });
+            else if (!liveContent?.length) app.fetchHomeLive({ force: refresh, minutes: 1 });
+            return;
+          }
+          const key = keyFor(tv, fav);
+          const q = buildQuery(tv);
+          if (fav) {
+            if (refresh) refreshFavoritesVideoFetch(key, q, jwt!, tv);
+            else ensureFavoritesVideoFetch(key, q, jwt!, tv);
+          } else if (refresh) refreshHomeMultiOrgVideoFetch(key, q, targets, tv);
+          else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
+        });
+      });
+    };
+    warm(false);
+    const timer = setInterval(() => warm(true), 60_000);
+    return () => clearInterval(timer);
+  }, [isActive, isFavPage, app.hydrated, app.isLoggedIn, app.userdata.jwt, app.favoriteChannelIDs.size, tab, targets.join("\0"), scrollMode, gs, orgsKey, overrideKey, langsKey, toDate]);
 
   const toggleClipLang = (value: string, checked: boolean) => {
     const next = new Set(clipLangs);
@@ -970,36 +1000,35 @@ export function ConnectedVideoList({
   function getLoadFn() {
     const query = buildQuery(tab);
     query.paginated = !scrollMode;
-    if (isFavPage) return async (offset: number, limit: number) => {
-      if (!app.userdata.jwt) return [];
-      const res = await api.favoritesVideos(app.userdata.jwt, { ...query, limit, offset }).catch(async (err: any) => {
-        if (err?.response?.status === 401) {
-          await app.loginVerify({ bounceToLogin: true });
-          return { data: [] };
-        }
-        throw err;
+    const readCache = (key: string) => {
+      const cached = getHomeMultiOrgVideoCache(key)!;
+      return async (offset: number, limit: number) => {
+        await cached.page1;
+        while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted()) await cached.fetchMore();
+        const snap = cached.getCurrentItems();
+        const slice = snap.slice(offset, offset + limit);
+        if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
+        return scrollMode ? slice : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
+      };
+    };
+    if (isFavPage) {
+      const jwt = app.userdata.jwt;
+      if (!jwt) return async () => [];
+      ensureFavoritesVideoFetch(cacheKey, query, jwt, tab);
+      [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
+        if (otherTab === tab) return;
+        const key = keyFor(otherTab, true);
+        if (!hasHomeMultiOrgVideoCache(key)) ensureFavoritesVideoFetch(key, buildQuery(otherTab), jwt, otherTab);
       });
-      return sortPayloadForHomeTab(res.data, tab);
-    };
-    if (targets.length === 1 && tab !== HOME_TABS.ARCHIVE) return async (offset: number, limit: number) => {
-      const res: any = await api.videos({ ...query, org: targets[0], limit, offset });
-      return sortPayloadForHomeTab(res.data, tab);
-    };
+      return readCache(cacheKey);
+    }
     ensureHomeMultiOrgVideoFetch(cacheKey, query, targets, tab);
-    if (targets.length > 1) [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
+    [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
       if (otherTab === tab) return;
       const key = keyFor(otherTab);
       if (!hasHomeMultiOrgVideoCache(key)) ensureHomeMultiOrgVideoFetch(key, buildQuery(otherTab), targets, otherTab);
     });
-    const cached = getHomeMultiOrgVideoCache(cacheKey)!;
-    return async (offset: number, limit: number) => {
-      await cached.page1;
-      while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted()) await cached.fetchMore();
-      const snap = cached.getCurrentItems();
-      const slice = snap.slice(offset, offset + limit);
-      if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
-      return scrollMode ? slice : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
-    };
+    return readCache(cacheKey);
   }
 
   const renderSkeletons = (opts: { denseList?: boolean; horizontal?: boolean } = {}) => (

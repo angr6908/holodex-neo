@@ -29,7 +29,6 @@ export type HomeUiState = {
   viewMode?: "streams" | "channels";
   isFavPage?: boolean;
   tab?: number;
-  scrollY?: number;
 };
 
 let savedHomePageState: { tab: number; isFavPage: boolean; viewMode: "streams" | "channels" } | null = null;

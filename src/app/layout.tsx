@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
@@ -97,7 +98,7 @@ var parse=function(raw,fallback){try{return raw?JSON.parse(raw):fallback}catch(e
 var settings=parse(localStorage.getItem('holodex-v2-settings'),{});
 if(settings.lang){document.cookie='locale='+encodeURIComponent(settings.lang)+'; Path=/; Max-Age=31536000; SameSite=Lax';}
 var homeStateRaw=localStorage.getItem('holodex-home-state');
-if(homeStateRaw){try{JSON.parse(homeStateRaw);document.cookie='${HOME_STATE_COOKIE}='+encodeURIComponent(homeStateRaw)+'; Path=/; SameSite=Lax';}catch(e){}}
+if(homeStateRaw){try{var homeState=JSON.parse(homeStateRaw);var cleanHomeState=JSON.stringify({viewMode:homeState.viewMode,isFavPage:homeState.isFavPage,tab:homeState.tab});localStorage.setItem('holodex-home-state',cleanHomeState);document.cookie='${HOME_STATE_COOKIE}='+encodeURIComponent(cleanHomeState)+'; Path=/; SameSite=Lax';}catch(e){}}
 var app=parse(localStorage.getItem('holodex-v2-app'),{});
 var home=parse(localStorage.getItem('holodex-v2-home'),{}),fav=parse(localStorage.getItem('holodex-v2-favorites'),{});
 var homeLive=home.live||[],favLive=fav.live||[];
@@ -128,11 +129,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} suppressHydrationWarning data-theme="holodex" className={cn(geistSans.variable, geistMono.variable, "dark font-sans [color-scheme:dark]")}>
       <head suppressHydrationWarning>
+        <link rel="preconnect" href="https://holodex.net" />
+        <link rel="preconnect" href="https://i.ytimg.com" />
         <link rel="preconnect" href="https://www.youtube.com" />
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://yt3.ggpht.com" />
-        <script id="holodex-boot-init" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: bootInit }} />
-        <script src="/config.js" defer suppressHydrationWarning />
+        <link rel="dns-prefetch" href="https://static-cdn.jtvnw.net" />
+        <Script id="holodex-boot-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: bootInit }} />
+        <Script src="/config.js" strategy="beforeInteractive" />
       </head>
       <body className="group/ptr bg-background pt-[env(safe-area-inset-top)] text-foreground" suppressHydrationWarning>
         <noscript>

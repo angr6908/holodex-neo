@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import linkifyHtml from "linkifyjs/html";
+import linkifyHtml from "linkify-html";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 function escapeHtml(value: string) {

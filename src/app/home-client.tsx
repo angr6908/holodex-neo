@@ -14,11 +14,6 @@ import { ChannelsPage } from "@/components/channel/ChannelsPage";
 import { useSwipeTabs } from "@/lib/hooks";
 import { clearSavedHomePageState, encodeCookieJson, getSavedHomePageState, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS as Tabs, primeHomePageState, type HomeUiState } from "@/lib/cookie-codec";
 
-const scrollStore = new Map<string, number>();
-
-const scrollKeyFor = (fp: boolean, vm: "streams" | "channels", t: number) =>
-  vm === "channels" ? `${fp ? "fav" : "home"}-channels` : `${fp ? "fav" : "home"}-streams-${t}`;
-
 const readStoredDefaultOpen = () => typeof window === "undefined" ? null
   : readJSON<{ defaultOpen?: string | null }>("holodex-v2-settings", {}).defaultOpen || null;
 
@@ -28,7 +23,6 @@ function normalizeHomeState(s?: HomeUiState | null): HomeUiState | null {
   if (s.viewMode === "channels" || s.viewMode === "streams") out.viewMode = s.viewMode;
   if (typeof s.isFavPage === "boolean") out.isFavPage = s.isFavPage;
   if (typeof s.tab === "number" && s.tab >= 0 && s.tab <= 2) out.tab = s.tab;
-  if (typeof s.scrollY === "number" && s.scrollY >= 0) out.scrollY = s.scrollY;
   return out;
 }
 
@@ -47,7 +41,6 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
   const stateRef = useRef({ viewMode, isFavPage, tab });
   const initialRef = useRef(initial);
   const lastLogoTrigger = useRef<number | null>(null);
-  const root = useRef<HTMLElement | null>(null);
 
   useEffect(() => { appRef.current = app; }, [app]);
   useEffect(() => {
@@ -56,52 +49,25 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     window.dispatchEvent(new CustomEvent("holodex-home-nav-state", { detail: { viewMode, isFavPage, tab } }));
   }, [viewMode, isFavPage, tab]);
 
-  useEffect(() => {
-    const key = scrollKeyFor(isFavPage, viewMode, tab);
-    const onScroll = () => scrollStore.set(key, window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isFavPage, viewMode, tab]);
-
   useEffect(() => () => {
     const s = stateRef.current;
     primeHomePageState({ tab: s.tab, isFavPage: s.isFavPage, viewMode: s.viewMode as "streams" | "channels" });
-    saveState({ ...s, scrollY: 0 });
+    saveState(s);
   }, []);
 
   const hasError = isFavPage ? app.favoritesError : app.homeError;
-
-  const currentScrollKey = () => scrollKeyFor(isFavPage, viewMode, tab);
 
   function saveState(next: HomeUiState = { viewMode, isFavPage, tab }) {
     const v = {
       viewMode: next.viewMode ?? viewMode,
       isFavPage: next.isFavPage ?? isFavPage,
       tab: next.tab ?? tab,
-      scrollY: next.scrollY ?? (typeof window !== "undefined" ? window.scrollY : 0),
     };
     try {
       writeJSON(HOME_STATE_STORAGE_KEY, v);
       const enc = encodeCookieJson(v);
       if (enc) document.cookie = `${HOME_STATE_COOKIE}=${enc}; Path=/; SameSite=Lax`;
     } catch {}
-  }
-
-  const restoreScroll = (key?: string) =>
-    setTimeout(() => window.scrollTo(0, scrollStore.get(key ?? currentScrollKey()) || 0), 0);
-
-  function resetAllScrolls() {
-    scrollStore.clear();
-    clearSavedHomePageState();
-    const reset = (el: Element | null | undefined) => { if (el instanceof HTMLElement) { el.scrollTop = 0; el.scrollLeft = 0; } };
-    reset(root.current);
-    if (!root.current) return;
-    const scrollable = ["auto", "scroll", "overlay"];
-    root.current.querySelectorAll<HTMLElement>("*").forEach((el) => {
-      const s = window.getComputedStyle(el);
-      if ((scrollable.includes(s.overflowY) && el.scrollHeight > el.clientHeight) ||
-          (scrollable.includes(s.overflowX) && el.scrollWidth > el.clientWidth)) reset(el);
-    });
   }
 
   const refreshLive = (a = app, fp = isFavPage, force = false) =>
@@ -115,23 +81,24 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     } else app.fetchHomeLive({ force: updateFavs || app.homeLive.length === 0, minutes: 2 });
   }
 
+  function scrollToTop() {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
   function setTab(next: number) {
     if (next === tab) return;
-    scrollStore.set(scrollKeyFor(isFavPage, viewMode, next), 0);
+    scrollToTop();
     setTabState(next);
-    saveState({ viewMode, isFavPage, tab: next, scrollY: 0 });
-    window.scrollTo(0, 0);
+    saveState({ viewMode, isFavPage, tab: next });
   }
 
   const swipeTabs = useSwipeTabs((d) => setTab(Math.max(0, Math.min(2, tab + d))));
 
   function switchTo(nextFav: boolean, nextVm: "streams" | "channels", nextTab: number, refetch = false) {
-    scrollStore.set(currentScrollKey(), window.scrollY);
+    if (nextFav !== isFavPage || nextVm !== viewMode || nextTab !== tab) scrollToTop();
     setIsFavPage(nextFav); setViewMode(nextVm); setTabState(nextTab);
     saveState({ viewMode: nextVm, isFavPage: nextFav, tab: nextTab });
-    const key = scrollKeyFor(nextFav, nextVm, nextTab);
-    if (refetch) setTimeout(() => { init(true, nextFav); restoreScroll(key); }, 0);
-    else restoreScroll(key);
+    if (refetch) setTimeout(() => init(true, nextFav), 0);
   }
   const switchToChannels = () => switchTo(isFavPage, "channels", tab);
 
@@ -150,16 +117,6 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
       if (initTab !== tab) setTabState(initTab);
     }
     init(true, initFav);
-    window.history.scrollRestoration = "manual";
-    const savedScroll = scrollStore.get(scrollKeyFor(initFav, initVm, initTab)) ?? 0;
-    if (savedScroll > 0) {
-      let attempts = 0;
-      const tryScroll = () => {
-        window.scrollTo(0, savedScroll);
-        if (window.scrollY < savedScroll - 5 && attempts++ < 20) requestAnimationFrame(tryScroll);
-      };
-      setTimeout(tryScroll, 0);
-    } else window.scrollTo(0, 0);
     if (refreshTimer.current) clearInterval(refreshTimer.current);
     refreshTimer.current = setInterval(() => refreshLive(appRef.current, favRef.current), 120_000);
     return () => { if (refreshTimer.current) clearInterval(refreshTimer.current); };
@@ -187,10 +144,10 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     if (!tr || tr.consumed || tr.source !== "logo-home" || lastLogoTrigger.current === tr.timestamp) return;
     lastLogoTrigger.current = tr.timestamp;
     void app.reloadCurrentPage({ ...tr, consumed: true });
-    resetAllScrolls();
+    clearSavedHomePageState();
     const fav = tr.defaultOpen === "favorites";
     setIsFavPage(fav); setViewMode("streams"); setTabState(Tabs.LIVE_UPCOMING);
-    saveState({ viewMode: "streams", isFavPage: fav, tab: Tabs.LIVE_UPCOMING, scrollY: 0 });
+    saveState({ viewMode: "streams", isFavPage: fav, tab: Tabs.LIVE_UPCOMING });
     setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       if (fav) {
@@ -201,7 +158,7 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
   }, [app.reloadTrigger]);
 
   return (
-    <section ref={root} className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12" onTouchStart={swipeTabs.onTouchStart} onTouchEnd={swipeTabs.onTouchEnd}>
+    <section className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12" onTouchStart={swipeTabs.onTouchStart} onTouchEnd={swipeTabs.onTouchEnd}>
       {viewMode === "streams" ? (
         <>
           {isFavPage && !(app.isLoggedIn && app.favoriteChannelIDs.size > 0) ? (

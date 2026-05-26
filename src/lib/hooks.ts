@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "r
 // silence the React warning. Client-side it runs synchronously after DOM
 // mutations but before paint, which lets portal targets settle before the
 // browser shows the page (no "segments appear one frame later" flicker).
-const useIsomorphicLayoutEffect =
+export const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export function useDomElement<T extends HTMLElement = HTMLElement>(id: string) {

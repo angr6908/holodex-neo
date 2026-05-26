@@ -45,6 +45,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const [dragging, setDragging] = useState(false);
   const [hasWatched, setHasWatched] = useState(() => hasWatchedSync((video || source)?.id));
   const [dragSelectionLocked, setDragSelectionLocked] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
   const dragPreviewEl = useRef<HTMLElement | null>(null);
   useEffect(() => { if (data?.status !== "live") return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [data?.status]);
   useEffect(() => {
@@ -71,6 +73,10 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const titleHref = placeholderSourceUrl || (app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink);
   const showGridAvatar = includeAvatar && ["live", "upcoming"].includes(data?.status) && !denseList && !horizontal && data?.channel;
   const gridAvatarSize = colSize >= 2 ? 42 : colSize >= 1 ? 48 : 56;
+  const hasThumbImg = !denseList && !shouldHideThumbnail;
+  const hasAvatarImg = !!(showGridAvatar || (denseList && data?.channel));
+  const mediaReady = (!hasThumbImg || thumbLoaded) && (!hasAvatarImg || avatarLoaded);
+  const mediaFadeClass = cn("transition-opacity duration-200", mediaReady ? "opacity-100" : "opacity-0");
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
   const tlLang = app.settings.liveTlLang;
   const hasTLs = (data?.status === "past" && data?.live_tl_count?.[tlLang]) || data?.recent_live_tls?.includes?.(tlLang);
@@ -237,6 +243,24 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     denseList ? "max-w-[min(360px,42vw)] flex-[0_1_360px] overflow-hidden" : "min-h-0 justify-between",
   );
   const metaRightClass = "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap text-sm leading-none tabular-nums text-muted-foreground";
+  const metricPairClass = "inline-grid h-3.5 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metricTextOnlyClass = "inline-block h-3.5 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metricIconClass = "block size-3.5 shrink-0";
+  const metricTextClass = "block leading-none";
+  function renderMetric(icon: AnyIcon | null, text: string, title: string, truncate = false) {
+    const Icon = icon;
+    return (
+      <span className={cn(Icon ? metricPairClass : metricTextOnlyClass, truncate && "truncate")} title={title}>
+        {Icon ? <Icon className={metricIconClass} /> : null}
+        <span className={metricTextClass}>{text}</span>
+      </span>
+    );
+  }
+  function renderStatusMetric(showViewers: boolean, truncateTime = false) {
+    if (isLiveStatus && showViewers && viewerCount) return renderMetric(BroadcastIcon, viewerCount, viewerLabel);
+    if (!isLiveStatus && compactTimeText) return renderMetric(data.status !== "past" ? Clock : null, compactTimeText, absoluteTimeText, truncateTime);
+    return null;
+  }
   const itemActionsClass = cn(
     "video-card-item-actions flex items-center gap-1",
     denseList ? "h-auto self-stretch border-l px-2 py-0" : "border-t px-3 py-2",
@@ -248,7 +272,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
       <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
         <ContextMenuTrigger render={<Card className={shellClass} />}>
           {!denseList ? <div className={thumbnailClass}>
-            {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover" alt="" /> : null}
+            {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="eager" decoding="async" ref={(el) => { if (el?.complete) setThumbLoaded(true); }} onLoad={() => setThumbLoaded(true)} onError={() => setThumbLoaded(true)} className={cn("pointer-events-none absolute inset-0 h-full w-full object-cover", mediaFadeClass)} alt="" /> : null}
             <Button type="button" variant="ghost" className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary" onClick={(e) => { e.stopPropagation(); onThumbnailClicked(); }}>
               <span className="sr-only">{title}</span>
             </Button>
@@ -259,10 +283,10 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
                 {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationText}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
               </div>
             </div>
-            {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
+            {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="eager" decoding="async" ref={(el) => { if (el?.complete) setThumbLoaded(true); }} onLoad={() => setThumbLoaded(true)} onError={() => setThumbLoaded(true)} className={cn("pointer-events-none aspect-video w-full object-cover", mediaFadeClass)} alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
           </div> : null}
           <div className={textClass}>
-            {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></Button></div> : null}
+            {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} className={mediaFadeClass} onReady={() => setAvatarLoaded(true)} noLink /></Button></div> : null}
             <div className={linesClass}>
               <div className={titleWrapClass}><Link href={titleHref} className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
               <div className={metaClass}>
@@ -272,29 +296,13 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
                       <Button type="button" variant="link" className={cn("h-auto max-w-full justify-start truncate p-0 text-left text-sm font-normal text-muted-foreground hover:text-foreground", denseList && "max-w-[180px]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
                     </div>
                     <div className={metaRightClass}>
-                      {isLiveStatus && showChannelViewers ? (
-                        <span className="inline-flex items-center gap-1" title={viewerLabel}>
-                          <BroadcastIcon className="size-3.5" />{viewerCount}
-                        </span>
-                      ) : !isLiveStatus && compactTimeText ? (
-                        <span className="inline-flex items-center gap-1" title={absoluteTimeText}>
-                          {data.status !== "past" && <Clock className="size-3.5" />}{compactTimeText}
-                        </span>
-                      ) : null}
+                      {renderStatusMetric(showChannelViewers)}
                       {clipsCount ? <span className="text-primary">· {clipsCount}</span> : null}
                     </div>
                   </div>
                 ) : (
                   <div className={cn("flex min-h-4 items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", denseList && "min-w-20 whitespace-nowrap")}>
-                    {isLiveStatus && viewerCount ? (
-                      <span className="inline-flex items-center gap-1" title={viewerLabel}>
-                        <BroadcastIcon className="size-3.5" />{viewerCount}
-                      </span>
-                    ) : !isLiveStatus && compactTimeText ? (
-                      <span className="inline-flex items-center gap-1 truncate" title={absoluteTimeText}>
-                        {data.status !== "past" && <Clock className="size-3.5" />}{compactTimeText}
-                      </span>
-                    ) : null}
+                    {renderStatusMetric(!!viewerCount, true)}
                     {clipsCount ? <span className="text-primary">· {clipsCount}</span> : null}
                   </div>
                 )}

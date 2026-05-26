@@ -107,10 +107,10 @@ export function GenericListLoader({
     setTotal(null);
     setIsLoading(!cached);
     setStatus(STATUSES.READY);
-    setNextPage(1);
+    setNextPage(cached && infiniteLoad ? Math.ceil(cached.length / perPage) + 1 : 1);
     setIdentifier((value) => value + 1);
     restoredFromCache.current = !!cached;
-  }, [cacheKey]);
+  }, [cacheKey, infiniteLoad, perPage]);
 
   useEffect(() => {
     if (!paginate) return;
@@ -120,7 +120,7 @@ export function GenericListLoader({
 
   useEffect(() => {
     if (!infiniteLoad) return;
-    if (identifier) void runLoad(1, "infinite");
+    if (identifier && !restoredFromCache.current) void runLoad(1, "infinite");
   }, [infiniteLoad, identifier]);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
 
@@ -23,12 +23,14 @@ export function channelAvatarSizeClass(size: string | number | undefined) {
   return classes[px] || "size-10";
 }
 
-export function ChannelImg({ channel, size = 40, noLink = false, className = "" }: { channel: any; size?: string | number; noLink?: boolean; className?: string; rounded?: boolean }) {
+export function ChannelImg({ channel, size = 40, noLink = false, className = "", onReady }: { channel: any; size?: string | number; noLink?: boolean; className?: string; rounded?: boolean; onReady?: () => void }) {
   const router = useRouter();
   const channelId = channel?.id;
   const channelPhoto = channel?.photo;
   const [err, setErr] = useState(false);
   const [sourceIndex, setSourceIndex] = useState(0);
+  const onReadyRef = useRef(onReady);
+  useEffect(() => { onReadyRef.current = onReady; });
   useEffect(() => {
     setErr(false);
     setSourceIndex(0);
@@ -43,12 +45,16 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "" 
     return Array.from(new Set(sources));
   }, [channelId, channelPhoto]);
   const photo = photoSources[sourceIndex] || "";
+  const hasImage = !err && !!photo;
+  useEffect(() => {
+    if (!hasImage) onReadyRef.current?.();
+  }, [hasImage]);
 
   const onImgError = () => sourceIndex < photoSources.length - 1 ? setSourceIndex((index) => index + 1) : setErr(true);
   const avatar = (
     <Avatar title={title} className={cn(channelAvatarSizeClass(size), className)}>
-      {!err && photo ? (
-        <AvatarImage key={photo} src={photo} decoding="async" width={px} height={px} className="object-cover" onError={onImgError} alt="" />
+      {hasImage ? (
+        <img key={photo} src={photo} loading="eager" decoding="async" width={px} height={px} className="aspect-square size-full rounded-full object-cover" ref={(el) => { if (el?.complete) { if (el.naturalWidth > 0) onReadyRef.current?.(); else onImgError(); } }} onLoad={() => onReadyRef.current?.()} onError={onImgError} alt="" />
       ) : null}
 
     </Avatar>

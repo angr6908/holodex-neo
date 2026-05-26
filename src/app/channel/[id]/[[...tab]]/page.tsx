@@ -8,7 +8,7 @@ import { ArrowDownAZ, ArrowUpAZ, Grid2x2, LayoutDashboard, LayoutGrid } from "@/
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
-import linkifyHtml from "linkifyjs/html";
+import linkifyHtml from "linkify-html";
 import { useDomElement } from "@/lib/hooks";
 import { formatCount, getBannerImages } from "@/lib/functions";
 import { ChannelImg } from "@/components/channel/ChannelImg";
