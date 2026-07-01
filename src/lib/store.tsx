@@ -221,14 +221,14 @@ const liveFingerprint = (arr: any[]) => (arr || []).map((v) => `${v.id}:${v.stat
 
 export function AppStateProvider({ children, initialBootState }: { children: React.ReactNode; initialBootState?: AppBootState | null }) {
   const [state, setState] = useState<State>(() => buildBootState(initialBootState));
-  const [homeInflight, setHomeInflight] = useState<Promise<void> | null>(null);
-  const [favsInflight, setFavsInflight] = useState<Promise<void> | null>(null);
   const stateRef = useRef(state);
+  const homeInflight = useRef<Promise<void> | null>(null);
+  const favsInflight = useRef<Promise<void> | null>(null);
   const favTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const homeSeq = useRef(0);
   const orgsInflight = useRef<Promise<any[]> | null>(null);
 
-  useEffect(() => { stateRef.current = state; }, [state]);
+  useLayoutEffect(() => { stateRef.current = state; }, [state]);
   useEffect(() => () => { if (favTimer.current) clearTimeout(favTimer.current); }, []);
 
   useLayoutEffect(() => {
@@ -276,11 +276,12 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
   };
 
   const fetchFavoritesLive = (opts: { force?: boolean; minutes?: number } = {}) => {
-    const { jwt } = state.userdata;
-    if (!jwt || (state.visibilityState === "hidden" && !opts.force)) return null;
-    if (favsInflight) return favsInflight;
+    const current = stateRef.current;
+    const { jwt } = current.userdata;
+    if (!jwt || (current.visibilityState === "hidden" && !opts.force)) return null;
+    if (favsInflight.current) return favsInflight.current;
     const { force = false, minutes = 2 } = opts;
-    if (!state.favoritesError && !force && state.favoritesLastLiveUpdate && Date.now() - state.favoritesLastLiveUpdate <= minutes * 60_000) {
+    if (!current.favoritesError && !force && current.favoritesLastLiveUpdate && Date.now() - current.favoritesLastLiveUpdate <= minutes * 60_000) {
       setState((s) => ({ ...s, favoritesError: false, favoritesLoading: false }));
       return null;
     }
@@ -296,8 +297,8 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
         }));
       })
       .catch((e) => { console.error(e); setState((s) => ({ ...s, favoritesError: true, favoritesLoading: false })); })
-      .finally(() => setFavsInflight(null));
-    setFavsInflight(p);
+      .finally(() => { favsInflight.current = null; });
+    favsInflight.current = p;
     return p;
   };
 
@@ -357,14 +358,15 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
     },
 
     fetchHomeLive: (opts: { force?: boolean; minutes?: number } = {}) => {
-      if (state.visibilityState === "hidden" && !opts.force) return null;
+      const current = stateRef.current;
+      if (current.visibilityState === "hidden" && !opts.force) return null;
       const { force = false, minutes = 5 } = opts;
-      const orgTargets = state.selectedHomeOrgs.length ? state.selectedHomeOrgs : [ALL_VTUBERS_ORG];
+      const orgTargets = current.selectedHomeOrgs.length ? current.selectedHomeOrgs : [ALL_VTUBERS_ORG];
       const nextKey = liveCacheKey(orgTargets);
-      const cacheChanged = state.homeLiveCacheKey !== nextKey;
-      if (homeInflight && !cacheChanged) return homeInflight;
-      const lastUpdate = cacheChanged ? 0 : state.homeLastLiveUpdate;
-      if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !state.homeError) return null;
+      const cacheChanged = current.homeLiveCacheKey !== nextKey;
+      if (homeInflight.current && !cacheChanged) return homeInflight.current;
+      const lastUpdate = cacheChanged ? 0 : current.homeLastLiveUpdate;
+      if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !current.homeError) return null;
       setState((s) => ({
         ...s,
         homeLive: cacheChanged ? [] : s.homeLive,
@@ -388,8 +390,8 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
           }));
         })
         .catch((e) => { if (!isCurrent()) return; console.error(e); setState((s) => ({ ...s, homeError: true, homeLoading: false })); })
-        .finally(() => { if (isCurrent()) setHomeInflight(null); });
-      setHomeInflight(p);
+        .finally(() => { if (isCurrent()) homeInflight.current = null; });
+      homeInflight.current = p;
       return p;
     },
 

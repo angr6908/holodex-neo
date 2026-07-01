@@ -133,7 +133,8 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     const onHomeNav = (event: Event) => {
       const next = normalizeHomeState((event as CustomEvent<HomeUiState>).detail);
       if (!next) return;
-      switchTo(next.isFavPage ?? isFavPage, next.viewMode ?? viewMode, next.tab ?? tab, true);
+      const nextFav = next.isFavPage ?? isFavPage;
+      switchTo(nextFav, next.viewMode ?? viewMode, next.tab ?? tab, nextFav !== isFavPage);
     };
     window.addEventListener("holodex-home-nav", onHomeNav);
     return () => window.removeEventListener("holodex-home-nav", onHomeNav);

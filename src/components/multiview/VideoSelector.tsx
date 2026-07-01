@@ -130,7 +130,7 @@ function makeMultiOrgLabel(names: string[], selectedCountLabel: (count: number) 
 }
 
 function makeMultiOrgTab(names: string[], selectedCountLabel: (count: number) => string) {
-  return { name: "MultiOrg", text: makeMultiOrgLabel(names, selectedCountLabel) };
+  return { name: "MultiOrg", text: makeMultiOrgLabel(names, selectedCountLabel), orgNames: [...names] };
 }
 
 export function VideoSelector({ horizontal = false, embedded = false, isActive = true, compact = false, hideOrgSelector = false, hideFavorites = false, hidePlaylist = false, hideUrlInput = false, hidePlaceholder, hideMissing, activeVideos: activeVideosOverride, onVideoClicked }: { horizontal?: boolean; embedded?: boolean; isActive?: boolean; compact?: boolean; hideOrgSelector?: boolean; hideFavorites?: boolean; hidePlaylist?: boolean; hideUrlInput?: boolean; hidePlaceholder?: boolean; hideMissing?: boolean; activeVideos?: any[]; onVideoClicked?: (video: any) => void }) {
@@ -180,14 +180,14 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
 
   const selectedHomeOrgsForPicker = useMemo(() => {
     if (isAllVtubers) return [];
-    if (selectedOrg?.name === "MultiOrg") return selectedHomeOrgs;
+    if (selectedOrg?.name === "MultiOrg") return selectedOrg.orgNames?.length ? selectedOrg.orgNames : selectedHomeOrgs;
     if (isRealOrg) return [selectedOrg.name];
     return selectedHomeOrgs;
   }, [selectedOrg, selectedHomeOrgsKey, isAllVtubers, isRealOrg]);
 
   const selectedOrgNames = useMemo(() => {
     if (selectedOrg?.name === ALL_VTUBERS_ORG) return [];
-    if (selectedOrg?.name === "MultiOrg") return selectedHomeOrgs.length ? selectedHomeOrgs : [app.currentOrg?.name || DEFAULT_ORG];
+    if (selectedOrg?.name === "MultiOrg") return selectedOrg.orgNames?.length ? selectedOrg.orgNames : selectedHomeOrgs.length ? selectedHomeOrgs : [app.currentOrg?.name || DEFAULT_ORG];
     if (isRealOrg) return [selectedOrg.name];
     return [];
   }, [selectedOrg, selectedHomeOrgsKey, app.currentOrg?.name, isRealOrg]);
@@ -263,7 +263,7 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
 
   function orgNamesForSelection(panel: any) {
     if (panel?.name === ALL_VTUBERS_ORG) return [];
-    if (panel?.name === "MultiOrg") return selectedHomeOrgs.length ? selectedHomeOrgs : [app.currentOrg?.name || DEFAULT_ORG];
+    if (panel?.name === "MultiOrg") return panel.orgNames?.length ? panel.orgNames : selectedHomeOrgs.length ? selectedHomeOrgs : [app.currentOrg?.name || DEFAULT_ORG];
     if (isRealOrgSelection(panel)) return [panel.name];
     return [];
   }
@@ -339,19 +339,24 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
     const unique = [...new Set(names)].filter(Boolean);
     const fallback = (app.orgs || []).find((org: any) => org.name === DEFAULT_ORG) || { name: DEFAULT_ORG, short: "Holo" };
     if (unique.length === 0) {
+      const panel = allVtubersTab;
       app.setSelectedHomeOrgs([]);
       app.setCurrentOrg((app.orgs || []).find((org: any) => org.name === ALL_VTUBERS_ORG) || allVtubersTab);
-      handlePicker(allVtubersTab);
+      handlePicker(panel);
+      loadSelection(panel);
     } else if (unique.length > 1) {
+      const panel = makeMultiOrgTab(unique, selectedCountLabel);
       app.setSelectedHomeOrgs(unique);
       app.setCurrentOrg((app.orgs || []).find((org: any) => org.name === unique[0]) || fallback);
-      handlePicker(makeMultiOrgTab(unique, selectedCountLabel));
+      handlePicker(panel);
+      loadSelection(panel);
     } else {
       const name = unique[0] || fallback.name;
       const org = (app.orgs || []).find((o: any) => o.name === name) || fallback;
       app.setSelectedHomeOrgs([org.name]);
       app.setCurrentOrg(org);
       handlePicker(org);
+      loadSelection(org);
     }
   }
 

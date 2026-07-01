@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Building, RotateCcw } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -61,6 +61,7 @@ export function HomeOrgMultiSelect({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [draftSelectedNames, setDraftSelectedNames] = useState<string[]>([]);
+  const draftSelectedNamesRef = useRef<string[]>([]);
   const allVtubersLabel = t("component.search.allVtubers");
 
   const formatSelectionLabel = (name: string) => name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
@@ -115,9 +116,19 @@ export function HomeOrgMultiSelect({
     else app.setSelectedHomeOrgs(nextSelection);
   }
 
+  function setDraftSelection(next: string[] | ((prev: string[]) => string[])) {
+    setDraftSelectedNames((prev) => {
+      const value = typeof next === "function" ? next(prev) : next;
+      draftSelectedNamesRef.current = value;
+      return value;
+    });
+  }
+
   async function openSelector() {
     if (!app.orgs.length) await app.fetchOrgs();
-    setDraftSelectedNames(selectedNames.length ? [...selectedNames] : [...fallbackSelection]);
+    const nextDraft = selectedNames.length ? [...selectedNames] : [...fallbackSelection];
+    draftSelectedNamesRef.current = nextDraft;
+    setDraftSelectedNames(nextDraft);
     setSearch("");
     setOpen(true);
   }
@@ -127,19 +138,19 @@ export function HomeOrgMultiSelect({
       void openSelector();
       return;
     }
-    applySelection(draftSelectedNames);
+    applySelection(draftSelectedNamesRef.current);
     setOpen(false);
     setSearch("");
   }
 
   function toggleName(name: string) {
-    setDraftSelectedNames((prev) =>
+    setDraftSelection((prev) =>
       prev.includes(name) ? prev.filter((value) => value !== name) : [...prev, name],
     );
   }
 
   function clearSelection() {
-    setDraftSelectedNames([...fallbackSelection]);
+    setDraftSelection([...fallbackSelection]);
   }
 
   if (hideTrigger) return null;
