@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
+import { preloadImage } from "@/lib/image-preload";
 
 export function channelAvatarSizeClass(size: string | number | undefined) {
   const px = Number(size) || 40;
@@ -46,6 +47,7 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "",
   }, [channelId, channelPhoto]);
   const photo = photoSources[sourceIndex] || "";
   const hasImage = !err && !!photo;
+  useEffect(() => { if (hasImage) void preloadImage(photo); }, [hasImage, photo]);
   useEffect(() => {
     if (!hasImage) onReadyRef.current?.();
   }, [hasImage]);
@@ -54,7 +56,7 @@ export function ChannelImg({ channel, size = 40, noLink = false, className = "",
   const avatar = (
     <Avatar title={title} className={cn(channelAvatarSizeClass(size), className)}>
       {hasImage ? (
-        <img key={photo} src={photo} loading="eager" decoding="async" width={px} height={px} className="aspect-square size-full rounded-full object-cover" ref={(el) => { if (el?.complete) { if (el.naturalWidth > 0) onReadyRef.current?.(); else onImgError(); } }} onLoad={() => onReadyRef.current?.()} onError={onImgError} alt="" />
+        <img key={photo} src={photo} loading="eager" fetchPriority="high" decoding="sync" width={px} height={px} className="aspect-square size-full rounded-full object-cover" ref={(el) => { if (el?.complete) { if (el.naturalWidth > 0) onReadyRef.current?.(); else onImgError(); } }} onLoad={() => onReadyRef.current?.()} onError={onImgError} alt="" />
       ) : null}
 
     </Avatar>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "@/components/ui/pagination";
@@ -11,15 +11,46 @@ import { useAppState } from "@/lib/store";
 import { extractListPayload } from "@/lib/video-format";
 const CACHE_PREFIX = "gll:";
 const STATUSES = Object.freeze({ READY: 0, LOADING: 1, ERROR: 2, COMPLETED: 3 });
+type PagePayload = { items: any[]; total: number | null; offset: number | null };
+type StoredSnapshot = { items: any[]; total?: number | null; page?: number | null; nextPage?: number | null };
+const pageCacheStore = new Map<string, Map<number, PagePayload>>();
 
-function readCache(cacheKey: string) {
+function parsePage(value: string | null | undefined) {
+  return Math.max(1, Number.parseInt(value || "1", 10) || 1);
+}
+
+function getPageCache(cacheKey: string) {
+  if (!cacheKey) return new Map<number, PagePayload>();
+  let cache = pageCacheStore.get(cacheKey);
+  if (!cache) {
+    cache = new Map<number, PagePayload>();
+    pageCacheStore.set(cacheKey, cache);
+  }
+  return cache;
+}
+
+function readCache(cacheKey: string): StoredSnapshot | null {
   if (!cacheKey || typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(CACHE_PREFIX + cacheKey);
-    return raw ? JSON.parse(raw) as any[] : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { items: parsed };
+    if (parsed && typeof parsed === "object" && Array.isArray(parsed.items)) return parsed as StoredSnapshot;
+    return null;
   } catch {
     return null;
   }
+}
+
+function cachedSnapshotForPage(cacheKey: string, page: number, paginate: boolean) {
+  const payload = paginate ? getPageCache(cacheKey).get(page) : undefined;
+  if (payload) return { items: payload.items, total: payload.total, page };
+  const stored = readCache(cacheKey);
+  if (!stored) return null;
+  if (paginate && stored.page && stored.page !== page) return null;
+  if (paginate && !stored.page && page !== 1) return null;
+  return stored;
 }
 
 export function GenericListLoader({
@@ -28,6 +59,8 @@ export function GenericListLoader({
   pageless = false,
   endIfPartialPage = false,
   preloadAdjacent = false,
+  keepPreviousData = false,
+  getCachedPage,
   loadFn,
   perPage = 24,
   cacheKey = "",
@@ -38,45 +71,66 @@ export function GenericListLoader({
   pageless?: boolean;
   endIfPartialPage?: boolean;
   preloadAdjacent?: boolean;
+  keepPreviousData?: boolean;
+  getCachedPage?: (cacheKey: string, page: number, limit: number) => any | null | undefined;
   loadFn: (offset: number, limit: number) => Promise<any>;
   perPage?: number;
   cacheKey?: string;
-  children: (state: { data: any[]; isLoading: boolean }) => React.ReactNode;
+  children: (state: { data: any[]; isLoading: boolean; isFetching: boolean }) => React.ReactNode;
 }) {
   const app = useAppState();
-  const [initialCache] = useState<any[] | null>(() => app.hydrated ? readCache(cacheKey) : null);
-  const [data, setData] = useState<any[]>(initialCache || []);
-  const [total, setTotal] = useState<number | null>(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const routePage = parsePage(searchParams.get("page"));
+  const [currentPage, setCurrentPage] = useState(routePage);
+  const readExternalPage = useCallback((page: number) => {
+    if (!getCachedPage) return undefined;
+    const raw = getCachedPage(cacheKey, page, perPage);
+    if (raw === null || raw === undefined) return undefined;
+    return extractListPayload(raw);
+  }, [cacheKey, getCachedPage, perPage]);
+  const [initialCache] = useState<StoredSnapshot | null>(() => {
+    const cached = app.hydrated ? cachedSnapshotForPage(cacheKey, currentPage, paginate) : null;
+    const external = readExternalPage(currentPage);
+    return external ? { items: external.items, total: external.total, page: currentPage } : cached;
+  });
+  const [data, setData] = useState<any[]>(initialCache?.items || []);
+  const [total, setTotal] = useState<number | null>(initialCache?.total ?? null);
   const [isLoading, setIsLoading] = useState(!initialCache);
+  const [isFetching, setIsFetching] = useState(false);
   const [status, setStatus] = useState<number>(STATUSES.READY);
-  const [nextPage, setNextPage] = useState(initialCache && infiniteLoad ? Math.ceil(initialCache.length / perPage) + 1 : 1);
+  const [nextPage, setNextPage] = useState(initialCache?.nextPage || (initialCache && infiniteLoad ? Math.ceil(initialCache.items.length / perPage) + 1 : 1));
   const [identifier, setIdentifier] = useState(0);
   const restoredFromCache = useRef(!!initialCache);
-  const dataLenRef = useRef(initialCache?.length || 0);
-  type PagePayload = { items: any[]; total: number | null; offset: number | null };
-  const pageCacheRef = useRef<Map<number, PagePayload>>(new Map());
+  const dataLenRef = useRef(initialCache?.items.length || 0);
+  const currentPageRef = useRef(currentPage);
+  const requestSeq = useRef(0);
+  const pageCacheRef = useRef<Map<number, PagePayload>>(getPageCache(cacheKey));
   const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
   const sentinel = useRef<HTMLDivElement | null>(null);
   const randomId = useId().replace(/:/g, "");
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const t = useTranslations();
-  const currentPage = Number(searchParams.get("page") || 1);
   const pages = total ? Math.ceil(total / perPage) : 1;
   const pageLessMode = pageless || total === null;
 
-  const writeCache = useCallback((next: any[]) => {
+  const currentSearchParams = useCallback(() => {
+    if (typeof window !== "undefined") return new URLSearchParams(window.location.search);
+    return new URLSearchParams(searchParams.toString());
+  }, [searchParams]);
+
+  const writeCache = useCallback((next: any[], meta: Omit<StoredSnapshot, "items"> = {}) => {
     if (!cacheKey || next.length === 0) return;
-    try { sessionStorage.setItem(CACHE_PREFIX + cacheKey, JSON.stringify(next)); } catch {}
+    try { sessionStorage.setItem(CACHE_PREFIX + cacheKey, JSON.stringify({ ...meta, items: next })); } catch {}
   }, [cacheKey]);
 
   const fetchPage = useCallback((page: number) => {
     const pending = inflightRef.current.get(page);
     if (pending) return pending;
+    const targetCache = pageCacheRef.current;
+    const targetInflight = inflightRef.current;
     const promise = Promise.resolve(loadFn((page - 1) * perPage, perPage)).then(extractListPayload);
-    inflightRef.current.set(page, promise);
-    promise.then((payload) => { pageCacheRef.current.set(page, payload); }).catch(() => {}).finally(() => { inflightRef.current.delete(page); });
+    targetInflight.set(page, promise);
+    promise.then((payload) => { targetCache.set(page, payload); }).catch(() => {}).finally(() => { targetInflight.delete(page); });
     return promise;
   }, [loadFn, perPage]);
 
@@ -90,19 +144,32 @@ export function GenericListLoader({
   }, [fetchPage, perPage]);
 
   const runLoad = useCallback(async (page: number, mode: "infinite" | "paginate") => {
-    const usePageCache = mode === "paginate" && preloadAdjacent;
-    const cached = usePageCache ? pageCacheRef.current.get(page) : undefined;
-    if (!cached && (!restoredFromCache.current || dataLenRef.current === 0)) setIsLoading(true);
-    setStatus(STATUSES.LOADING);
+    const usePageCache = mode === "paginate";
+    const external = usePageCache ? readExternalPage(page) : undefined;
+    if (external && usePageCache) pageCacheRef.current.set(page, external);
+    const cached = usePageCache ? (pageCacheRef.current.get(page) || external) : undefined;
+    const requestId = ++requestSeq.current;
+    if (cached) {
+      setIsLoading(false);
+      setIsFetching(false);
+      setStatus(STATUSES.READY);
+    } else {
+      setIsFetching(true);
+      setIsLoading(dataLenRef.current === 0);
+      setStatus(STATUSES.LOADING);
+    }
     try {
       const { items, total: nextTotal, offset } = cached ?? (usePageCache ? await fetchPage(page) : extractListPayload(await loadFn((page - 1) * perPage, perPage)));
+      if (requestId !== requestSeq.current) return;
+      if (usePageCache) pageCacheRef.current.set(page, { items, total: nextTotal, offset });
       setIsLoading(false);
+      setIsFetching(false);
       setTotal(nextTotal);
       if (mode === "infinite") {
         setData((prev) => {
           const next = restoredFromCache.current && page === 1 ? items : prev.concat(items);
           restoredFromCache.current = false;
-          writeCache(next);
+          writeCache(next, { nextPage: page + 1 });
           return next;
         });
         if ((items.length < perPage && endIfPartialPage) || items.length === 0) setStatus(STATUSES.COMPLETED);
@@ -110,7 +177,7 @@ export function GenericListLoader({
       } else {
         setData(items);
         restoredFromCache.current = false;
-        writeCache(items);
+        writeCache(items, { page, total: nextTotal });
         const resolvedOffset = offset ?? (page - 1) * perPage;
         if (pageless || nextTotal === null) {
           setStatus((items.length < perPage && endIfPartialPage) || items.length === 0 ? STATUSES.COMPLETED : STATUSES.READY);
@@ -123,25 +190,66 @@ export function GenericListLoader({
       }
     } catch (e) {
       console.error(e);
+      if (requestId !== requestSeq.current) return;
       setIsLoading(false);
+      setIsFetching(false);
       setStatus(STATUSES.ERROR);
     }
-  }, [endIfPartialPage, loadFn, pageless, perPage, preloadAdjacent, prefetchNeighbors, writeCache]);
+  }, [endIfPartialPage, loadFn, pageless, perPage, preloadAdjacent, prefetchNeighbors, readExternalPage, writeCache]);
+
+  const applyPaginatedPayload = useCallback((page: number, payload: PagePayload) => {
+    setData(payload.items);
+    setTotal(payload.total);
+    setIsLoading(false);
+    setIsFetching(false);
+    restoredFromCache.current = false;
+    writeCache(payload.items, { page, total: payload.total });
+    const resolvedOffset = payload.offset ?? (page - 1) * perPage;
+    if (pageless || payload.total === null) {
+      setStatus((payload.items.length < perPage && endIfPartialPage) || payload.items.length === 0 ? STATUSES.COMPLETED : STATUSES.READY);
+    } else if (resolvedOffset + perPage >= payload.total) {
+      setStatus(STATUSES.COMPLETED);
+    } else {
+      setStatus(STATUSES.READY);
+    }
+    if (preloadAdjacent) prefetchNeighbors(page, payload.total);
+  }, [endIfPartialPage, pageless, perPage, preloadAdjacent, prefetchNeighbors, writeCache]);
 
   useEffect(() => { dataLenRef.current = data.length; }, [data.length]);
+  useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
 
   useEffect(() => {
-    pageCacheRef.current.clear();
+    if (!paginate) return;
+    const onPopState = () => setCurrentPage(parsePage(new URLSearchParams(window.location.search).get("page")));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [paginate]);
+
+  useEffect(() => {
+    if (!paginate || routePage === currentPageRef.current) return;
+    setCurrentPage(routePage);
+  }, [paginate, routePage]);
+
+  useLayoutEffect(() => {
+    requestSeq.current++;
+    pageCacheRef.current = getPageCache(cacheKey);
     inflightRef.current.clear();
-    const cached = readCache(cacheKey);
-    setData(cached || []);
-    setTotal(null);
-    setIsLoading(!cached);
+    const page = parsePage(typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("page") : undefined);
+    currentPageRef.current = page;
+    setCurrentPage(page);
+    const external = readExternalPage(page);
+    if (external && paginate) pageCacheRef.current.set(page, external);
+    const cached = external ? { items: external.items, total: external.total, page } : cachedSnapshotForPage(cacheKey, page, paginate);
+    if (cached) setData(cached.items);
+    else if (!keepPreviousData || dataLenRef.current === 0) setData([]);
+    setTotal(cached?.total ?? null);
+    setIsLoading(!cached && (!keepPreviousData || dataLenRef.current === 0));
+    setIsFetching(false);
     setStatus(STATUSES.READY);
-    setNextPage(cached && infiniteLoad ? Math.ceil(cached.length / perPage) + 1 : 1);
+    setNextPage(cached?.nextPage || (cached && infiniteLoad ? Math.ceil(cached.items.length / perPage) + 1 : 1));
     setIdentifier((value) => value + 1);
     restoredFromCache.current = !!cached;
-  }, [cacheKey, infiniteLoad, perPage]);
+  }, [cacheKey, infiniteLoad, keepPreviousData, paginate, perPage, readExternalPage]);
 
   useEffect(() => {
     if (!paginate) return;
@@ -156,23 +264,59 @@ export function GenericListLoader({
 
   useEffect(() => {
     if (!infiniteLoad || !("IntersectionObserver" in window) || !sentinel.current) return;
+    let frame = 0;
+    const loadIfSentinelReached = () => {
+      if (status !== STATUSES.READY || !sentinel.current) return;
+      const rect = sentinel.current.getBoundingClientRect();
+      if (rect.top <= window.innerHeight + 200) void runLoad(nextPage, "infinite");
+    };
+    const scheduleLoadCheck = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(loadIfSentinelReached);
+    };
     const observer = new IntersectionObserver((entries) => {
       if (entries[0]?.isIntersecting && status === STATUSES.READY) void runLoad(nextPage, "infinite");
     }, { root: null, rootMargin: "200px 0px", threshold: 0 });
     observer.observe(sentinel.current);
-    return () => observer.disconnect();
+    scheduleLoadCheck();
+    window.addEventListener("scroll", scheduleLoadCheck, { passive: true });
+    window.addEventListener("resize", scheduleLoadCheck, { passive: true });
+    window.addEventListener("pageshow", scheduleLoadCheck);
+    return () => {
+      observer.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleLoadCheck);
+      window.removeEventListener("resize", scheduleLoadCheck);
+      window.removeEventListener("pageshow", scheduleLoadCheck);
+    };
   }, [infiniteLoad, nextPage, runLoad, status]);
 
   function goToPage(page: number) {
     if (page < 1) return;
-    const params = new URLSearchParams(searchParams.toString());
+    const external = paginate ? readExternalPage(page) : undefined;
+    if (external && paginate) pageCacheRef.current.set(page, external);
+    const cached = paginate ? (pageCacheRef.current.get(page) || external) : undefined;
+    if (cached) {
+      requestSeq.current++;
+      applyPaginatedPayload(page, cached);
+    }
+    setCurrentPage(page);
+    const params = currentSearchParams();
     params.set("page", String(page));
-    router.push(`${pathname}${params.toString() ? `?${params}` : ""}`);
+    if (typeof window !== "undefined") {
+      const nextUrl = `${pathname}${params.toString() ? `?${params}` : ""}${window.location.hash || ""}`;
+      window.history.pushState(null, "", nextUrl);
+    }
     const jump = document.getElementById(`tjump${randomId}`);
-    if (jump) window.scrollTo(0, jump.offsetTop - 100);
+    if (jump) {
+      const top = Math.max(0, jump.offsetTop - 100);
+      const scroll = () => window.scrollTo({ top, left: 0, behavior: "auto" });
+      scroll();
+      requestAnimationFrame(scroll);
+    }
   }
   function pageHref(page: number) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = currentSearchParams();
     params.set("page", String(page));
     return `${pathname}${params.toString() ? `?${params}` : ""}`;
   }
@@ -194,7 +338,7 @@ export function GenericListLoader({
   return (
     <div>
       <div id={`tjump${randomId}`} />
-      {children({ data, isLoading })}
+      {children({ data, isLoading, isFetching })}
       {infiniteLoad ? (
         <div ref={sentinel} key={identifier} className="flex min-h-[100px] justify-center py-4">
           {status === STATUSES.LOADING ? <Spinner className="mt-8" /> : null}
@@ -208,7 +352,7 @@ export function GenericListLoader({
       {paginate ? (
         <div key={identifier} className="flex min-h-[100px] justify-center py-4">
           {!pageLessMode ? (
-            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
+            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED || data.length > 0) ? "" : "hidden"}>
 	              <PaginationContent className="flex-wrap justify-center gap-2">
 	                <PaginationItem>
 	                  <PaginationLink href={pageHref(currentPage - 1)} size="sm" aria-label={t("component.pagination.previousPage")} aria-disabled={currentPage === 1} className={currentPage === 1 ? "pointer-events-none opacity-50" : ""} onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}><ChevronLeft className="size-4" /></PaginationLink>
@@ -224,7 +368,7 @@ export function GenericListLoader({
 	              </PaginationContent>
             </Pagination>
           ) : (
-            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED) ? "" : "hidden"}>
+            <Pagination className={(status === STATUSES.READY || status === STATUSES.COMPLETED || data.length > 0) ? "" : "hidden"}>
 	              <PaginationContent className="flex-wrap justify-center gap-0">
 	                <PaginationItem>
 	                  <PaginationLink href={pageHref(currentPage - 1)} size="default" aria-disabled={currentPage === 1} className={`m-2 pr-6 ${currentPage === 1 ? "pointer-events-none opacity-50" : ""}`} onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}><ChevronLeft className="size-4" />{t("component.paginateLoad.newer")}</PaginationLink>

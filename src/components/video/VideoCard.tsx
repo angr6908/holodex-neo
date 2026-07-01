@@ -16,6 +16,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { absoluteTime, channelDisplayName, compactVideoTime, formattedDuration, videoImage, videoTitle, viewerCountText } from "@/lib/video-format";
 import { cn } from "@/lib/utils";
 import { hasWatched as hasWatchedVideo, hasWatchedSync } from "@/lib/browser";
+import { preloadImage } from "@/lib/image-preload";
 import * as icons from "@/lib/icons";
 
 function externalHref(link = "") {
@@ -45,8 +46,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const [dragging, setDragging] = useState(false);
   const [hasWatched, setHasWatched] = useState(() => hasWatchedSync((video || source)?.id));
   const [dragSelectionLocked, setDragSelectionLocked] = useState(false);
-  const [thumbLoaded, setThumbLoaded] = useState(false);
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
   const dragPreviewEl = useRef<HTMLElement | null>(null);
   useEffect(() => { if (data?.status !== "live") return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [data?.status]);
   useEffect(() => {
@@ -73,10 +72,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const titleHref = placeholderSourceUrl || (app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink);
   const showGridAvatar = includeAvatar && ["live", "upcoming"].includes(data?.status) && !denseList && !horizontal && data?.channel;
   const gridAvatarSize = colSize >= 2 ? 42 : colSize >= 1 ? 48 : 56;
-  const hasThumbImg = !denseList && !shouldHideThumbnail;
-  const hasAvatarImg = !!(showGridAvatar || (denseList && data?.channel));
-  const mediaReady = (!hasThumbImg || thumbLoaded) && (!hasAvatarImg || avatarLoaded);
-  const mediaFadeClass = cn("transition-opacity duration-200", mediaReady ? "opacity-100" : "opacity-0");
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
   const tlLang = app.settings.liveTlLang;
   const hasTLs = (data?.status === "past" && data?.live_tl_count?.[tlLang]) || data?.recent_live_tls?.includes?.(tlLang);
@@ -90,6 +85,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     multiviewStore?.activeVideos?.some((video: any) => video.id === data?.id)
   );
   const channelTitle = data?.channel ? `${data.channel.name || ""}${data.channel.english_name ? `\nEN: ${data.channel.english_name}` : ""}${data.channel.org ? `\n> ${data.channel.org}` : ""}${data.channel.group ? `\n> ${data.channel.group}` : ""}` : channelName;
+
+  useEffect(() => { if (!denseList && !shouldHideThumbnail) void preloadImage(imageSrc); }, [denseList, imageSrc, shouldHideThumbnail]);
 
   function shouldIgnoreTextClick(event: any) {
     const selection = window.getSelection?.();
@@ -272,7 +269,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
       <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
         <ContextMenuTrigger render={<Card className={shellClass} />}>
           {!denseList ? <div className={thumbnailClass}>
-            {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="eager" decoding="async" ref={(el) => { if (el?.complete) setThumbLoaded(true); }} onLoad={() => setThumbLoaded(true)} onError={() => setThumbLoaded(true)} className={cn("pointer-events-none absolute inset-0 h-full w-full object-cover", mediaFadeClass)} alt="" /> : null}
+            {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="eager" fetchPriority="high" decoding="sync" className="pointer-events-none absolute inset-0 h-full w-full object-cover" alt="" /> : null}
             <Button type="button" variant="ghost" className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary" onClick={(e) => { e.stopPropagation(); onThumbnailClicked(); }}>
               <span className="sr-only">{title}</span>
             </Button>
@@ -283,10 +280,10 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
                 {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationText}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
               </div>
             </div>
-            {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="eager" decoding="async" ref={(el) => { if (el?.complete) setThumbLoaded(true); }} onLoad={() => setThumbLoaded(true)} onError={() => setThumbLoaded(true)} className={cn("pointer-events-none aspect-video w-full object-cover", mediaFadeClass)} alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
+            {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="eager" fetchPriority="high" decoding="sync" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
           </div> : null}
           <div className={textClass}>
-            {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} className={mediaFadeClass} onReady={() => setAvatarLoaded(true)} noLink /></Button></div> : null}
+            {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} noLink /></Button></div> : null}
             <div className={linesClass}>
               <div className={titleWrapClass}><Link href={titleHref} className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onMouseDown={(e) => { if (e.button === 2 || (e.button === 0 && e.ctrlKey)) e.currentTarget.style.userSelect = "none"; }} onContextMenu={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); const el = e.currentTarget; requestAnimationFrame(() => { el.style.userSelect = ""; }); }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
               <div className={metaClass}>

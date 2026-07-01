@@ -46,7 +46,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations();
   const portal = useDomElement("channels-panel-portal");
   const [state, setState] = useState<State>(defaultState);
-  const [id, setId] = useState(0);
   const selectedOrgs = app.selectedHomeOrgs || [];
   const orgsKey = JSON.stringify(selectedOrgs);
   const langsKey = app.settings.clipLangs.join(",");
@@ -83,7 +82,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     { value: Tabs.BLOCKED, label: t("views.channels.tabs.Blocked"), icon: Ban },
   ], [t]);
 
-  const reset = useCallback(() => setId((v) => v + 1), []);
   const setCategory = useCallback((v: number) => setState((p) => ({ ...p, category: v })), []);
   const swipeTabs = useSwipeTabs((d) => setCategory(Math.max(0, Math.min(3, category + d))));
   const setSort = useCallback((v: string) => setState((p) => ({
@@ -91,9 +89,8 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   })), [sortOptions]);
   const setCardView = useCallback((v: boolean) => setState((p) => ({ ...p, cardView: { ...p.cardView, [p.category]: v } })), []);
 
-  useEffect(() => { reset(); if (category === Tabs.FAVORITES && app.isLoggedIn) app.fetchFavorites(); }, [category]);
-  useEffect(() => { if (category !== Tabs.FAVORITES) reset(); }, [sortValue]);
-  useEffect(() => { if (!sortOptions.find((o) => o.value === sortValue)) setSort(DEFAULT_SORT); reset(); }, [app.currentOrg.name, orgsKey, sortOptions.length]);
+  useEffect(() => { if (category === Tabs.FAVORITES && app.isLoggedIn) app.fetchFavorites(); }, [category]);
+  useEffect(() => { if (!sortOptions.find((o) => o.value === sortValue)) setSort(DEFAULT_SORT); }, [app.currentOrg.name, orgsKey, sortOptions.length]);
 
   const loadFn = useCallback(async (offset: number, limit: number) => {
     if (category === Tabs.FAVORITES || category === Tabs.BLOCKED) return [];
@@ -113,7 +110,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   }, [category, currentSort, langsKey, orgsKey, selectedOrgs]);
 
   const perPage = category === Tabs.VTUBER ? 100 : 25;
-  const cacheKey = `channel-list-${category}-${id}`;
+  const cacheKey = `channel-list-${category}-${currentSort?.value || DEFAULT_SORT}-${app.currentOrg.name}-${orgsKey}-${langsKey}`;
   const sortedFavs = useMemo(() => localSortChannels([...(app.favorites || [])], currentSort!.query_value), [app.favorites, currentSort]);
   const channelList = category === Tabs.FAVORITES ? sortedFavs : category === Tabs.BLOCKED ? (app.settings.blockedChannels || []) : [];
   const grouped = currentSort?.value === "group" || currentSort?.value === "org";
@@ -169,7 +166,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
         {category === Tabs.BLOCKED || category === Tabs.FAVORITES ? (
           <ChannelList channels={channelList} includeVideoCount grouped={grouped} groupKey={groupKey} cardView={cardView} />
         ) : (
-          <GenericListLoader key={cacheKey} cacheKey={cacheKey} infiniteLoad perPage={perPage} loadFn={loadFn}>
+          <GenericListLoader cacheKey={cacheKey} infiniteLoad perPage={perPage} loadFn={loadFn}>
             {({ data, isLoading: lod }) => (
               <ChannelList channels={data} loading={lod && !data.length} includeVideoCount grouped={grouped} groupKey={groupKey} cardView={cardView} />
             )}

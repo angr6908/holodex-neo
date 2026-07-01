@@ -9,6 +9,7 @@ type CacheEntry = {
   page1: Promise<any[]>;
   getCurrentItems: () => any[];
   fetchMore: () => Promise<void>;
+  isReady: () => boolean;
   isExhausted: () => boolean;
   refresh: () => Promise<void>;
 };
@@ -46,6 +47,7 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   const exhausted: boolean[] = sources.map(() => false);
   let inflight: Promise<void> | null = null;
   let current: any[] = [];
+  let ready = false;
 
   const merge = () => { current = sortVideosForTab(dedupeVideos(items.flat()), archive); };
 
@@ -60,7 +62,7 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
       .catch(() => { exhausted[i] = true; return (items[i] = []); })
   );
 
-  const page1 = Promise.all(page1Promises).then(() => { merge(); return current; });
+  const page1 = Promise.all(page1Promises).then(() => { merge(); ready = true; return current; });
 
   const fetchMore = (): Promise<void> => {
     if (inflight) return inflight;
@@ -108,6 +110,7 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
     page1,
     getCurrentItems: () => current,
     fetchMore,
+    isReady: () => ready,
     isExhausted: () => exhausted.every(Boolean),
     refresh,
   };

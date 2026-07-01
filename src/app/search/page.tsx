@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "@/lib/icons";
 import { api } from "@/lib/api";
@@ -40,23 +40,17 @@ export default function SearchPage() {
   const searchParams = useSearchParams();
   const app = useAppState();
   const t = useTranslations();
-  const [id, setId] = useState(0);
-  const [executedQuery, setExecutedQuery] = useState<string | null>(null);
-  const [filterSort, setFilterSort] = useState("newest");
-  const [filterType, setFilterType] = useState("all");
+  const executedQuery = searchParams.get("q");
+  const filterSort = searchParams.get("sort") || "newest";
+  const filterType = routeSearchType(searchParams);
   const clipLangsKey = app.settings.clipLangs.join(",");
+  const searchCacheKey = executedQuery && executedQuery.length >= 5
+    ? `search:${filterType}:${filterSort}:${clipLangsKey}:${executedQuery}`
+    : "";
 
   useEffect(() => {
     document.title = executedQuery ? "Search Results - Holodex" : "Search - Holodex";
   }, [executedQuery]);
-
-  useEffect(() => {
-    setFilterType(routeSearchType(searchParams));
-    setFilterSort(searchParams.get("sort") || "newest");
-    const q = searchParams.get("q");
-    if (q !== executedQuery && q) setId((value) => value + 1);
-    setExecutedQuery(q);
-  }, [searchParams, executedQuery]);
 
   const searchVideo = useMemo(() => {
     if (!executedQuery || executedQuery.length < 5) return null;
@@ -82,10 +76,10 @@ export default function SearchPage() {
           </EmptyDescription>
         </Empty>
       ) : (
-        <GenericListLoader key={filterType + filterSort + id + executedQuery} paginate preloadAdjacent perPage={pageLength} loadFn={searchVideo}>
+        <GenericListLoader key={searchCacheKey} cacheKey={searchCacheKey} keepPreviousData paginate preloadAdjacent perPage={pageLength} loadFn={searchVideo}>
           {({ data, isLoading }) => (
             <div className="relative z-0 px-2">
-              {isLoading ? (
+              {isLoading && data.length === 0 ? (
                 <div className="flex min-h-48 w-full items-center justify-center px-6 py-10">
                   <Card className="inline-flex flex-row items-center gap-3 rounded-lg px-4 py-3">
                     <Spinner />
@@ -93,7 +87,7 @@ export default function SearchPage() {
                   </Card>
                 </div>
               ) : null}
-              <VideoCardList videos={data} includeChannel dense cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }} className={isLoading ? "hidden" : undefined} />
+              <VideoCardList videos={data} includeChannel dense cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }} className={isLoading && data.length === 0 ? "hidden" : undefined} />
             </div>
           )}
         </GenericListLoader>

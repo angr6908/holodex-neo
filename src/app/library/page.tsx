@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Table } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
@@ -58,12 +58,10 @@ export default function LibraryPage() {
     await downloadCsv(savedVideosList.filter((v: any) => selectedSet.has(v.id)) as any[], `holodexPlaylist_${timestamp}.csv`);
   }
   function toggleSelected(id: string, checked: boolean) { setSelected((cur) => checked ? [...new Set([...cur, id])] : cur.filter((x) => x !== id)); }
-  function getLoadFn() {
-    return async (offset: number, limit: number) => ({
+  const loadFn = useCallback(async (offset: number, limit: number) => ({
       total: savedVideosList.length,
       items: savedVideosList.slice(offset, offset + limit),
-    });
-  }
+    }), [savedVideosList]);
 
   return (
     <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-4">
@@ -103,7 +101,7 @@ export default function LibraryPage() {
           </Select>
         </div>
       </div>
-      {savedVideosList.length > 0 ? <GenericListLoader key={`vl-home-${sortModel}=${savedVideosList.length}`} paginate perPage={50} loadFn={getLoadFn()}>{({ data }) => <VideoCardList videos={data} horizontal includeChannel dense renderAction={(video: any) => <Checkbox checked={selected.includes(video.id)} onCheckedChange={(checked) => toggleSelected(video.id, checked === true)} onClick={(e) => e.stopPropagation()} />} />}</GenericListLoader> : <Empty className="flex-none gap-0 p-0 md:p-0">{t("views.library.emptyLibrary")}</Empty>}
+      {savedVideosList.length > 0 ? <GenericListLoader cacheKey={`vl-home-${sortModel}-${savedVideosList.length}`} paginate perPage={50} loadFn={loadFn}>{({ data }) => <VideoCardList videos={data} horizontal includeChannel dense renderAction={(video: any) => <Checkbox checked={selected.includes(video.id)} onCheckedChange={(checked) => toggleSelected(video.id, checked === true)} onClick={(e) => e.stopPropagation()} />} />}</GenericListLoader> : <Empty className="flex-none gap-0 p-0 md:p-0">{t("views.library.emptyLibrary")}</Empty>}
       <Dialog open={instructionsDialog} onOpenChange={setInstructionsDialog}>
         <DialogContent className={`${app.isMobile ? "max-w-[90%]" : "max-w-[60vw]"} p-4`}>
           <DialogTitle className="text-lg leading-7 text-foreground">{t("views.library.exportYTHeading")}</DialogTitle>

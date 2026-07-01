@@ -17,6 +17,7 @@ import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { SkeletonCardList } from "@/components/video/SkeletonCardList";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
@@ -129,19 +130,21 @@ function ChannelVideos({ channel, tab, id }: { channel: any; tab: "videos" | "cl
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const controlsEl = useDomElement("channelTabControls");
   const gs = app.currentGridSize;
+  const clipLangsKey = app.settings.clipLangs.join(",");
   const cols = { xs: 1 + gs, sm: 2 + gs, md: 3 + gs, lg: 4 + gs, xl: 5 + gs };
   const gridIcon = [Grid2x2, LayoutDashboard, LayoutGrid][gs] ?? Grid2x2;
   const hasCh = tab === "clips" || tab === "collabs";
+  const cacheKey = `channel-videos-${id}-${tab}-${sortOrder}-${clipLangsKey}-${channel.type || ""}`;
 
   const loadFn = useCallback(async (offset: number, limit: number) => {
     const query = {
-      ...(channel.type !== "subber" && { lang: app.settings.clipLangs.join(","), type: "stream,placeholder" }),
+      ...(channel.type !== "subber" && { lang: clipLangsKey, type: "stream,placeholder" }),
       ...(tab === "clips" && { status: "past" }),
       include: "clips,live_info", sort: "available_at", order: sortOrder, limit, offset, paginated: true,
     };
     const res = await api.channelVideos(id, { type: tab, query });
     return res.data;
-  }, [app.settings.clipLangs, channel.type, id, sortOrder, tab]);
+  }, [channel.type, clipLangsKey, id, sortOrder, tab]);
 
   useEffect(() => {
     const name = tab === "clips" ? t("views.channel.clips") : tab === "collabs" ? t("views.channel.collabs") : t("views.channel.video");
@@ -163,12 +166,17 @@ function ChannelVideos({ channel, tab, id }: { channel: any; tab: "videos" | "cl
   return (
     <>
       {controlsEl ? createPortal(controls, controlsEl) : null}
-      <GenericListLoader key={`${id}-${tab}-${sortOrder}`} paginate perPage={24} loadFn={loadFn}>
-        {({ data, isLoading }) => (
-          <>
-            <VideoCardList videos={data} includeChannel={hasCh} cols={cols} dense className={isLoading ? "hidden" : undefined} />
-            {isLoading ? <SkeletonCardList cols={cols} includeChannel={hasCh} includeAvatar={false} dense /> : null}
-          </>
+      <GenericListLoader cacheKey={cacheKey} paginate preloadAdjacent perPage={24} loadFn={loadFn}>
+        {({ data, isLoading, isFetching }) => (
+          <div className="relative">
+            {isFetching && data.length > 0 ? (
+              <div className="pointer-events-none absolute inset-0 z-10 flex min-h-32 items-start justify-center rounded-xl bg-background/60 pt-10 backdrop-blur-[1px]">
+                <Spinner className="size-6 text-primary" />
+              </div>
+            ) : null}
+            <VideoCardList videos={data} includeChannel={hasCh} cols={cols} dense className={isLoading && data.length === 0 ? "hidden" : undefined} />
+            {isLoading && data.length === 0 ? <SkeletonCardList cols={cols} includeChannel={hasCh} includeAvatar={false} dense /> : null}
+          </div>
         )}
       </GenericListLoader>
     </>

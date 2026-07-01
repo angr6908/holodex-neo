@@ -114,6 +114,19 @@ function homeNavModeFor(tab: number, viewMode: "streams" | "channels"): HomeNavM
   return "live-upcoming";
 }
 
+function getHomeCachedLoaderPage(cacheKey: string, page: number, limit: number) {
+  const cached = getHomeMultiOrgVideoCache(cacheKey);
+  if (!cached?.isReady()) return null;
+  const offset = (page - 1) * limit;
+  const snap = cached.getCurrentItems();
+  if (!cached.isExhausted() && offset + limit > snap.length) return null;
+  return {
+    items: snap.slice(offset, offset + limit),
+    offset,
+    total: cached.isExhausted() ? snap.length : Math.max(snap.length + limit, offset + limit),
+  };
+}
+
 export function MainNav({
   initialHomeState,
   initialBootState,
@@ -840,11 +853,15 @@ export function ConnectedVideoList({
     [hasLiveContentOverride, liveContent, isFavPage, app.favoritesLive, app.homeLive]);
   const getTwLogins = useCallback((vs: any[]) =>
     [...new Set((vs || []).filter((v) => v?.status === "live").map(getTwitchLogin).filter((x): x is string => !!x))], []);
+  const liveSource = getLiveSrc();
+  const twLogins = useMemo(() => getTwLogins(liveSource), [getTwLogins, liveSource]);
+  const cachedTwCounts = useMemo(() => readCachedTwitchViewerCounts(twLogins), [twLogins]);
+  const effectiveTwCounts = getTwitchViewerCountFingerprint(twCounts) ? twCounts : cachedTwCounts;
 
   const live = useMemo(() => {
-    const list = mergeTwitchViewerCountsIntoVideos(getLiveSrc(), twCounts);
+    const list = mergeTwitchViewerCountsIntoVideos(liveSource, effectiveTwCounts);
     return sortBy === "viewers" ? [...list].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : list;
-  }, [getLiveSrc, sortBy, twCounts]);
+  }, [liveSource, sortBy, effectiveTwCounts]);
   const lives = live.filter((v: any) => v.status === "live");
   const livesVisible = app.settings.hideLive ? [] : lives;
   const upcoming = app.settings.hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming")
@@ -892,11 +909,11 @@ export function ConnectedVideoList({
       const counts = await fetchTwitchViewerCounts(logins);
       if (!cancelled) setIfChanged(counts);
     };
-    setIfChanged(readCachedTwitchViewerCounts(getTwLogins(getLiveSrc())));
+    setIfChanged(readCachedTwitchViewerCounts(twLogins));
     void refresh();
     const timer = setInterval(refresh, 60_000);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [isActive, tab, getLiveSrc, getTwLogins]);
+  }, [isActive, tab, getLiveSrc, getTwLogins, twLogins]);
 
   useEffect(() => {
     if (!app.hydrated) return;
@@ -1006,6 +1023,8 @@ export function ConnectedVideoList({
     return readCache(cacheKey);
   }
 
+  const loaderLoadFn = useMemo(() => getLoadFn(), [cacheKey, app.userdata.jwt]);
+
   const renderSkeletons = (opts: { denseList?: boolean; horizontal?: boolean } = {}) => (
     <SkeletonCardList
       cols={cols}
@@ -1078,10 +1097,10 @@ export function ConnectedVideoList({
           </>
         )
       ) : (
-        <GenericListLoader key={cacheKey} cacheKey={cacheKey} infiniteLoad={scrollMode} paginate={!scrollMode} perPage={PAGE} loadFn={getLoadFn()}>
-          {({ data, isLoading: loading }) => (
+        <GenericListLoader cacheKey={cacheKey} getCachedPage={scrollMode ? undefined : getHomeCachedLoaderPage} infiniteLoad={scrollMode} paginate={!scrollMode} perPage={PAGE} loadFn={loaderLoadFn}>
+          {({ data, isLoading: loading, isFetching }) => (
             <>
-              {loading && data.length > 0 && !scrollMode ? (
+              {isFetching && data.length > 0 && !scrollMode ? (
                 <div className="pointer-events-none relative">
                   <div className="absolute inset-0 z-10 flex min-h-32 items-center justify-center rounded-2xl bg-background/70 backdrop-blur-sm">
                     <Spinner className="size-6 text-primary" />
