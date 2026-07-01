@@ -119,6 +119,7 @@
       "quickSelect": "빠른 선택",
       "allVtubers": "모든 VTuber",
       "selectedOrgCount": "{count}개 조직",
+      "selectedCount": "{count}개 선택됨",
       "additionalOrgCount": "{count}개 더",
       "unset": "미설정"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "작업",
+      "apply": "적용",
       "chat": "채팅",
       "close": "닫기",
       "collapse": "접기",

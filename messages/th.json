@@ -119,6 +119,7 @@
       "quickSelect": "เลือกด่วน",
       "allVtubers": "VTuber ทั้งหมด",
       "selectedOrgCount": "{count} องค์กร",
+      "selectedCount": "เลือก {count} รายการ",
       "additionalOrgCount": "อีก {count}",
       "unset": "ไม่ได้ตั้งค่า"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "การกระทำ",
+      "apply": "ใช้",
       "chat": "แชท",
       "close": "ปิด",
       "collapse": "ยุบ",

@@ -119,6 +119,7 @@
       "quickSelect": "Быстрый выбор",
       "allVtubers": "Все VTuber",
       "selectedOrgCount": "{count} организаций",
+      "selectedCount": "Выбрано: {count}",
       "additionalOrgCount": "Еще {count}",
       "unset": "Не задано"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Действия",
+      "apply": "Применить",
       "chat": "Чат",
       "close": "Закрыть",
       "collapse": "Свернуть",

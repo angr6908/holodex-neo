@@ -113,13 +113,12 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
             </Tooltip>
           ) : null}
           {mentions.length > 0 ? (
-            <div className="flex items-center gap-1 overflow-hidden">
-              {mentions.slice(0, 3).map((mention: any, i: number) => (
-                <ChannelChip key={`${mention.id ?? "m"}-${i}`} channel={mention} size={28} />
+            <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain">
+              {mentions.map((mention: any, i: number) => (
+                <span key={`${mention.id ?? "m"}-${i}`} className="shrink-0">
+                  <ChannelChip channel={mention} size={28} />
+                </span>
               ))}
-              {mentions.length > 3 ? (
-                <span className="shrink-0 text-xs text-muted-foreground">+{mentions.length - 3}</span>
-              ) : null}
             </div>
           ) : null}
         </div>

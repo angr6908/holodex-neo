@@ -119,6 +119,7 @@
       "quickSelect": "Quick sewect",
       "allVtubers": "Aww VTubews",
       "selectedOrgCount": "{count} owganyizations",
+      "selectedCount": "{count} sewected",
       "additionalOrgCount": "{count} mowe",
       "unset": "Unset uwu"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Actions uwu",
+      "apply": "Appwy",
       "chat": "Chat uwu",
       "close": "Cwose",
       "collapse": "Cowwapse",

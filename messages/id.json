@@ -119,6 +119,7 @@
       "quickSelect": "Pilih cepat",
       "allVtubers": "Semua VTuber",
       "selectedOrgCount": "{count} organisasi",
+      "selectedCount": "{count} dipilih",
       "additionalOrgCount": "{count} lagi",
       "unset": "Belum diatur"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Tindakan",
+      "apply": "Terapkan",
       "chat": "Obrolan",
       "close": "Tutup",
       "collapse": "Ciutkan",

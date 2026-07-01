@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Calendar as CalendarIcon,
+  Check,
   Clock,
   Eye,
   Grid2x2,
@@ -20,7 +21,6 @@ import {
   Rows3,
   Search,
   Settings as SettingsIcon,
-  Trash,
   type AnyIcon,
 } from "@/lib/icons";
 import { api } from "@/lib/api";
@@ -30,16 +30,15 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, useComboboxAnchor } from "@/components/ui/combobox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toggle } from "@/components/ui/toggle";
 import { AboutSection } from "@/components/setting/AboutSection";
 import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
 import { HomeNavSegments, type HomeNavMode, type HomeNavSelection } from "@/components/nav/HomeNavSegments";
-import { NavUserMenu } from "@/components/nav/NavUserMenu";
+import { useNavUserMenu } from "@/components/nav/NavUserMenu";
 import { PlaylistPanel } from "@/components/nav/PlaylistPanel";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { SettingsPage } from "@/components/setting/SettingsPage";
@@ -57,67 +56,8 @@ import { readJSON, writeJSON } from "@/lib/browser";
 import { encodeCookieJson, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS, primeHomePageState, type AppBootState, type HomeUiState } from "@/lib/cookie-codec";
 import { useTranslations } from "next-intl";
 
-function NavIconButton({
-  icon: Icon,
-  label,
-  onClick,
-  className,
-}: {
-  icon: AnyIcon;
-  label: string;
-  onClick?: () => void;
-  className?: string;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={label}
-            onClick={onClick}
-            className={className}
-          />
-        }
-      >
-        <Icon className="size-5" aria-hidden="true" />
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
-  );
-}
-
-function NavIconLink({
-  icon: Icon,
-  label,
-  href,
-  external,
-  className,
-}: {
-  icon: AnyIcon;
-  label: string;
-  href: string;
-  external?: boolean;
-  className?: string;
-}) {
-  const anchor = external
-    ? <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} />
-    : <Link href={href} aria-label={label} />;
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button nativeButton={false} render={anchor} variant="ghost" size="icon" className={className} />
-        }
-      >
-        <Icon className="size-5" aria-hidden="true" />
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
-  );
-}
+const NAV_ACTIVE_BUTTON_CLASS = "bg-muted! text-foreground! data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
+const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px active:bg-muted! active:text-foreground!";
 
 type HomeNavState = {
   viewMode: "streams" | "channels";
@@ -190,6 +130,7 @@ export function MainNav({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [playlistOpen, setPlaylistOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const userMenu = useNavUserMenu();
   const [initialNavState] = useState(() => normalizeHomeNavState(initialHomeState));
   const [homeNavState, setHomeNavState] = useState<HomeNavState | null>(initialNavState);
 
@@ -209,7 +150,11 @@ export function MainNav({
     ? { fav: storedHomeNavState.isFavPage, mode: homeNavModeFor(storedHomeNavState.tab, storedHomeNavState.viewMode) }
     : null;
   const skeletonDisplayMode = displayModeFor(app.settings.homeViewMode, app.currentGridSize);
-  const showNavControlsSkeleton = isHomePath && storedHomeNavState.viewMode === "streams";
+  const showNavControlsSkeleton = isHomePath && storedHomeNavState.viewMode === "streams" && !app.hydrated;
+  const navWindowWidth = app.windowWidth || initialBootState?.windowWidth || 1440;
+  const showMobileSearchButton = navWindowWidth < 960;
+  const showMusicButton = navWindowWidth >= 768;
+  const hasUser = !!app.userdata?.user;
 
   useLayoutEffect(() => {
     if (!showTopBar) return;
@@ -306,15 +251,15 @@ export function MainNav({
             </a>
 
             <div className="shrink-0 sm:hidden">
-              <HomeOrgMultiSelect iconOnly buttonVariant="ghost" buttonClass="size-9 p-0 justify-center" />
+              <HomeOrgMultiSelect iconOnly buttonVariant="outline" buttonClass={cn("size-9 p-0 justify-center dark:data-[popup-open]:bg-muted!", NAV_BUTTON_PRESS_CLASS, "active:translate-y-0!")} />
             </div>
             <div className="hidden shrink-0 sm:block">
-              <HomeOrgMultiSelect buttonClass="h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem]" />
+              <HomeOrgMultiSelect buttonVariant="outline" buttonClass={cn("h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted!", NAV_BUTTON_PRESS_CLASS, "active:translate-y-0!")} />
             </div>
 
             <div
               id="mainNavHomeControls"
-              className="flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="-my-px flex min-w-0 items-center gap-1.5 overflow-x-auto py-px [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               <HomeNavSegments
                 selection={homeSelection}
@@ -343,9 +288,9 @@ export function MainNav({
                     />
                   </div>
                 ) : null}
-                <div id="date-selectorfalse" className="flex shrink-0 items-center gap-1.5 empty:hidden" />
-                <div id="date-selectortrue" className="flex shrink-0 items-center gap-1.5 empty:hidden" />
-                <div id="channels-panel-portal" className="flex shrink-0 items-center gap-1.5 empty:hidden" />
+                <div id="date-selectorfalse" className="contents empty:hidden" />
+                <div id="date-selectortrue" className="contents empty:hidden" />
+                <div id="channels-panel-portal" className="contents empty:hidden" />
               </div>
             </div>
 
@@ -353,88 +298,122 @@ export function MainNav({
               <SearchDropdown />
             </div>
 
-            <div className="ml-auto flex shrink-0 items-center gap-0.5">
-              <NavIconButton
-                icon={Search}
-                label={t("component.search.toggleSearch")}
-                onClick={() => setMobileSearchOpen((v) => !v)}
-                className="min-[960px]:hidden"
-              />
+            <div className="ml-auto flex shrink-0 items-center">
+              <ButtonGroup>
+                {showMobileSearchButton ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    aria-label={t("component.search.toggleSearch")}
+                    aria-pressed={mobileSearchOpen || undefined}
+                    title={t("component.search.toggleSearch")}
+                    onClick={() => setMobileSearchOpen((v) => !v)}
+                    className={cn(NAV_BUTTON_PRESS_CLASS, mobileSearchOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                  >
+                    <Search className="size-4" aria-hidden="true" />
+                  </Button>
+                ) : null}
+                {showMusicButton ? (
+                  <Button
+                    nativeButton={false}
+                    render={<a href={musicdexURL} target="_blank" rel="noopener noreferrer" aria-label="Musicdex" />}
+                    variant="outline"
+                    size="lg"
+                    title="Musicdex"
+                    className={NAV_BUTTON_PRESS_CLASS}
+                  >
+                    <Music className="size-4" aria-hidden="true" />
+                  </Button>
+                ) : null}
+                <Button
+                  nativeButton={false}
+                  render={<Link href="/multiview" aria-label={t("component.mainNav.multiview")} />}
+                  variant="outline"
+                  size="lg"
+                  aria-pressed={pathname.startsWith("/multiview") || undefined}
+                  title={t("component.mainNav.multiview")}
+                  className={cn(NAV_BUTTON_PRESS_CLASS, pathname.startsWith("/multiview") && NAV_ACTIVE_BUTTON_CLASS)}
+                >
+                  <LayoutDashboard className="size-4" aria-hidden="true" />
+                </Button>
 
-              <NavIconLink icon={Music} label="Musicdex" href={musicdexURL} external className="hidden md:inline-flex" />
-              <NavIconLink icon={LayoutDashboard} label={t("component.mainNav.multiview")} href="/multiview" />
-
-              <Popover open={playlistOpen} onOpenChange={setPlaylistOpen}>
-                <Tooltip>
-                  <TooltipTrigger
+                <Popover open={playlistOpen} onOpenChange={setPlaylistOpen}>
+                  <PopoverTrigger
                     render={
-                      <PopoverTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t("component.mainNav.playlist")}
-                            className={cn("relative")}
-                          />
-                        }
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        aria-label={t("component.mainNav.playlist")}
+                        title={t("component.mainNav.playlist")}
+                        className={cn("relative", NAV_BUTTON_PRESS_CLASS, playlistOpen && NAV_ACTIVE_BUTTON_CLASS)}
                       />
                     }
                   >
-                    <ListVideo className="size-5" aria-hidden="true" />
+                    <ListVideo className="size-4" aria-hidden="true" />
                     {playlistCount ? (
                       <Badge variant="secondary" className="absolute -right-1 -top-1">{playlistCount}</Badge>
                     ) : null}
-                  </TooltipTrigger>
-                  <TooltipContent>{t("component.mainNav.playlist")}</TooltipContent>
-                </Tooltip>
-                <PlaylistPanel open={playlistOpen} onOpenChange={setPlaylistOpen} />
-              </Popover>
+                  </PopoverTrigger>
+                  <PlaylistPanel open={playlistOpen} onOpenChange={setPlaylistOpen} />
+                </Popover>
 
-              <Popover open={settingsOpen} onOpenChange={setSettingsOpen}>
-                <Tooltip>
-                  <TooltipTrigger
+                <Popover open={settingsOpen} onOpenChange={setSettingsOpen}>
+                  <PopoverTrigger
                     render={
-                      <PopoverTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t("component.mainNav.settings")}
-                          />
-                        }
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        aria-label={t("component.mainNav.settings")}
+                        title={t("component.mainNav.settings")}
+                        className={cn(NAV_BUTTON_PRESS_CLASS, settingsOpen && NAV_ACTIVE_BUTTON_CLASS)}
                       />
                     }
                   >
-                    <SettingsIcon className="size-5" aria-hidden="true" />
-                  </TooltipTrigger>
-                  <TooltipContent>{t("component.mainNav.settings")}</TooltipContent>
-                </Tooltip>
-                <PopoverContent
-                  align="end"
-                  sideOffset={8}
-                  className="flex max-h-[min(80dvh,44rem)] w-[min(92vw,26rem)] flex-col overflow-hidden p-0"
-                >
-                  <Tabs defaultValue="settings" className="flex min-h-0 flex-1 flex-col gap-0">
-                    <div className="flex items-center px-3 py-2">
-                      <TabsList>
-                        <TabsTrigger value="settings">{t("component.mainNav.settings")}</TabsTrigger>
-                        <TabsTrigger value="about">{t("component.mainNav.about")}</TabsTrigger>
-                      </TabsList>
-                    </div>
-                    <Separator />
-                    <TabsContent value="settings" className="min-h-0 flex-1 overflow-hidden">
-                      <SettingsPage />
-                    </TabsContent>
-                    <TabsContent value="about" className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]">
-                      <AboutSection />
-                    </TabsContent>
-                  </Tabs>
-                </PopoverContent>
-              </Popover>
+                    <SettingsIcon className="size-4" aria-hidden="true" />
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    sideOffset={8}
+                    className="flex max-h-[min(80dvh,44rem)] w-[min(92vw,26rem)] flex-col overflow-hidden p-0"
+                  >
+                    <Tabs defaultValue="settings" className="flex min-h-0 flex-1 flex-col gap-0">
+                      <div className="flex items-center px-3 py-2">
+                        <TabsList>
+                          <TabsTrigger value="settings">{t("component.mainNav.settings")}</TabsTrigger>
+                          <TabsTrigger value="about">{t("component.mainNav.about")}</TabsTrigger>
+                        </TabsList>
+                      </div>
+                      <Separator />
+                      <TabsContent value="settings" className="min-h-0 flex-1 overflow-hidden">
+                        <SettingsPage />
+                      </TabsContent>
+                      <TabsContent value="about" className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]">
+                        <AboutSection />
+                      </TabsContent>
+                    </Tabs>
+                  </PopoverContent>
+                </Popover>
 
-              <NavUserMenu />
+                <Popover open={userMenu.menuOpen} onOpenChange={userMenu.setMenuOpen}>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        className={cn("cursor-pointer overflow-hidden", NAV_BUTTON_PRESS_CLASS, hasUser && "w-9 p-0", userMenu.menuOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                        aria-label={userMenu.triggerLabel}
+                      />
+                    }
+                  >
+                    {userMenu.triggerContent}
+                  </PopoverTrigger>
+                  {userMenu.content}
+                </Popover>
+              </ButtonGroup>
             </div>
           </div>
 
@@ -495,7 +474,6 @@ export function VideoListFilters({
 
   const ignoredTopics = app.settings.ignoredTopics || [];
   const topicValues = useMemo(() => topics.map((topic) => topic.value), [topics]);
-  const topicCounts = useMemo(() => new Map(topics.map((topic) => [topic.value, topic.count])), [topics]);
   const showSort = sortBy !== undefined && onSortByChange !== undefined;
 
   async function fetchTopics() {
@@ -567,38 +545,19 @@ export function VideoListFilters({
             onOpenChange={(open) => { if (open) void fetchTopics(); }}
             onValueChange={updateIgnoredTopics}
           >
-            <div className="flex items-start gap-2">
-              <ComboboxChips ref={topicComboboxAnchor} className="min-h-10 flex-1">
-                {ignoredTopics.map((topicValue) => <ComboboxChip key={topicValue}>{topicValue}</ComboboxChip>)}
-                <ComboboxChipsInput
-                  placeholder={topicsLoading ? t("component.search.loading") : t("views.settings.filters.searchTopics")}
-                  onFocus={() => { void fetchTopics(); }}
-                />
-              </ComboboxChips>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-10 shrink-0"
-                disabled={!ignoredTopics.length}
-                aria-label={t("views.settings.filters.clearBlockedTopics")}
-                onClick={() => updateIgnoredTopics([])}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
+            <ComboboxChips ref={topicComboboxAnchor}>
+              {ignoredTopics.map((topicValue) => <ComboboxChip key={topicValue}>{topicValue}</ComboboxChip>)}
+              <ComboboxChipsInput
+                placeholder={ignoredTopics.length ? undefined : topicsLoading ? t("component.search.loading") : t("views.settings.filters.searchTopics")}
+                onFocus={() => { void fetchTopics(); }}
+              />
+            </ComboboxChips>
             <ComboboxContent anchor={topicComboboxAnchor}>
               <ComboboxEmpty>{topicsLoading ? t("component.search.loading") : t("component.search.noTopicsFound")}</ComboboxEmpty>
               <ComboboxList>
-                {(topicValue: string, index: number) => {
-                  const count = topicCounts.get(topicValue);
-                  return (
-                    <ComboboxItem key={topicValue} value={topicValue} index={index}>
-                      <span className="truncate">{topicValue}</span>
-                      {count !== undefined ? <span className="ml-auto text-xs text-muted-foreground">{count}</span> : null}
-                    </ComboboxItem>
-                  );
-                }}
+                {(topicValue: string, index: number) => (
+                  <ComboboxItem key={topicValue} value={topicValue} index={index}>{topicValue}</ComboboxItem>
+                )}
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
@@ -631,8 +590,6 @@ const DISPLAY_OPTIONS: { value: DisplayMode; icon: AnyIcon; labelKey: string; fa
   { value: "denseList", icon: Rows3, labelKey: "views.home.controls.denseList", fallback: "Dense list" },
 ];
 
-const topControlTriggerClass = "transition-colors";
-
 export function VideoListTopControls({
   tab,
   isActive,
@@ -660,6 +617,7 @@ export function VideoListTopControls({
   const [dateOpen, setDateOpen] = useState(false);
   const [clipOpen, setClipOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [displayOpen, setDisplayOpen] = useState(false);
   const showDate = tab !== HOME_TABS.LIVE_UPCOMING && isActive;
   const showClipLangs = tab === HOME_TABS.CLIPS && isActive;
   const showFilter = tab !== HOME_TABS.CLIPS;
@@ -670,20 +628,19 @@ export function VideoListTopControls({
     return label === option.labelKey ? option.fallback : label;
   };
 
-  const iconFor = (value: DisplayMode) =>
-    DISPLAY_OPTIONS.find((option) => option.value === value)?.icon ?? LayoutGrid;
 
   return (
     <ButtonGroup className="shrink-0">
       {showFilter ? (
-        <Popover key="filter" open={filterOpen} onOpenChange={setFilterOpen}>
+        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
           <PopoverTrigger
             render={
-              <Toggle
+              <Button
+                type="button"
                 variant="outline"
                 size="lg"
-                className={topControlTriggerClass}
-                pressed={filterOpen}
+                className={cn(NAV_BUTTON_PRESS_CLASS, filterOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                aria-pressed={filterOpen}
                 aria-label={t("views.settings.filters.hideStreams")}
                 title={t("views.settings.filters.hideStreams")}
               />
@@ -702,45 +659,16 @@ export function VideoListTopControls({
         </Popover>
       ) : null}
 
-      {showDate ? (
-        <Popover key="date" open={dateOpen} onOpenChange={setDateOpen}>
-          <PopoverTrigger
-            render={
-              <Toggle
-                variant="outline"
-                size="lg"
-                className={topControlTriggerClass}
-                pressed={dateOpen || !!toDate}
-                aria-label={t("views.home.controls.pickDate")}
-                title={t("views.home.controls.pickDate")}
-              />
-            }
-          >
-            <CalendarIcon className="size-4" />
-            {toDate ? <span>{dayjs(selectedDate).format("MMM D")}</span> : null}
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                onToDateChange(date ? dayjs(date).format("YYYY-MM-DD") : null);
-                setDateOpen(false);
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      ) : null}
-
       {showClipLangs ? (
-        <Popover key="clip-langs" open={clipOpen} onOpenChange={setClipOpen}>
+        <Popover open={clipOpen} onOpenChange={setClipOpen}>
           <PopoverTrigger
             render={
-              <Toggle
+              <Button
+                type="button"
                 variant="outline"
                 size="lg"
-                className={topControlTriggerClass}
-                pressed={clipOpen}
+                className={cn(NAV_BUTTON_PRESS_CLASS, clipOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                aria-pressed={clipOpen}
                 aria-label={t("views.home.controls.clipLanguages")}
                 title={t("views.home.controls.clipLanguages")}
               />
@@ -768,30 +696,77 @@ export function VideoListTopControls({
         </Popover>
       ) : null}
 
-      <Select key="display" value={displayMode} onValueChange={(value) => onDisplayModeChange(value as DisplayMode)}>
-        <SelectTrigger
-          aria-label={t("views.home.controls.displayMode") || "Display mode"}
-          className="h-9! gap-1 bg-transparent px-2.5 hover:bg-muted data-[popup-open]:bg-muted dark:bg-transparent dark:hover:bg-muted dark:data-[popup-open]:bg-muted"
+      {showDate ? (
+        <Popover open={dateOpen} onOpenChange={setDateOpen}>
+          <PopoverTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className={cn(NAV_BUTTON_PRESS_CLASS, (dateOpen || !!toDate) && NAV_ACTIVE_BUTTON_CLASS)}
+                aria-pressed={dateOpen || !!toDate}
+                aria-label={t("views.home.controls.pickDate")}
+                title={t("views.home.controls.pickDate")}
+              />
+            }
+          >
+            <CalendarIcon className="size-4" />
+            {toDate ? <span>{dayjs(selectedDate).format("MMM D")}</span> : null}
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => {
+                onToDateChange(date ? dayjs(date).format("YYYY-MM-DD") : null);
+                setDateOpen(false);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      ) : null}
+
+      <Popover open={displayOpen} onOpenChange={setDisplayOpen}>
+        <PopoverTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className={cn(NAV_BUTTON_PRESS_CLASS, displayOpen && NAV_ACTIVE_BUTTON_CLASS)}
+              aria-pressed={displayOpen}
+              aria-label={t("views.home.controls.displayMode") || "Display mode"}
+              title={t("views.home.controls.displayMode") || "Display mode"}
+            />
+          }
         >
-          <SelectValue>
-            {(value: DisplayMode) => {
-              const Icon = iconFor(value);
-              return <Icon className="size-4" />;
-            }}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent align="end" alignItemWithTrigger={false}>
+          {(() => {
+            const Icon = (DISPLAY_OPTIONS.find((option) => option.value === displayMode) ?? DISPLAY_OPTIONS[0]).icon;
+            return <Icon className="size-4" />;
+          })()}
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-auto min-w-36 gap-0 p-1">
           {DISPLAY_OPTIONS.map((option) => {
             const Icon = option.icon;
             return (
-              <SelectItem key={option.value} value={option.value}>
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onDisplayModeChange(option.value);
+                  setDisplayOpen(false);
+                }}
+                className="relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              >
                 <Icon className="size-4" />
-                <span>{labelFor(option)}</span>
-              </SelectItem>
+                <span className="flex-1 text-left whitespace-nowrap">{labelFor(option)}</span>
+                {displayMode === option.value ? <Check className="absolute right-2 size-4" /> : null}
+              </button>
             );
           })}
-        </SelectContent>
-      </Select>
+        </PopoverContent>
+      </Popover>
     </ButtonGroup>
   );
 }
@@ -998,7 +973,7 @@ export function ConnectedVideoList({
   }
 
   function getLoadFn() {
-    const query = buildQuery(tab);
+    const query: Record<string, any> = buildQuery(tab);
     query.paginated = !scrollMode;
     const readCache = (key: string) => {
       const cached = getHomeMultiOrgVideoCache(key)!;
@@ -1061,6 +1036,8 @@ export function ConnectedVideoList({
     />
   );
 
+  const emptyMessage = <div className="m-auto p-5 text-center">{t("views.home.noStreams")}</div>;
+
   const controls = (
     <VideoListTopControls
       tab={tab}
@@ -1082,7 +1059,7 @@ export function ConnectedVideoList({
       {portalTarget ? createPortal(controls, portalTarget) : null}
       {tab === HOME_TABS.LIVE_UPCOMING ? (
         hasError ? (
-          <div className="m-auto p-5 text-center text-destructive">{t("views.home.apiError") || "Failed to load live data. Please try again."}</div>
+          emptyMessage
         ) : (
           <>
             {showLoading && !hasVisibleLiveUpcoming ? renderSkeletons(viewMode === "grid" ? { denseList: false, horizontal: false } : undefined) : null}
@@ -1097,7 +1074,7 @@ export function ConnectedVideoList({
                 ) : null}
               </>
             ) : null}
-            {!showLoading && !lives.length && !upcoming.length ? <div className="m-auto p-5 text-center">{t("views.home.noStreams")}</div> : null}
+            {!showLoading && !lives.length && !upcoming.length ? emptyMessage : null}
           </>
         )
       ) : (
@@ -1113,6 +1090,7 @@ export function ConnectedVideoList({
               ) : null}
               <div className={scrollMode || data.length > 0 || !loading ? undefined : "hidden"}>{renderList(data)}</div>
               {loading && !data.length ? renderSkeletons() : null}
+              {!loading && !data.length ? emptyMessage : null}
             </>
           )}
         </GenericListLoader>

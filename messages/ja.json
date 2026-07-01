@@ -119,6 +119,7 @@
       "quickSelect": "クイック選択",
       "allVtubers": "すべてのVTuber",
       "selectedOrgCount": "{count} 件の組織",
+      "selectedCount": "{count} 件選択中",
       "additionalOrgCount": "さらに {count}",
       "unset": "未設定"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "操作",
+      "apply": "適用",
       "chat": "チャット",
       "close": "閉じる",
       "collapse": "折りたたむ",

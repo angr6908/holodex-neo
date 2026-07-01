@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Building } from "@/lib/icons";
+import { ChevronDown, Building, RotateCcw } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Toggle } from "@/components/ui/toggle";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
 import { useAppState } from "@/lib/store";
@@ -32,9 +31,16 @@ const preferredOrgNames = [
   "VSpo",
   "Neo-Porte",
   "774inc",
+  "Aogiri Highschool",
   "Varium",
+  "MillionProduction",
+  "Mixstgirls",
+  "Phase Connect",
+  "KAMITSUBAKI",
   "RK Music",
   "Riot Music",
+  "REJECT",
+  "Independents",
 ];
 
 export function HomeOrgMultiSelect({
@@ -54,6 +60,7 @@ export function HomeOrgMultiSelect({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [draftSelectedNames, setDraftSelectedNames] = useState<string[]>([]);
   const allVtubersLabel = t("component.search.allVtubers");
 
   const formatSelectionLabel = (name: string) => name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
@@ -67,12 +74,13 @@ export function HomeOrgMultiSelect({
     [app.orgs],
   );
   const selectedNames = selectedNamesOverride || app.selectedHomeOrgs || [];
-  const workingSelectedNames = selectedNames.length ? selectedNames : fallbackSelection;
+  const workingSelectedNames = open ? draftSelectedNames : selectedNames;
   const selectedSet = useMemo(() => new Set(workingSelectedNames), [workingSelectedNames]);
   const quickSelectOrgNames = useMemo(() => {
     const available = new Set(orgs.map((org) => org.name));
     return preferredOrgNames.filter((name) => available.has(name));
   }, [orgs]);
+  const showQuickSelectAll = fallbackSelection.length === 0;
   const filteredOrgs = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return orgs;
@@ -82,45 +90,73 @@ export function HomeOrgMultiSelect({
         .some((value) => String(value).toLowerCase().includes(query)),
     );
   }, [orgs, search]);
-  const triggerLabel = (() => {
+
+  const triggerLabel = useMemo(() => {
     if (selectedNames.length === 0) {
       return emptySelectionLabel === ALL_VTUBERS_ORG
         ? allVtubersLabel
         : emptySelectionLabel;
     }
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
-    if (selectedNames.length === 2) return selectedNames.map(formatSelectionLabel).join(" + ");
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
-  })();
+  }, [selectedNames, emptySelectionLabel, allVtubersLabel, t]);
 
   const clearLabel =
     clearSelectionLabel === ALL_VTUBERS_ORG ? allVtubersLabel : clearSelectionLabel;
 
   function applySelection(nextRaw: string[]) {
     const nextSelection = [...new Set(nextRaw)];
+    const prevSelection = [...selectedNames];
+    const changed =
+      nextSelection.length !== prevSelection.length ||
+      nextSelection.some((name, index) => name !== prevSelection[index]);
+    if (!changed) return;
     if (manualApply) onApply?.(nextSelection);
     else app.setSelectedHomeOrgs(nextSelection);
   }
 
-  function toggleName(name: string, checked: boolean) {
-    const base = workingSelectedNames;
-    applySelection(checked ? [...base, name] : base.filter((value) => value !== name));
+  async function openSelector() {
+    if (!app.orgs.length) await app.fetchOrgs();
+    setDraftSelectedNames(selectedNames.length ? [...selectedNames] : [...fallbackSelection]);
+    setSearch("");
+    setOpen(true);
+  }
+
+  function closeSelector(nextOpen: boolean) {
+    if (nextOpen) {
+      void openSelector();
+      return;
+    }
+    applySelection(draftSelectedNames);
+    setOpen(false);
+    setSearch("");
+  }
+
+  function toggleName(name: string) {
+    setDraftSelectedNames((prev) =>
+      prev.includes(name) ? prev.filter((value) => value !== name) : [...prev, name],
+    );
   }
 
   function clearSelection() {
-    applySelection([...fallbackSelection]);
+    setDraftSelectedNames([...fallbackSelection]);
   }
 
   if (hideTrigger) return null;
 
   return (
-    <DropdownMenu open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (nextOpen) void app.fetchOrgs(); }}>
-      <DropdownMenuTrigger
+    <Popover open={open} onOpenChange={closeSelector}>
+      <PopoverTrigger
         render={
           <Button
             type="button"
             variant={buttonVariant as any}
-            className={cn("justify-between", buttonClass, className)}
+            className={cn(
+              "justify-between transition-colors",
+              buttonClass,
+              className,
+              selectedNames.length > 0 && buttonVariant !== "outline" && "bg-muted dark:bg-muted",
+            )}
           />
         }
       >
@@ -135,64 +171,84 @@ export function HomeOrgMultiSelect({
             <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
           </>
         )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" sideOffset={8} className="w-[min(92vw,24rem)]">
-        <div className="p-1">
-          <Input
-            tabIndex={-1}
+      </PopoverTrigger>
+      <PopoverContent align="start" sideOffset={8} initialFocus={false} className="w-[min(92vw,26.5rem)] p-0">
+        <Command shouldFilter={false}>
+          <CommandInput
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            onKeyDown={(event) => event.stopPropagation()}
+            onValueChange={setSearch}
             placeholder={t("component.search.searchOrganizations")}
           />
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{t("component.search.quickSelect")}</DropdownMenuLabel>
-          <div className="flex flex-wrap gap-1.5 px-2 pb-1.5">
-            <Toggle
-              pressed={workingSelectedNames.length === 0}
-              variant="outline"
-              size="sm"
-              aria-label={clearLabel}
-              onPressedChange={(checked) => { if (checked) clearSelection(); }}
-            >
-              <span className="truncate">{clearLabel}</span>
-            </Toggle>
-            {quickSelectOrgNames.map((name) => {
-              const label = formatOrgDisplayName(name);
-              return (
-                <Toggle
-                  key={name}
-                  pressed={selectedSet.has(name)}
-                  variant="outline"
+          <CommandGroup heading={t("component.search.quickSelect")} className="pb-2">
+            <div className="flex flex-wrap gap-1.5">
+              {showQuickSelectAll ? (
+                <Button
+                  type="button"
                   size="sm"
-                  aria-label={label}
-                  onPressedChange={(checked) => toggleName(name, checked)}
+                  variant={workingSelectedNames.length === 0 ? "default" : "secondary"}
+                  onClick={clearSelection}
                 >
-                  <span className="truncate">{label}</span>
-                </Toggle>
-              );
-            })}
+                  {clearLabel}
+                </Button>
+              ) : null}
+              {quickSelectOrgNames.map((name) => {
+                const label = formatOrgDisplayName(name);
+                const selected = selectedSet.has(name);
+                return (
+                  <Button
+                    key={name}
+                    type="button"
+                    size="sm"
+                    variant={selected ? "default" : "secondary"}
+                    onClick={() => toggleName(name)}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </div>
+          </CommandGroup>
+
+          <CommandSeparator />
+
+          <div className="px-3 pt-2 pb-1.5 text-xs font-medium text-muted-foreground">
+            {workingSelectedNames.length
+              ? t("component.search.selectedCount", { count: workingSelectedNames.length })
+              : t("component.search.organizations")}
           </div>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-[min(45vh,22rem)]">
-          {filteredOrgs.map((org) => (
-            <DropdownMenuCheckboxItem
-              key={org.name}
-              checked={selectedSet.has(org.name)}
-              onSelect={(event) => event.preventDefault()}
-              onCheckedChange={(checked) => toggleName(org.name, checked === true)}
-            >
-              {formatOrgDisplayName(org.name)}
-            </DropdownMenuCheckboxItem>
-          ))}
-          {filteredOrgs.length === 0 ? (
-            <div className="px-2 py-1.5 text-sm text-muted-foreground">{t("component.search.noOrganizationsFound")}</div>
-          ) : null}
-        </ScrollArea>
-      </DropdownMenuContent>
-    </DropdownMenu>
+
+          <CommandList className="max-h-[16rem] overscroll-contain">
+            <CommandGroup className="pt-0">
+              {filteredOrgs.length === 0 ? (
+                <CommandEmpty>{t("component.search.noOrganizationsFound")}</CommandEmpty>
+              ) : null}
+              {filteredOrgs.map((org) => {
+                const selected = selectedSet.has(org.name);
+                return (
+                  <CommandItem
+                    key={org.name}
+                    value={org.name}
+                    data-checked={selected}
+                    onSelect={() => toggleName(org.name)}
+                  >
+                    <Checkbox checked={selected} aria-label={org.name} />
+                    {formatOrgDisplayName(org.name)}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+          <div className="flex items-center justify-between gap-2 border-t p-2">
+            <Button type="button" size="sm" variant="ghost" onClick={clearSelection}>
+              <RotateCcw className="size-4" />
+              {clearLabel}
+            </Button>
+            <Button type="button" size="sm" onClick={() => closeSelector(false)}>
+              {t("component.common.apply")}
+            </Button>
+          </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

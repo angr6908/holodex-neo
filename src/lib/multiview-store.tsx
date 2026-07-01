@@ -130,8 +130,8 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     const arr = [...ids];
     const chunks: string[][] = [];
     for (let i = 0; i < arr.length; i += BATCH) chunks.push(arr.slice(i, i + BATCH));
-    const res = await Promise.allSettled(chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })));
-    const backend = res.flatMap((r) => r.status === "fulfilled" ? ((r.value as any)?.data || []) : (console.error(r.reason), []));
+    const res = await Promise.allSettled(chunks.map((c) => api.videosV3({ include: "live_info", id: c.join(",") })));
+    const backend = res.flatMap((r) => r.status === "fulfilled" ? ((r.value as any)?.data?.items || []) : (console.error(r.reason), []));
     backend.forEach((v: any) => ids.delete(v.id));
 
     const rest = [...ids];

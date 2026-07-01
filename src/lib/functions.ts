@@ -3,7 +3,14 @@ const validUiLangs = new Set<string>(langs.map((x) => x.val));
 const validTlLangs = new Set(TL_LANGS.map((x) => x.value));
 const STATIC_BASE = "https://holodex.net/statics";
 
-export const formatOrgDisplayName = (name: string) => name === "VSpo" ? "VSPO" : (name || "");
+const orgDisplayNameOverrides: Record<string, string> = {
+  VSpo: "VSPO",
+  Nijisanji: "NIJISANJI",
+  "Aogiri Highschool": "Aogiri HS",
+  MillionProduction: "Million Pro",
+};
+
+export const formatOrgDisplayName = (name: string) => orgDisplayNameOverrides[name] || (name || "");
 
 export const getChannelPhoto = (channelId?: string, size = 150) =>
   channelId ? `${STATIC_BASE}/channelImg/${channelId}/${size}.png` : "";

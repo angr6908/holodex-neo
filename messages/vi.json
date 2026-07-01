@@ -119,6 +119,7 @@
       "quickSelect": "Chọn nhanh",
       "allVtubers": "Tất cả VTuber",
       "selectedOrgCount": "{count} tổ chức",
+      "selectedCount": "Đã chọn {count}",
       "additionalOrgCount": "thêm {count}",
       "unset": "Chưa đặt"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Thao tác",
+      "apply": "Áp dụng",
       "chat": "Trò chuyện",
       "close": "Đóng",
       "collapse": "Thu gọn",

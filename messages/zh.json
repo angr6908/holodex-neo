@@ -119,6 +119,7 @@
       "quickSelect": "快速選擇",
       "allVtubers": "所有 VTuber",
       "selectedOrgCount": "{count} 個組織",
+      "selectedCount": "已選 {count} 個",
       "additionalOrgCount": "另有 {count} 個",
       "unset": "未設定"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "操作",
+      "apply": "套用",
       "chat": "聊天",
       "close": "關閉",
       "collapse": "收合",

@@ -119,6 +119,7 @@
       "quickSelect": "Quick select peko",
       "allVtubers": "All VTubers peko",
       "selectedOrgCount": "{count} soshikis peko",
+      "selectedCount": "{count} sewected peko",
       "additionalOrgCount": "{count} more peko",
       "unset": "Unset peko"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Actions peko",
+      "apply": "Apply peko",
       "chat": "Chat peko",
       "close": "tojiru peko",
       "collapse": "Collapse peko",

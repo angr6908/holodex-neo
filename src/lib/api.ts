@@ -41,6 +41,17 @@ function dedupGet<T>(url: string, config?: any): Promise<T> {
 }
 
 const ax = axios.create({ baseURL: "/api/v2", timeout: 30000 });
+
+// v3 autocomplete returns groups ({ vtuber, topic }); flatten to a typed suggestion list.
+function normalizeAutocomplete(data: any) {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== "object") return [];
+  const out: any[] = [];
+  for (const v of data.vtuber || []) out.push({ type: "channel", value: v.id, text: v.english_name || v.name, name: v.name, english_name: v.english_name, org: v.org });
+  for (const tp of data.topic || []) out.push({ type: "topic", value: tp.id, text: tp.id });
+  for (const o of data.org || []) out.push({ type: "org", value: o.id ?? o, text: o.name ?? o.id ?? o });
+  return out;
+}
 const H = (jwt?: string | null) => (jwt ? { Authorization: `BEARER ${jwt}` } : {});
 
 export type ItunesTrack = {
@@ -76,18 +87,25 @@ export const api = {
   stats: () => axios.get(`/statics/stats.json`),
   channels: (q: Record<string, any> = {}) => dedupGet(`/channels?${qs(q)}`),
   videos: (q: Record<string, any> = {}) => dedupGet(`/videos?${qs(q)}`),
-  live: (q: Record<string, any> = {}) => dedupGet<any>(`/live?${qs(q)}`, { timeout: 10000 }).then((res: any) => res.data.filter(isLiveInWindow)),
+  videosV3: ({ org, ...q }: Record<string, any> = {}) => dedupGet<any>(`/videos?${qs({ ...(org && org !== ALL_VTUBERS_ORG ? { org } : {}), ...q })}`, { baseURL: "/api/v3" }),
+  live: ({ org, ...q }: Record<string, any> = {}) => {
+    const scoped = org && org !== ALL_VTUBERS_ORG;
+    const url = `/live?${qs({ limit: 3000, ...(scoped ? { org } : {}), ...q })}`;
+    const config = { timeout: 10000 };
+    return dedupGet<any>(url, config)
+      .catch(() => dedupGet<any>(url, config))
+      .then((res: any) => (res.data || []).filter(isLiveInWindow));
+  },
   channel: (id: string) => ax.get(`/channels/${id}`),
   video: (id: string, lang?: string, c?: number) => ax.get(`/videos/${id}?${qs({ lang, c })}`),
-  searchAutocomplete(query: string) {
-    const ch = query.match(CHANNEL_URL_REGEX);
-    if (ch?.groups?.id) return ax.get(`/search/autocomplete?${qs({ q: ch.groups.id })}`);
+  searchAutocomplete(query: string, { type, n }: { type?: string; n?: number } = {}) {
     const vid = query.match(VIDEO_URL_REGEX);
-    if (vid?.groups?.id) return Promise.resolve({ data: [{ type: "video url", value: vid.groups.id }] });
-    return ax.get(`/search/autocomplete?${qs({ q: query })}`);
+    if (vid?.groups?.id) return Promise.resolve({ data: [{ type: "video url", value: vid.groups.id, text: vid.groups.id }] });
+    const ch = query.match(CHANNEL_URL_REGEX);
+    return ax.get(`/search/autocomplete?${qs({ q: ch?.groups?.id || query, t: type, n })}`, { baseURL: "/api/v3" })
+      .then((res: any) => ({ ...res, data: normalizeAutocomplete(res.data) }));
   },
-  searchVideo: (q: any) => ax.post("/search/videoSearch", q),
-  searchComments: (q: any) => ax.post("/search/commentSearch", q),
+  searchVideo: (q: any) => ax.post("/search/videoSearch", q, { baseURL: "/api/v3" }),
   searchChannel: (q: any) => ax.post("/search/channelSearch", q),
   channelVideos: (id: string, { type = "videos", query = {} }: { type?: string; query?: Record<string, any> }) =>
     ax.get(`/channels/${id}/${type}?${qs(query)}`),
@@ -104,7 +122,7 @@ export const api = {
   },
   allLive(orgs: string[] = [], q: Record<string, any> = {}) {
     const t = (orgs || []).filter(Boolean);
-    if (!t.length || t.includes(ALL_VTUBERS_ORG)) return api.live({ ...q, org: ALL_VTUBERS_ORG });
+    if (!t.length || t.includes(ALL_VTUBERS_ORG)) return api.live({ ...q });
     return Promise.all(t.map((org) => api.live({ ...q, org }))).then((r) => r.flat());
   },
   patchFavorites: (jwt: string | null, ops: any[]) => ax.patch("/users/favorites", ops, { headers: H(jwt) }),

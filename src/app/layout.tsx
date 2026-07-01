@@ -13,8 +13,8 @@ import { APP_BOOT_COOKIE, decodeAppBootCookie, decodeHomeStateCookie, HOME_STATE
 import { cn } from "@/lib/utils";
 import { LEGACY_THEME_COLOR } from "@/lib/themes";
 
-const geistSans = localFont({ src: "./fonts/GeistVF.woff2", variable: "--font-sans", weight: "100 900" });
-const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff2", variable: "--font-mono", weight: "100 900" });
+const geistSans = localFont({ src: "./fonts/GeistVF.woff2", variable: "--font-geist", weight: "100 900" });
+const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff2", variable: "--font-geist-mono", weight: "100 900" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.holodex.net"),

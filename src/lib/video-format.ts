@@ -178,18 +178,20 @@ export function compactVideoTime(v: any, lang: string, now = Date.now()): string
     return dateLabel;
   }
   // past
-  if (absMs < 3_600_000) return `${Math.max(1, Math.round(absMs / 60_000))}m ago`;
-  if (absMs < 6 * 3_600_000) return `${Math.round(absMs / 3_600_000)}h ago`;
-  if (isSameDay(target, n)) return fmtTime;
-  if (isPrevDay(target, n)) return shortLabel("yest", lang);
-  if (absMs < 7 * 86_400_000) return fmtDay;
-  return dateLabel;
+  const loc = Intl.DateTimeFormat.supportedLocalesOf([lang || "", getDayjsLocale(lang)].filter(Boolean))[0] || "en";
+  if (absMs < 60_000) return diffMs > 0 ? "soon" : "just now";
+  if (absMs < 86_400_000) {
+    const rtf = new Intl.RelativeTimeFormat(loc, { numeric: "auto" });
+    return absMs < 3_600_000
+      ? rtf.format(Math.round(diffMs / 60_000), "minute")
+      : rtf.format(Math.round(diffMs / 3_600_000), "hour");
+  }
+  return new Intl.DateTimeFormat(loc, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(target.valueOf());
 }
 
 function getDayjsLocale(lang: string) { return (lang || "en").toLowerCase(); }
 function isSameDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.format("YYYY-MM-DD"); }
 function isNextDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.add(1, "day").format("YYYY-MM-DD"); }
-function isPrevDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.subtract(1, "day").format("YYYY-MM-DD"); }
 function sameYear(a: any, b: any) { return a.format("YYYY") === b.format("YYYY"); }
 function shortDur(ms: number) {
   const m = Math.round(ms / 60_000);

@@ -119,6 +119,7 @@
       "quickSelect": "Gyors választás",
       "allVtubers": "Összes VTuber",
       "selectedOrgCount": "{count} szervezet",
+      "selectedCount": "{count} kiválasztva",
       "additionalOrgCount": "{count} további",
       "unset": "Nincs beállítva"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Műveletek",
+      "apply": "Alkalmaz",
       "chat": "Csevegés",
       "close": "Bezárás",
       "collapse": "Összecsukás",

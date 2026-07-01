@@ -18,6 +18,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { CalendarUsage } from "@/components/nav/CalendarUsage";
 import { consumeOpenUserMenuRequest, OPEN_USER_MENU_EVENT } from "@/lib/browser";
 const GOOGLE_CLIENT_ID = "275540829388-87s7f9v2ht3ih51ah0tjkqng8pd8bqo2.apps.googleusercontent.com";
+const NAV_ACTIVE_BUTTON_CLASS = "data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 
 type GoogleSignInButtonHandle = { triggerGoogleLogin: () => boolean };
 
@@ -65,7 +66,7 @@ const GoogleSignInButton = forwardRef<GoogleSignInButtonHandle, { onCredentialRe
 
 const DISCORD_CLIENT_ID = "793619250115379262";
 
-export function NavUserMenu() {
+export function useNavUserMenu() {
   const router = useRouter();
   const t = useTranslations();
   const app = useAppState();
@@ -136,14 +137,9 @@ export function NavUserMenu() {
   }
   function handleLogout() { setMenuOpen(false); app.logout(); router.push("/"); }
 
-  return <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-    <PopoverTrigger
-      render={
-        <Button variant="ghost" size="icon" className="cursor-pointer overflow-hidden p-0" aria-label={user ? userTag : "Login"} />
-      }
-    >
-      {user ? <Avatar className="block size-full"><AvatarImage src={avatarUrl} alt={t("component.userMenu.userAvatar")} /></Avatar> : <LogIn className="h-5 w-5" aria-hidden="true" />}
-    </PopoverTrigger>
+  const triggerLabel = user ? userTag : "Login";
+  const triggerContent = user ? <Avatar className="block size-full"><AvatarImage src={avatarUrl} alt={t("component.userMenu.userAvatar")} /></Avatar> : <LogIn className="size-4" aria-hidden="true" />;
+  const content = (
     <PopoverContent align="end" sideOffset={8} className={user ? "max-h-[80dvh] w-[min(92vw,20rem)] overflow-y-auto p-0" : "w-[min(92vw,18rem)] p-0"}>
       {!user ? <div className="p-5 text-center"><h2 className="mb-5 text-base font-normal tracking-tight text-foreground">{t("component.mainNav.login")}</h2><div className="space-y-3" onClick={(e) => e.stopPropagation()}>
         {allowedOAuthHost ? <div className="relative h-11 overflow-hidden"><Button nativeButton={false} render={<div />} variant="outline" className="pointer-events-none w-full justify-center" aria-hidden="true"><GoogleIcon className="size-4" /><span>{t("views.login.with.0")}</span></Button><div className="absolute inset-0 cursor-pointer overflow-hidden opacity-[0.01] [&>*]:min-h-full [&>*]:min-w-full"><GoogleSignInButton onCredentialResponse={loginGoogle} /></div></div> : <Button variant="outline" className="w-full justify-center" disabled title={t("component.userMenu.googleSignInUnavailable")}><GoogleIcon className="size-4" /><span>{t("views.login.with.0")}</span></Button>}
@@ -171,5 +167,22 @@ export function NavUserMenu() {
         <Separator className="my-1" /><Label className="px-3 py-1.5 text-xs font-medium text-muted-foreground">{t("component.userMenu.icalFeed")}</Label><div className="px-3 pb-2" onClick={(e) => e.stopPropagation()}><CalendarUsage initialQuery={initialQueryForCalendar as any} /></div>
       </>}
     </PopoverContent>
+  );
+
+  return { menuOpen, setMenuOpen, triggerLabel, triggerContent, content };
+}
+
+export function NavUserMenu() {
+  const menu = useNavUserMenu();
+
+  return <Popover open={menu.menuOpen} onOpenChange={menu.setMenuOpen}>
+    <PopoverTrigger
+      render={
+        <Button variant="outline" size="icon-lg" className={`cursor-pointer overflow-hidden p-0 ${NAV_ACTIVE_BUTTON_CLASS}`} aria-label={menu.triggerLabel} />
+      }
+    >
+      {menu.triggerContent}
+    </PopoverTrigger>
+    {menu.content}
   </Popover>;
 }

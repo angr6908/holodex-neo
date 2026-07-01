@@ -27,6 +27,7 @@ export function GenericListLoader({
   paginate = false,
   pageless = false,
   endIfPartialPage = false,
+  preloadAdjacent = false,
   loadFn,
   perPage = 24,
   cacheKey = "",
@@ -36,19 +37,25 @@ export function GenericListLoader({
   paginate?: boolean;
   pageless?: boolean;
   endIfPartialPage?: boolean;
+  preloadAdjacent?: boolean;
   loadFn: (offset: number, limit: number) => Promise<any>;
   perPage?: number;
   cacheKey?: string;
   children: (state: { data: any[]; isLoading: boolean }) => React.ReactNode;
 }) {
   const app = useAppState();
-  const [data, setData] = useState<any[]>([]);
+  const [initialCache] = useState<any[] | null>(() => app.hydrated ? readCache(cacheKey) : null);
+  const [data, setData] = useState<any[]>(initialCache || []);
   const [total, setTotal] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialCache);
   const [status, setStatus] = useState<number>(STATUSES.READY);
-  const [nextPage, setNextPage] = useState(1);
+  const [nextPage, setNextPage] = useState(initialCache && infiniteLoad ? Math.ceil(initialCache.length / perPage) + 1 : 1);
   const [identifier, setIdentifier] = useState(0);
-  const restoredFromCache = useRef(false);
+  const restoredFromCache = useRef(!!initialCache);
+  const dataLenRef = useRef(initialCache?.length || 0);
+  type PagePayload = { items: any[]; total: number | null; offset: number | null };
+  const pageCacheRef = useRef<Map<number, PagePayload>>(new Map());
+  const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
   const sentinel = useRef<HTMLDivElement | null>(null);
   const randomId = useId().replace(/:/g, "");
   const router = useRouter();
@@ -64,12 +71,31 @@ export function GenericListLoader({
     try { sessionStorage.setItem(CACHE_PREFIX + cacheKey, JSON.stringify(next)); } catch {}
   }, [cacheKey]);
 
+  const fetchPage = useCallback((page: number) => {
+    const pending = inflightRef.current.get(page);
+    if (pending) return pending;
+    const promise = Promise.resolve(loadFn((page - 1) * perPage, perPage)).then(extractListPayload);
+    inflightRef.current.set(page, promise);
+    promise.then((payload) => { pageCacheRef.current.set(page, payload); }).catch(() => {}).finally(() => { inflightRef.current.delete(page); });
+    return promise;
+  }, [loadFn, perPage]);
+
+  const prefetchNeighbors = useCallback((page: number, totalCount: number | null) => {
+    for (const target of [page - 1, page + 1]) {
+      if (target < 1) continue;
+      if (totalCount !== null && (target - 1) * perPage >= totalCount) continue;
+      if (pageCacheRef.current.has(target) || inflightRef.current.has(target)) continue;
+      void fetchPage(target);
+    }
+  }, [fetchPage, perPage]);
+
   const runLoad = useCallback(async (page: number, mode: "infinite" | "paginate") => {
-    if (!restoredFromCache.current || data.length === 0) setIsLoading(true);
+    const usePageCache = mode === "paginate" && preloadAdjacent;
+    const cached = usePageCache ? pageCacheRef.current.get(page) : undefined;
+    if (!cached && (!restoredFromCache.current || dataLenRef.current === 0)) setIsLoading(true);
     setStatus(STATUSES.LOADING);
     try {
-      const result = await loadFn((page - 1) * perPage, perPage);
-      const { items, total: nextTotal, offset } = extractListPayload(result);
+      const { items, total: nextTotal, offset } = cached ?? (usePageCache ? await fetchPage(page) : extractListPayload(await loadFn((page - 1) * perPage, perPage)));
       setIsLoading(false);
       setTotal(nextTotal);
       if (mode === "infinite") {
@@ -93,15 +119,20 @@ export function GenericListLoader({
         } else {
           setStatus(STATUSES.READY);
         }
+        if (preloadAdjacent) prefetchNeighbors(page, nextTotal);
       }
     } catch (e) {
       console.error(e);
       setIsLoading(false);
       setStatus(STATUSES.ERROR);
     }
-  }, [data.length, endIfPartialPage, loadFn, pageless, perPage, writeCache]);
+  }, [endIfPartialPage, loadFn, pageless, perPage, preloadAdjacent, prefetchNeighbors, writeCache]);
+
+  useEffect(() => { dataLenRef.current = data.length; }, [data.length]);
 
   useEffect(() => {
+    pageCacheRef.current.clear();
+    inflightRef.current.clear();
     const cached = readCache(cacheKey);
     setData(cached || []);
     setTotal(null);

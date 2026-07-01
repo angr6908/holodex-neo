@@ -119,6 +119,7 @@
       "quickSelect": "Selección rápida",
       "allVtubers": "Todos los VTubers",
       "selectedOrgCount": "{count} organizaciones",
+      "selectedCount": "{count} seleccionadas",
       "additionalOrgCount": "{count} más",
       "unset": "Sin definir"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Acciones",
+      "apply": "Aplicar",
       "chat": "Chat",
       "close": "Cerrar",
       "collapse": "Contraer",

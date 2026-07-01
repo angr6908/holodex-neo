@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search } from "@/lib/icons";
 import { api } from "@/lib/api";
-import { forwardTransformSearchToAPIQuery } from "@/lib/functions";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { Empty, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
@@ -13,6 +12,22 @@ import { Spinner } from "@/components/ui/spinner";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
 const pageLength = 30;
+
+const V3_SORT_MAP: Record<string, string> = { newest: "latest", oldest: "oldest", longest: "longest" };
+
+function buildVideoSearchQuery(items: any[], sort: string, type: string, langs: string[]) {
+  const q: any = {};
+  for (const item of items) {
+    const text = String(item.text ?? item.value ?? "").trim();
+    if (item.type === "title & desc") { if (text) q.search = q.search ? `${q.search} ${text}` : text; }
+    else if (item.type === "channel") (q.vtuber ??= []).push(item.value);
+    else if (item.type === "topic") (q.topic ??= []).push(item.value);
+    else if (item.type === "org") (q.org ??= []).push(item.value);
+  }
+  q.type = type === "all" ? ["stream", "clip"] : [type];
+  if (type === "clip" && langs.length) q.lang = langs;
+  return { q, sort: V3_SORT_MAP[sort] ?? "latest" };
+}
 
 function routeSearchType(searchParams: Pick<URLSearchParams, "get">) {
   const channelType = searchParams.get("channelType");
@@ -26,7 +41,6 @@ export default function SearchPage() {
   const app = useAppState();
   const t = useTranslations();
   const [id, setId] = useState(0);
-  const [horizontal, setHorizontal] = useState(false);
   const [executedQuery, setExecutedQuery] = useState<string | null>(null);
   const [filterSort, setFilterSort] = useState("newest");
   const [filterType, setFilterType] = useState("all");
@@ -48,25 +62,13 @@ export default function SearchPage() {
     if (!executedQuery || executedQuery.length < 5) return null;
     return async (offset: number, limit: number) => {
       const { csv2json } = await import("json-2-csv");
-      const parsedQuery = await csv2json(executedQuery);
-      const searchQuery = forwardTransformSearchToAPIQuery(parsedQuery, {
-        sort: filterSort,
-        lang: app.settings.clipLangs,
-        target: filterType === "all" ? ["stream", "clip"] : [filterType],
-        conditions: [],
-        topic: [],
-        vch: [],
-        org: [],
-        comment: [],
-      });
-      if (searchQuery.comment.length === 0) {
-        setHorizontal(false);
-        return api.searchVideo({ ...searchQuery, paginated: true, offset, limit }).then((x: any) => x.data);
-      }
-      setHorizontal(true);
-      return api.searchComments({ ...searchQuery, paginated: true, offset, limit }).then((x: any) => x.data);
+      const parsedQuery = (await csv2json(executedQuery)) as any[];
+      const container = buildVideoSearchQuery(parsedQuery, filterSort, filterType, app.settings.clipLangs);
+      const res = await api.searchVideo({ ...container, offset, limit });
+      const hits = res.data?.hits;
+      return { items: (hits?.hits || []).map((hit: any) => hit._source), total: hits?.total?.value ?? null };
     };
-  }, [executedQuery, filterSort, filterType, clipLangsKey, app.settings.clipLangs]);
+  }, [executedQuery, filterSort, filterType, clipLangsKey]);
 
   return (
     <section className="mx-auto min-h-screen w-full max-w-[1600px] px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
@@ -80,7 +82,7 @@ export default function SearchPage() {
           </EmptyDescription>
         </Empty>
       ) : (
-        <GenericListLoader key={filterType + filterSort + id + executedQuery} paginate perPage={pageLength} loadFn={searchVideo}>
+        <GenericListLoader key={filterType + filterSort + id + executedQuery} paginate preloadAdjacent perPage={pageLength} loadFn={searchVideo}>
           {({ data, isLoading }) => (
             <div className="relative z-0 px-2">
               {isLoading ? (
@@ -91,7 +93,7 @@ export default function SearchPage() {
                   </Card>
                 </div>
               ) : null}
-              <VideoCardList videos={data} horizontal={horizontal} includeChannel dense cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }} showComments className={isLoading ? "hidden" : undefined} />
+              <VideoCardList videos={data} includeChannel dense cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }} className={isLoading ? "hidden" : undefined} />
             </div>
           )}
         </GenericListLoader>

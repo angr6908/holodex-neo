@@ -27,7 +27,8 @@ export const buildHomeTabQuery = ({ tab, clipLangs, toDate }: { tab: number; cli
   type: tab === Tabs.ARCHIVE ? "stream" : "clip",
   include: tab === Tabs.ARCHIVE ? "mentions,clips" : "mentions",
   lang: clipLangs.join(","),
-  paginated: false,
+  sort: "available_at",
+  order: "desc",
   ...(toDate && { to: dayjs(toDate).add(1, "day").toDate().toISOString() }),
   max_upcoming_hours: 1,
 });
@@ -36,11 +37,12 @@ export const clearHomeMultiOrgVideoCache = () => dataCache.clear();
 export const hasHomeMultiOrgVideoCache = (k: string) => dataCache.has(k);
 export const getHomeMultiOrgVideoCache = (k: string) => dataCache.get(k);
 
-type PageFetch = (offset: number, limit: number) => Promise<any[]>;
+type PageResult = { items: any[]; nextPage?: string };
+type PageFetch = (cursor: string | undefined, limit: number) => Promise<PageResult>;
 
 function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   const items: any[][] = sources.map(() => []);
-  const offsets: number[] = sources.map(() => 0);
+  const cursors: (string | undefined)[] = sources.map(() => undefined);
   const exhausted: boolean[] = sources.map(() => false);
   let inflight: Promise<void> | null = null;
   let current: any[] = [];
@@ -48,11 +50,11 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   const merge = () => { current = sortVideosForTab(dedupeVideos(items.flat()), archive); };
 
   const page1Promises = sources.map((fetchPage, i) =>
-    fetchPage(0, MAX)
-      .then((v) => {
+    fetchPage(undefined, MAX)
+      .then(({ items: v, nextPage }) => {
         items[i] = v;
-        offsets[i] = MAX;
-        if (v.length < MAX) exhausted[i] = true;
+        cursors[i] = nextPage;
+        if (!nextPage || v.length < MAX) exhausted[i] = true;
         return v;
       })
       .catch(() => { exhausted[i] = true; return (items[i] = []); })
@@ -66,10 +68,10 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
     inflight = Promise.all(sources.map(async (fetchPage, i) => {
       if (exhausted[i]) return;
       try {
-        const v = await fetchPage(offsets[i], MAX);
+        const { items: v, nextPage } = await fetchPage(cursors[i], MAX);
         items[i] = [...items[i], ...v];
-        offsets[i] += MAX;
-        if (v.length < MAX) exhausted[i] = true;
+        cursors[i] = nextPage;
+        if (!nextPage || v.length < MAX) exhausted[i] = true;
       } catch { exhausted[i] = true; }
     })).then(() => { merge(); inflight = null; });
     return inflight;
@@ -80,21 +82,21 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
     if (refreshing) return refreshing;
     refreshing = page1
       .then(() => Promise.all(sources.map(async (fetchPage, i) => {
-        const depth = Math.max(offsets[i], MAX);
+        const depth = Math.max(items[i].length, MAX);
         const fresh: any[] = [];
-        let offset = 0;
+        let cursor: string | undefined = undefined;
         let done = false;
-        while (offset < depth && !done) {
+        while (fresh.length < depth && !done) {
           try {
-            const v = await fetchPage(offset, MAX);
+            const { items: v, nextPage } = await fetchPage(cursor, MAX);
             fresh.push(...v);
-            offset += MAX;
-            if (v.length < MAX) done = true;
+            cursor = nextPage;
+            if (!nextPage || v.length < MAX) done = true;
           } catch { done = true; break; }
         }
-        if (offset === 0) return;
+        if (fresh.length === 0) return;
         items[i] = fresh;
-        offsets[i] = offset;
+        cursors[i] = cursor;
         exhausted[i] = done;
       })))
       .then(() => { merge(); })
@@ -111,11 +113,13 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   };
 }
 
+const fetchVideoPage = (query: Record<string, any>): PageFetch =>
+  (cursor, limit) => api.videosV3({ ...query, limit, ...(cursor ? { nextPage: cursor } : {}) })
+    .then((res: any) => ({ items: extractItems(res.data), nextPage: res.data?.nextPage }));
+
 export function ensureHomeMultiOrgVideoFetch(key: string, query: Record<string, any>, targets: string[], tab: number = Tabs.ARCHIVE) {
   if (dataCache.has(key)) return;
-  const base = { ...query, paginated: false };
-  const sources: PageFetch[] = targets.map((org) =>
-    (offset, limit) => api.videos({ ...base, org, limit, offset }).then((res: any) => extractItems(res.data)));
+  const sources: PageFetch[] = targets.map((org) => fetchVideoPage({ ...query, org }));
   dataCache.set(key, createCacheEntry(sources, tab === Tabs.ARCHIVE));
 }
 
@@ -127,11 +131,14 @@ export function refreshHomeMultiOrgVideoFetch(key: string, query: Record<string,
 
 export function ensureFavoritesVideoFetch(key: string, query: Record<string, any>, jwt: string, tab: number = Tabs.ARCHIVE) {
   if (dataCache.has(key) || !jwt) return;
-  const base = { ...query, paginated: false };
-  const sources: PageFetch[] = [
-    (offset, limit) => api.favoritesVideos(jwt, { ...base, limit, offset }).then((res: any) => extractItems(res.data)),
-  ];
-  dataCache.set(key, createCacheEntry(sources, tab === Tabs.ARCHIVE));
+  const source: PageFetch = (cursor, limit) => {
+    const offset = cursor ? Number(cursor) : 0;
+    return api.favoritesVideos(jwt, { ...query, paginated: false, limit, offset }).then((res: any) => {
+      const items = extractItems(res.data);
+      return { items, nextPage: items.length < limit ? undefined : String(offset + limit) };
+    });
+  };
+  dataCache.set(key, createCacheEntry([source], tab === Tabs.ARCHIVE));
 }
 
 export function refreshFavoritesVideoFetch(key: string, query: Record<string, any>, jwt: string, tab: number = Tabs.ARCHIVE) {

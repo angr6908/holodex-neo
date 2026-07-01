@@ -11,9 +11,9 @@ import { useDomElement, useSwipeTabs } from "@/lib/hooks";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ChannelList } from "@/components/channel/ChannelList";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 const Tabs = Object.freeze({ VTUBER: 0, SUBBER: 1, FAVORITES: 2, BLOCKED: 3 });
 const DEFAULT_SORT = "subscribers";
 const KEY = "holodex-v2-channels";
+const ACTIVE_NAV_BUTTON = "bg-muted! text-foreground!";
+const NAV_SELECT_TRIGGER_CLASS = "active:translate-y-px data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 
 type SortOpt = { text: string; value: string; query_value: Record<string, any> };
 type State = { category: number; sort: Record<number, string>; cardView: Record<number, boolean> };
@@ -118,30 +120,39 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
 
   const controls = (
     <div className="flex min-w-max shrink-0 flex-nowrap items-center justify-end gap-1.5">
-      <ToggleGroup value={[String(category)]} onValueChange={(v) => { if (v[0]) setCategory(Number(v[0])); }}
-        variant="outline" size="sm" spacing={1} className="shrink-0">
+      <ButtonGroup className="shrink-0">
         {tabOpts.map((tab) => {
           const Icon = tab.icon;
           return (
-            <ToggleGroupItem key={tab.value} value={String(tab.value)} size="sm" title={tab.label}>
-              <Icon className="size-3.5" /><span className="sr-only">{tab.label}</span>
-            </ToggleGroupItem>
+            <Button
+              key={tab.value}
+              type="button"
+              variant="outline"
+              size="lg"
+              title={tab.label}
+              aria-label={tab.label}
+              aria-pressed={category === tab.value}
+              className={category === tab.value ? ACTIVE_NAV_BUTTON : undefined}
+              onClick={() => setCategory(tab.value)}
+            >
+              <Icon className="size-4" /><span className="sr-only">{tab.label}</span>
+            </Button>
           );
         })}
-      </ToggleGroup>
+      </ButtonGroup>
       {category !== Tabs.BLOCKED ? (
-        <div className="flex shrink-0 items-center gap-1">
-          <Select value={sortValue} onValueChange={setSort}>
-            <SelectTrigger size="sm" className="min-w-0 flex-1"><SelectValue /></SelectTrigger>
-            <SelectContent>{sortOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.text}</SelectItem>)}</SelectContent>
-          </Select>
-          <span className={cn("inline-flex items-center text-xs text-muted-foreground opacity-40", currentSort?.query_value.order === "asc" && "rotate-180")}>
-            <ArrowDown className="h-4 w-4" />
-          </span>
-          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" title={t("views.settings.gridSizeLabel")} onClick={() => setCardView(!cardView)}>
-            {cardView ? <LayoutGrid className="size-5" /> : <List className="size-5" />}
-          </Button>
-        </div>
+        <Select value={sortValue} onValueChange={setSort}>
+          <ButtonGroup className="shrink-0">
+            <SelectTrigger buttonLike className={cn("min-w-0", NAV_SELECT_TRIGGER_CLASS)}><SelectValue /></SelectTrigger>
+            <ButtonGroupText className={cn("px-2 text-muted-foreground opacity-40", currentSort?.query_value.order === "asc" && "[&_svg]:rotate-180")}>
+              <ArrowDown className="h-4 w-4" />
+            </ButtonGroupText>
+            <Button type="button" variant="outline" size="lg" title={t("views.settings.gridSizeLabel")} onClick={() => setCardView(!cardView)}>
+              {cardView ? <LayoutGrid className="size-4" /> : <List className="size-4" />}
+            </Button>
+          </ButtonGroup>
+          <SelectContent>{sortOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.text}</SelectItem>)}</SelectContent>
+        </Select>
       ) : null}
     </div>
   );

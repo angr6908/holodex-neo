@@ -5,6 +5,8 @@ const GQL_ENDPOINTS = ["/twitch-gql", "https://gql.twitch.tv/gql"] as const;
 const CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 const STORAGE_KEY = "holodex-twitch-viewer-counts-v1";
 
+export const TWITCH_OFFLINE = -1;
+
 const norm = (l: string) => l.trim().toLowerCase();
 
 const cache = new Map<string, { ts: number; value: number }>(
@@ -41,8 +43,9 @@ async function requestCounts(logins: string[]) {
       const payload = await r.json();
       const data = Array.isArray(payload) ? payload[0]?.data : payload?.data;
       return logins.reduce((acc, l, i) => {
-        const v = Number(data?.[`u${i}`]?.stream?.viewersCount ?? 0);
-        acc[l] = Number.isFinite(v) ? v : 0;
+        const stream = data?.[`u${i}`]?.stream;
+        const v = Number(stream?.viewersCount ?? 0);
+        acc[l] = stream ? (Number.isFinite(v) ? v : 0) : TWITCH_OFFLINE;
         return acc;
       }, {} as Record<string, number>);
     } catch (e) { lastErr = e; }
@@ -70,11 +73,12 @@ export function readCachedTwitchViewerCounts(logins: string[]) {
 }
 
 export const mergeTwitchViewerCountsIntoVideos = (videos: any[], counts: Record<string, number>) =>
-  (videos || []).map((v) => {
+  (videos || []).flatMap((v) => {
     const l = getTwitchLogin(v);
-    if (!l) return v;
+    if (!l) return [v];
     const c = counts[l];
-    return c === undefined || v.live_viewers === c ? v : { ...v, live_viewers: c };
+    if (c === TWITCH_OFFLINE) return v.status === "live" ? [] : [v];
+    return c === undefined || v.live_viewers === c ? [v] : [{ ...v, live_viewers: c }];
   });
 
 export async function fetchTwitchViewerCounts(logins: string[]) {

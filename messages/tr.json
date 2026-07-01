@@ -119,6 +119,7 @@
       "quickSelect": "Hızlı seçim",
       "allVtubers": "Tüm VTuber'lar",
       "selectedOrgCount": "{count} organizasyon",
+      "selectedCount": "{count} seçildi",
       "additionalOrgCount": "{count} daha",
       "unset": "Ayarlanmamış"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "İşlemler",
+      "apply": "Uygula",
       "chat": "Sohbet",
       "close": "Kapat",
       "collapse": "Daralt",

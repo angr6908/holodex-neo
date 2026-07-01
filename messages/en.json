@@ -116,9 +116,10 @@
       "toggleSearch": "Toggle search",
       "organizations": "Organizations",
       "searchOrganizations": "Search organizations",
-      "quickSelect": "Quick select",
+      "quickSelect": "Quick Select",
       "allVtubers": "All VTubers",
       "selectedOrgCount": "{count} organizations",
+      "selectedCount": "{count} selected",
       "additionalOrgCount": "{count} more",
       "unset": "Unset"
     },
@@ -303,6 +304,7 @@
     },
     "common": {
       "actions": "Actions",
+      "apply": "Apply",
       "chat": "Chat",
       "close": "Close",
       "collapse": "Collapse",

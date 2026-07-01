@@ -242,7 +242,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     "flex min-w-0 items-center gap-2 text-sm leading-none",
     denseList ? "max-w-[min(360px,42vw)] flex-[0_1_360px] overflow-hidden" : "min-h-0 justify-between",
   );
-  const metaRightClass = "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap text-sm leading-none tabular-nums text-muted-foreground";
+  const metaRightClass = "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap font-ibm text-sm! leading-none tabular-nums text-muted-foreground";
   const metricPairClass = "inline-grid h-3.5 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
   const metricTextOnlyClass = "inline-block h-3.5 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
   const metricIconClass = "block size-3.5 shrink-0";
@@ -288,7 +288,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           <div className={textClass}>
             {(denseList && data.channel) || showGridAvatar ? <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}><Button type="button" variant="ghost" className="h-auto w-auto p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}><ChannelImg channel={data.channel} rounded size={showGridAvatar && !denseList ? gridAvatarSize : undefined} className={mediaFadeClass} onReady={() => setAvatarLoaded(true)} noLink /></Button></div> : null}
             <div className={linesClass}>
-              <div className={titleWrapClass}><Link href={titleHref} className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
+              <div className={titleWrapClass}><Link href={titleHref} className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onMouseDown={(e) => { if (e.button === 2 || (e.button === 0 && e.ctrlKey)) e.currentTarget.style.userSelect = "none"; }} onContextMenu={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); const el = e.currentTarget; requestAnimationFrame(() => { el.style.userSelect = ""; }); }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
               <div className={metaClass}>
                 {includeChannel ? (
                   <div className={channelSlotClass}>
@@ -301,7 +301,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
                     </div>
                   </div>
                 ) : (
-                  <div className={cn("flex min-h-4 items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", denseList && "min-w-20 whitespace-nowrap")}>
+                  <div className={cn("flex min-h-4 items-center gap-1.5 font-ibm text-sm! leading-none tabular-nums text-muted-foreground", denseList && "min-w-20 whitespace-nowrap")}>
                     {renderStatusMetric(!!viewerCount, true)}
                     {clipsCount ? <span className="text-primary">· {clipsCount}</span> : null}
                   </div>

@@ -2,10 +2,12 @@
 
 import { Archive, Clapperboard, Heart, Home, Radio, Users } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { Toggle } from "@/components/ui/toggle";
 import { HOME_TABS } from "@/lib/cookie-codec";
 import { useTranslations } from "next-intl";
+
+const selectedButtonClass = "bg-muted! text-foreground!";
 
 export type HomeNavMode = "live-upcoming" | "archive" | "clips" | "channels";
 
@@ -39,71 +41,83 @@ export function HomeNavSegments({
   return (
     <div className="flex items-center gap-1.5">
       <ButtonGroup className="shrink-0">
-        <Toggle
+        <Button
+          type="button"
           variant="outline"
           size="lg"
-          pressed={!!sel && !sel.fav}
+          aria-pressed={!!sel && !sel.fav}
           aria-label={t("component.mainNav.home")}
           title={t("component.mainNav.home")}
-          onPressedChange={onHome}
+          onClick={onHome}
+          className={!!sel && !sel.fav ? selectedButtonClass : undefined}
         >
           <Home className="size-4" />
-        </Toggle>
-        <Toggle
+        </Button>
+        <Button
+          type="button"
           variant="outline"
           size="lg"
-          pressed={!!sel && sel.fav}
+          aria-pressed={!!sel && sel.fav}
           aria-label={t("component.mainNav.favorites")}
           title={t("component.mainNav.favorites")}
-          onPressedChange={onFavorites}
+          onClick={onFavorites}
+          className={!!sel && sel.fav ? selectedButtonClass : undefined}
         >
           <Heart className="size-4" />
-        </Toggle>
+        </Button>
       </ButtonGroup>
       <ButtonGroup className="shrink-0">
         {!hideBoth ? (
-          <Toggle
+          <Button
+            type="button"
             variant="outline"
             size="lg"
-            pressed={is("live-upcoming")}
+            aria-pressed={is("live-upcoming")}
             aria-label={t("views.home.liveOrUpcomingHeading")}
             title={t("views.home.liveOrUpcomingHeading")}
-            onPressedChange={() => onTab(HOME_TABS.LIVE_UPCOMING)}
+            onClick={() => onTab(HOME_TABS.LIVE_UPCOMING)}
+            className={is("live-upcoming") ? selectedButtonClass : undefined}
           >
             <Radio className="size-4" />
             {!hideLive && liveCount !== undefined ? <Badge variant="outline">{liveCount}</Badge> : null}
-          </Toggle>
+          </Button>
         ) : null}
-        <Toggle
+        <Button
+          type="button"
           variant="outline"
           size="lg"
-          pressed={is("archive")}
+          aria-pressed={is("archive")}
           aria-label={t("views.home.recentVideoToggles.official")}
           title={t("views.home.recentVideoToggles.official")}
-          onPressedChange={() => onTab(HOME_TABS.ARCHIVE)}
+          onClick={() => onTab(HOME_TABS.ARCHIVE)}
+          className={is("archive") ? selectedButtonClass : undefined}
         >
           <Archive className="size-4" />
-        </Toggle>
-        <Toggle
+        </Button>
+        <Button
+          type="button"
           variant="outline"
           size="lg"
-          pressed={is("clips")}
+          aria-pressed={is("clips")}
           aria-label={t("views.home.recentVideoToggles.subber")}
           title={t("views.home.recentVideoToggles.subber")}
-          onPressedChange={() => onTab(HOME_TABS.CLIPS)}
+          onClick={() => onTab(HOME_TABS.CLIPS)}
+          className={is("clips") ? selectedButtonClass : undefined}
         >
           <Clapperboard className="size-4" />
-        </Toggle>
-        <Toggle
+        </Button>
+        <Button
+          type="button"
           variant="outline"
           size="lg"
-          pressed={is("channels")}
+          aria-pressed={is("channels")}
           aria-label={t("component.mainNav.channels")}
           title={t("component.mainNav.channels")}
-          onPressedChange={onChannels}
+          onClick={onChannels}
+          className={is("channels") ? selectedButtonClass : undefined}
         >
           <Users className="size-4" />
-        </Toggle>
+        </Button>
       </ButtonGroup>
     </div>
   );
