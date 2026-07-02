@@ -160,3 +160,8 @@
     font-weight: 400;
   }
 }
+
+/* While actively resizing, don't animate cards' fluid size changes (keeps hover behavior otherwise identical). */
+.holo-resizing .video-card-shell {
+  transition: none !important;
+}

@@ -320,8 +320,8 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
       if (next.hydrated) writeBootCookie(next);
       return next;
     }),
-    setIsMobile: (v: boolean) => setState((s) => { const n = { ...s, isMobile: v }; if (n.hydrated) writeBootCookie(n); return n; }),
-    setWindowWidth: (v: number) => setState((s) => { const n = { ...s, windowWidth: v }; if (n.hydrated) writeBootCookie(n); return n; }),
+    setIsMobile: (v: boolean) => setState((s) => { if (s.isMobile === v) return s; const n = { ...s, isMobile: v }; if (n.hydrated) writeBootCookie(n); return n; }),
+    setWindowWidth: (v: number) => setState((s) => { if (s.windowWidth === v) return s; const n = { ...s, windowWidth: v }; if (n.hydrated) writeBootCookie(n); return n; }),
     setCurrentGridSize: (v: number) => setState((s) => ({ ...s, currentGridSize: v })),
     setCurrentOrg: (org: Org) => setState((s) => orgUpdate(s, { currentOrg: org, selectedHomeOrgs: selectedOrgsFor(s, org) })),
     setSelectedHomeOrgs: (orgs: string[]) => setState((s) => orgUpdate(s, { selectedHomeOrgs: normSelectedOrgs(orgs) })),

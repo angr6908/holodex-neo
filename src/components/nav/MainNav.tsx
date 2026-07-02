@@ -813,6 +813,8 @@ export function ConnectedVideoList({
   const [twCounts, setTwCounts] = useState<Record<string, number>>({});
   const prevOrgsKey = useRef<string | null>(null);
   const prevTab = useRef<number | null>(null);
+  const [liveLimit, setLiveLimit] = useState(60);
+  const liveSentinel = useRef<HTMLDivElement | null>(null);
 
   const clipLangs = app.settings.clipLangs || [];
   const viewMode = app.settings.homeViewMode || "grid";
@@ -874,6 +876,13 @@ export function ConnectedVideoList({
   const hasError = hasLiveContentOverride ? false : isFavPage ? app.favoritesError : app.homeError;
   const showLoading = isLoading || waitingTw;
   const hasVisibleLiveUpcoming = livesVisible.length > 0 || upcoming.length > 0;
+
+  // Only mount a capped window of live/upcoming cards, revealing more on scroll (append-only, so nothing
+  // ever unmounts -> no thumbnail reload). Keeps switching tabs and resizing cheap even with 100+ streams.
+  const luFirstFull = viewMode === "grid" || app.settings.hideUpcoming ? livesVisible : live;
+  const luFirst = luFirstFull.slice(0, liveLimit);
+  const luUpcoming = viewMode === "grid" ? upcoming.slice(0, Math.max(0, liveLimit - livesVisible.length)) : [];
+  const luTotal = viewMode === "grid" ? livesVisible.length + upcoming.length : luFirstFull.length;
 
   function init(force: boolean) {
     if (isFavPage) {
@@ -938,6 +947,19 @@ export function ConnectedVideoList({
     prevTab.current = tab;
     if (isActive && tab !== old && tab === HOME_TABS.LIVE_UPCOMING) init(false);
   }, [tab, isActive]);
+
+  // Reset the live/upcoming window when the list identity changes (tab/org/fav switch), then grow on scroll.
+  useEffect(() => { setLiveLimit(Math.max(perRow * 6, 36)); }, [cacheKey]);
+  useEffect(() => {
+    if (tab !== HOME_TABS.LIVE_UPCOMING || liveLimit >= luTotal) return;
+    const el = liveSentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setLiveLimit((l) => l + perRow * 4);
+    }, { rootMargin: "1500px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [tab, perRow, cacheKey, liveLimit, luTotal]);
 
   useEffect(() => {
     if (!isActive || !app.hydrated) return;
@@ -1084,13 +1106,14 @@ export function ConnectedVideoList({
             {showLoading && !hasVisibleLiveUpcoming ? renderSkeletons(viewMode === "grid" ? { denseList: false, horizontal: false } : undefined) : null}
             {hasVisibleLiveUpcoming ? (
               <>
-                {renderList(viewMode === "grid" || app.settings.hideUpcoming ? livesVisible : live)}
+                {renderList(luFirst)}
                 {viewMode === "grid" ? (
                   <>
-                    {livesVisible.length && upcoming.length ? <Separator className="my-3" /> : null}
-                    {renderList(upcoming, { denseList: false, horizontal: false })}
+                    {luFirst.length > 0 && luUpcoming.length > 0 ? <Separator className="my-3" /> : null}
+                    {renderList(luUpcoming, { denseList: false, horizontal: false })}
                   </>
                 ) : null}
+                {liveLimit < luTotal ? <div ref={liveSentinel} className="h-px w-full" /> : null}
               </>
             ) : null}
             {!showLoading && !lives.length && !upcoming.length ? emptyMessage : null}

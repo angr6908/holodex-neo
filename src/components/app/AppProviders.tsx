@@ -14,6 +14,7 @@ import { openUserMenu, setLocaleCookie } from "@/lib/browser";
 import { pullToRefresh } from "@/lib/mobile-pull-to-refresh";
 import * as icons from "@/lib/icons";
 import { applyThemeColor, getComputedThemeColor } from "@/lib/themes";
+import { viewportBand } from "@/lib/utils";
 import type { AppBootState, HomeUiState } from "@/lib/cookie-codec";
 
 export function AppProviders({
@@ -91,12 +92,31 @@ function ThemeRuntime() {
 function ViewportRuntime() {
   const app = useAppState();
   useLayoutEffect(() => {
-    const update = () => { app.setWindowWidth(window.innerWidth); app.setIsMobile(window.innerWidth < 960); };
+    let raf: number | null = null;
+    let lastBand = -1;
+    let settle: ReturnType<typeof setTimeout> | null = null;
+    const apply = () => {
+      raf = null;
+      const w = window.innerWidth;
+      const band = viewportBand(w);
+      if (band === lastBand) return;
+      lastBand = band;
+      // Columns change at the breakpoint; within a band nothing re-renders.
+      app.setWindowWidth(w);
+      app.setIsMobile(w < 960);
+    };
+    const update = () => {
+      // Suppress card transitions while actively resizing so cards don't animate their fluid size change.
+      document.documentElement.classList.add("holo-resizing");
+      if (settle) clearTimeout(settle);
+      settle = setTimeout(() => document.documentElement.classList.remove("holo-resizing"), 150);
+      if (raf == null) raf = requestAnimationFrame(apply);
+    };
     const onVis = () => app.setVisibilityState(document.visibilityState);
-    update(); onVis();
+    apply(); onVis();
     window.addEventListener("resize", update, { passive: true });
     document.addEventListener("visibilitychange", onVis);
-    return () => { window.removeEventListener("resize", update); document.removeEventListener("visibilitychange", onVis); };
+    return () => { if (raf != null) cancelAnimationFrame(raf); if (settle) clearTimeout(settle); document.documentElement.classList.remove("holo-resizing"); window.removeEventListener("resize", update); document.removeEventListener("visibilitychange", onVis); };
   }, []);
   useEffect(() => { if (app.visibilityState === "visible") app.fetchFavoritesLive({ force: false, minutes: 5 }); }, [app.visibilityState, app.userdata.jwt]);
   useEffect(() => { if (!app.orgs.length) app.fetchOrgs(); }, [app.orgs.length]);
