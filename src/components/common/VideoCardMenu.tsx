@@ -46,6 +46,8 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
   const openChatPopout = () => window.open(`https://youtube.com/live_chat?is_popout=1&v=${video.id}`, "_blank", `width=400,height=${window.innerHeight * 0.6}`);
   const openUpload = () => app.userdata?.user ? app.setUploadPanel(true) : openUserMenu();
 
+  const newTabHref = video.type === "placeholder" ? (video.link || `/watch/${video.id}`) : `/watch/${video.id}`;
+
   const gCalBtn = (
     <Button type="button" variant="ghost" className={ITEM_CLASS} onClick={(e) => { e.preventDefault(); e.stopPropagation(); openGCal(); close(); }}>
       <icons.Calendar className="h-4 w-4" />{t("component.videoCard.googleCalendar")}
@@ -54,6 +56,11 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
 
   return (
     <div className="space-y-1 p-1 text-sm">
+      <Button nativeButton={false}
+        render={<a target="_blank" rel="noopener noreferrer" href={newTabHref} onClick={(e) => { e.stopPropagation(); close(); }} />}
+        variant="ghost" className={ITEM_CLASS}>
+        <icons.ExternalLink className="h-4 w-4" />{t("component.videoCard.openInNewTab")}
+      </Button>
       {video.type !== "placeholder" ? (
         <>
           <Button nativeButton={false}

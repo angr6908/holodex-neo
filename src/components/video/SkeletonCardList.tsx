@@ -55,8 +55,10 @@ export function SkeletonCardList({
   const isFlat = horizontal || denseList;
   const autoFitGrid = autoFit && !isFlat;
   const colSize = isFlat ? 1 : autoFit ? 2 : cols[getBreakpoint(width)];
-  const gridAvatarSize = colSize >= 2 ? "size-[42px]" : "size-12";
   const showGridAvatar = includeAvatar && !isFlat;
+  // Match the real card meta row height: a channel-name button renders at text-sm
+  // (20px line) + 2px border = 22px; the plain metric row is min-h-4 (16px).
+  const metaMinH = includeChannel ? "min-h-[22px]" : "min-h-4";
   const showDenseAvatar = denseList;
   const articleClass = cn(
     "group relative flex w-full",
@@ -75,11 +77,11 @@ export function SkeletonCardList({
   );
   const textClass = cn(
     "video-card-text flex flex-1 flex-row gap-2.5",
-    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 pt-2 pb-1.5",
+    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 pt-2.5 pb-1.5",
   );
   const linesClass = cn(
     "flex min-w-0 flex-1",
-    denseList ? "flex-row flex-nowrap items-center gap-2.5" : "flex-col gap-0.5",
+    denseList ? "flex-row flex-nowrap items-center gap-2.5" : horizontal ? "flex-col gap-0.5" : "flex-col gap-1.5",
     horizontal && "justify-around",
   );
 
@@ -109,35 +111,51 @@ export function SkeletonCardList({
                   </div>
                 ) : null}
                 <div className={textClass}>
-                  {showDenseAvatar || showGridAvatar ? (
-                    <div className={cn("mx-2 flex self-center flex-col", showGridAvatar && !denseList && "mx-0")}>
-                      <Skeleton className={cn(denseList ? "size-10" : gridAvatarSize, "rounded-full")} />
+                  {showDenseAvatar ? (
+                    <div className="mx-2 flex self-center flex-col">
+                      <Skeleton className="size-10 rounded-full" />
                     </div>
                   ) : null}
-                  <div className={linesClass}>
-                    {denseList ? (
-                      <>
-                        <Skeleton className="h-4 min-w-0 flex-1" />
-                        {includeChannel ? <Skeleton className="hidden h-4 w-[min(180px,24vw)] shrink sm:block" /> : null}
-                        <Skeleton className="h-4 w-20 shrink-0" />
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex-none">
-                          <div className="flex min-h-[2.625rem] flex-col gap-1.5">
-                            <Skeleton className="h-4 w-11/12" />
-                            <Skeleton className="h-4 w-3/5" />
-                          </div>
+                  {showGridAvatar ? (
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <div className="flex flex-row items-center gap-2.5">
+                        <Skeleton className="size-10 shrink-0 rounded-full" />
+                        <div className="flex min-h-[2.75rem] min-w-0 flex-1 flex-col justify-center gap-1.5">
+                          <Skeleton className="h-4 w-11/12" />
+                          <Skeleton className="h-4 w-3/5" />
                         </div>
-                        <div className="flex min-h-0 flex-1 flex-col justify-end">
-                          <div className={cn("flex min-h-4 items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", includeChannel && "justify-between gap-3")}>
-                            <Skeleton className={cn("h-3.5", includeChannel ? "w-2/5" : "w-24")} />
-                            {includeChannel ? <Skeleton className="h-3.5 w-14 shrink-0" /> : null}
+                      </div>
+                      <div className={cn("flex items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", metaMinH, includeChannel && "justify-between gap-3")}>
+                        <Skeleton className={cn("h-3.5", includeChannel ? "w-2/5" : "w-24")} />
+                        {includeChannel ? <Skeleton className="h-3.5 w-14 shrink-0" /> : null}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={linesClass}>
+                      {denseList ? (
+                        <>
+                          <Skeleton className="h-4 min-w-0 flex-1" />
+                          {includeChannel ? <Skeleton className="hidden h-4 w-[min(180px,24vw)] shrink sm:block" /> : null}
+                          <Skeleton className="h-4 w-20 shrink-0" />
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex-none">
+                            <div className="flex min-h-[2.75rem] flex-col gap-1.5">
+                              <Skeleton className="h-4 w-11/12" />
+                              <Skeleton className="h-4 w-3/5" />
+                            </div>
                           </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                          <div className="flex min-h-0 flex-1 flex-col justify-end">
+                            <div className={cn("flex items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", metaMinH, includeChannel && "justify-between gap-3")}>
+                              <Skeleton className={cn("h-3.5", includeChannel ? "w-2/5" : "w-24")} />
+                              {includeChannel ? <Skeleton className="h-3.5 w-14 shrink-0" /> : null}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </Card>
             </article>

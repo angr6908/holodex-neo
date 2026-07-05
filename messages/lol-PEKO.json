@@ -52,7 +52,7 @@
       "clips": "{n} Kirinuki",
       "watching": "{arg0} nin miteru",
       "liveNow": "Raibu Now",
-      "openInBackground": "hiraku in Background peko",
+      "openInNewTab": "hiraku in New Tab peko",
       "edit": "Editto",
       "copiedToClipboard": "Link copied to clipboard peko.",
       "copyLink": "Copy Holodex Link peko",

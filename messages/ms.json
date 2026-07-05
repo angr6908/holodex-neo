@@ -52,7 +52,7 @@
       "clips": "{n} Buah Sedutan",
       "watching": "{arg0} Tontonan Sekarang",
       "liveNow": "Sedang Bersiaran",
-      "openInBackground": "Buka di latar belakang",
+      "openInNewTab": "Buka dalam tab baharu",
       "edit": "Sunting",
       "copiedToClipboard": "Pautan telah disalin ke papan keratan.",
       "copyLink": "Salin Pautan Holodex",

@@ -52,7 +52,7 @@
       "clips": "0 клипов | {n} клип | {n} клипа | {n} клипов",
       "watching": "{arg0} смотрят",
       "liveNow": "LIVE",
-      "openInBackground": "Открыть в фоне",
+      "openInNewTab": "Открыть в новой вкладке",
       "edit": "Изменить",
       "copiedToClipboard": "Скопировано в буфер обмена.",
       "copyLink": "Копировать ссылку",

@@ -52,7 +52,7 @@
       "clips": "{n} Klip",
       "watching": "{arg0} néző",
       "liveNow": "Élőben",
-      "openInBackground": "Megnyitás a háttérben",
+      "openInNewTab": "Megnyitás új lapon",
       "edit": "Szerkesztés",
       "copiedToClipboard": "Vágólapra másolva.",
       "copyLink": "Holodex link másolása",

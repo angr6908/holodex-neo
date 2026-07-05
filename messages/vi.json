@@ -52,7 +52,7 @@
       "clips": "{n} Clip",
       "watching": "{arg0} người đang xem",
       "liveNow": "Đang trực tiếp",
-      "openInBackground": "Mở trong nền",
+      "openInNewTab": "Mở trong tab mới",
       "edit": "Chỉnh sửa",
       "copiedToClipboard": "Đã sao chép liên kết vào clipboard.",
       "copyLink": "Sao chép liên kết Holodex",

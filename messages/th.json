@@ -52,7 +52,7 @@
       "clips": "{n} คลิป",
       "watching": "{arg0} กำลังรับชม",
       "liveNow": "สด",
-      "openInBackground": "เปิดในพื้นหลัง",
+      "openInNewTab": "เปิดในแท็บใหม่",
       "edit": "แก้ไข",
       "copiedToClipboard": "คัดลอกลิงก์ไปยังคลิปบอร์ดแล้ว",
       "copyLink": "คัดลอกลิงก์ Holodex",

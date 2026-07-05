@@ -52,7 +52,7 @@
       "clips": "{n} 本の切り抜き",
       "watching": "{arg0}人が視聴中",
       "liveNow": "配信中",
-      "openInBackground": "バックグラウンドで開く",
+      "openInNewTab": "新しいタブで開く",
       "edit": "編集",
       "copiedToClipboard": "リンクをクリップボードにコピーしました",
       "copyLink": "Holodexでのリンクをコピー",

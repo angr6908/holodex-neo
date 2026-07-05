@@ -37,7 +37,9 @@ export function VideoCardList({ videos = [], includeChannel = false, includeAvat
       .filter((v: any) => v && typeof v === "object" && v.id && v.channel)
       .filter((v: any) => filterVideo(v, app, { hideGroups: includeChannel, ...filterConfig }));
     const mapped = sortFn ? processed.map(sortFn) : processed;
-    return max ? mapped.slice(0, max) : mapped;
+    const seen = new Set<string>();
+    const deduped = mapped.filter((v: any) => (seen.has(v.id) ? false : (seen.add(v.id), true)));
+    return max ? deduped.slice(0, max) : deduped;
   }, [videos, max, app, includeChannel, filterConfig, sortFn]);
   return <div className={cn("relative py-0", className)}><div className={cn("grid gap-x-2 gap-y-2.5", !autoFitGrid && (gridColumnClasses[horizontal || denseList ? 1 : colSize] || "grid-cols-1"), (denseList || horizontal) && list.length > 0 && "overflow-hidden rounded-xl border gap-y-0")} style={autoFitGrid ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` } : undefined}>{list.map((video: any) => <div key={video.id} className={cn("min-w-0 overflow-visible", (denseList || horizontal) && "[&:not(:last-child)]:border-b")}><VideoCard video={video} fluid includeChannel={includeChannel} horizontal={horizontal} includeAvatar={includeAvatar} colSize={colSize} active={video.id === activeId} disableDefaultClick={disableDefaultClick} denseList={denseList} hideThumbnail={hideThumbnail} inMultiViewSelector={inMultiViewSelector} onVideoClicked={onVideoClicked} action={renderAction?.(video)} />{showComments && video.comments ? <ScrollArea className="max-h-[400px] text-xs"><Separator className="mx-4" />{video.comments.map((comment: any, commentIndex: number) => <div key={`${comment.comment_key || "comment"}-${commentIndex}`} className="p-0"><Comment comment={comment} videoId={video.id} /></div>)}</ScrollArea> : null}</div>)}</div></div>;
 }

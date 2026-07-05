@@ -52,7 +52,7 @@
       "clips": "클립 {n}개",
       "watching": "{arg0}명 시청 중",
       "liveNow": "실시간 방송 중",
-      "openInBackground": "백그라운드에서 열기",
+      "openInNewTab": "새 탭에서 열기",
       "edit": "편집",
       "copiedToClipboard": "링크를 클립보드에 복사했습니다.",
       "copyLink": "Holodex 링크 복사",

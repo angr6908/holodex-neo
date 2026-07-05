@@ -183,7 +183,7 @@ export function HomeOrgMultiSelect({
           </>
         )}
       </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={8} initialFocus={false} className="w-[min(92vw,26.5rem)] p-0">
+      <PopoverContent align="start" sideOffset={8} positionMethod="fixed" initialFocus={false} className="w-[min(92vw,26.5rem)] p-0">
         <Command shouldFilter={false}>
           <CommandInput
             value={search}

@@ -52,7 +52,7 @@
       "clips": "{n} Klip",
       "watching": "{arg0} İzleyici",
       "liveNow": "Şu an canlı",
-      "openInBackground": "Arka planda aç",
+      "openInNewTab": "Yeni sekmede aç",
       "edit": "Düzenle",
       "copiedToClipboard": "Bağlantı panoya kopyalandı.",
       "copyLink": "Holodex Bağlantısını Kopyala",

@@ -260,7 +260,7 @@ export function MainNav({
               className="flex shrink-0 items-center gap-2 pr-1 text-left no-underline select-none"
             >
               <img src="/img/icons/uetchy_logo_morespace.png" className="h-7 w-7 object-contain" alt="" />
-              <span className="hidden text-base font-semibold tracking-tight text-foreground sm:inline" style={{ fontFamily: '"IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif', fontWeight: 600 }}>Holodex</span>
+              <span className="hidden text-base font-semibold leading-none tracking-tight text-foreground sm:inline" style={{ fontFamily: '"IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif', fontWeight: 600 }}>Holodex</span>
             </a>
 
             <div className="shrink-0 sm:hidden">

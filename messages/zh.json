@@ -52,7 +52,7 @@
       "clips": "{n} 部剪輯",
       "watching": "{arg0} 人正在觀看",
       "liveNow": "實況中",
-      "openInBackground": "在背景開啟",
+      "openInNewTab": "在新分頁開啟",
       "edit": "編輯",
       "copiedToClipboard": "連結已複製到剪貼簿。",
       "copyLink": "複製 Holodex 連結",

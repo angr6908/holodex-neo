@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import localFont from "next/font/local";
+import { Noto_Sans_JP } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -15,6 +16,9 @@ import { LEGACY_THEME_COLOR } from "@/lib/themes";
 
 const geistSans = localFont({ src: "./fonts/GeistVF.woff2", variable: "--font-geist", weight: "100 900" });
 const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff2", variable: "--font-geist-mono", weight: "100 900" });
+// Video-card title typeface. Noto Sans JP covers Latin + CJK, so titles render consistently in every UI language.
+// preload disabled — the glyph set is large and only needed for the title.
+const notoSansJp = Noto_Sans_JP({ weight: ["400", "500", "700"], variable: "--font-noto-jp", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.holodex.net"),
@@ -127,7 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
   const locale = await getLocale();
   return (
-    <html lang={locale} suppressHydrationWarning data-theme="holodex" className={cn(geistSans.variable, geistMono.variable, "dark font-sans [color-scheme:dark]")}>
+    <html lang={locale} suppressHydrationWarning data-theme="holodex" className={cn(geistSans.variable, geistMono.variable, notoSansJp.variable, "dark font-sans [color-scheme:dark]")}>
       <head suppressHydrationWarning>
         <link rel="preconnect" href="https://holodex.net" />
         <link rel="preconnect" href="https://i.ytimg.com" />

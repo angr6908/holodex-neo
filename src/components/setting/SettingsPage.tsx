@@ -73,6 +73,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
         <div className={settingControlClass}>
           <Label className={sectionLabelClass}>{t("views.settings.languageSettings")}</Label>
           <Select
+            modal={false}
             value={app.settings.lang}
             onValueChange={(value) => {
               app.patchSettings({ lang: value });
@@ -94,7 +95,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
 
         <div className={settingControlClass}>
           <Label className={sectionLabelClass}>{t("views.settings.theme")}</Label>
-          <Select value={String(themeId)} onValueChange={(value) => setThemeId(value)}>
+          <Select modal={false} value={String(themeId)} onValueChange={(value) => setThemeId(value)}>
             <SelectTrigger>
               <span className="flex min-w-0 items-center gap-2">
                 <ThemeSwatch color={selectedTheme?.computedColor} />

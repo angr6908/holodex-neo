@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
@@ -56,8 +56,6 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
   }, []);
 
   const hasError = isFavPage ? app.favoritesError : app.homeError;
-  // Render the (potentially large) live/upcoming list off the urgent path so switching tabs stays responsive.
-  const deferredTab = useDeferredValue(tab);
 
   function saveState(next: HomeUiState = { viewMode, isFavPage, tab }) {
     const v = {
@@ -172,7 +170,7 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
             </Empty>
           ) : null}
           {hasError ? <ApiErrorMessage /> : null}
-          <ConnectedVideoList isFavPage={isFavPage} tab={deferredTab} isActive />
+          <ConnectedVideoList isFavPage={isFavPage} tab={tab} isActive />
         </>
       ) : <ChannelsPage embedded />}
     </section>

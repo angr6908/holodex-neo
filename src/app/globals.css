@@ -159,6 +159,12 @@
   body:is(:lang(zh), :lang(ja), :lang(ko)) {
     font-weight: 400;
   }
+
+  /* Video-card titles use Noto Sans JP for both Latin and CJK, so they render
+     the same regardless of the Geist UI font and the selected UI language. */
+  .video-card-title {
+    font-family: var(--font-noto-jp), "Noto Sans JP", sans-serif;
+  }
 }
 
 /* While actively resizing, don't animate cards' fluid size changes (keeps hover behavior otherwise identical). */

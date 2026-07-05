@@ -52,7 +52,7 @@
       "clips": "{n} Klip",
       "watching": "{arg0} sedang menonton",
       "liveNow": "Live Sekarang",
-      "openInBackground": "Buka di latar belakang",
+      "openInNewTab": "Buka di tab baru",
       "edit": "Ubah",
       "copiedToClipboard": "Tautan disalin ke clipboard.",
       "copyLink": "Salin Tautan Holodex",

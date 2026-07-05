@@ -52,7 +52,7 @@
       "clips": "{n} clips",
       "watching": "{arg0} espectadores",
       "liveNow": "En directo",
-      "openInBackground": "Abrir en segundo plano",
+      "openInNewTab": "Abrir en una pestaña nueva",
       "edit": "Editar",
       "copiedToClipboard": "Enlace copiado al portapapeles.",
       "copyLink": "Copiar enlace de Holodex",

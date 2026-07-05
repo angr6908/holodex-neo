@@ -73,6 +73,7 @@ export function SearchDropdown() {
   const [open, setOpen] = useState(false);
   const requestId = useRef(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const suppressOpenRef = useRef(false);
 
   // -- Filter state
   const [orgs, setOrgs] = useState<string[]>([]);
@@ -239,7 +240,12 @@ export function SearchDropdown() {
   function clearAll() {
     setOrgs([]); setChannels([]); setTopics([]); setQuery(""); setResults([]);
     setChannelSearch(""); setFilterType("all"); setFilterSort("newest");
+    setOpen(false);
+    // Refocus the input without reopening the dropdown.
+    suppressOpenRef.current = true;
     focusInput();
+    // Clear the flag in case focus was already on the input (no onFocus fired).
+    setTimeout(() => { suppressOpenRef.current = false; }, 0);
   }
 
   async function runSearch() {
@@ -284,7 +290,7 @@ export function SearchDropdown() {
           value={query}
           placeholder={t("component.search.placeholder")}
           onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { if (suppressOpenRef.current) { suppressOpenRef.current = false; return; } setOpen(true); }}
           onKeyDown={onKeyDown}
         />
         <InputGroupAddon align="inline-end" className="gap-0.5">
@@ -300,7 +306,7 @@ export function SearchDropdown() {
       </InputGroup>
 
       {open ? (
-        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-[calc(100vh-6rem)] w-full overflow-y-auto rounded-lg border bg-popover p-2.5 pb-4 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 animate-in fade-in-0 slide-in-from-top-1">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-[calc(100vh-6rem)] w-full overflow-y-auto rounded-lg border bg-popover p-2.5 pb-4 text-popover-foreground shadow-md duration-100 animate-in fade-in-0 slide-in-from-top-1">
           {typing ? (
             <div className="mb-2 border-b pb-2">
               {loadingResults && results.length === 0 ? (
