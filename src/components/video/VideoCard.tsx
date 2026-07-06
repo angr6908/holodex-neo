@@ -33,6 +33,17 @@ const twoLineTitleStyle = {
   WebkitLineClamp: 2,
 } satisfies CSSProperties;
 
+// Renders the upcoming-stream countdown with its own ticker so the rest of the
+// card never re-renders (and never flickers) as the time updates.
+function TickingCompactTime({ video, lang }: { video: any; lang: string }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return <>{compactVideoTime(video, lang, now)}</>;
+}
+
 export function VideoCard({ video, source, fluid = false, includeChannel = false, includeAvatar = false, hideThumbnail = false, horizontal = false, colSize = 1, active = false, disableDefaultClick = false, activePlaylistItem = false, parentPlaylistId = null, denseList = false, inMultiViewSelector = false, onVideoClicked, children, action }: any) {
   const data = source || video;
   const router = useRouter();
@@ -71,8 +82,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const watchLink = `/watch/${data?.id || ""}${parentPlaylistId ? `?playlist=${parentPlaylistId}` : ""}`;
   const placeholderSourceUrl = isPlaceholder ? externalHref(data?.link || "") : "";
   const titleHref = placeholderSourceUrl || (app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink);
-  const showGridAvatar = includeAvatar && ["live", "upcoming"].includes(data?.status) && !denseList && !horizontal && data?.channel;
-  const gridAvatarSize = 40; // sits within the two-line title zone (2.75rem min-height)
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
   const tlLang = app.settings.liveTlLang;
   const hasTLs = (data?.status === "past" && data?.live_tl_count?.[tlLang]) || data?.recent_live_tls?.includes?.(tlLang);
@@ -241,11 +250,11 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     denseList ? "max-w-[min(360px,42vw)] flex-[0_1_360px] overflow-hidden" : "min-h-0 justify-between",
   );
   const metaRightClass = "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap font-ibm text-sm! leading-none tabular-nums text-muted-foreground";
-  const metricPairClass = "inline-grid h-3.5 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
-  const metricTextOnlyClass = "inline-block h-3.5 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
-  const metricIconClass = "block size-3.5 shrink-0";
+  const metricPairClass = "inline-grid h-4 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metricTextOnlyClass = "inline-block h-4 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metricIconClass = "block size-3.5 shrink-0 -translate-y-[0.5px]";
   const metricTextClass = "block leading-none";
-  function renderMetric(icon: AnyIcon | null, text: string, title: string, truncate = false) {
+  function renderMetric(icon: AnyIcon | null, text: React.ReactNode, title: string, truncate = false) {
     const Icon = icon;
     return (
       <span className={cn(Icon ? metricPairClass : metricTextOnlyClass, truncate && "truncate")} title={title}>
@@ -256,7 +265,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   }
   function renderStatusMetric(showViewers: boolean, truncateTime = false) {
     if (isLiveStatus && showViewers && viewerCount) return renderMetric(BroadcastIcon, viewerCount, viewerLabel);
-    if (!isLiveStatus && compactTimeText) return renderMetric(data.status !== "past" ? Clock : null, compactTimeText, absoluteTimeText, truncateTime);
+    if (!isLiveStatus && compactTimeText) return renderMetric(data.status !== "past" ? Clock : null, data.status === "upcoming" ? <TickingCompactTime video={data} lang={lang} /> : compactTimeText, absoluteTimeText, truncateTime);
     return null;
   }
   const itemActionsClass = cn(
@@ -266,7 +275,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const isLive = data.status === "live";
   const durationBadgeClass = cn("m-1 font-ibm font-light", isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white");
   const avatarButton = (size?: number) => (
-    <Button type="button" variant="ghost" className="h-auto w-auto rounded-full p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}>
+    <Button type="button" variant="ghost" className="h-auto w-auto rounded-full border-0 p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}>
       <ChannelImg channel={data.channel} rounded size={size} noLink />
     </Button>
   );
@@ -277,8 +286,9 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     <div className={metaClass}>
       {includeChannel ? (
         <div className={channelSlotClass}>
-          <div className="min-w-0 overflow-hidden truncate">
-            <Button type="button" variant="link" className={cn("h-auto max-w-full justify-start truncate p-0 text-left text-sm font-normal text-muted-foreground hover:text-foreground", denseList && "max-w-[180px]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {includeAvatar && !denseList && !isClip && ["live", "upcoming"].includes(data.status) && data.channel ? avatarButton(24) : null}
+            <Button type="button" variant="link" className={cn("-ml-0.5 block h-auto min-w-0 flex-1 truncate border-0 p-0 pl-0.5 text-left text-sm font-normal leading-tight text-muted-foreground no-underline hover:text-foreground hover:no-underline", denseList && "max-w-[180px]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
           </div>
           <div className={metaRightClass}>
             {renderStatusMetric(showChannelViewers)}
@@ -312,20 +322,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
             {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
           </div> : null}
           <div className={textClass}>
-            {showGridAvatar ? (
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <div className="flex flex-row items-center gap-2.5">
-                  <div className="flex flex-none flex-col">{avatarButton(gridAvatarSize)}</div>
-                  <div className="min-w-0 flex-1">{titleNode}</div>
-                </div>
-                {metaNode}
-              </div>
-            ) : (
-              <>
-                {denseList && data.channel ? <div className="mx-2 flex flex-col self-center">{avatarButton()}</div> : null}
-                <div className={linesClass}>{titleNode}{metaNode}</div>
-              </>
-            )}
+            {denseList && data.channel ? <div className="mx-2 flex flex-col self-center">{avatarButton()}</div> : null}
+            <div className={linesClass}>{titleNode}{metaNode}</div>
           </div>
         </ContextMenuTrigger>
         {menuOpen ? (
