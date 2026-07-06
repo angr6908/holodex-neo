@@ -158,7 +158,7 @@ export default function WatchPage() {
   const contentClass = cn("relative z-[1] flex w-full min-w-0 grow items-start overflow-visible", cinema ? "flex-col items-stretch" : "flex-row", "max-[959px]:flex-col");
   const mainClass = cn("flex min-w-0 flex-1 flex-col", cinema ? "w-full max-w-none" : "max-w-[min(100%,1080px)]", "max-[959px]:w-full");
   const groupClass = cn("contents", cinema && "block min-[960px]:mx-[calc(-1*clamp(12px,1.8vw,24px))]");
-  const screenClass = cn("relative transition-colors", cinema && "-mt-[clamp(12px,1.8vw,24px)]");
+  const screenClass = cn("relative transition-colors", cinema && "-mt-[4px]");
   const playerClass = cn(
     "video relative aspect-video h-auto w-full overflow-hidden bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full",
     cinema && "mx-auto max-w-[calc((100dvh-5rem)*16/9)] shadow-2xl",

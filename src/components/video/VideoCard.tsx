@@ -264,7 +264,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     denseList ? "h-auto self-stretch border-l px-2 py-0" : "border-t px-3 py-2",
   );
   const isLive = data.status === "live";
-  const durationBadgeClass = cn("m-1 font-ibm", isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white");
+  const durationBadgeClass = cn("m-1 font-ibm font-light", isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white");
   const avatarButton = (size?: number) => (
     <Button type="button" variant="ghost" className="h-auto w-auto rounded-full p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}>
       <ChannelImg channel={data.channel} rounded size={size} noLink />

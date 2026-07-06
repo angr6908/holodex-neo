@@ -16,6 +16,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { formatCount, getKnownLiveViewerCount, getLiveViewerCount } from "@/lib/functions";
 import { elapsedLiveDuration } from "@/lib/video-format";
 import { formatDistance, formatDuration, titleTimeString } from "@/lib/time";
+import { cn } from "@/lib/utils";
 import * as icons from "@/lib/icons";
 
 export function WatchToolbar({ video, children }: { video: Record<string, any>; children?: React.ReactNode }) {
@@ -86,10 +87,10 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-sm text-muted-foreground">
           {video.status === "live" && liveViewers ? (
             <Badge variant="destructive" className="shrink-0 gap-1.5">
-              <icons.Radio className="size-3" />
-              {liveViewers}
+              <icons.BroadcastIcon className="size-3.5" />
+              <span className="font-ibm-digits">{liveViewers}</span>
               {liveViewerChange ? (
-                <span className={liveViewerChange > 0 ? "text-green-200" : "text-red-200"}>
+                <span className={cn("font-ibm-digits", liveViewerChange > 0 ? "text-green-200" : "text-red-200")}>
                   ({liveViewerChange > 0 ? "+" : ""}{liveViewerChange})
                 </span>
               ) : null}
@@ -97,19 +98,19 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
           ) : null}
           {video.topic_id ? (
             <Badge
-              render={<Link href={searchTopicUrl} className="inline-flex shrink-0 items-center gap-1 capitalize no-underline" />}
+              render={<Link href={searchTopicUrl} className="inline-flex shrink-0 items-center gap-1.5 capitalize no-underline font-ibm" />}
               variant="secondary"
             >
-              <icons.CirclePlay className="size-3.5" />{video.topic_id}
+              <icons.Tag className="size-3.5" />{video.topic_id}
             </Badge>
           ) : null}
           {timeLabel ? (
             <Tooltip>
               <TooltipTrigger render={<Badge variant="secondary" className="shrink-0 gap-1.5 cursor-default" />}>
                 <icons.Clock className="size-3.5" />
-                {timeLabel}
+                <span className="font-ibm-digits">{timeLabel}</span>
               </TooltipTrigger>
-              <TooltipContent>{absoluteTimeString}</TooltipContent>
+              <TooltipContent className="whitespace-pre-line text-center">{absoluteTimeString}</TooltipContent>
             </Tooltip>
           ) : null}
           {mentions.length > 0 ? (

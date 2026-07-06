@@ -131,6 +131,16 @@
     font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     font-size: 0.8rem;
     font-weight: 400;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-ibm-digits {
+    font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
 
   /* Hide the SSR-rendered nav controls skeleton once the real interactive
