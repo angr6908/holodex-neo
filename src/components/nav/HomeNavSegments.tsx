@@ -5,9 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { HOME_TABS } from "@/lib/cookie-codec";
+import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 const selectedButtonClass = "bg-muted! text-foreground!";
+// Nav selection buttons change their highlight instantly — no fade in or out. Colors are excluded from
+// the transition, so the pressed/selected tab snaps straight to its final color (like the settings
+// button) and the previously-selected tab drops its highlight immediately, with no lingering fade or
+// flicker on switch. `active:` reflects the color the moment it's pressed; the press dip and focus ring
+// keep animating.
+const navSegmentClass = "transition-[transform,translate,box-shadow,border-color] active:bg-muted! active:text-foreground!";
 
 export type HomeNavMode = "live-upcoming" | "archive" | "clips" | "channels";
 
@@ -49,7 +56,7 @@ export function HomeNavSegments({
           aria-label={t("component.mainNav.home")}
           title={t("component.mainNav.home")}
           onClick={onHome}
-          className={!!sel && !sel.fav ? selectedButtonClass : undefined}
+          className={cn(navSegmentClass, !!sel && !sel.fav && selectedButtonClass)}
         >
           <Home className="size-4" />
         </Button>
@@ -61,7 +68,7 @@ export function HomeNavSegments({
           aria-label={t("component.mainNav.favorites")}
           title={t("component.mainNav.favorites")}
           onClick={onFavorites}
-          className={!!sel && sel.fav ? selectedButtonClass : undefined}
+          className={cn(navSegmentClass, !!sel && sel.fav && selectedButtonClass)}
         >
           <Heart className="size-4" />
         </Button>
@@ -76,7 +83,7 @@ export function HomeNavSegments({
             aria-label={t("views.home.liveOrUpcomingHeading")}
             title={t("views.home.liveOrUpcomingHeading")}
             onClick={() => onTab(HOME_TABS.LIVE_UPCOMING)}
-            className={is("live-upcoming") ? selectedButtonClass : undefined}
+            className={cn(navSegmentClass, is("live-upcoming") && selectedButtonClass)}
           >
             <Radio className="size-4" />
             {!hideLive && liveCount !== undefined ? <Badge variant="outline">{liveCount}</Badge> : null}
@@ -90,7 +97,7 @@ export function HomeNavSegments({
           aria-label={t("views.home.recentVideoToggles.official")}
           title={t("views.home.recentVideoToggles.official")}
           onClick={() => onTab(HOME_TABS.ARCHIVE)}
-          className={is("archive") ? selectedButtonClass : undefined}
+          className={cn(navSegmentClass, is("archive") && selectedButtonClass)}
         >
           <Archive className="size-4" />
         </Button>
@@ -102,7 +109,7 @@ export function HomeNavSegments({
           aria-label={t("views.home.recentVideoToggles.subber")}
           title={t("views.home.recentVideoToggles.subber")}
           onClick={() => onTab(HOME_TABS.CLIPS)}
-          className={is("clips") ? selectedButtonClass : undefined}
+          className={cn(navSegmentClass, is("clips") && selectedButtonClass)}
         >
           <Clapperboard className="size-4" />
         </Button>
@@ -114,7 +121,7 @@ export function HomeNavSegments({
           aria-label={t("component.mainNav.channels")}
           title={t("component.mainNav.channels")}
           onClick={onChannels}
-          className={is("channels") ? selectedButtonClass : undefined}
+          className={cn(navSegmentClass, is("channels") && selectedButtonClass)}
         >
           <Users className="size-4" />
         </Button>
