@@ -46,7 +46,15 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
   const openChatPopout = () => window.open(`https://youtube.com/live_chat?is_popout=1&v=${video.id}`, "_blank", `width=400,height=${window.innerHeight * 0.6}`);
   const openUpload = () => app.userdata?.user ? app.setUploadPanel(true) : openUserMenu();
 
-  const newTabHref = video.type === "placeholder" ? (video.link || `/watch/${video.id}`) : `/watch/${video.id}`;
+  // Youtube videos and twitch streams open on the Holodex watch page; "Open on Holodex" off
+  // (redirectMode) sends them to their source instead. Other placeholders only have a source.
+  const isTwitch = video.type === "twitch" || (video.link || "").includes("twitch");
+  const isPlaceholder = video.type === "placeholder";
+  const externalUrl = isPlaceholder || isTwitch
+    ? (video.link || (isTwitch ? `https://twitch.tv/${video.id}` : ""))
+    : `https://youtu.be/${video.id}`;
+  const openExternal = app.settings.redirectMode || (isPlaceholder && !isTwitch);
+  const newTabHref = openExternal ? (externalUrl || `/watch/${video.id}`) : `/watch/${video.id}`;
 
   const gCalBtn = (
     <Button type="button" variant="ghost" className={ITEM_CLASS} onClick={(e) => { e.preventDefault(); e.stopPropagation(); openGCal(); close(); }}>

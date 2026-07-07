@@ -438,6 +438,7 @@
       "darkModeLabel": "ダークモード",
       "darkModeMsg": "ライトモードとダークモードを切り替えます",
       "redirectModeLabel": "Youtubeで開く",
+      "openOnHolodexLabel": "Holodexで開く",
       "redirectModeMsg": "動画のサムネをクリックするとYoutubeに移動します。(タイトルをクリックする通常と変わらずHolodexで見れます。)",
       "useEnglishNameLabel": "英語名を使用する",
       "useEnglishNameMsg": "英語圏版のチャンネル名を表示します(一部のチャンネルは対応していません)",

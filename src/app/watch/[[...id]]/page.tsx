@@ -16,6 +16,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
+import { TwitchPlayer } from "@/components/player/TwitchPlayer";
+import { TwitchChat } from "@/components/watch/TwitchChat";
+import { twitchLoginOf } from "@/lib/twitch-viewers";
 import { WatchToolbar } from "@/components/watch/WatchToolbar";
 import { WatchInfo } from "@/components/watch/WatchInfo";
 import { WatchHighlights } from "@/components/watch/WatchHighlights";
@@ -51,9 +54,13 @@ export default function WatchPage() {
   const toolbarShell = useRef<HTMLDivElement | null>(null);
   const timeOffset = Number(sp.get("t") || 0) || 0;
   const title = (video.title && decodeHTMLEntities(video.title)) || "";
+  // Twitch streams reach the watch page as placeholders with a twitch.tv link (or type
+  // "twitch"); play them in the Twitch embed instead of the YouTube player.
+  const twitchChannel = (video.type === "twitch" || !!video.link?.includes?.("twitch")) ? twitchLoginOf(video) : "";
   const hasLiveChat = video.type === "stream" && (["upcoming", "live"].includes(video.status) || (video.status === "past" && !app.isMobile));
+  const hasTwitchChat = !!twitchChannel && video.status === "live";
   const hasLiveTL = video.type === "stream";
-  const showChat = (hasLiveChat && showLiveChat) || (showTL && hasLiveTL);
+  const showChat = ((hasLiveChat || hasTwitchChat) && showLiveChat) || (showTL && hasLiveTL);
   const comments = video.comments || [];
   const hasComments = comments.length > 0;
   const isPlaylist = !!sp.get("playlist");
@@ -142,7 +149,6 @@ export default function WatchPage() {
 
     setVideo((v) => ({
       ...v,
-      live_viewers: u.live_viewers,
       status: u.status,
       start_actual: typeof u.start_actual === "string" ? u.start_actual : v.start_actual,
     }));
@@ -181,14 +187,18 @@ export default function WatchPage() {
     </Tooltip>
   ) : null;
   const chatPanel = showChat ? (
-    <WatchLiveChat
-      className={chatClass}
-      video={video}
-      currentTime={currentTime}
-      modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }}
-      onTimeJump={seekTo}
-      onVideoUpdate={handleVideoUpdate}
-    />
+    hasTwitchChat ? (
+      <TwitchChat channel={twitchChannel} className={chatClass} />
+    ) : (
+      <WatchLiveChat
+        className={chatClass}
+        video={video}
+        currentTime={currentTime}
+        modelValue={{ showTlChat: showTL, showYtChat: showLiveChat && hasLiveChat }}
+        onTimeJump={seekTo}
+        onVideoUpdate={handleVideoUpdate}
+      />
+    )
   ) : null;
 
   if (isLoading || hasError) return (
@@ -204,7 +214,13 @@ export default function WatchPage() {
           <div className={groupClass}>
             <div className={screenClass}>
               <div className="relative">
-                {video.id ? <YoutubePlayer ref={player} className={playerClass} videoId={video.id} start={timeOffset} autoplay lang={getYTLangFromState({ settings: { lang: app.settings.lang } })} onReady={(p) => { player.current = p; }} onCurrentTime={setCurrentTime} onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} /> : null}
+                {video.id ? (
+                  twitchChannel ? (
+                    <TwitchPlayer key={twitchChannel} channel={twitchChannel} className={playerClass} autoplay onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} />
+                  ) : (
+                    <YoutubePlayer ref={player} className={playerClass} videoId={video.id} start={timeOffset} autoplay lang={getYTLangFromState({ settings: { lang: app.settings.lang } })} onReady={(p) => { player.current = p; }} onCurrentTime={setCurrentTime} onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} />
+                  )
+                ) : null}
                 <div id={`overlay-${video.id}`} className="text-[max(1.5vw,16px)]" />
               </div>
             </div>
@@ -213,7 +229,7 @@ export default function WatchPage() {
               <WatchToolbar video={video}>
                 {!app.isMobile ? <Tooltip><TooltipTrigger render={<Toggle pressed={theater} aria-label={theaterLbl} onPressedChange={() => toggleTheater()} />}><Maximize className="size-5" /></TooltipTrigger><TooltipContent>{theaterLbl}</TooltipContent></Tooltip> : null}
                 {hasLiveTL ? <Tooltip><TooltipTrigger render={<Toggle pressed={showTL} aria-label={tlLbl} onPressedChange={setShowTL} />}><icons.TlChatIcon className="size-5" /></TooltipTrigger><TooltipContent>{tlLbl}</TooltipContent></Tooltip> : null}
-                {hasLiveChat ? <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}><icons.YtChatIcon className="size-5" /></Toggle> : null}
+                {(hasLiveChat || hasTwitchChat) ? <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}>{hasTwitchChat ? <icons.MessageSquareText className="size-5" /> : <icons.YtChatIcon className="size-5" />}</Toggle> : null}
               </WatchToolbar>
             </div>
           </div>

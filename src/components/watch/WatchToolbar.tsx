@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "@/lib/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Toggle } from "@/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChannelChip } from "@/components/channel/ChannelChip";
+import { LiveViewers } from "@/components/watch/LiveViewers";
+import { twitchLoginOf } from "@/lib/twitch-viewers";
 import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { useAppState } from "@/lib/store";
 import { useLocale, useTranslations } from "next-intl";
-import { formatCount, getKnownLiveViewerCount, getLiveViewerCount } from "@/lib/functions";
 import { elapsedLiveDuration } from "@/lib/video-format";
 import { formatDistance, formatDuration, titleTimeString } from "@/lib/time";
-import { cn } from "@/lib/utils";
 import * as icons from "@/lib/icons";
 
 export function WatchToolbar({ video, children }: { video: Record<string, any>; children?: React.ReactNode }) {
@@ -26,16 +26,14 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [elapsedTime, setElapsedTime] = useState("");
-  const [lastViewerCount, setLastViewerCount] = useState(-1);
-  const previousLiveViewers = useRef<number | undefined>(undefined);
 
   const hasSaved = app.playlist.some((item) => item.id === video.id);
   const saveLabel = hasSaved ? t("views.watch.removeFromPlaylist") : t("views.watch.saveToPlaylist");
 
-  const liveViewerCount = getLiveViewerCount(video);
-  const knownLiveViewerCount = getKnownLiveViewerCount(video);
-  const liveViewers = liveViewerCount ? formatCount(liveViewerCount, locale) : "";
-  const liveViewerChange = knownLiveViewerCount === null || lastViewerCount < 0 ? 0 : knownLiveViewerCount - lastViewerCount;
+  // YouTube ids are 11 URL-safe chars; those get the direct-from-YouTube live count. Twitch
+  // streams (twitch link/channel/type) get the direct-from-Twitch count instead.
+  const isYoutube = /^[\w-]{11}$/.test(video.id || "") && video.type !== "twitch" && !video.link?.includes?.("twitch");
+  const twitchLogin = isYoutube ? "" : twitchLoginOf(video);
 
   const timeLabel = video.status === "upcoming"
     ? formatDistance(video.start_scheduled, locale, t)
@@ -64,12 +62,6 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
     return () => clearInterval(timer);
   }, [video.status, video.start_actual]);
 
-  useEffect(() => {
-    if (knownLiveViewerCount === null) { previousLiveViewers.current = undefined; setLastViewerCount(-1); return; }
-    setLastViewerCount(previousLiveViewers.current ?? -1);
-    previousLiveViewers.current = knownLiveViewerCount;
-  }, [knownLiveViewerCount]);
-
   function toggleSaved() { if (hasSaved) app.removeFromPlaylist(video.id); else app.addToPlaylist(video); }
   const reloadVideo = () => {
     const curr = document.querySelector("[id^=\"youtube-player\"]") as HTMLIFrameElement | null;
@@ -85,16 +77,10 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
 
         {/* Stream metadata */}
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-sm text-muted-foreground">
-          {video.status === "live" && liveViewers ? (
-            <Badge variant="destructive" className="shrink-0 gap-1.5">
-              <icons.BroadcastIcon className="size-3.5" />
-              <span className="font-ibm-digits">{liveViewers}</span>
-              {liveViewerChange ? (
-                <span className={cn("font-ibm-digits", liveViewerChange > 0 ? "text-green-200" : "text-red-200")}>
-                  ({liveViewerChange > 0 ? "+" : ""}{liveViewerChange})
-                </span>
-              ) : null}
-            </Badge>
+          {video.status === "live" && isYoutube ? (
+            <LiveViewers key={video.id} platform="youtube" id={video.id} />
+          ) : video.status === "live" && twitchLogin ? (
+            <LiveViewers key={twitchLogin} platform="twitch" id={twitchLogin} />
           ) : null}
           {video.topic_id ? (
             <Badge

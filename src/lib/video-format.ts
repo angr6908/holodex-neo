@@ -171,6 +171,7 @@ export function compactVideoTime(v: any, lang: string, now = Date.now()): string
   const fmtDay = target.locale(getDayjsLocale(lang)).format("ddd");
   const dateLabel = sameYear(target, n) ? target.format("M/D") : target.format("M/D/YY");
   if (v.status === "upcoming") {
+    if (diffMs < 0) return "soon";
     if (absMs < 4 * 3_600_000) return shortDur(absMs);
     if (isSameDay(target, n)) return fmtTime;
     if (isNextDay(target, n)) return `${shortLabel("tom", lang)} ${fmtTime}`;

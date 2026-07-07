@@ -439,6 +439,7 @@
       "darkModeMsg": "Switch between light and dark mode",
       "redirectModeLabel": "Open on YouTube",
       "redirectModeMsg": "Clicking a video thumbnail opens it on YouTube. Clicking the title opens it on Holodex.",
+      "openOnHolodexLabel": "Open on Holodex",
       "useEnglishNameLabel": "English channel name",
       "useEnglishNameMsg": "Use localized English names for VTuber channels",
       "hideVideoThumbnailsLabel": "Hide video thumbnails",

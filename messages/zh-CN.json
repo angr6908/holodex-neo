@@ -438,6 +438,7 @@
       "darkModeLabel": "深色模式",
       "darkModeMsg": "设定本站要以浅色模式还是深色模式呈现",
       "redirectModeLabel": "在Youtube上打开",
+      "openOnHolodexLabel": "在Holodex上打开",
       "redirectModeMsg": "点击视频缩略图时在YouTube上打开，点击视频标题时在Holodex上打开。",
       "useEnglishNameLabel": "使用英文名称",
       "useEnglishNameMsg": "以英文显示VTuber的频道名称",

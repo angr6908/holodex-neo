@@ -69,7 +69,9 @@ const toNum = (v: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 
-export const getKnownLiveViewerCount = (v?: Record<string, any> | null) => toNum(v?.live_viewers) ?? toNum(v?.ccv);
+// Concurrent viewers come ONLY from the live platform (YouTube / Twitch), merged onto
+// videos as `_ccv`. Holodex's own live_viewers/ccv are intentionally never read.
+export const getKnownLiveViewerCount = (v?: Record<string, any> | null) => toNum(v?._ccv);
 export const getLiveViewerCount = (v?: Record<string, any> | null) => getKnownLiveViewerCount(v) ?? 0;
 export const decodeHTMLEntities = (s = "") => s.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 

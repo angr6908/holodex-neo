@@ -41,6 +41,7 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
   height?: number | string;
   width?: number | string;
   mute?: boolean;
+  autoplay?: boolean;
   refreshRate?: number;
   manualUpdate?: boolean;
   quality?: string;
@@ -61,6 +62,7 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
   height = 720,
   width = 1280,
   mute = false,
+  autoplay = false,
   refreshRate = 500,
   manualUpdate = false,
   quality = "medium",
@@ -111,7 +113,7 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
     loadTwitchScript("https://player.twitch.tv/js/embed/v1.js")
       .then(() => {
         if (cancelled) return;
-        const options: Record<string, any> = { width, height, parent: [window.location.hostname], autoplay: false };
+        const options: Record<string, any> = { width, height, parent: [window.location.hostname], autoplay };
         if (playsInline) options.playsinline = true;
         if (channel) options.channel = channel;
         else if (video) options.video = video;

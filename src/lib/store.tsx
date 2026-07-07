@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "@/lib/api";
-import { enrichLiveVideosWithTwitchViewerCounts } from "@/lib/twitch";
 import { getLang, getLiveViewerCount, getUILang, videoTemporalComparator } from "@/lib/functions";
 import { openUserMenu, readJSON, sendFavoritesToExtension, sendTokenToExtension, setCookieJWT, setLocaleCookie, writeJSON } from "@/lib/browser";
 import { APP_BOOT_COOKIE, encodeCookieJson, type AppBootState } from "@/lib/cookie-codec";
@@ -287,8 +286,9 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
     }
     setState((s) => ({ ...s, favoritesLoading: s.favoritesLive.length === 0, favoritesError: false }));
     const p = api.favoritesLive({ includePlaceholder: true }, jwt)
-      .then(async (res: any[]) => {
-        const merged = await enrichLiveVideosWithTwitchViewerCounts(res);
+      .then((res: any[]) => {
+        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+        const merged = [...res];
         merged.sort(videoTemporalComparator);
         setState((s) => ({
           ...s,
@@ -378,9 +378,10 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
       const seq = ++homeSeq.current;
       const isCurrent = () => seq === homeSeq.current;
       const p = api.allLive(orgTargets, { type: "placeholder,stream", include: "mentions" })
-        .then(async (res: any[]) => {
+        .then((res: any[]) => {
           if (!isCurrent()) return;
-          const merged = dedupeVideos(await enrichLiveVideosWithTwitchViewerCounts(res));
+          // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+          const merged = dedupeVideos(res);
           merged.sort(videoTemporalComparator);
           if (!isCurrent()) return;
           setState((s) => ({
@@ -416,7 +417,8 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
       try {
         const [fav, live] = await Promise.all([api.favorites(jwt), api.favoritesLive({ includePlaceholder: true }, jwt)]);
         setState((s) => ({ ...s, favorites: fav.data || [] }));
-        const merged = await enrichLiveVideosWithTwitchViewerCounts(live);
+        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+        const merged = [...live];
         merged.sort(videoTemporalComparator);
         setState((s) => ({ ...s, favoritesLive: merged, favoritesLastLiveUpdate: Date.now(), favoritesLoading: false, favoritesError: false }));
       } catch (e) {

@@ -15,6 +15,10 @@ export const companionExtensionId = "jkdnofimdhpbhdjbcdlgnccfjjkidlgp";
 export const MESSAGE_TYPES = Object.freeze({ TOKEN: "token", FAVORITES: "favorites" });
 export const MAX_PLAYLIST_LENGTH = 500;
 export const CACHE_TTL_MS = 60_000;
+// How long a viewer count stays usable for *display* (and persisted), separate from the
+// 60s freshness that decides a network refetch. Lets the first paint show the last-known
+// count/order from cache instead of starting blank and popping in.
+export const VIEWER_DISPLAY_TTL_MS = 10 * 60_000;
 export const ALL_VTUBERS_ORG = "All Vtubers";
 export const DEFAULT_ORG = "Hololive";
 

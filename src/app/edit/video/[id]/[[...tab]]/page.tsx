@@ -183,7 +183,6 @@ export default function EditVideoPage() {
                   if (!update?.status || !update?.start_actual) return;
                   setVideo((value: any) => ({
                     ...value,
-                    live_viewers: update.live_viewers,
                     status: update.status,
                     start_actual: typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
                   }));

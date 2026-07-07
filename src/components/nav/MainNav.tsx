@@ -49,7 +49,6 @@ import { ALL_VTUBERS_ORG, musicdexURL, TL_LANGS } from "@/lib/consts";
 import { getLiveViewerCount } from "@/lib/functions";
 import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureFavoritesVideoFetch, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache, refreshFavoritesVideoFetch, refreshHomeMultiOrgVideoFetch } from "@/lib/home-video-loader";
 import { useDomElement } from "@/lib/hooks";
-import { fetchTwitchViewerCounts, getTwitchLogin, getTwitchViewerCountFingerprint, mergeTwitchViewerCountsIntoVideos, readCachedTwitchViewerCounts } from "@/lib/twitch";
 import { cn, getBreakpoint } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
 import { readJSON, writeJSON } from "@/lib/browser";
@@ -810,7 +809,6 @@ export function ConnectedVideoList({
   const t = useTranslations();
   const [toDate, setToDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("viewers");
-  const [twCounts, setTwCounts] = useState<Record<string, number>>({});
   const prevOrgsKey = useRef<string | null>(null);
   const prevTab = useRef<number | null>(null);
   const [liveLimit, setLiveLimit] = useState(60);
@@ -853,28 +851,20 @@ export function ConnectedVideoList({
   const getLiveSrc = useCallback((): any[] =>
     hasLiveContentOverride ? liveContent || [] : (isFavPage ? app.favoritesLive : app.homeLive),
     [hasLiveContentOverride, liveContent, isFavPage, app.favoritesLive, app.homeLive]);
-  const getTwLogins = useCallback((vs: any[]) =>
-    [...new Set((vs || []).filter((v) => v?.status === "live").map(getTwitchLogin).filter((x): x is string => !!x))], []);
   const liveSource = getLiveSrc();
-  const twLogins = useMemo(() => getTwLogins(liveSource), [getTwLogins, liveSource]);
-  const cachedTwCounts = useMemo(() => readCachedTwitchViewerCounts(twLogins), [twLogins]);
-  const effectiveTwCounts = getTwitchViewerCountFingerprint(twCounts) ? twCounts : cachedTwCounts;
 
-  const live = useMemo(() => {
-    const list = mergeTwitchViewerCountsIntoVideos(liveSource, effectiveTwCounts);
-    return sortBy === "viewers" ? [...list].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : list;
-  }, [liveSource, sortBy, effectiveTwCounts]);
+  // Concurrent-viewer counts (`_ccv`) are injected into the live list server-side, straight
+  // from YouTube/Twitch, so the list arrives already sort-ready — just order by it.
+  const live = useMemo(() =>
+    sortBy === "viewers" ? [...liveSource].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : liveSource,
+  [liveSource, sortBy]);
   const lives = live.filter((v: any) => v.status === "live");
   const livesVisible = app.settings.hideLive ? [] : lives;
   const upcoming = app.settings.hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming")
     .sort((a: any, b: any) => a.available_at !== b.available_at || a.type === b.type ? 0 : a.type === "placeholder" ? 1 : -1);
-  const waitingTw = tab === HOME_TABS.LIVE_UPCOMING && sortBy === "viewers" && getLiveSrc().some((v: any) => {
-    const login = getTwitchLogin(v);
-    return v?.status === "live" && !!login && getLiveViewerCount(v) <= 0 && twCounts[login] === undefined;
-  });
   const isLoading = hasLiveContentOverride ? false : isFavPage ? app.favoritesLoading : app.homeLoading;
   const hasError = hasLiveContentOverride ? false : isFavPage ? app.favoritesError : app.homeError;
-  const showLoading = isLoading || waitingTw;
+  const showLoading = isLoading;
   const hasVisibleLiveUpcoming = livesVisible.length > 0 || upcoming.length > 0;
 
   // Only mount a capped window of live/upcoming cards, revealing more on scroll (append-only, so nothing
@@ -907,22 +897,24 @@ export function ConnectedVideoList({
     router.replace(`${pathname}${q ? `?${q}` : ""}${typeof window !== "undefined" ? window.location.hash : ""}`);
   }, [scrollMode, isActive, sp, pathname, router]);
 
+  // Keep live viewer counts fresh on a 60s cadence. Counts ride along with the list — the
+  // server injects `_ccv` from YouTube/Twitch on every fetch — so we just re-pull the live
+  // list instead of polling counts separately. The background `warm` refresher below covers
+  // the other tabs; this covers the one on screen. Paused while the tab is hidden and fires
+  // immediately on return. Overridden lists (multiview) run their own refresh.
   useEffect(() => {
-    if (!isActive || tab !== HOME_TABS.LIVE_UPCOMING) return;
-    let cancelled = false;
-    const setIfChanged = (counts: Record<string, number>) =>
-      setTwCounts((prev) => getTwitchViewerCountFingerprint(counts) !== getTwitchViewerCountFingerprint(prev) ? counts : prev);
-    const refresh = async () => {
-      const logins = getTwLogins(getLiveSrc());
-      if (!logins.length) { setIfChanged({}); return; }
-      const counts = await fetchTwitchViewerCounts(logins);
-      if (!cancelled) setIfChanged(counts);
+    if (!isActive || tab !== HOME_TABS.LIVE_UPCOMING || hasLiveContentOverride) return;
+    const refresh = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (isFavPage) app.fetchFavoritesLive({ force: true, minutes: 1 });
+      else app.fetchHomeLive({ force: true, minutes: 1 });
     };
-    setIfChanged(readCachedTwitchViewerCounts(twLogins));
-    void refresh();
     const timer = setInterval(refresh, 60_000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, [isActive, tab, getLiveSrc, getTwLogins, twLogins]);
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, tab, hasLiveContentOverride, isFavPage]);
 
   useEffect(() => {
     if (!app.hydrated) return;

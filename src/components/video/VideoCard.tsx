@@ -41,7 +41,11 @@ function TickingCompactTime({ video, lang }: { video: any; lang: string }) {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
-  return <>{compactVideoTime(video, lang, now)}</>;
+  const text = compactVideoTime(video, lang, now);
+  // Once an upcoming stream is overdue, compactVideoTime yields "soon"; accent it
+  // so the imminent state reads at a glance, coherent with how live draws the eye.
+  if (text === "soon") return <span className="font-medium text-primary">{text}</span>;
+  return <>{text}</>;
 }
 
 export function VideoCard({ video, source, fluid = false, includeChannel = false, includeAvatar = false, hideThumbnail = false, horizontal = false, colSize = 1, active = false, disableDefaultClick = false, activePlaylistItem = false, parentPlaylistId = null, denseList = false, inMultiViewSelector = false, onVideoClicked, children, action }: any) {
@@ -80,8 +84,16 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const channelName = channelDisplayName(data?.channel, app.settings.useEnglishName);
   const shouldHideThumbnail = app.settings.hideThumbnail || hideThumbnail;
   const watchLink = `/watch/${data?.id || ""}${parentPlaylistId ? `?playlist=${parentPlaylistId}` : ""}`;
-  const placeholderSourceUrl = isPlaceholder ? externalHref(data?.link || "") : "";
-  const titleHref = placeholderSourceUrl || (app.settings.redirectMode ? `https://youtu.be/${data?.id}` : watchLink);
+  // Where a click / open-in-new-tab goes. "Open on Holodex" on (redirectMode off) sends
+  // youtube videos and twitch streams to the Holodex watch page; off sends them to their
+  // source (youtu.be / twitch.tv). Other placeholders only ever have their external source.
+  const isTwitch = data?.type === "twitch" || (data?.link || "").includes("twitch");
+  const externalUrl = isPlaceholder || isTwitch
+    ? externalHref(data?.link || (isTwitch ? `twitch.tv/${data?.id}` : ""))
+    : `https://youtu.be/${data?.id}`;
+  const watchableOnHolodex = !isPlaceholder || isTwitch;
+  const openExternal = app.settings.redirectMode || !watchableOnHolodex;
+  const titleHref = openExternal ? externalUrl : watchLink;
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
   const tlLang = app.settings.liveTlLang;
   const hasTLs = (data?.status === "past" && data?.live_tl_count?.[tlLang]) || data?.recent_live_tls?.includes?.(tlLang);
@@ -110,8 +122,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   function goToVideo() {
     onVideoClicked?.(data);
     if (disableDefaultClick) return;
-    if (isPlaceholder) {
-      if (placeholderSourceUrl) window.open(placeholderSourceUrl, "_blank", "noopener");
+    if (openExternal) {
+      if (externalUrl) window.open(externalUrl, "_blank", "noopener");
       return;
     }
     setHasWatched(true);
@@ -120,12 +132,6 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   }
   function onThumbnailClicked() {
     if (disableDefaultClick) return onVideoClicked?.(data);
-    if (isPlaceholder) return goToVideo();
-    if (app.settings.redirectMode) {
-      onVideoClicked?.(data);
-      window.open(`https://youtu.be/${data.id}`, "_blank", "noopener");
-      return;
-    }
     goToVideo();
   }
   function goToChannel() {

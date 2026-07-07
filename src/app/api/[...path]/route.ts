@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { injectLiveViewerCounts } from "@/lib/server/live-viewers";
 export const runtime = "nodejs";
 const API_BASE_URL = "https://holodex.net";
 
@@ -17,6 +18,22 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const outHeaders = new Headers(upstream.headers);
   outHeaders.delete("content-encoding");
   outHeaders.delete("content-length");
+
+  // Live-list responses (`/api/v2/live`, `/api/v2/users/live`): pull concurrent viewers
+  // straight from YouTube/Twitch server-side and inject `_ccv` before handing the array to
+  // the client, so it sorts by viewers on the first paint with no extra round-trip, no
+  // count pop-in, and no reshuffle. Everything else streams through untouched.
+  const isLiveList = request.method === "GET" && path?.[path.length - 1] === "live";
+  if (isLiveList && upstream.ok && (upstream.headers.get("content-type") || "").includes("application/json")) {
+    const text = await upstream.text();
+    try {
+      const data = JSON.parse(text);
+      const injected = Array.isArray(data) ? await injectLiveViewerCounts(data) : data;
+      return Response.json(injected, { status: upstream.status, headers: outHeaders });
+    } catch {
+      return new Response(text, { status: upstream.status, statusText: upstream.statusText, headers: outHeaders });
+    }
+  }
   return new Response(upstream.body, { status: upstream.status, statusText: upstream.statusText, headers: outHeaders });
 }
 
