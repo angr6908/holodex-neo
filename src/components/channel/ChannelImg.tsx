@@ -11,6 +11,7 @@ export function channelAvatarSizeClass(size: string | number | undefined) {
   const classes: Record<number, string> = {
     24: "size-6",
     28: "size-7",
+    32: "size-8",
     36: "size-9",
     40: "size-10",
     42: "size-[42px]",

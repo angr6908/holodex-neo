@@ -205,7 +205,9 @@ export default function WatchPage() {
     cinema && "mx-auto max-w-[calc((100dvh-5rem)*16/9)] shadow-2xl",
   );
   const toolbarShellClass = cn(cinema && "mx-auto w-full max-w-[calc((100dvh-5rem)*16/9)]");
-  const sectionClass = "mt-[clamp(12px,1.4vw,18px)]";
+  // Shared vertical stack for the SectionPanel panels; px-4 matches WatchInfo's gutter so the
+  // panels align with the description card.
+  const stackClass = "flex flex-col gap-3 px-4";
   const chatClass = cn(
     "z-[1] w-full min-w-0",
     "min-[960px]:fixed min-[960px]:bottom-[clamp(12px,1.8vw,24px)] min-[960px]:right-[clamp(12px,1.8vw,24px)] min-[960px]:top-[calc(var(--nav-header-height,0px)+0.5rem)] min-[960px]:w-[clamp(320px,24vw,360px)] min-[960px]:overflow-hidden min-[960px]:rounded-xl",
@@ -269,8 +271,11 @@ export default function WatchPage() {
             </div>
           </div>
           {app.isMobile ? chatPanel : null}
-          {app.isMobile && hasComments ? <WatchComments key="comments-mobile" comments={comments} video={video} limit={5} onTimeJump={seekTo} /> : null}
-          {video?.songcount ? <WatchSideBar key="songs" video={video} className={sectionClass} showSongs showRelations={false} onTimeJump={seekTo} /> : null}
+          {app.isMobile && hasComments ? (
+            <div className={cn(stackClass, "mt-3")}>
+              <WatchComments key="comments-mobile" comments={comments} video={video} limit={5} onTimeJump={seekTo} />
+            </div>
+          ) : null}
           <WatchInfo
             key="info"
             video={video}
@@ -279,12 +284,15 @@ export default function WatchPage() {
             onTimeJump={seekTo}
             actions={youtubeLikeButton}
           />
-          {!app.isMobile && hasComments ? <WatchComments key="comments" comments={comments} video={video} limit={0} onTimeJump={seekTo} /> : null}
-          {hasRelated ? <WatchSideBar key="related" video={video} className={sectionClass} showSongs={false} showRelations onTimeJump={seekTo} /> : null}
-          {showRail ? <div className={cn(sectionClass, "flex flex-col gap-4")}>
-            {isEditor ? <WatchQuickEditor video={video} /> : null}
-            {isPlaylist ? <WatchPlaylist value={plIdx} video={video} onInput={setPlIdx} onPlayNext={({ video: next }) => { const pl = sp.get("playlist"); if (next?.id) router.push(`/watch/${next.id}${pl ? `?playlist=${pl}` : ""}`); }} /> : null}
-          </div> : null}
+          {video?.songcount || (!app.isMobile && hasComments) || hasRelated || showRail ? (
+            <div className={cn(stackClass, "pb-4")}>
+              {video?.songcount ? <WatchSideBar key="songs" video={video} showSongs showRelations={false} onTimeJump={seekTo} /> : null}
+              {!app.isMobile && hasComments ? <WatchComments key="comments" comments={comments} video={video} limit={0} onTimeJump={seekTo} /> : null}
+              {hasRelated ? <WatchSideBar key="related" video={video} showSongs={false} showRelations onTimeJump={seekTo} /> : null}
+              {isEditor ? <WatchQuickEditor video={video} /> : null}
+              {isPlaylist ? <WatchPlaylist value={plIdx} video={video} onInput={setPlIdx} onPlayNext={({ video: next }) => { const pl = sp.get("playlist"); if (next?.id) router.push(`/watch/${next.id}${pl ? `?playlist=${pl}` : ""}`); }} /> : null}
+            </div>
+          ) : null}
         </div>
       </div>
       {!app.isMobile ? chatPanel : null}

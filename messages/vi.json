@@ -131,6 +131,7 @@
       "unblock": "Bỏ chặn"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "clip",
       "simulcastsLabel": "phát sóng cùng thời điểm",
       "simulcasts": {

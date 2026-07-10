@@ -131,6 +131,7 @@
       "unblock": "Unblock"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "clips",
       "simulcastsLabel": "simulcasts",
       "simulcasts": {

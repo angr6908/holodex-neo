@@ -131,6 +131,7 @@
       "unblock": "Unbwock"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "cwips",
       "simulcastsLabel": "simuwcasts",
       "simulcasts": {

@@ -214,9 +214,12 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const durationNode = isLiveStatus && data.start_actual ? <TickingDuration video={data} t={t} /> : durationText;
   const showChannelViewers = includeChannel && isLiveStatus && !!viewerCount;
   const showViewerBadge = !includeChannel && !denseList && !horizontal && isLiveStatus && !!viewerCount;
-  const clipsCount = data.clips?.length && !isPlaceholder
-    ? t("component.videoCard.clips", { n: typeof data.clips === "object" ? data.clips.length : +data.clips })
-    : "";
+  // Count only clips in the user's selected clip languages (same filter as the watch page's
+  // clips tab); some endpoints return clips in every language.
+  const clipsInLang = !isPlaceholder && Array.isArray(data.clips)
+    ? data.clips.filter((clip: any) => clip.status !== "missing" && app.settings.clipLangs.includes(clip.lang)).length
+    : 0;
+  const clipsCount = clipsInLang ? t("component.videoCard.clips", { n: clipsInLang }) : "";
   const isFlat = horizontal || denseList;
   const articleClass = cn(
     "group relative flex cursor-pointer [&_a]:cursor-pointer [&_button]:cursor-pointer",

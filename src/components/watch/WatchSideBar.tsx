@@ -4,9 +4,12 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Timer } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { SongItem } from "@/components/media/SongItem";
+import { SectionPanel } from "@/components/common/SectionPanel";
+import { cn } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
 import { useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { useTranslations } from "next-intl";
@@ -23,7 +26,6 @@ const RELATION_KEYS = ["simulcasts", "clips", "sources", "same_source_clips", "r
 type RelationKey = (typeof RELATION_KEYS)[number];
 type RelationVideo = Record<string, any>;
 type RelatedVideos = Record<RelationKey, RelationVideo[]>;
-type HiddenSections = Record<RelationKey | "songs", boolean>;
 type WatchSideBarProps = {
   video: Record<string, any>;
   showSongs?: boolean;
@@ -36,11 +38,6 @@ type SimulcastMultiviewLink = {
   url?: string;
   error?: { reason: string; i18nParameters: Record<string, unknown> };
 };
-const sectionToggleClass = [
-  "mx-2 my-1 h-auto shrink justify-start whitespace-normal rounded-none px-0 py-0 pr-2",
-  "text-left text-xs font-normal text-muted-foreground",
-].join(" ");
-
 function readPersistedAutoLayout() {
   const saved = readJSON(MULTIVIEW_STORAGE_KEY, {} as any);
   return Array.isArray(saved.autoLayout) ? saved.autoLayout : getDesktopDefaults();
@@ -53,6 +50,7 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
   const t = useTranslations();
   const [showDetailed, setShowDetailed] = useState(false);
   const [fallbackAutoLayout] = useState(readPersistedAutoLayout);
+  const [selectedRelation, setSelectedRelation] = useState<RelationKey | null>(null);
   const related = useMemo<RelatedVideos>(() => {
     const clips = video.clips?.filter?.((x: any) => x.status !== "missing" && app.settings.clipLangs.includes(x.lang)).sort(videoTemporalComparator).reverse() || [];
     return {
@@ -64,17 +62,12 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
       refers: video.refers || [],
     };
   }, [video, app.settings.clipLangs]);
-  const [hidden, setHidden] = useState<HiddenSections>(() => ({
-    clips: false,
-    simulcasts: false,
-    sources: false,
-    recommendations: ((related.clips.length + related.sources.length + related.same_source_clips.length) >= 5),
-    songs: false,
-    same_source_clips: false,
-    refers: related.refers.length > 0 && ((related.clips.length + related.simulcasts.length) >= 3),
-  }));
   const songList = useMemo(() => video?.songs?.map((song: any) => ({ ...song, video_id: video.id, channel_id: video.channel.id, channel: video.channel })).sort((a: any, b: any) => a.start - b.start) || [], [video]);
-  const orderedRelations = showRelations ? RELATION_KEYS : [];
+  const availableRelations = showRelations ? RELATION_KEYS.filter((key) => related[key].length > 0) : [];
+  const relatedTotal = availableRelations.reduce((sum, key) => sum + related[key].length, 0);
+  // The selection survives video navigation; fall back to the first non-empty category when the
+  // selected one has no videos for the current video.
+  const activeRelation = selectedRelation && related[selectedRelation].length > 0 ? selectedRelation : availableRelations[0];
 
   const simulcastMultiviewLink = useMemo<SimulcastMultiviewLink>(() => {
     if (!related.simulcasts.length) return { ok: false, error: { reason: "noSimulcasts", i18nParameters: {} } };
@@ -100,7 +93,6 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
     return t(`component.relatedVideo.simulcasts.linkToMultiview.error.${error.reason}`, error.i18nParameters as Record<string, string | number | Date>);
   })();
 
-  function toggleExpansion(section: RelationKey | "songs") { setHidden((value) => ({ ...value, [section]: !value[section] })); }
   function relationI18N(relation: RelationKey | "songs") {
     switch (relation) {
       case "clips": return t("component.relatedVideo.clipsLabel");
@@ -117,70 +109,52 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
   const addToPlaylist = (videos: RelationVideo[]) => [...videos].filter(makeVideoFilter(app, { hideIgnoredTopics: false })).reverse().forEach((v) => app.addToPlaylist(v));
   function openSimulcastLayout() { if (simulcastMultiviewLink.ok && simulcastMultiviewLink.url) router.push(simulcastMultiviewLink.url); }
 
-  function renderSectionToggle(section: RelationKey | "songs", count: number) {
-    return (
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        className={sectionToggleClass}
-        onClick={() => toggleExpansion(section)}
-      >
-        <span>{hidden[section] ? "＋" : "－"} {count} {relationI18N(section)}</span>
-      </Button>
-    );
-  }
-
   function renderSongs() {
     if (!showSongs || !video.songcount) return null;
 
     return (
-      <>
-        <div className="relative z-[1] flex items-center gap-2 [&_*]:z-[1] [&_*]:!leading-7">
-          {renderSectionToggle("songs", video.songcount)}
-          <div className="flex-1" />
-          <Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={() => setShowDetailed((value) => !value)}>
-            <Timer className="size-4" />
-          </Button>
-          <Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={addToMusicPlaylist}>
-            <icons.Music className="size-4" />
-          </Button>
-        </div>
-
-        {!hidden.songs ? (
-          <div className="px-2 py-0">
-            <div className="w-full">
-              {songList.map((song: any, index: number) => (
-                <SongItem
-                  key={`${song.name}${song.video_id}${index}`}
-                  detailed={showDetailed}
-                  song={song}
-                  hoverIcon={icons.Play}
-                  onPlay={() => onTimeJump?.(song.start)}
-                  onPlayNow={() => onTimeJump?.(song.start)}
-                />
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </>
+      <SectionPanel
+        title={relationI18N("songs")}
+        count={video.songcount}
+        actions={
+          <>
+            <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setShowDetailed((value) => !value)}>
+              <Timer className="size-4" />
+            </Button>
+            <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={addToMusicPlaylist}>
+              <icons.Music className="size-4" />
+            </Button>
+          </>
+        }
+        contentClassName="px-2 py-1"
+      >
+        {songList.map((song: any, index: number) => (
+          <SongItem
+            key={`${song.name}${song.video_id}${index}`}
+            detailed={showDetailed}
+            song={song}
+            hoverIcon={icons.Play}
+            onPlay={() => onTimeJump?.(song.start)}
+            onPlayNow={() => onTimeJump?.(song.start)}
+          />
+        ))}
+      </SectionPanel>
     );
   }
 
-  function renderRelation(relation: RelationKey) {
-    const videos = related[relation];
-    if (!videos.length) return null;
+  function renderRelated() {
+    if (!availableRelations.length || !activeRelation) return null;
+    const activeVideos = related[activeRelation];
 
     return (
-      <div key={relation}>
-        <div className="relative z-[1] flex items-center gap-2 [&_*]:z-[1] [&_*]:!leading-7">
-          {renderSectionToggle(relation, videos.length)}
-          <div className="flex-1" />
-          {relation === "simulcasts" ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={<span className="mr-2 my-1 inline-flex h-8 w-8" />}
-              >
+      <SectionPanel
+        title={t("component.relatedVideo.title")}
+        count={relatedTotal}
+        actions={
+          <>
+            {activeRelation === "simulcasts" ? (
+              <Tooltip>
+                <TooltipTrigger render={<span className="inline-flex h-8 w-8" />}>
                   <Button
                     type="button"
                     size="icon"
@@ -191,27 +165,45 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
                   >
                     <icons.LayoutDashboard className="size-4" />
                   </Button>
-              </TooltipTrigger>
-              <TooltipContent>{simulcastTooltip}</TooltipContent>
-            </Tooltip>
-          ) : null}
-          <Button type="button" size="icon" variant="ghost" className="mr-2 my-1 h-8 w-8" onClick={() => addToPlaylist(videos)}>
-            <icons.ListPlus className="size-4" />
-          </Button>
-        </div>
-
-        {!hidden[relation] ? (
-          <VideoCardList videos={videos} horizontal includeChannel cols={{ lg: 12, md: 4, cols: 12, sm: 6 }} dense />
+                </TooltipTrigger>
+                <TooltipContent>{simulcastTooltip}</TooltipContent>
+              </Tooltip>
+            ) : null}
+            <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => addToPlaylist(activeVideos)}>
+              <icons.ListPlus className="size-4" />
+            </Button>
+          </>
+        }
+        contentClassName="flex flex-col gap-3 px-3 py-3"
+      >
+        {availableRelations.length > 1 ? (
+          <ToggleGroup
+            value={[activeRelation]}
+            size="sm"
+            onValueChange={(value) => { if (value[0]) setSelectedRelation(value[0] as RelationKey); }}
+            className="flex-wrap justify-start gap-1.5"
+          >
+            {availableRelations.map((relation) => (
+              <ToggleGroupItem key={relation} value={relation}>
+                <span className="first-letter:uppercase">{relationI18N(relation)}</span> ({related[relation].length})
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         ) : null}
-      </div>
+        <VideoCardList videos={activeVideos} includeChannel autoFill autoFitMin="13rem" />
+      </SectionPanel>
     );
   }
 
+  // The page gates on unfiltered video fields (e.g. clips before the clip-language filter), so
+  // render nothing rather than an empty stack slot when every section filtered out.
+  if (!((showSongs && video.songcount) || availableRelations.length > 0)) return null;
+
   return (
     <TooltipProvider>
-      <div className={className}>
+      <div className={cn("flex flex-col gap-3", className)}>
         {renderSongs()}
-        {orderedRelations.map(renderRelation)}
+        {renderRelated()}
       </div>
     </TooltipProvider>
   );

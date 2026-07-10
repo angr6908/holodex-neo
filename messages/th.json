@@ -131,6 +131,7 @@
       "unblock": "เลิกบล็อก"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "คลิป",
       "simulcastsLabel": "ถ่ายทอดสดร่วม",
       "simulcasts": {

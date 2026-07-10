@@ -159,6 +159,12 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    /* Reserve the scrollbar gutter so the layout doesn't jump when a tab/page transiently
+       empties the content and the window scrollbar disappears. */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-weight: 350;

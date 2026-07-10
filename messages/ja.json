@@ -131,6 +131,7 @@
       "unblock": "ブロック解除"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "切り抜き",
       "simulcastsLabel": "裏枠",
       "simulcasts": {

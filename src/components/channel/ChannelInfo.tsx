@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { channelDisplayName, channelGroup } from "@/lib/video-format";
 import * as icons from "@/lib/icons";
 
+// Identity block used in channel list rows; mirrors the avatar/name/org pattern of WatchInfo
+// and the ChannelChip hover card: medium name link, then muted meta lines with `·` separators.
 export function ChannelInfo({
   channel,
   includeSocials = false,
@@ -37,7 +39,9 @@ export function ChannelInfo({
   const subscriberCount = channel?.subscriber_count
     ? t("component.channelInfo.subscriberCount", { n: formatCount(channel.subscriber_count, app.settings.lang) })
     : t("component.channelInfo.subscriberNA");
-  const channelOrg = new URLSearchParams({ org: channel?.org || "" }).toString();
+  const orgText = channel?.org ? channel.org + (!noGroup && group ? " / " + group : "") : "";
+  const orgQS = new URLSearchParams({ org: channel?.org || "" }).toString();
+  const handle = channel?.yt_handle?.[0] || "";
 
   async function searchTopic(topicId: string) {
     router.push(await buildSearchUrl([
@@ -47,49 +51,45 @@ export function ChannelInfo({
   }
 
   return (
-    <div className={cn("min-w-0 flex-1", className)}>
-      <div className="self-start">
-        <Link href={`/channel/${channel.id}`} className="truncate no-underline">
-          {channel.inactive ? (
-            <Button variant="ghost" size="icon" className="h-[18px] w-[18px]" title={t("component.channelInfo.inactiveChannel")}>
-              <icons.GraduationCap className="h-5 w-5" />
-            </Button>
-          ) : null}
-          {channelName}
-        </Link>{" "}<br />
-        {channel.yt_handle ? (
-          <a href={`https://youtube.com/${channel.yt_handle[0]}`} target="__blank" className="text-xs font-light text-muted-foreground no-underline opacity-70 hover:opacity-100">
-            {channel.yt_handle[0]} •
-          </a>
-        ) : null}
-        <span className={channel.org ? undefined : "hidden"}>
-          <Link href={`/?${channelOrg}`} className="text-xs font-light text-muted-foreground no-underline opacity-70 hover:opacity-100">
-            {channel.org + (!noGroup && group ? " / " + group : "")}
-          </Link>
-        </span>
-      </div>
-      <div className="text-sm text-muted-foreground">
-        {!noSubscriberCount ? <span className="subscriber-count">{subscriberCount}</span> : null}
+    <div className={cn("flex min-w-0 flex-1 flex-col gap-0.5", className)}>
+      <Link href={`/channel/${channel.id}`} className="flex min-w-0 items-center gap-1.5 text-[15px] font-medium text-foreground no-underline hover:underline">
+        {channel.inactive ? <icons.GraduationCap className="size-4 shrink-0 text-muted-foreground" aria-label={t("component.channelInfo.inactiveChannel")} /> : null}
+        <span className="truncate">{channelName}</span>
+      </Link>
+
+      {(handle || orgText) ? (
+        <div className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+          {handle ? <a href={`https://youtube.com/${handle}`} target="_blank" rel="noreferrer" className="text-muted-foreground no-underline hover:text-foreground">{handle}</a> : null}
+          {handle && orgText ? <span>·</span> : null}
+          {orgText ? <Link href={`/?${orgQS}`} className="text-muted-foreground no-underline hover:text-foreground">{orgText}</Link> : null}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+        {!noSubscriberCount ? <span>{subscriberCount}</span> : null}
         {includeVideoCount ? (
           <>
-            {" • "}
-            {t("component.channelInfo.videoCount", { arg0: channel.video_count })}
+            {!noSubscriberCount ? <span>·</span> : null}
+            <span>{t("component.channelInfo.videoCount", { arg0: channel.video_count })}</span>
             {channel.clip_count > 0 ? (
-              <Link href={`/channel/${channel.id}/clips`} className="no-underline">
-                {" • "}
-                <span className="text-primary">{t("component.channelInfo.clipCount", { n: channel.clip_count })}</span>
-              </Link>
+              <>
+                <span>·</span>
+                <Link href={`/channel/${channel.id}/clips`} className="text-primary no-underline hover:underline">
+                  {t("component.channelInfo.clipCount", { n: channel.clip_count })}
+                </Link>
+              </>
             ) : null}
           </>
         ) : null}
       </div>
+
       {channel.top_topics && channel.top_topics.length ? (
-        <div className="text-sm text-muted-foreground">
-          {channel.top_topics.map((topic: string) => (
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          {channel.top_topics.slice(0, 3).map((topic: string) => (
             <Button
               key={topic}
               type="button"
-              variant="outline"
+              variant="secondary"
               size="xs"
               onClick={(event) => { event.stopPropagation(); event.preventDefault(); void searchTopic(topic); }}
             >
@@ -98,7 +98,8 @@ export function ChannelInfo({
           ))}
         </div>
       ) : null}
-      {includeSocials ? <div className="text-sm text-muted-foreground"><ChannelSocials channel={channel} /></div> : null}
+
+      {includeSocials ? <ChannelSocials channel={channel} className="mt-1" /> : null}
       {children}
     </div>
   );

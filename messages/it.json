@@ -131,6 +131,7 @@
       "unblock": "Sblocca"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "clip",
       "simulcastsLabel": "simulcast",
       "simulcasts": {

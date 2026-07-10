@@ -131,6 +131,7 @@
       "unblock": "取消屏蔽"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "剪辑",
       "simulcastsLabel": "同时联播",
       "simulcasts": {

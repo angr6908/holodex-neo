@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -104,7 +104,6 @@ export function GenericListLoader({
   const pageCacheRef = useRef<Map<number, PagePayload>>(getPageCache(cacheKey));
   const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
   const sentinel = useRef<HTMLDivElement | null>(null);
-  const randomId = useId().replace(/:/g, "");
   const t = useTranslations();
   const pages = total ? Math.ceil(total / perPage) : 1;
   const pageLessMode = total === null;
@@ -293,13 +292,11 @@ export function GenericListLoader({
       const nextUrl = `${pathname}${params.toString() ? `?${params}` : ""}${window.location.hash || ""}`;
       window.history.pushState(null, "", nextUrl);
     }
-    const jump = document.getElementById(`tjump${randomId}`);
-    if (jump) {
-      const top = Math.max(0, jump.offsetTop - 100);
-      const scroll = () => window.scrollTo({ top, left: 0, behavior: "auto" });
-      scroll();
-      requestAnimationFrame(scroll);
-    }
+    // Repeat after the next frame so the new page's (possibly shorter) content can't clamp or
+    // anchor the scroll position back down.
+    const scroll = () => window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    scroll();
+    requestAnimationFrame(scroll);
   }
   function pageHref(page: number) {
     const params = currentSearchParams();
@@ -323,7 +320,6 @@ export function GenericListLoader({
 
   return (
     <div>
-      <div id={`tjump${randomId}`} />
       {children({ data, isLoading, isFetching })}
       {infiniteLoad ? (
         <div ref={sentinel} key={identifier} className="flex min-h-[100px] justify-center py-4">

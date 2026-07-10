@@ -464,7 +464,11 @@ export function AppStateProvider({ children, initialBootState, initialHomeState 
     setWindowWidth: (v: number) => setState((s) => { if (s.windowWidth === v) return s; const n = { ...s, windowWidth: v }; if (n.hydrated) writeBootCookie(n); return n; }),
     setCurrentGridSize: (v: number) => setState((s) => ({ ...s, currentGridSize: v })),
     setCurrentOrg: (org: Org) => setState((s) => orgUpdate(s, { currentOrg: org, selectedHomeOrgs: selectedOrgsFor(s, org) })),
-    setSelectedHomeOrgs: (orgs: string[]) => setState((s) => orgUpdate(s, { selectedHomeOrgs: normSelectedOrgs(orgs) })),
+    setSelectedHomeOrgs: (orgs: string[]) => setState((s) => {
+      const selectedHomeOrgs = normSelectedOrgs(orgs);
+      if (selectedHomeOrgs.length === s.selectedHomeOrgs.length && selectedHomeOrgs.every((org, index) => org === s.selectedHomeOrgs[index])) return s;
+      return orgUpdate(s, { selectedHomeOrgs });
+    }),
     toggleSelectedHomeOrg: (org: string) => setState((s) => {
       const selectedHomeOrgs = !org || org === ALL_VTUBERS_ORG ? []
         : s.selectedHomeOrgs.includes(org) ? s.selectedHomeOrgs.filter((x) => x !== org)

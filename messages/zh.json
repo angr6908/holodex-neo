@@ -131,6 +131,7 @@
       "unblock": "解除封鎖"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "翻譯剪輯",
       "simulcastsLabel": "同時聯播",
       "simulcasts": {

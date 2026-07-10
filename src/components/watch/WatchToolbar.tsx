@@ -103,7 +103,7 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
             <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain">
               {mentions.map((mention: any, i: number) => (
                 <span key={`${mention.id ?? "m"}-${i}`} className="shrink-0">
-                  <ChannelChip channel={mention} size={28} />
+                  <ChannelChip channel={mention} size={32} />
                 </span>
               ))}
             </div>

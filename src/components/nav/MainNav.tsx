@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Calendar as CalendarIcon,
   Check,
@@ -833,6 +833,9 @@ export function ConnectedVideoList({
     if (prevOrgsKey.current === orgsKey) return;
     prevOrgsKey.current = orgsKey;
     if (!isActive || isFavPage) return;
+    // A changed org selection represents a new list. Leaving the viewport near the old
+    // list's bottom can make the new sentinel immediately pull in several pages.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     clearHomeMultiOrgVideoCache();
     if (tab === HOME_TABS.LIVE_UPCOMING) init(false);
   }, [orgsKey, isActive, isFavPage, tab]);
@@ -850,14 +853,17 @@ export function ConnectedVideoList({
   }, [tab, isActive]);
 
   // Reset the live/upcoming window when the list identity changes (tab/org/fav switch), then grow on scroll.
-  useEffect(() => { setLiveLimit(Math.max(perRow * 6, 36)); }, [cacheKey]);
+  // The initial window must extend past the observer's lookahead margin below the first viewport;
+  // otherwise the sentinel is immediately "near" and the list grows in several quick steps right
+  // after the switch, making the page height (and scrollbar) visibly jump.
+  useEffect(() => { setLiveLimit(Math.max(perRow * 10, 60)); }, [cacheKey]);
   useEffect(() => {
     if (tab !== HOME_TABS.LIVE_UPCOMING || liveLimit >= luTotal) return;
     const el = liveSentinel.current;
     if (!el) return;
     const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) setLiveLimit((l) => l + perRow * 4);
-    }, { rootMargin: "1500px 0px" });
+      if (entries[0]?.isIntersecting) setLiveLimit((l) => l + perRow * 8);
+    }, { rootMargin: "600px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [tab, perRow, cacheKey, liveLimit, luTotal]);

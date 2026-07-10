@@ -15,8 +15,8 @@ import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { SkeletonCardList } from "@/components/video/SkeletonCardList";
@@ -50,19 +50,20 @@ export default function ChannelPage() {
   }, [id]);
 
   const bp = getBreakpoint(app.windowWidth);
+  // The banner is a small fixed-size thumbnail now, so always prefer the smallest variants and
+  // keep the larger ones only as error fallbacks.
   const bannerSources = useMemo(() => {
     if (!channel.banner) return [];
     const { mobile, tablet, tv, banner } = getBannerImages(channel.banner);
-    const map: Record<string, string> = { xs: mobile, sm: tablet, xl: tv };
-    return [...new Set([map[bp] || banner, banner, tablet, mobile, tv, channel.banner].filter(Boolean))];
-  }, [channel.banner, bp]);
+    return [...new Set([mobile, tablet, banner, tv, channel.banner].filter(Boolean))];
+  }, [channel.banner]);
 
-  useEffect(() => { setBannerFailed(false); setBannerAttempt(0); }, [channel.banner, bp]);
+  useEffect(() => { setBannerFailed(false); setBannerAttempt(0); }, [channel.banner]);
 
   const bannerImage = bannerFailed ? "" : bannerSources[bannerAttempt] || "";
   const onBannerError = () => bannerAttempt < bannerSources.length - 1 ? setBannerAttempt((i) => i + 1) : setBannerFailed(true);
 
-  const avatarSize = bp === "xs" || bp === "sm" ? 48 : 72;
+  const avatarSize = bp === "xs" || bp === "sm" ? 48 : 56;
   const channelName = channelDisplayName(channel, app.settings.useEnglishName);
   const subCount = channel.subscriber_count ? t("component.channelInfo.subscriberCount", { n: formatCount(channel.subscriber_count, app.settings.lang) }) : "";
   const group = channelGroup(channel);
@@ -78,7 +79,7 @@ export default function ChannelPage() {
     : i.exact ? pathname === `/channel/${id}` || pathname === `/channel/${id}/` : pathname.startsWith(i.path);
   const visibleTabs = tabs.filter((i) => !i.hide);
   const tabBtnClass = (compact = false) =>
-    cn("h-auto cursor-pointer rounded-xl whitespace-nowrap transition", compact ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2.5 py-2 text-[0.8rem]");
+    cn("h-auto shrink-0 cursor-pointer rounded-lg whitespace-nowrap transition", compact ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2.5 py-2 text-[0.8rem]");
   const renderTabLink = (i: any, compact = false) => {
     const ext = i.path.includes("https");
     const render = ext ? <a href={i.path} target="_blank" rel="noreferrer" /> : <Link href={i.path} />;
@@ -91,33 +92,49 @@ export default function ChannelPage() {
   );
   return (
     <section className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
-        <Card className="mx-auto mt-2 aspect-[6.2/1] w-[calc(100%-1rem)] gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-none sm:m-0 sm:w-full">
-          {bannerImage ? <img key={bannerImage} src={bannerImage} className="block h-full w-full object-cover" alt="" onError={onBannerError} /> : null}
-        </Card>
-        <div className="px-3 pt-3 sm:px-5 sm:pt-4">
-          <div className="flex items-center gap-3 sm:gap-4">
+        {/* Same panel scheme as the watch page sections: card body + muted strip. */}
+        <div className="mt-2 overflow-hidden rounded-xl border border-border/60 bg-card/50">
+          <div className="flex items-center gap-3 px-3 py-2.5 sm:gap-4 sm:px-4">
             <ChannelImg size={avatarSize} channel={channel} noLink className="shrink-0" />
             <div className="min-w-0 flex-1">
-              <Link href={`/channel/${id}`} className="block truncate text-base font-semibold text-foreground no-underline sm:text-lg">
-                {channel.inactive ? <Button variant="ghost" size="icon" className="mr-1 inline-flex h-4 w-4 align-baseline" title={t("component.channelInfo.inactiveChannel")}><icons.GraduationCap className="size-3.5" /></Button> : null}
-                {channelName}
-              </Link>
-              <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground sm:text-sm">
-                {channel.yt_handle ? <a href={`https://youtube.com/${channel.yt_handle[0]}`} target="_blank" rel="noreferrer" className="text-muted-foreground no-underline hover:text-foreground">{channel.yt_handle[0]}</a> : null}
-                {channel.yt_handle && channel.org ? <span>/</span> : null}
-                {channel.org ? <Link href={`/?${orgQS}`} className="text-muted-foreground no-underline hover:text-foreground">{channel.org + (group ? " / " + group : "")}</Link> : null}
-                {subCount ? <span>{subCount}</span> : null}
-              </div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="mb-1.5 h-5 w-44 max-w-full" />
+                  <Skeleton className="h-4 w-64 max-w-full" />
+                </>
+              ) : (
+                <>
+                  <Link href={`/channel/${id}`} className="block truncate text-base font-semibold text-foreground no-underline sm:text-lg">
+                    {channel.inactive ? <Button variant="ghost" size="icon" className="mr-1 inline-flex h-4 w-4 align-baseline" title={t("component.channelInfo.inactiveChannel")}><icons.GraduationCap className="size-3.5" /></Button> : null}
+                    {channelName}
+                  </Link>
+                  <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground sm:text-sm">
+                    {channel.yt_handle ? <a href={`https://youtube.com/${channel.yt_handle[0]}`} target="_blank" rel="noreferrer" className="text-muted-foreground no-underline hover:text-foreground">{channel.yt_handle[0]}</a> : null}
+                    {channel.yt_handle && channel.org ? <span>/</span> : null}
+                    {channel.org ? <Link href={`/?${orgQS}`} className="text-muted-foreground no-underline hover:text-foreground">{channel.org + (group ? " / " + group : "")}</Link> : null}
+                    {subCount ? <span>{subCount}</span> : null}
+                  </div>
+                  <ChannelSocials channel={channel} showDelete className="mt-1.5 flex sm:hidden" />
+                </>
+              )}
             </div>
             <ChannelSocials channel={channel} showDelete className="hidden shrink-0 sm:flex" />
+            {/* Reserve the banner slot while the channel loads so the row doesn't reflow when
+                the image arrives; only bannerless channels settle the layout once. */}
+            {isLoading || bannerImage ? (
+              <div className="hidden h-14 w-[280px] shrink-0 overflow-hidden rounded-lg border border-border/60 md:block lg:h-16 lg:w-[320px]">
+                {bannerImage
+                  ? <img key={bannerImage} src={bannerImage} className="h-full w-full object-cover" alt="" onError={onBannerError} />
+                  : <Skeleton className="h-full w-full rounded-none" />}
+              </div>
+            ) : null}
           </div>
-          <ChannelSocials channel={channel} showDelete className="mt-2 flex shrink-0 sm:hidden" />
+          <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/30 px-2 py-1.5 sm:px-3">
+            <div className="no-scrollbar flex items-center gap-1 overflow-x-auto">{visibleTabs.map((i) => renderTabLink(i, true))}</div>
+            <div id="channelTabControls" className="flex shrink-0 items-center gap-1" />
+          </div>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-2 border-t border-border px-2 pt-2 sm:px-0">
-          <div className="flex flex-wrap items-center gap-1.5">{visibleTabs.map((i) => renderTabLink(i, true))}</div>
-          <div id="channelTabControls" className="flex items-center gap-1" />
-        </div>
-        <div className="channel min-h-[85vh] px-2 py-3">
+        <div className="channel min-h-[85vh] py-3">
           {tab === "about" ? <ChannelAbout channel={channel} /> : <ChannelVideos channel={channel} tab={tab} id={id} />}
         </div>
     </section>

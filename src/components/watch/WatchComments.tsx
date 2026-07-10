@@ -2,10 +2,8 @@
 
 import { useMemo, useState, type MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SectionPanel } from "@/components/common/SectionPanel";
 import { Comment } from "@/components/video/Comment";
 import { formatDuration, TIMESTAMP_REGEX, timestampToSeconds } from "@/lib/time";
 import { useTranslations } from "next-intl";
@@ -99,7 +97,6 @@ export function WatchComments({
   const t = useTranslations();
   const [currentFilter, setCurrentFilter] = useState(-1);
   const [expanded, setExpanded] = useState(false);
-  const [open, setOpen] = useState(defaultExpanded);
 
   const groupedComments = useMemo(
     () => comments.map((comment) => ({ ...comment, times: parseCommentTimes(comment.message, video.duration || 0) })),
@@ -134,46 +131,35 @@ export function WatchComments({
   }
 
   return (
-    <Card className="rounded-none p-0 shadow-none">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger render={<Button type="button" variant="ghost" className="h-auto w-full justify-between px-4 py-3 text-left" />}>
-          {t("component.watch.Comments.title")} ({comments.length})
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <Separator />
-          <div className="px-4 py-4">
-            {!hideBuckets ? (
-              <ToggleGroup
-                value={[String(currentFilter)]}
-                onValueChange={(value) => {
-                  if (value[0]) setCurrentFilter(Number(value[0]));
-                }}
-                className="mb-3 flex-wrap justify-start gap-2"
-              >
-                {buckets.map((bucket) => (
-                  <ToggleGroupItem key={bucket.time} value={String(bucket.time)} size="sm" className="text-[11px]">
-                    {bucket.display} ({bucket.count})
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            ) : null}
+    <SectionPanel title={t("component.watch.Comments.title")} count={comments.length} defaultOpen={defaultExpanded} contentClassName="px-4 py-3">
+      {!hideBuckets ? (
+        <ToggleGroup
+          value={[String(currentFilter)]}
+          size="sm"
+          onValueChange={(value) => {
+            if (value[0]) setCurrentFilter(Number(value[0]));
+          }}
+          className="mb-1 flex-wrap justify-start gap-1.5"
+        >
+          {buckets.map((bucket) => (
+            <ToggleGroupItem key={bucket.time} value={String(bucket.time)}>
+              {bucket.display} ({bucket.count})
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : null}
 
-            <Separator />
+      <div className="text-sm" onClick={handleCommentClick}>
+        {visibleComments.map((comment) => (
+          <Comment key={comment.comment_key} comment={comment} videoId={video.id || ""} />
+        ))}
+      </div>
 
-	            <div className="mt-3 text-sm" onClick={handleCommentClick}>
-              {visibleComments.map((comment) => (
-                <Comment key={comment.comment_key} comment={comment} videoId={video.id || ""} />
-              ))}
-            </div>
-
-            {shouldLimit ? (
-              <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={() => setExpanded((value) => !value)}>
-                {expanded ? t("views.app.close_btn") : t("component.description.showMore")}
-              </Button>
-            ) : null}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+      {shouldLimit ? (
+        <Button type="button" variant="ghost" size="sm" className="mt-1" onClick={() => setExpanded((value) => !value)}>
+          {expanded ? t("views.app.close_btn") : t("component.description.showMore")}
+        </Button>
+      ) : null}
+    </SectionPanel>
   );
 }

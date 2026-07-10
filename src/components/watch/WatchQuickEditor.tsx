@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { SectionPanel } from "@/components/common/SectionPanel";
 import { api } from "@/lib/api";
 import { CHANNEL_TYPES } from "@/lib/consts";
 import { useAppState } from "@/lib/store";
@@ -106,7 +107,7 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
   }
 
   return (
-    <Card className="rounded-none p-4">
+    <SectionPanel title={t("component.form.placeholder.editorBadge")} contentClassName="px-4 py-4">
       {errorMessage && showErrorAlert ? <Alert variant="destructive" className="mb-3"><AlertDescription>{errorMessage}</AlertDescription></Alert> : null}
       {successMessage && showSuccessAlert ? <Alert className="mb-3"><AlertDescription>{successMessage}</AlertDescription></Alert> : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -174,6 +175,6 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
           </Card>
         ) : null}
       </div>
-    </Card>
+    </SectionPanel>
   );
 }

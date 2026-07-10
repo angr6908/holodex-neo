@@ -46,8 +46,8 @@ export function SongItem({
   detailed = false,
   alwaysShowDeletion = false,
   showTime = false,
-  hoverIcon: HoverIcon,
-  artworkHoverIcon: ArtworkHoverIcon,
+  hoverIcon: HoverIcon = icons.Play,
+  artworkHoverIcon: ArtworkHoverIcon = icons.Play,
   color = "",
   onPlay,
   onPlayNow,
@@ -108,38 +108,25 @@ export function SongItem({
         {song.art ? (
           <img src={song.art} className="h-full w-full object-cover" alt="" />
         ) : (
-          <div className="flex h-full w-full bg-muted p-1">
-            <Button type="button" size="icon" variant="outline" className="m-auto h-8 w-8" disabled>
-              <icons.Music className="size-4" />
-            </Button>
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <icons.Music className="size-5 text-muted-foreground" />
           </div>
         )}
 
         {hover && !hoverInner ? (
-          <div className="hover-item absolute left-0 top-0 flex h-full w-full p-1">
-            <Button
-              type="button"
-              size="icon"
-              className="m-auto"
-              tabIndex={-1}
-              aria-hidden="true"
-            >
-              <HoverIcon className="size-4" />
-            </Button>
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45" aria-hidden="true">
+            <HoverIcon className="size-5 text-white drop-shadow-sm" />
           </div>
         ) : null}
 
         {onPlayNow && hoverInner ? (
-          <div className="hover-art absolute left-0 top-0 flex h-full w-full p-1">
-            <Button
-              type="button"
-              size="icon"
-              className="m-auto"
-              onClick={handlePlayNow}
-            >
-              <ArtworkHoverIcon className="size-4" />
-            </Button>
-          </div>
+          <button
+            type="button"
+            className="absolute inset-0 flex items-center justify-center bg-black/45 text-white outline-none transition-colors hover:bg-black/55 focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={handlePlayNow}
+          >
+            <ArtworkHoverIcon className="size-5 drop-shadow-sm" />
+          </button>
         ) : null}
       </ItemMedia>
 

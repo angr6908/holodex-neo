@@ -131,6 +131,7 @@
       "unblock": "Разблокировать"
     },
     "relatedVideo": {
+      "title": "Related videos",
       "clipsLabel": "клипы",
       "simulcastsLabel": "связанные стримы",
       "simulcasts": {

@@ -2,22 +2,20 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { channelAvatarSizeClass } from "@/components/channel/ChannelImg";
 import { getChannelPhoto } from "@/lib/functions";
-import { channelDisplayName } from "@/lib/video-format";
+import { channelDisplayName, channelGroup } from "@/lib/video-format";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import * as icons from "@/lib/icons";
 
 export function ChannelChip({
   channel,
   size = 60,
-  closeDelay = 250,
+  closeDelay = 100,
   children,
 }: {
   channel: Record<string, any>;
@@ -29,6 +27,8 @@ export function ChannelChip({
   const [open, setOpen] = useState(false);
   const channelName = channelDisplayName(channel, app.settings.useEnglishName);
   const photo = useMemo(() => getChannelPhoto(channel?.id), [channel?.id]);
+  const group = channelGroup(channel);
+  const orgText = channel.org ? channel.org + (group ? ` / ${group}` : "") : null;
 
   function toggleHover() {
     if (app.isMobile) setOpen((value) => !value);
@@ -36,35 +36,41 @@ export function ChannelChip({
 
   return (
     <HoverCard open={open} onOpenChange={setOpen}>
+      {/* Open slower than close so sweeping the cursor across a row of chips doesn't stack
+          multiple animating cards; only a deliberate pause opens one. */}
       <HoverCardTrigger
-        delay={0}
+        delay={200}
         closeDelay={closeDelay}
         render={
           <div
-            className={cn("relative mr-1 overflow-hidden rounded-full", channelAvatarSizeClass(size))}
+            className={cn(
+              "relative mr-1 overflow-hidden rounded-full",
+              channelAvatarSizeClass(size),
+            )}
             onClick={toggleHover}
           />
         }
       >
         <Avatar className={channelAvatarSizeClass(size)}>
           <AvatarImage src={photo} alt={`${channel.name}'s profile picture`} width={size} height={size} decoding="async" />
-
         </Avatar>
-        {children ? children({ isHover: open }) : open ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-            <Button nativeButton={false}
-              render={<Link href={`/channel/${channel.id}`} />}
-              size="icon"
-              variant="ghost"
-            >
-              <icons.LogIn className="size-5" />
-            </Button>
-          </div>
-        ) : null}
+        {children ? children({ isHover: open }) : null}
       </HoverCardTrigger>
-      <HoverCardContent align="center" sideOffset={8} className="flex max-h-12 w-auto flex-row items-baseline gap-2 overflow-hidden px-2 py-2">
-        <ChannelSocials channel={channel} vertical hideYt hideTwitter />
-        <span className="ml-2 text-sm text-foreground">{channelName}</span>
+      {/* Mirrors the channel row in WatchInfo (avatar / name link / org line, socials) at a
+          smaller scale so channel identity reads the same everywhere. */}
+      <HoverCardContent align="center" sideOffset={8} className="w-auto min-w-56 max-w-72 p-3">
+        <div className="flex items-center gap-3">
+          <Avatar className={cn("shrink-0", channelAvatarSizeClass(40))}>
+            <AvatarImage src={photo} alt="" width={40} height={40} decoding="async" />
+          </Avatar>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <Link href={`/channel/${channel.id}`} className="truncate text-sm font-medium text-foreground no-underline hover:underline">
+              {channelName}
+            </Link>
+            {orgText ? <span className="truncate text-xs text-muted-foreground">{orgText}</span> : null}
+          </div>
+        </div>
+        <ChannelSocials channel={channel} className="mt-2.5" />
       </HoverCardContent>
     </HoverCard>
   );

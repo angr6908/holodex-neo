@@ -3,9 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { Separator } from "@/components/ui/separator";
+import { SectionPanel } from "@/components/common/SectionPanel";
 import { VirtualVideoCardList } from "@/components/video/VirtualVideoCardList";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
@@ -67,26 +65,21 @@ export function WatchPlaylist({ value = 0, video, onInput, onPlayNext }: { value
   }, [value, videos, video?.id, onPlayNext]);
 
   if (!playlistId) return null;
+  if (hasError) {
+    return <div className="rounded-xl border border-border/60 bg-card/50 px-4 py-3 text-sm text-destructive">{t("component.playlist.error-loading")}</div>;
+  }
+  if (!playlist) return null;
   return (
-    <div className="mb-2">
-      <Card className="rounded-none p-0 shadow-none">
-        {playlist ? (
-          <>
-            <CardHeader className="flex items-start justify-between gap-3 px-4 py-4">
-              <div>
-	            <CardTitle>{playlist.name}</CardTitle>
-	                <CardDescription>{value + 1}/{videos.length}</CardDescription>
-              </div>
-              <Button type="button" size="icon" title={t("component.playlist.next-video")} onClick={nextVideo}>
-                <icons.ArrowLeft className="size-5 rotate-180" />
-              </Button>
-            </CardHeader>
-	            <Separator />
-            <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} />
-          </>
-        ) : null}
-	        {hasError ? <div className="px-4 py-4 text-sm text-destructive">{t("component.playlist.error-loading")}</div> : null}
-      </Card>
-    </div>
+    <SectionPanel
+      title={playlist.name}
+      meta={`${value + 1}/${videos.length}`}
+      actions={
+        <Button type="button" size="icon" variant="ghost" className="h-8 w-8" title={t("component.playlist.next-video")} onClick={nextVideo}>
+          <icons.ArrowLeft className="size-4 rotate-180" />
+        </Button>
+      }
+    >
+      <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} />
+    </SectionPanel>
   );
 }

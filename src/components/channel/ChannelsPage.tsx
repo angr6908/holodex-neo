@@ -20,14 +20,15 @@ import { cn } from "@/lib/utils";
 
 const Tabs = Object.freeze({ VTUBER: 0, SUBBER: 1, FAVORITES: 2, BLOCKED: 3 });
 const DEFAULT_SORT = "subscribers";
-const KEY = "holodex-v2-channels";
+// v3: cardView defaults flipped to grid; older stored states pinned the implicit list default.
+const KEY = "holodex-v3-channels";
 const ACTIVE_NAV_BUTTON = "bg-muted! text-foreground!";
 const NAV_SELECT_TRIGGER_CLASS = "active:translate-y-px data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 
 type SortOpt = { text: string; value: string; query_value: Record<string, any> };
 type State = { category: number; sort: Record<number, string>; cardView: Record<number, boolean> };
 
-const defaultState = (): State => ({ category: 0, sort: { 0: "subscribers", 1: "video_count", 2: "subscribers" }, cardView: { 0: false, 1: false, 2: false } });
+const defaultState = (): State => ({ category: 0, sort: { 0: "subscribers", 1: "video_count", 2: "subscribers" }, cardView: { 0: true, 1: true, 2: true } });
 const readState = (): State => ({ ...defaultState(), ...readJSON(KEY, {}) });
 
 function groupByOrg(channels: any[]) {
