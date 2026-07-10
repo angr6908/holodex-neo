@@ -33,6 +33,17 @@ const twoLineTitleStyle = {
   WebkitLineClamp: 2,
 } satisfies CSSProperties;
 
+// Renders the live elapsed-duration badge text with its own 1s ticker so the rest
+// of the card never re-renders as the clock advances.
+function TickingDuration({ video, t }: { video: any; t: any }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <>{formattedDuration(video, t, now)}</>;
+}
+
 // Renders the upcoming-stream countdown with its own ticker so the rest of the
 // card never re-renders (and never flickers) as the time updates.
 function TickingCompactTime({ video, lang }: { video: any; lang: string }) {
@@ -56,14 +67,12 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const multiviewStore = useOptionalMultiviewStore();
   const t = useTranslations();
   const lang = useLocale();
-  const [now, setNow] = useState(Date.now());
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuResetKey, setMenuResetKey] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [hasWatched, setHasWatched] = useState(() => hasWatchedSync((video || source)?.id));
   const [dragSelectionLocked, setDragSelectionLocked] = useState(false);
   const dragPreviewEl = useRef<HTMLElement | null>(null);
-  useEffect(() => { if (data?.status !== "live") return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [data?.status]);
   useEffect(() => {
     let cancelled = false;
     const initial = hasWatchedSync(data?.id);
@@ -195,12 +204,14 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     setMenuResetKey((key) => key + 1);
   }
   if (!data) return null;
-  const durationText = formattedDuration(data, t, now);
-  const compactTimeText = compactVideoTime(data, lang, now);
+  const durationText = formattedDuration(data, t);
+  const compactTimeText = compactVideoTime(data, lang);
   const absoluteTimeText = absoluteTime(data, lang);
   const viewerCount = viewerCountText(data, lang);
   const viewerLabel = viewerCount ? t("component.videoCard.watching", { arg0: viewerCount }) : "";
   const isLiveStatus = data.status === "live";
+  // Elapsed live duration ticks every second; keep the ticking inside its own child.
+  const durationNode = isLiveStatus && data.start_actual ? <TickingDuration video={data} t={t} /> : durationText;
   const showChannelViewers = includeChannel && isLiveStatus && !!viewerCount;
   const showViewerBadge = !includeChannel && !denseList && !horizontal && isLiveStatus && !!viewerCount;
   const clipsCount = data.clips?.length && !isPlaceholder
@@ -322,7 +333,7 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
               <div className="flex items-start justify-between"><div>{data.topic_id && !isClip ? <Badge variant="secondary" className="m-1.5 max-w-full truncate capitalize font-ibm">{data.topic_id}</Badge> : null}</div>{!isPlaceholder ? <Button type="button" variant="secondary" size="icon-xs" className="pointer-events-auto m-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}>{hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}</Button> : null}</div>
               <div className="flex min-w-0 items-end justify-between gap-2">
                 <div className="min-w-0 flex-1">{showViewerBadge ? <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}><BroadcastIcon className="size-3.5" />{viewerCount}</Badge> : null}</div>
-                {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationText}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationText}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
+                {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationNode}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationNode}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
               </div>
             </div>
             {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}

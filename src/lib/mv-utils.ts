@@ -1,3 +1,5 @@
+import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
+
 export type LayoutItem = { i: string; x: number; y: number; w: number; h: number; [key: string]: any };
 
 export interface Content {
@@ -18,6 +20,14 @@ const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.";
 export const sortLayout = (a, b) => a.x - b.x || a.y - b.y;
 
 export const generateContentId = () => Array.from({ length: 8 }, () => b64[Math.floor(Math.random() * b64.length)]).join("");
+
+// A Twitch-link placeholder becomes a playable twitch-typed video; other placeholders are
+// unplayable (null). Non-placeholders pass through unchanged.
+export function asTwitchVideo(v: any) {
+  if (v?.type !== "placeholder") return v;
+  const tw = v.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
+  return tw ? { ...v, id: tw, type: "twitch" } : null;
+}
 
 export function encodeLayout({ layout, contents, includeVideo = false }) {
   try {

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { useTranslations } from "next-intl";
-import { jsonpItunes, type ItunesTrack } from "@/lib/api";
+import { api, jsonpItunes, type ItunesTrack } from "@/lib/api";
 import { formatDuration } from "@/lib/time";
 import * as icons from "@/lib/icons";
 
@@ -81,44 +81,8 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
 
   async function searchMusicdex(queryStr: string): Promise<SongSearchItem[]> {
     try {
-      const searchBody = {
-        query: {
-          bool: {
-            must: [{
-              bool: {
-                must: [
-                  {
-                    multi_match: {
-                      query: queryStr,
-                      fields: ["general^3", "general.romaji^0.5", "original_artist^2", "original_artist.romaji^0.5"],
-                      type: "most_fields",
-                    },
-                  },
-                  {
-                    multi_match: {
-                      query: queryStr,
-                      fields: ["name.ngram", "name"],
-                      type: "most_fields",
-                    },
-                  },
-                ],
-              },
-            }],
-          },
-        },
-        size: 12,
-        _source: { includes: ["*"], excludes: [] },
-        from: 0,
-        sort: [{ _score: { order: "desc" } }],
-      };
-      const resp = await fetch("/api/v2/musicdex/elasticsearch/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-ndjson", Accept: "application/json, text/plain, */*" },
-        body: `{"preference":"results"}\n${JSON.stringify(searchBody)}\n`,
-      });
-      const data = await resp.json();
-
-      return data?.responses?.[0]?.hits?.hits?.map(({ _source }: any) => ({
+      const hits = await api.searchMusicdexSongs(queryStr);
+      return hits.map(({ _source }: any) => ({
         trackId: _source.itunesid,
         artistName: _source.original_artist,
         trackName: _source.name,
@@ -127,7 +91,7 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
         artworkUrl100: _source.art,
         src: "Musicdex",
         index: `Musicdex${_source.itunesid}`,
-      })) || [];
+      }));
     } catch (error) {
       console.error(error);
       return [];

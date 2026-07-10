@@ -12,7 +12,7 @@ import { useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { useTranslations } from "next-intl";
 import { musicdexURL } from "@/lib/consts";
 import { videoTemporalComparator } from "@/lib/functions";
-import { filterVideo } from "@/lib/filter-videos";
+import { makeVideoFilter } from "@/lib/filter-videos";
 import { decodeLayout, encodeLayout, getDesktopDefaults } from "@/lib/mv-utils";
 import { readJSON } from "@/lib/browser";
 import * as icons from "@/lib/icons";
@@ -114,7 +114,7 @@ export function WatchSideBar({ video, showSongs = true, showRelations = true, on
     }
   }
   function addToMusicPlaylist() { window.open(`${musicdexURL}/video/${video.id}`, "_blank"); }
-  const addToPlaylist = (videos: RelationVideo[]) => [...videos].filter((v) => filterVideo(v, app, { hideIgnoredTopics: false })).reverse().forEach((v) => app.addToPlaylist(v));
+  const addToPlaylist = (videos: RelationVideo[]) => [...videos].filter(makeVideoFilter(app, { hideIgnoredTopics: false })).reverse().forEach((v) => app.addToPlaylist(v));
   function openSimulcastLayout() { if (simulcastMultiviewLink.ok && simulcastMultiviewLink.url) router.push(simulcastMultiviewLink.url); }
 
   function renderSectionToggle(section: RelationKey | "songs", count: number) {

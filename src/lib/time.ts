@@ -25,7 +25,12 @@ import "dayjs/locale/th";
 [localizedFormat, isTomorrow, advancedFormat, utc, timezone].forEach((p) => dayjs.extend(p));
 
 const dayjsLocaleMap: Record<string, string> = { zh: "zh-tw", "zh-CN": "zh-cn", "es-ES": "es", pt: "pt-br", "lol-UWU": "en", "lol-PEKO": "en" };
-const getDayjsLocale = (l?: string) => dayjsLocaleMap[l || ""] || l || "en";
+export const getDayjsLocale = (l?: string) => dayjsLocaleMap[l || ""] || l || "en";
+
+// hh:mm:ss / mm:ss timestamps in free text (comments, descriptions)
+export const TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
+export const timestampToSeconds = (hours?: string | number | null, minutes?: string | number | null, seconds?: string | number | null) =>
+  Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0);
 
 export function formatRelativeTime(target: ReturnType<typeof dayjs>, lang?: string, now = dayjs()) {
   const diff = target.valueOf() - now.valueOf();

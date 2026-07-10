@@ -1,8 +1,7 @@
-import { dayjs, formatDistance, formatDuration, titleTimeString } from "@/lib/time";
+import { dayjs, formatDistance, formatDuration, getDayjsLocale, TIMESTAMP_REGEX, timestampToSeconds, titleTimeString } from "@/lib/time";
 import { getChannelPhoto, getLiveViewerCount, getVideoThumbnails, decodeHTMLEntities, formatCount, videoTemporalComparator } from "@/lib/functions";
-import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
+import { twitchLoginOf } from "@/lib/twitch-viewers";
 
-const TS_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
 type ThumbnailSize = "default" | "medium" | "standard" | "maxres";
 const TWITCH_HOST = "static-cdn.jtvnw.net";
 const TWITCH_SIZES: Record<ThumbnailSize, [number, number]> = {
@@ -32,11 +31,6 @@ const resizeTwitchPreview = (t: string, size: ThumbnailSize) => {
   return t.replace(/-\d+x\d+(\.jpg)(?=([?#]|$))/i, `-${w}x${h}$1`);
 };
 
-const getTwitchLogin = (v: any) => {
-  if (v?.type === "twitch" && v.id) return String(v.id);
-  return v?.link?.match?.(TWITCH_VIDEO_URL_REGEX)?.groups?.id || "";
-};
-
 const sizeForVideo = (opts: { horizontal?: boolean; colSize?: number } = {}): ThumbnailSize => {
   if (opts.horizontal) return "medium";
   const cs = opts.colSize || 1;
@@ -53,15 +47,26 @@ const thumbnailImage = (t: string, size: ThumbnailSize = "default") => {
 
 export function linkifyVideoTimestamps(message: string, videoId: string, redirectMode = false) {
   const raw = String(message || "");
-  let sanitized: string;
+  // Descriptions are plain text, not HTML. Parsing them with innerHTML/textContent (as this
+  // used to) silently deletes anything that looks like a tag — Twitch stream descriptions
+  // contain literal "<name>:" lines, so that ate the text before each colon. Decode entities
+  // via a <textarea> (RCDATA: entities decode but "<...>" is kept as text), then re-escape so
+  // brackets render literally and the description can't inject markup.
+  let text: string;
   if (typeof document !== "undefined") {
-    const d = document.createElement("div");
-    d.innerHTML = raw;
-    sanitized = d.textContent || "";
-  } else sanitized = raw.replace(/<[^>]*>/g, "");
+    const ta = document.createElement("textarea");
+    ta.innerHTML = raw;
+    text = ta.value;
+  } else text = decodeHTMLEntities(raw);
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
   const url = (redirectMode ? "https://youtu.be/" : "/watch/") + videoId;
-  return sanitized.replace(TS_REGEX, (m, hr, min, sec) => {
-    const t = Number(hr ?? 0) * 3600 + Number(min) * 60 + Number(sec);
+  return escaped.replace(TIMESTAMP_REGEX, (m, hr, min, sec) => {
+    const t = timestampToSeconds(hr, min, sec);
     return `<a class="comment-chip inline-block rounded px-0.5 py-px no-underline hover:bg-primary hover:text-primary-foreground" href="${url}?t=${t}" data-time="${t}"> ${m} </a>`;
   });
 }
@@ -78,17 +83,10 @@ export function videoImage(v: any, opts: { horizontal?: boolean; colSize?: numbe
   if (!v) return "";
   const size = sizeForVideo(opts);
   if (v.thumbnail) return thumbnailImage(v.thumbnail, size);
-  const login = getTwitchLogin(v);
+  const login = twitchLoginOf(v);
   if (login) return twitchPreviewUrl(login, size);
   if (v.type === "placeholder") return getChannelPhoto(v.channel_id || v.channel?.id);
   return getVideoThumbnails(v.id, !opts.forceJpg)[size];
-}
-
-export function formattedVideoTime(v: any, lang: string, t: any, now = Date.now()) {
-  if (!v) return "";
-  if (v.status === "upcoming") return formatDistance(v.start_scheduled || v.available_at, lang, t, false, dayjs(now));
-  if (v.status === "live") return t("component.videoCard.liveNow");
-  return formatDistance(videoDisplayTime(v), lang, t);
 }
 
 export function formattedDuration(v: any, t: any, now = Date.now()) {
@@ -111,7 +109,13 @@ function videoDisplayTime(v: any) {
   if (!v) return "";
   if (isExtendablePast(v)) {
     const t = dayjs(v.start_actual || v.available_at);
-    if (t.isValid()) return t.add(Number(v.duration), "second").toISOString();
+    if (t.isValid()) {
+      const end = t.add(Number(v.duration), "second");
+      // A bad/overlong duration can put an archived video's calculated end in
+      // the future. Show its upload time in that case; archive ordering still
+      // uses videoEndTimestamp above and therefore remains unchanged.
+      if (!end.isAfter(dayjs())) return end.toISOString();
+    }
   }
   return v.available_at || v.start_scheduled;
 }
@@ -190,7 +194,6 @@ export function compactVideoTime(v: any, lang: string, now = Date.now()): string
   return new Intl.DateTimeFormat(loc, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(target.valueOf());
 }
 
-function getDayjsLocale(lang: string) { return (lang || "en").toLowerCase(); }
 function isSameDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.format("YYYY-MM-DD"); }
 function isNextDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.add(1, "day").format("YYYY-MM-DD"); }
 function sameYear(a: any, b: any) { return a.format("YYYY") === b.format("YYYY"); }

@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { formatCount } from "@/lib/functions";
-import { fetchYoutubeViewerCounts, readLastKnownYoutubeViewerCounts } from "@/lib/youtube-viewers";
-import { fetchTwitchViewerCounts, readLastKnownTwitchViewerCounts } from "@/lib/twitch-viewers";
+import { fetchYoutubeViewerCounts, readLastKnownYoutubeViewerCounts, subscribeYoutubeViewerCounts } from "@/lib/youtube-viewers";
+import { fetchTwitchViewerCounts, readLastKnownTwitchViewerCounts, subscribeTwitchViewerCounts } from "@/lib/twitch-viewers";
 import * as icons from "@/lib/icons";
 
 const SOURCES = {
-  youtube: { seed: readLastKnownYoutubeViewerCounts, fetch: fetchYoutubeViewerCounts },
-  twitch: { seed: readLastKnownTwitchViewerCounts, fetch: fetchTwitchViewerCounts },
+  youtube: { seed: readLastKnownYoutubeViewerCounts, fetch: fetchYoutubeViewerCounts, subscribe: subscribeYoutubeViewerCounts },
+  twitch: { seed: readLastKnownTwitchViewerCounts, fetch: fetchTwitchViewerCounts, subscribe: subscribeTwitchViewerCounts },
 } as const;
 
 // Live concurrent-viewer badge for the watch page, sourced only from the platform itself
@@ -28,6 +28,10 @@ export function LiveViewers({ platform, id }: { platform: "youtube" | "twitch"; 
 
   useEffect(() => {
     alive.current = true;
+    const unsubscribe = src.subscribe((counts) => {
+      const n = counts[id];
+      if (alive.current && typeof n === "number" && n >= 0) setCount(n);
+    });
     const tick = async () => {
       if (document.visibilityState === "hidden") return;
       const counts = await src.fetch([id]);
@@ -38,7 +42,7 @@ export function LiveViewers({ platform, id }: { platform: "youtube" | "twitch"; 
     const timer = setInterval(tick, 60_000);
     const onVisible = () => { if (document.visibilityState === "visible") tick(); };
     document.addEventListener("visibilitychange", onVisible);
-    return () => { alive.current = false; clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+    return () => { alive.current = false; unsubscribe(); clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
   }, [platform, id]);
 
   if (count == null || count <= 0) return null;

@@ -121,6 +121,51 @@ export async function getTwitchViewers(logins: string[]): Promise<Record<string,
   try { return { ...out, ...(await req) }; } catch { return out; }
 }
 
+// ===================== Twitch stream info (title/category/bio) =====================
+// Holodex placeholder streams (external Twitch streams) carry an auto-generated bot
+// `description` that is internal junk, not something worth showing. The real "description"
+// for a Twitch stream lives on Twitch: the channel bio plus the current title/category.
+// Fetch it from the same public GQL endpoint used for viewer counts. Longer TTL than the
+// count — bio/category barely change during a stream.
+export type TwitchStreamInfo = { title: string; category: string; description: string };
+const TW_INFO_TTL_MS = 60_000;
+const twInfoCache = new Map<string, { at: number; value: TwitchStreamInfo | null }>();
+const twInfoInflight = new Map<string, Promise<TwitchStreamInfo | null>>();
+
+async function fetchTwitchInfo(login: string): Promise<TwitchStreamInfo | null> {
+  const query = `query HolodexTwitchStreamInfo { user(login: ${JSON.stringify(login)}) { description broadcastSettings { title } stream { game { displayName } } lastBroadcast { game { displayName } } } }`;
+  const r = await fetch("https://gql.twitch.tv/gql", {
+    method: "POST",
+    headers: { Accept: "application/json", "Client-Id": TWITCH_CLIENT_ID, "Content-Type": "application/json", Origin: "https://www.twitch.tv", Referer: "https://www.twitch.tv/" },
+    body: JSON.stringify({ query }),
+  });
+  if (!r.ok) throw new Error(`twitch ${r.status}`);
+  const payload = await r.json();
+  const user = (Array.isArray(payload) ? payload[0]?.data : payload?.data)?.user;
+  if (!user) return null;
+  const game = user.stream?.game?.displayName || user.lastBroadcast?.game?.displayName || "";
+  return {
+    title: String(user.broadcastSettings?.title ?? "").trim(),
+    category: String(game ?? "").trim(),
+    description: String(user.description ?? "").trim(),
+  };
+}
+
+export function getTwitchStreamInfo(login: string): Promise<TwitchStreamInfo | null> {
+  const l = normLogin(login);
+  if (!l) return Promise.resolve(null);
+  const hit = twInfoCache.get(l);
+  if (hit && Date.now() - hit.at < TW_INFO_TTL_MS) return Promise.resolve(hit.value);
+  const pending = twInfoInflight.get(l);
+  if (pending) return pending;
+  const p = fetchTwitchInfo(l)
+    .then((value) => { twInfoCache.set(l, { at: Date.now(), value }); return value; })
+    .catch(() => hit?.value ?? null) // keep last good value on a transient failure
+    .finally(() => twInfoInflight.delete(l));
+  twInfoInflight.set(l, p);
+  return p;
+}
+
 // ===================== id/login extraction (mirrors the client) =====================
 const isYtId = (v: unknown): v is string => typeof v === "string" && /^[\w-]{11}$/.test(v);
 

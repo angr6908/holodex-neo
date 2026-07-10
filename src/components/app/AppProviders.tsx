@@ -27,13 +27,13 @@ export function AppProviders({
   initialHomeState?: HomeUiState | null;
 }) {
   return (
-    <AppStateProvider initialBootState={initialBootState}>
+    <AppStateProvider initialBootState={initialBootState} initialHomeState={initialHomeState}>
       <LocaleRuntime />
       <DarkModeRuntime />
       <ThemeRuntime />
       <ViewportRuntime />
       <RouteQueryRuntime />
-      <AppChrome initialHomeState={initialHomeState} initialBootState={initialBootState} />
+      <AppChrome initialBootState={initialBootState} />
       {children}
     </AppStateProvider>
   );
@@ -118,14 +118,8 @@ function ViewportRuntime() {
     document.addEventListener("visibilitychange", onVis);
     return () => { if (raf != null) cancelAnimationFrame(raf); if (settle) clearTimeout(settle); document.documentElement.classList.remove("holo-resizing"); window.removeEventListener("resize", update); document.removeEventListener("visibilitychange", onVis); };
   }, []);
-  useEffect(() => { if (app.visibilityState === "visible") app.fetchFavoritesLive({ force: false, minutes: 5 }); }, [app.visibilityState, app.userdata.jwt]);
   useEffect(() => { if (!app.orgs.length) app.fetchOrgs(); }, [app.orgs.length]);
   useEffect(() => { app.loginCheck(); }, [app.userdata.jwt]);
-  useEffect(() => {
-    const timer = setInterval(() => app.fetchFavoritesLive({ force: false, minutes: 5 }), 6 * 60 * 1000);
-    const first = setTimeout(() => app.fetchFavoritesLive({ force: false, minutes: 2 }), 5000);
-    return () => { clearInterval(timer); clearTimeout(first); };
-  }, [app.userdata.jwt]);
   return null;
 }
 
@@ -196,7 +190,7 @@ function PullToRefresh() {
     const disabled = ["/watch", "/edit/video", "/multiview", "/tlclient", "/scripteditor"].some((p) => pathname.startsWith(p));
     return pullToRefresh({
       container: document.body,
-      shouldPullToRefresh: () => !window.scrollY && !disabled && !ref.current.navDrawer,
+      shouldPullToRefresh: () => !window.scrollY && !disabled,
       async refresh() {
         const r = await ref.current.reloadCurrentPage({ source: "ptr", consumed: false });
         if (!r.consumed) location.reload();
@@ -213,10 +207,8 @@ function PullToRefresh() {
 }
 
 function AppChrome({
-  initialHomeState,
   initialBootState,
 }: {
-  initialHomeState?: HomeUiState | null;
   initialBootState?: AppBootState | null;
 }) {
   const app = useAppState();
@@ -230,7 +222,7 @@ function AppChrome({
 
   return (
     <>
-      <MainNav initialHomeState={initialHomeState} initialBootState={initialBootState} />
+      <MainNav initialBootState={initialBootState} />
       <PullToRefresh />
       {showTwitter ? (
         <Alert className="fixed inset-x-3 top-20 z-40 mx-auto max-w-lg">

@@ -96,18 +96,6 @@ export function checkIOS() {
   return navigator.userAgent.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document;
 }
 
-export function forwardTransformSearchToAPIQuery(obj: any[], init: any) {
-  return (obj || []).reduceRight((req, item) => {
-    const text = String(item.text || "").trim();
-    if (item.type === "title & desc") req.conditions.push({ text });
-    else if (item.type === "comments") req.comment = [text];
-    else if (item.type === "channel") req.vch.push(item.value);
-    else if (item.type === "topic") req.topic.push(item.value);
-    else if (item.type === "org") req.org.push(item.value);
-    return req;
-  }, init);
-}
-
 export async function buildSearchUrl(query: any[]) {
   const { json2csv } = await import("json-2-csv");
   return `/search?q=${encodeURIComponent(await json2csv(query))}`;

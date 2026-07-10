@@ -15,6 +15,7 @@ import { CHANNEL_TYPES } from "@/lib/consts";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { channelDisplayName } from "@/lib/video-format";
+import { fetchTopicOptions } from "@/lib/topics";
 import * as icons from "@/lib/icons";
 
 export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
@@ -98,8 +99,7 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
   }
   async function loadTopics() {
     if (topics.length > 0) return;
-    const { data } = await api.topics();
-    setTopics((data || []).map((topic: any) => ({ value: topic.id, text: `${topic.id} (${topic.count ?? 0})` })));
+    setTopics(await fetchTopicOptions());
   }
   function saveTopic() {
     api.topicSet(newTopic, video.id, app.userdata.jwt).then(() => { setCurrentTopic(newTopic); showSuccess(t("views.editor.changeTopic.updateSuccess", { topic: newTopic || t("component.search.unset") })); }).catch((e: any) => showError((e.response?.data.message) || e.message || t("component.form.error")));

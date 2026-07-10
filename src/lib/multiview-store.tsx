@@ -25,9 +25,9 @@ const isLive = (x: Content) => x?.video?.status === "live" || x?.video?.status =
 
 const decodePreset = (p: any) => ({ ...p, ...decodeLayout(p.layout) });
 
-export function MultiviewProvider({ children, initialLayout = [], initialContent = {} }: { children: React.ReactNode; initialLayout?: LayoutItem[]; initialContent?: Record<string, Content> }) {
-  const [layout, setLayoutState] = useState<LayoutItem[]>(initialLayout);
-  const [layoutContent, setLayoutContentState] = useState<Record<string, Content>>(initialContent);
+export function MultiviewProvider({ children }: { children: React.ReactNode }) {
+  const [layout, setLayoutState] = useState<LayoutItem[]>([]);
+  const [layoutContent, setLayoutContentState] = useState<Record<string, Content>>({});
   const [presetLayout, setPresetLayout] = useState<Array<{ name: string; layout: string }>>([]);
   const [autoLayout, setAutoLayoutState] = useState<Array<string | null>>(getDesktopDefaults());
   const [ytUrlHistory, setYtUrlHistory] = useState<string[]>([]);
@@ -47,8 +47,8 @@ export function MultiviewProvider({ children, initialLayout = [], initialContent
     if (s.twUrlHistory) setTwUrlHistory(s.twUrlHistory);
     if (typeof s.muteOthers === "boolean") setMuteOthersState(s.muteOthers);
     if (s.presetLayout) setPresetLayout(s.presetLayout);
-    if (Array.isArray(s.layout) && s.layout.length && !initialLayout.length) setLayoutState(s.layout);
-    if (s.layoutContent && typeof s.layoutContent === "object" && !Object.keys(initialContent).length) setLayoutContentState(s.layoutContent);
+    if (Array.isArray(s.layout) && s.layout.length) setLayoutState(s.layout);
+    if (s.layoutContent && typeof s.layoutContent === "object") setLayoutContentState(s.layoutContent);
     initialized.current = true;
   }, []);
 

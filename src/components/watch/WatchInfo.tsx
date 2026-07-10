@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, type MouseEvent, type ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Gamepad2, TwitchIcon } from "@/lib/icons";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { TruncatedText } from "@/components/common/TruncatedText";
@@ -15,10 +17,12 @@ type WatchInfoProps = {
   video: Record<string, any>;
   actions?: ReactNode;
   noSubCount?: boolean;
+  description?: string;
+  twitchMeta?: { category?: string };
   onTimeJump?: (time: number) => void;
 };
 
-export function WatchInfo({ video, onTimeJump, noSubCount = false, actions }: WatchInfoProps) {
+export function WatchInfo({ video, onTimeJump, noSubCount = false, description, twitchMeta, actions }: WatchInfoProps) {
   const app = useAppState();
   const t = useTranslations();
   const locale = useLocale();
@@ -31,9 +35,10 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, actions }: Wa
   const subCountText = !noSubCount && ch.subscriber_count ? t("component.channelInfo.subscriberCount", { n: formatCount(ch.subscriber_count, lang) }) : null;
   const title = decodeHTMLEntities(video.jp_name ? (app.settings.useEnglishName ? video.title || video.jp_name : video.jp_name || video.title) : video.title);
 
+  const desc = description ?? video.description;
   const processedMessage = useMemo(
-    () => linkifyVideoTimestamps(video.description, video.id, app.settings.redirectMode),
-    [video.description, video.id, app.settings.redirectMode],
+    () => linkifyVideoTimestamps(desc, video.id, app.settings.redirectMode),
+    [desc, video.id, app.settings.redirectMode],
   );
 
   function handleClick(e: MouseEvent) {
@@ -85,9 +90,23 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, actions }: Wa
         )}
 
       </section>
-      <div className="px-4 pb-4 pt-[var(--pad)] text-sm text-muted-foreground" onClick={handleClick}>
-        <TruncatedText html={processedMessage} lines={4} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
-      </div>
+      {(twitchMeta || desc) ? (
+        <div className="px-4 pb-4">
+          <div className="overflow-hidden rounded-xl border border-border/60 bg-card/50">
+            {twitchMeta ? (
+              <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
+                <Badge className="gap-1 border-transparent bg-[#9146FF] text-white"><TwitchIcon />Twitch</Badge>
+                {twitchMeta.category ? <Badge variant="outline" className="gap-1"><Gamepad2 />{twitchMeta.category}</Badge> : null}
+              </div>
+            ) : null}
+            {desc ? (
+              <div className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground" onClick={handleClick}>
+                <TruncatedText html={processedMessage} lines={4} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

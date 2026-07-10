@@ -24,11 +24,11 @@ const enqueue = <T,>(fn: () => Promise<T>) => new Promise<T>((resolve, reject) =
   if (active < MAX_CONCURRENT) run(); else queue.push(run);
 });
 
-function dedupGet<T>(url: string, config?: any): Promise<T> {
+function dedupGet<T>(url: string, config?: any, force = false): Promise<T> {
   const key = url + (config ? JSON.stringify(config) : "");
   const e = cache.get(key);
-  if (e) {
-    if (Date.now() - e.ts <= CACHE_TTL_MS) return Promise.resolve(e.data);
+  if (!force && e) {
+    if (Date.now() - e.ts < CACHE_TTL_MS) return Promise.resolve(e.data);
     cache.delete(key);
   }
   const existing = inflight.get(key);
@@ -88,12 +88,12 @@ export const api = {
   channels: (q: Record<string, any> = {}) => dedupGet(`/channels?${qs(q)}`),
   videos: (q: Record<string, any> = {}) => dedupGet(`/videos?${qs(q)}`),
   videosV3: ({ org, ...q }: Record<string, any> = {}) => dedupGet<any>(`/videos?${qs({ ...(org && org !== ALL_VTUBERS_ORG ? { org } : {}), ...q })}`, { baseURL: "/api/v3" }),
-  live: ({ org, ...q }: Record<string, any> = {}) => {
+  live: ({ org, ...q }: Record<string, any> = {}, { force = false }: { force?: boolean } = {}) => {
     const scoped = org && org !== ALL_VTUBERS_ORG;
     const url = `/live?${qs({ limit: 3000, ...(scoped ? { org } : {}), ...q })}`;
     const config = { timeout: 10000 };
-    return dedupGet<any>(url, config)
-      .catch(() => dedupGet<any>(url, config))
+    return dedupGet<any>(url, config, force)
+      .catch(() => dedupGet<any>(url, config, force))
       .then((res: any) => (res.data || []).filter(isLiveInWindow));
   },
   channel: (id: string) => ax.get(`/channels/${id}`),
@@ -107,6 +107,29 @@ export const api = {
   },
   searchVideo: (q: any) => ax.post("/search/videoSearch", q, { baseURL: "/api/v3" }),
   searchChannel: (q: any) => ax.post("/search/channelSearch", q),
+  searchMusicdexSongs(query: string) {
+    const searchBody = {
+      query: {
+        bool: {
+          must: [{
+            bool: {
+              must: [
+                { multi_match: { query, fields: ["general^3", "general.romaji^0.5", "original_artist^2", "original_artist.romaji^0.5"], type: "most_fields" } },
+                { multi_match: { query, fields: ["name.ngram", "name"], type: "most_fields" } },
+              ],
+            },
+          }],
+        },
+      },
+      size: 12,
+      _source: { includes: ["*"], excludes: [] },
+      from: 0,
+      sort: [{ _score: { order: "desc" } }],
+    };
+    return ax.post("/musicdex/elasticsearch/search", `{"preference":"results"}\n${JSON.stringify(searchBody)}\n`, {
+      headers: { "Content-Type": "application/x-ndjson", Accept: "application/json, text/plain, */*" },
+    }).then((res: any) => res.data?.responses?.[0]?.hits?.hits || []);
+  },
   channelVideos: (id: string, { type = "videos", query = {} }: { type?: string; query?: Record<string, any> }) =>
     ax.get(`/channels/${id}/${type}?${qs(query)}`),
   login: (jwt: string | null, token: string, service: string) => ax.post("/user/login", { token, service }, { headers: H(jwt) }),
@@ -120,10 +143,10 @@ export const api = {
     return ax.get(`/users/live?includePlaceholder=${includePlaceholder}`, { headers: H(jwt), timeout: 20000 })
       .then((r) => r.data.filter(isLiveInWindow).filter((l: any) => l.start_actual || dayjs(l.start_scheduled).isBefore(dayjs().add(3, "w"))));
   },
-  allLive(orgs: string[] = [], q: Record<string, any> = {}) {
+  allLive(orgs: string[] = [], q: Record<string, any> = {}, opts: { force?: boolean } = {}) {
     const t = (orgs || []).filter(Boolean);
-    if (!t.length || t.includes(ALL_VTUBERS_ORG)) return api.live({ ...q });
-    return Promise.all(t.map((org) => api.live({ ...q, org }))).then((r) => r.flat());
+    if (!t.length || t.includes(ALL_VTUBERS_ORG)) return api.live({ ...q }, opts);
+    return Promise.all(t.map((org) => api.live({ ...q, org }, opts))).then((r) => r.flat());
   },
   patchFavorites: (jwt: string | null, ops: any[]) => ax.patch("/users/favorites", ops, { headers: H(jwt) }),
   topics: () => ax.get("/topics"),

@@ -1,16 +1,18 @@
 "use client";
 
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "@/lib/api";
 import { getLang, getLiveViewerCount, getUILang, videoTemporalComparator } from "@/lib/functions";
+import { primeYoutubeViewerCounts, subscribeYoutubeViewerCounts } from "@/lib/youtube-viewers";
+import { primeTwitchViewerCounts, subscribeTwitchViewerCounts, twitchLoginOf } from "@/lib/twitch-viewers";
 import { openUserMenu, readJSON, sendFavoritesToExtension, sendTokenToExtension, setCookieJWT, setLocaleCookie, writeJSON } from "@/lib/browser";
-import { APP_BOOT_COOKIE, encodeCookieJson, type AppBootState } from "@/lib/cookie-codec";
+import { APP_BOOT_COOKIE, encodeCookieJson, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS, type AppBootState, type HomeUiState } from "@/lib/cookie-codec";
 import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
 import { dedupeVideos } from "@/lib/video-format";
 type Org = { name: string; short: string; [key: string]: any };
 type Settings = {
-  lang: string; foolsLang: string; clipLangs: string[];
+  lang: string; clipLangs: string[];
   darkMode: boolean; followSystemTheme: boolean;
   defaultOpen: "home" | "favorites" | "multiview";
   redirectMode: boolean; autoplayVideo: boolean; scrollMode: boolean;
@@ -38,18 +40,33 @@ type State = {
   favoritesLoading: boolean; favoritesError: boolean; favoritesLastLiveUpdate: number;
   stagedFavorites: Record<string, string>; savedVideos: Record<string, any>;
   playlist: any[]; playlistActive: any; playlistIsSaved: boolean;
-  reportVideo: any; navDrawer: boolean; uploadPanel: boolean;
+  reportVideo: any; uploadPanel: boolean;
   visibilityState: string;
   reloadTrigger: { source?: string; consumed?: boolean; timestamp: number; defaultOpen?: string } | null;
-  firstVisit: boolean; showOrgTip: boolean; showUpdateDetails: boolean; firstVisitMugen: boolean;
-  activeSockets: number; showExtension: boolean;
-  TPCookieEnabled: number | boolean | null; TPCookieAlertDismissed: boolean;
+  homeNav: HomeUiState | null;
 };
+
+export type HomeNavState = { viewMode: "streams" | "channels"; isFavPage: boolean; tab: number };
+
+// Keep only valid fields from a persisted/cookie value; missing ones resolve to defaults.
+function sanitizeHomeNav(input?: HomeUiState | null): HomeUiState | null {
+  if (!input || typeof input !== "object") return null;
+  const out: HomeUiState = {};
+  if (input.viewMode === "channels" || input.viewMode === "streams") out.viewMode = input.viewMode;
+  if (typeof input.isFavPage === "boolean") out.isFavPage = input.isFavPage;
+  if (typeof input.tab === "number" && input.tab >= 0 && input.tab <= 2) out.tab = input.tab;
+  return out;
+}
+
+const resolveHomeNav = (s: State): HomeNavState => ({
+  viewMode: s.homeNav?.viewMode ?? "streams",
+  isFavPage: s.homeNav?.isFavPage ?? s.settings.defaultOpen === "favorites",
+  tab: s.homeNav?.tab ?? HOME_TABS.LIVE_UPCOMING,
+});
 
 function normalizeSettings(input: Partial<Settings> = {}): Settings {
   return {
     lang: getUILang(input.lang),
-    foolsLang: input.foolsLang || "",
     clipLangs: input.clipLangs?.length ? input.clipLangs : ["en"],
     darkMode: input.darkMode ?? true,
     followSystemTheme: input.followSystemTheme ?? false,
@@ -107,11 +124,9 @@ const defaultState: State = {
   favorites: [], favoritesLive: [], favoritesLoading: false, favoritesError: false, favoritesLastLiveUpdate: 0,
   stagedFavorites: {}, savedVideos: {},
   playlist: [], playlistActive: emptyPlaylist(), playlistIsSaved: false,
-  reportVideo: null, navDrawer: false, uploadPanel: false,
+  reportVideo: null, uploadPanel: false,
   visibilityState: "visible", reloadTrigger: null,
-  firstVisit: true, showOrgTip: true, showUpdateDetails: false, firstVisitMugen: true,
-  activeSockets: 0, showExtension: false,
-  TPCookieEnabled: null, TPCookieAlertDismissed: false,
+  homeNav: null,
 };
 
 const StoreContext = createContext<any>(null);
@@ -119,10 +134,8 @@ const StoreContext = createContext<any>(null);
 const KEYS = { SETTINGS: "holodex-v2-settings", APP: "holodex-v2-app", ORGS: "holodex-v2-orgs", HOME: "holodex-v2-home", FAVS: "holodex-v2-favorites", LIB: "holodex-v2-library", PLAYLIST: "holodex-v2-playlist" };
 
 const appPersist = (s: State) => ({
-  firstVisit: s.firstVisit, showOrgTip: s.showOrgTip, showUpdateDetails: s.showUpdateDetails, firstVisitMugen: s.firstVisitMugen,
   userdata: s.userdata, currentOrg: s.currentOrg, selectedHomeOrgs: s.selectedHomeOrgs,
   orgFavorites: s.orgFavorites, currentGridSize: s.currentGridSize,
-  TPCookieEnabled: s.TPCookieEnabled, TPCookieAlertDismissed: s.TPCookieAlertDismissed,
 });
 
 const normSelectedOrgs = (orgs: string[]) => [...new Set((orgs || []).filter((n) => n && n !== ALL_VTUBERS_ORG))];
@@ -157,10 +170,11 @@ function writeBootCookie(s: State) {
   setLocaleCookie(s.settings.lang);
 }
 
-function buildBootState(boot?: AppBootState | null): State {
+function buildBootState(boot?: AppBootState | null, homeBoot?: HomeUiState | null): State {
   const selectedHomeOrgs = boot?.selectedHomeOrgs?.filter(Boolean) ?? defaultState.selectedHomeOrgs;
   return {
     ...defaultState,
+    homeNav: sanitizeHomeNav(homeBoot),
     isMobile: boot?.isMobile ?? defaultState.isMobile,
     windowWidth: boot?.windowWidth ?? defaultState.windowWidth,
     settings: normalizeSettings({ ...defaultState.settings, ...(boot?.settings || {}) }),
@@ -194,12 +208,7 @@ function loadPersisted(base: State): State {
     selectedHomeOrgs,
     orgFavorites: app.orgFavorites || base.orgFavorites,
     userdata: app.userdata || base.userdata,
-    firstVisit: app.firstVisit ?? base.firstVisit,
-    showOrgTip: app.showOrgTip ?? base.showOrgTip,
-    showUpdateDetails: app.showUpdateDetails ?? base.showUpdateDetails,
-    firstVisitMugen: app.firstVisitMugen ?? base.firstVisitMugen,
-    TPCookieEnabled: app.TPCookieEnabled ?? base.TPCookieEnabled,
-    TPCookieAlertDismissed: app.TPCookieAlertDismissed ?? base.TPCookieAlertDismissed,
+    homeNav: sanitizeHomeNav(readJSON(HOME_STATE_STORAGE_KEY, null)) ?? base.homeNav,
     orgs: orgs.orgs || [],
     homeLive: home.live || [],
     homeLoading: !(home.live || []).length,
@@ -217,15 +226,44 @@ function loadPersisted(base: State): State {
 }
 
 const liveFingerprint = (arr: any[]) => (arr || []).map((v) => `${v.id}:${v.status}:${getLiveViewerCount(v)}`).join(",");
+const youtubeIdOf = (v: any) => v?.status === "live" && v?.type !== "placeholder" && !v?.link?.includes?.("twitch") && /^[\w-]{11}$/.test(v?.id) ? v.id as string : null;
 
-export function AppStateProvider({ children, initialBootState }: { children: React.ReactNode; initialBootState?: AppBootState | null }) {
-  const [state, setState] = useState<State>(() => buildBootState(initialBootState));
+const mergeViewerCounts = (videos: any[], youtube: Record<string, number> = {}, twitch: Record<string, number> = {}) => {
+  let changed = false;
+  const next = videos.map((video) => {
+    const key = youtubeIdOf(video);
+    const login = key ? null : twitchLoginOf(video);
+    const count = key ? youtube[key] : login ? twitch[login] : undefined;
+    if (typeof count !== "number" || count < 0 || count === video._ccv) return video;
+    changed = true;
+    return { ...video, _ccv: count };
+  });
+  return changed ? next : videos;
+};
+
+const primeLiveViewerCounts = (videos: any[]) => {
+  const youtube: Record<string, number> = {};
+  const twitch: Record<string, number> = {};
+  videos.forEach((video) => {
+    if (typeof video?._ccv !== "number" || video._ccv < 0) return;
+    const id = youtubeIdOf(video);
+    const login = id ? "" : twitchLoginOf(video);
+    if (id) youtube[id] = video._ccv;
+    else if (login) twitch[login] = video._ccv;
+  });
+  primeYoutubeViewerCounts(youtube);
+  primeTwitchViewerCounts(twitch);
+};
+
+export function AppStateProvider({ children, initialBootState, initialHomeState }: { children: React.ReactNode; initialBootState?: AppBootState | null; initialHomeState?: HomeUiState | null }) {
+  const [state, setState] = useState<State>(() => buildBootState(initialBootState, initialHomeState));
   const stateRef = useRef(state);
   const homeInflight = useRef<Promise<void> | null>(null);
   const favsInflight = useRef<Promise<void> | null>(null);
   const favTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const homeSeq = useRef(0);
   const orgsInflight = useRef<Promise<any[]> | null>(null);
+  const livePollFocus = useRef<"home" | "favorites" | null>(null);
 
   useLayoutEffect(() => { stateRef.current = state; }, [state]);
   useEffect(() => () => { if (favTimer.current) clearTimeout(favTimer.current); }, []);
@@ -240,22 +278,30 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
 
   const { hydrated } = state;
   useEffect(() => { if (hydrated) { writeJSON(KEYS.SETTINGS, state.settings); writeBootCookie(state); } }, [hydrated, state.settings]);
-  useEffect(() => { if (hydrated) { writeJSON(KEYS.APP, appPersist(state)); writeBootCookie(state); } }, [hydrated, state.firstVisit, state.showOrgTip, state.showUpdateDetails, state.firstVisitMugen, state.currentOrg, state.selectedHomeOrgs, state.orgFavorites, state.currentGridSize, state.userdata, state.TPCookieEnabled, state.TPCookieAlertDismissed]);
+  useEffect(() => { if (hydrated) { writeJSON(KEYS.APP, appPersist(state)); writeBootCookie(state); } }, [hydrated, state.currentOrg, state.selectedHomeOrgs, state.orgFavorites, state.currentGridSize, state.userdata]);
   useEffect(() => { if (hydrated) writeBootCookie(state); }, [hydrated, state.isMobile, state.windowWidth]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.ORGS, { orgs: state.orgs }); }, [hydrated, state.orgs]);
+  // Deliberately not keyed on the lastLiveUpdate timestamps: they bump on every poll even when
+  // the list is unchanged, and serializing the full live arrays each time is the expensive part.
   useEffect(() => {
     if (hydrated) {
       writeJSON(KEYS.HOME, { live: state.homeLive, lastLiveUpdate: state.homeLastLiveUpdate, liveCacheKey: state.homeLiveCacheKey });
       writeBootCookie(state);
     }
-  }, [hydrated, state.homeLive, state.homeLastLiveUpdate, state.homeLiveCacheKey]);
+  }, [hydrated, state.homeLive, state.homeLiveCacheKey]);
   useEffect(() => {
     if (hydrated) {
       writeJSON(KEYS.FAVS, { favorites: state.favorites, live: state.favoritesLive, lastLiveUpdate: state.favoritesLastLiveUpdate });
       writeBootCookie(state);
     }
-  }, [hydrated, state.favorites, state.favoritesLive, state.favoritesLastLiveUpdate]);
+  }, [hydrated, state.favorites, state.favoritesLive]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.LIB, { savedVideos: state.savedVideos }); }, [hydrated, state.savedVideos]);
+  useEffect(() => {
+    if (!hydrated || !state.homeNav) return;
+    writeJSON(HOME_STATE_STORAGE_KEY, state.homeNav);
+    const enc = encodeCookieJson(state.homeNav);
+    if (enc && typeof document !== "undefined") document.cookie = `${HOME_STATE_COOKIE}=${enc}; Path=/; SameSite=Lax`;
+  }, [hydrated, state.homeNav]);
   useEffect(() => { if (hydrated) writeJSON(KEYS.PLAYLIST, { active: { ...state.playlistActive, videos: state.playlist }, isSaved: state.playlistIsSaved }); }, [hydrated, state.playlist, state.playlistActive, state.playlistIsSaved]);
 
   const orgUpdate = (s: State, patch: Partial<State>): State => ({ ...s, ...patch, homeLastLiveUpdate: 0 });
@@ -274,10 +320,12 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
     setState((s) => ({ ...s, ...reset }));
   };
 
+  const pageHidden = () => typeof document !== "undefined" && document.visibilityState === "hidden";
+
   const fetchFavoritesLive = (opts: { force?: boolean; minutes?: number } = {}) => {
     const current = stateRef.current;
     const { jwt } = current.userdata;
-    if (!jwt || (current.visibilityState === "hidden" && !opts.force)) return null;
+    if (!jwt || (pageHidden() && !opts.force)) return null;
     if (favsInflight.current) return favsInflight.current;
     const { force = false, minutes = 2 } = opts;
     if (!current.favoritesError && !force && current.favoritesLastLiveUpdate && Date.now() - current.favoritesLastLiveUpdate <= minutes * 60_000) {
@@ -290,6 +338,7 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
         // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
         const merged = [...res];
         merged.sort(videoTemporalComparator);
+        primeLiveViewerCounts(merged);
         setState((s) => ({
           ...s,
           favoritesLive: liveFingerprint(merged) !== liveFingerprint(s.favoritesLive) ? merged : s.favoritesLive,
@@ -302,14 +351,105 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
     return p;
   };
 
-  const favoriteChannelIDs = new Set(state.favorites.map((f) => f.id));
+  const fetchHomeLive = (opts: { force?: boolean; minutes?: number } = {}) => {
+    const current = stateRef.current;
+    if (pageHidden() && !opts.force) return null;
+    const { force = false, minutes = 5 } = opts;
+    const orgTargets = current.selectedHomeOrgs.length ? current.selectedHomeOrgs : [ALL_VTUBERS_ORG];
+    const nextKey = liveCacheKey(orgTargets);
+    const cacheChanged = current.homeLiveCacheKey !== nextKey;
+    if (homeInflight.current && !cacheChanged) return homeInflight.current;
+    const lastUpdate = cacheChanged ? 0 : current.homeLastLiveUpdate;
+    if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !current.homeError) return null;
+    setState((s) => ({
+      ...s,
+      homeLive: cacheChanged ? [] : s.homeLive,
+      homeLastLiveUpdate: cacheChanged ? 0 : s.homeLastLiveUpdate,
+      homeLiveCacheKey: nextKey,
+      homeLoading: cacheChanged || s.homeLive.length === 0,
+      homeError: false,
+    }));
+    const seq = ++homeSeq.current;
+    const isCurrent = () => seq === homeSeq.current;
+    const p = api.allLive(orgTargets, { type: "placeholder,stream", include: "mentions" }, { force })
+      .then((res: any[]) => {
+        if (!isCurrent()) return;
+        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+        const merged = dedupeVideos(res);
+        merged.sort(videoTemporalComparator);
+        primeLiveViewerCounts(merged);
+        if (!isCurrent()) return;
+        setState((s) => ({
+          ...s,
+          homeLive: liveFingerprint(merged) !== liveFingerprint(s.homeLive) ? merged : s.homeLive,
+          homeLastLiveUpdate: Date.now(), homeLoading: false, homeError: false,
+        }));
+      })
+      .catch((e) => { if (!isCurrent()) return; console.error(e); setState((s) => ({ ...s, homeError: true, homeLoading: false })); })
+      .finally(() => { if (isCurrent()) homeInflight.current = null; });
+    homeInflight.current = p;
+    return p;
+  };
+
+  // Single owner of the live-list poll cadence. The focused list is fully refreshed every
+  // 60s; its injected counts also prime the shared watch/card CCV cache, avoiding a second
+  // platform-count request. Background lists retain the lighter 5m cadence.
+  useEffect(() => {
+    if (!hydrated) return;
+    const tick = () => {
+      if (pageHidden()) return;
+      const focus = livePollFocus.current;
+      fetchHomeLive(focus === "home" ? { force: true, minutes: 1 } : { minutes: 5 });
+      fetchFavoritesLive(focus === "favorites" ? { force: true, minutes: 1 } : { minutes: 5 });
+    };
+    const timer = setInterval(tick, 60_000);
+    const first = setTimeout(() => fetchFavoritesLive({ minutes: 2 }), 5000);
+    const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(timer); clearTimeout(first); document.removeEventListener("visibilitychange", onVisible); };
+    // Re-arm on login/logout so favorites are fetched promptly after a login.
+  }, [hydrated, state.userdata.jwt]);
+
+  // A count fetched by either surface is authoritative for both mounted card lists too.
+  // This closes the timing gap between a watch-page poll and the central list poll.
+  useEffect(() => {
+    if (!hydrated) return;
+    const applyYoutube = (counts: Record<string, number>) => setState((s) => ({
+      ...s,
+      homeLive: mergeViewerCounts(s.homeLive, counts),
+      favoritesLive: mergeViewerCounts(s.favoritesLive, counts),
+    }));
+    const applyTwitch = (counts: Record<string, number>) => setState((s) => ({
+      ...s,
+      homeLive: mergeViewerCounts(s.homeLive, {}, counts),
+      favoritesLive: mergeViewerCounts(s.favoritesLive, {}, counts),
+    }));
+    const unsubscribeYoutube = subscribeYoutubeViewerCounts(applyYoutube);
+    const unsubscribeTwitch = subscribeTwitchViewerCounts(applyTwitch);
+    return () => { unsubscribeYoutube(); unsubscribeTwitch(); };
+  }, [hydrated]);
+
+  const homeNav = useMemo(() => resolveHomeNav(state), [state.homeNav, state.settings.defaultOpen]);
+
+  const favoriteChannelIDs = useMemo(() => new Set(state.favorites.map((f) => f.id)), [state.favorites]);
+  const blockedChannelIDs = useMemo(() => new Set(state.settings.blockedChannels.map((x: any) => x.id).filter(Boolean)), [state.settings.blockedChannels]);
+  const ignoredTopicsSet = useMemo(() => new Set(state.settings.ignoredTopics || []), [state.settings.ignoredTopics]);
   const store = {
     ...state,
     isLoggedIn: !!state.userdata.jwt,
     isSuperuser: ["admin", "editor"].includes(state.userdata.user?.role),
     favoriteChannelIDs,
-    blockedChannelIDs: new Set(state.settings.blockedChannels.map((x: any) => x.id).filter(Boolean)),
-    ignoredTopicsSet: new Set(state.settings.ignoredTopics || []),
+    blockedChannelIDs,
+    ignoredTopicsSet,
+    homeNav,
+    setHomeNav: (patch: HomeUiState) => setState((s) => {
+      const cur = resolveHomeNav(s);
+      const next = { ...cur, ...(sanitizeHomeNav(patch) || {}) };
+      if (s.homeNav && next.viewMode === cur.viewMode && next.isFavPage === cur.isFavPage && next.tab === cur.tab) return s;
+      return { ...s, homeNav: next };
+    }),
+    // The on-screen live list registers itself so the central poll refreshes its CCV batch.
+    setLivePollFocus: (target: "home" | "favorites" | null) => { livePollFocus.current = target; },
     isFavorited: (id: string) =>
       state.stagedFavorites[id] === "add" || (favoriteChannelIDs.has(id) && state.stagedFavorites[id] !== "remove"),
 
@@ -357,44 +497,7 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
       } catch { return []; }
     },
 
-    fetchHomeLive: (opts: { force?: boolean; minutes?: number } = {}) => {
-      const current = stateRef.current;
-      if (current.visibilityState === "hidden" && !opts.force) return null;
-      const { force = false, minutes = 5 } = opts;
-      const orgTargets = current.selectedHomeOrgs.length ? current.selectedHomeOrgs : [ALL_VTUBERS_ORG];
-      const nextKey = liveCacheKey(orgTargets);
-      const cacheChanged = current.homeLiveCacheKey !== nextKey;
-      if (homeInflight.current && !cacheChanged) return homeInflight.current;
-      const lastUpdate = cacheChanged ? 0 : current.homeLastLiveUpdate;
-      if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !current.homeError) return null;
-      setState((s) => ({
-        ...s,
-        homeLive: cacheChanged ? [] : s.homeLive,
-        homeLastLiveUpdate: cacheChanged ? 0 : s.homeLastLiveUpdate,
-        homeLiveCacheKey: nextKey,
-        homeLoading: cacheChanged || s.homeLive.length === 0,
-        homeError: false,
-      }));
-      const seq = ++homeSeq.current;
-      const isCurrent = () => seq === homeSeq.current;
-      const p = api.allLive(orgTargets, { type: "placeholder,stream", include: "mentions" })
-        .then((res: any[]) => {
-          if (!isCurrent()) return;
-          // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
-          const merged = dedupeVideos(res);
-          merged.sort(videoTemporalComparator);
-          if (!isCurrent()) return;
-          setState((s) => ({
-            ...s,
-            homeLive: liveFingerprint(merged) !== liveFingerprint(s.homeLive) ? merged : s.homeLive,
-            homeLastLiveUpdate: Date.now(), homeLoading: false, homeError: false,
-          }));
-        })
-        .catch((e) => { if (!isCurrent()) return; console.error(e); setState((s) => ({ ...s, homeError: true, homeLoading: false })); })
-        .finally(() => { if (isCurrent()) homeInflight.current = null; });
-      homeInflight.current = p;
-      return p;
-    },
+    fetchHomeLive,
 
     fetchFavorites: () => {
       if (!state.userdata.jwt) return null;
@@ -500,7 +603,6 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
     },
 
     setReportVideo: (v: any) => setState((s) => ({ ...s, reportVideo: v })),
-    setNavDrawer: (v: boolean) => setState((s) => ({ ...s, navDrawer: v })),
     setUploadPanel: (v: boolean) => setState((s) => ({ ...s, uploadPanel: v })),
 
     loginCheck: async () => {
@@ -534,7 +636,6 @@ export function AppStateProvider({ children, initialBootState }: { children: Rea
       setState((s) => ({ ...s, reloadTrigger: { ...(consumed || {}), timestamp: Date.now() } }));
       return consumed;
     },
-    setShowUpdatesDetail: (v: boolean) => setState((s) => ({ ...s, showUpdateDetails: v })),
   };
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

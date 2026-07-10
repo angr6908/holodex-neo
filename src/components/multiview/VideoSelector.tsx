@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronLeft, CircleUser, Heart, Link, ListPlus, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
-import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
+import { ALL_VTUBERS_ORG, DEFAULT_ORG, TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
 import { dayjs, formatDurationShort } from "@/lib/time";
-import { filterVideo } from "@/lib/filter-videos";
+import { makeVideoFilter } from "@/lib/filter-videos";
 import { formatOrgDisplayName, getVideoIDFromUrl, videoTemporalComparator } from "@/lib/functions";
 import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
 import { ChannelImg } from "@/components/channel/ChannelImg";
@@ -26,6 +26,14 @@ import { useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { readJSON, writeJSON, openUserMenu } from "@/lib/browser";
 import { cn } from "@/lib/utils";
 
+function submitVideoUrl(url: string, store: any, onSuccess?: (content: any) => void) {
+  const content = getVideoIDFromUrl(url) as any;
+  if (!content?.id) return false;
+  store?.addUrlHistory({ twitch: content.type === "twitch", url });
+  onSuccess?.(content);
+  return true;
+}
+
 function MvUrlInput({ className = "", onSuccess }: { className?: string; onSuccess?: (content: any) => void }) {
   const t = useTranslations();
   const store = useOptionalMultiviewStore();
@@ -38,11 +46,7 @@ function MvUrlInput({ className = "", onSuccess }: { className?: string; onSucce
   const collapse = () => { setExpanded(false); setUrl(""); setHasError(false); };
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const content = getVideoIDFromUrl(url) as any;
-    if (!content?.id) { setHasError(true); return; }
-    setHasError(false);
-    store?.addUrlHistory({ twitch: content.type === "twitch", url });
-    onSuccess?.(content);
+    if (!submitVideoUrl(url, store, onSuccess)) { setHasError(true); return; }
     collapse();
   }
   return (
@@ -70,14 +74,13 @@ function MvUrlInput({ className = "", onSuccess }: { className?: string; onSucce
   );
 }
 
-function CustomUrlField({ twitch = false, slim = false, onSuccess }: { twitch?: boolean; slim?: boolean; onSuccess?: (content: any) => void }) {
+function CustomUrlField({ twitch = false, onSuccess }: { twitch?: boolean; onSuccess?: (content: any) => void }) {
   const t = useTranslations();
   const store = useOptionalMultiviewStore();
   const [url, setUrl] = useState("");
   const [error, setError] = useState(false);
   const localKey = twitch ? "holodex-v2-multiview-tw-url-history" : "holodex-v2-multiview-yt-url-history";
   const [localHistory, setLocalHistory] = useState<string[]>([]);
-  const hint = twitch ? "https://www.twitch.tv/..." : "https://www.youtube.com/watch?v=...";
   const label = twitch ? t("views.multiview.video.twitchChannelLink") : t("views.multiview.video.youtubeVideoLink");
   const history = useMemo(() => [...(store ? (twitch ? store.twUrlHistory : store.ytUrlHistory) : localHistory)].reverse(), [store, twitch, localHistory]);
   useEffect(() => { if (!store) setLocalHistory(readJSON(localKey, [] as string[])); }, [store, localKey]);
@@ -107,7 +110,7 @@ function CustomUrlField({ twitch = false, slim = false, onSuccess }: { twitch?: 
         onInputValueChange={(value) => { setUrl(value); if (error) setError(false); }}
         onValueChange={(value) => { setUrl(value || ""); if (error) setError(false); }}
       >
-        <ComboboxInput placeholder={slim ? hint : label} aria-invalid={error} showClear={!!url} />
+        <ComboboxInput placeholder={label} aria-invalid={error} showClear={!!url} />
         <ComboboxContent>
           <ComboboxEmpty>{t("views.multiview.video.noHistory")}</ComboboxEmpty>
           <ComboboxList>
@@ -133,7 +136,7 @@ function makeMultiOrgTab(names: string[], selectedCountLabel: (count: number) =>
   return { name: "MultiOrg", text: makeMultiOrgLabel(names, selectedCountLabel), orgNames: [...names] };
 }
 
-export function VideoSelector({ horizontal = false, embedded = false, isActive = true, compact = false, hideOrgSelector = false, hideFavorites = false, hidePlaylist = false, hideUrlInput = false, hidePlaceholder, hideMissing, activeVideos: activeVideosOverride, onVideoClicked }: { horizontal?: boolean; embedded?: boolean; isActive?: boolean; compact?: boolean; hideOrgSelector?: boolean; hideFavorites?: boolean; hidePlaylist?: boolean; hideUrlInput?: boolean; hidePlaceholder?: boolean; hideMissing?: boolean; activeVideos?: any[]; onVideoClicked?: (video: any) => void }) {
+export function VideoSelector({ horizontal = false, embedded = false, isActive = true, compact = false, hideOrgSelector = false, hideFavorites = false, hidePlaylist = false, hideUrlInput = false, hideMissing, activeVideos: activeVideosOverride, onVideoClicked }: { horizontal?: boolean; embedded?: boolean; isActive?: boolean; compact?: boolean; hideOrgSelector?: boolean; hideFavorites?: boolean; hidePlaylist?: boolean; hideUrlInput?: boolean; hideMissing?: boolean; activeVideos?: any[]; onVideoClicked?: (video: any) => void }) {
   const t = useTranslations();
   const app = useAppState();
   const selectedCountLabel = useCallback(
@@ -185,12 +188,7 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
     return selectedHomeOrgs;
   }, [selectedOrg, selectedHomeOrgsKey, isAllVtubers, isRealOrg]);
 
-  const selectedOrgNames = useMemo(() => {
-    if (selectedOrg?.name === ALL_VTUBERS_ORG) return [];
-    if (selectedOrg?.name === "MultiOrg") return selectedOrg.orgNames?.length ? selectedOrg.orgNames : selectedHomeOrgs.length ? selectedHomeOrgs : [app.currentOrg?.name || DEFAULT_ORG];
-    if (isRealOrg) return [selectedOrg.name];
-    return [];
-  }, [selectedOrg, selectedHomeOrgsKey, app.currentOrg?.name, isRealOrg]);
+  const selectedOrgNames = useMemo(() => orgNamesForSelection(selectedOrg), [selectedOrg, selectedHomeOrgsKey, app.currentOrg?.name]);
 
   const shouldHideCollabs = (selectedOrg?.name === "Favorites" || isRealOrg || isMultiOrg) && app.settings.hideCollabStreams;
   const connectedListOrgTargets = isMultiOrg ? selectedOrgNames : isRealOrg ? [selectedOrg.name] : null;
@@ -217,7 +215,8 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
     };
     const isTwitchPlaceholder = (v: any) => v.type === "placeholder" && v.link?.includes("twitch.tv");
     const isPlayable = (v: any) => v.type === "stream" || isTwitchPlaceholder(v);
-    return live.filter((item) => filterVideo(item, app, filterConfig) && isPlayable(item));
+    const matchesFilter = makeVideoFilter(app, filterConfig);
+    return live.filter((item) => matchesFilter(item) && isPlayable(item));
   }, [live, shouldHideCollabs, selectedOrgNames, hideMissing, hideUpcoming, app]);
 
   const topFilteredLive = useMemo(() => {
@@ -362,17 +361,14 @@ export function VideoSelector({ horizontal = false, embedded = false, isActive =
 
   function handleInlineUrl(event: React.FormEvent) {
     event.preventDefault();
-    const content = getVideoIDFromUrl(inlineUrl) as any;
-    if (!content?.id) { setInlineUrlError(true); return; }
+    if (!submitVideoUrl(inlineUrl, multiview, onVideoClicked)) { setInlineUrlError(true); return; }
     setInlineUrlError(false);
-    multiview?.addUrlHistory({ twitch: content.type === "twitch", url: inlineUrl });
-    onVideoClicked?.(content);
     setInlineUrl("");
   }
 
   function handleVideoClick(video: any) { onVideoClicked?.(video); }
   function dragVideo(ev: React.DragEvent, video: any) {
-    const twitchId = video.type === "placeholder" && video.link?.match(/twitch\.tv\/(?<id>[\w-]+)/)?.groups?.id;
+    const twitchId = video.type === "placeholder" && video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
     ev.dataTransfer.setData("text", twitchId ? `https://www.twitch.tv/${twitchId}` : `https://holodex.net/watch/${video.id}`);
     ev.dataTransfer.setData("application/json", JSON.stringify(video));
   }

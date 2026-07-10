@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import * as icons from "@/lib/icons";
 import { readWatchControlsState, writeWatchControlsState } from "@/lib/browser";
+import { fetchTopicOptions } from "@/lib/topics";
 
 const TABS = Object.freeze({ TOPIC: "topic", MUSIC: "music", MENTIONS: "mentions", SOURCES_CLIPS: "sources" });
 type TabKey = (typeof TABS)[keyof typeof TABS];
@@ -77,8 +78,7 @@ export default function EditVideoPage() {
 
   async function populateTopics() {
     try {
-      const { data } = await api.topics();
-      setTopics(data.map((topic: any) => ({ value: topic.id, text: `${topic.id} (${topic.count ?? 0})` })));
+      setTopics(await fetchTopicOptions());
     } catch (e) {
       console.error(e);
     }

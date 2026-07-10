@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { jsonpItunes, type ItunesTrack } from "@/lib/api";
-import { formatDuration, secondsToHuman } from "@/lib/time";
+import { formatDuration, secondsToHuman, timestampToSeconds } from "@/lib/time";
 import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
 
@@ -42,7 +42,7 @@ type ItunesLookupResult = ItunesTrack;
 
 function capgroupToSecs(hours?: string, minutes?: string, seconds?: string) {
   if (!hours && !minutes && !seconds) return undefined;
-  return Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0);
+  return timestampToSeconds(hours, minutes, seconds);
 }
 
 function tokensFrom(groups: TimestampGroups) {

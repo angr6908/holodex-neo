@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
@@ -9,69 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { ConnectedVideoList } from "@/components/nav/MainNav";
-import { openUserMenu, readJSON, writeJSON } from "@/lib/browser";
+import { openUserMenu } from "@/lib/browser";
 import { ChannelsPage } from "@/components/channel/ChannelsPage";
 import { useSwipeTabs } from "@/lib/hooks";
-import { clearSavedHomePageState, encodeCookieJson, getSavedHomePageState, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS as Tabs, primeHomePageState, type HomeUiState } from "@/lib/cookie-codec";
+import { HOME_TABS as Tabs } from "@/lib/cookie-codec";
 
-const readStoredDefaultOpen = () => typeof window === "undefined" ? null
-  : readJSON<{ defaultOpen?: string | null }>("holodex-v2-settings", {}).defaultOpen || null;
-
-function normalizeHomeState(s?: HomeUiState | null): HomeUiState | null {
-  if (!s || typeof s !== "object") return null;
-  const out: HomeUiState = {};
-  if (s.viewMode === "channels" || s.viewMode === "streams") out.viewMode = s.viewMode;
-  if (typeof s.isFavPage === "boolean") out.isFavPage = s.isFavPage;
-  if (typeof s.tab === "number" && s.tab >= 0 && s.tab <= 2) out.tab = s.tab;
-  return out;
-}
-
-export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiState | null }) {
+export function HomeClient() {
   const app = useAppState();
   const router = useRouter();
   const t = useTranslations();
-  const initial = normalizeHomeState(initialHomeState);
-  const saved = getSavedHomePageState();
-  const [tab, setTabState] = useState(saved?.tab ?? initial?.tab ?? Tabs.LIVE_UPCOMING);
-  const [isFavPage, setIsFavPage] = useState(saved?.isFavPage ?? initial?.isFavPage ?? app.settings.defaultOpen === "favorites");
-  const [viewMode, setViewMode] = useState<"streams" | "channels">(saved?.viewMode ?? initial?.viewMode ?? "streams");
-  const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const appRef = useRef(app);
-  const favRef = useRef(isFavPage);
-  const stateRef = useRef({ viewMode, isFavPage, tab });
-  const initialRef = useRef(initial);
+  const { viewMode, isFavPage, tab } = app.homeNav as { viewMode: "streams" | "channels"; isFavPage: boolean; tab: number };
+  const prevNav = useRef({ viewMode, isFavPage, tab });
   const lastLogoTrigger = useRef<number | null>(null);
 
-  useEffect(() => { appRef.current = app; }, [app]);
-  useEffect(() => {
-    favRef.current = isFavPage;
-    stateRef.current = { viewMode, isFavPage, tab };
-    window.dispatchEvent(new CustomEvent("holodex-home-nav-state", { detail: { viewMode, isFavPage, tab } }));
-  }, [viewMode, isFavPage, tab]);
-
-  useEffect(() => () => {
-    const s = stateRef.current;
-    primeHomePageState({ tab: s.tab, isFavPage: s.isFavPage, viewMode: s.viewMode as "streams" | "channels" });
-    saveState(s);
-  }, []);
-
   const hasError = isFavPage ? app.favoritesError : app.homeError;
-
-  function saveState(next: HomeUiState = { viewMode, isFavPage, tab }) {
-    const v = {
-      viewMode: next.viewMode ?? viewMode,
-      isFavPage: next.isFavPage ?? isFavPage,
-      tab: next.tab ?? tab,
-    };
-    try {
-      writeJSON(HOME_STATE_STORAGE_KEY, v);
-      const enc = encodeCookieJson(v);
-      if (enc) document.cookie = `${HOME_STATE_COOKIE}=${enc}; Path=/; SameSite=Lax`;
-    } catch {}
-  }
-
-  const refreshLive = (a = app, fp = isFavPage, force = false) =>
-    fp ? a.fetchFavoritesLive({ force }) : a.fetchHomeLive({ force });
 
   function init(updateFavs = false, favOverride = isFavPage) {
     if (favOverride) {
@@ -81,74 +32,42 @@ export function HomeClient({ initialHomeState }: { initialHomeState?: HomeUiStat
     } else app.fetchHomeLive({ force: updateFavs || app.homeLive.length === 0, minutes: 2 });
   }
 
-  function scrollToTop() {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }
-
   function setTab(next: number) {
-    if (next === tab) return;
-    scrollToTop();
-    setTabState(next);
-    saveState({ viewMode, isFavPage, tab: next });
+    if (next !== tab) app.setHomeNav({ tab: next });
   }
 
   const swipeTabs = useSwipeTabs((d) => setTab(Math.max(0, Math.min(2, tab + d))));
-
-  function switchTo(nextFav: boolean, nextVm: "streams" | "channels", nextTab: number, refetch = false) {
-    if (nextFav !== isFavPage || nextVm !== viewMode || nextTab !== tab) scrollToTop();
-    setIsFavPage(nextFav); setViewMode(nextVm); setTabState(nextTab);
-    saveState({ viewMode: nextVm, isFavPage: nextFav, tab: nextTab });
-    if (refetch) setTimeout(() => init(true, nextFav), 0);
-  }
-  const switchToChannels = () => switchTo(isFavPage, "channels", tab);
+  const switchToChannels = () => app.setHomeNav({ viewMode: "channels" });
 
   useEffect(() => {
     if (!app.hydrated) return;
-    const defaultOpen = readStoredDefaultOpen() || app.settings.defaultOpen;
-    if (defaultOpen === "multiview") { router.replace("/multiview"); return; }
-    const initFav = saved?.isFavPage ?? initialRef.current?.isFavPage ?? defaultOpen === "favorites";
-    if (initFav !== isFavPage) setIsFavPage(initFav);
-    favRef.current = initFav;
-    const initVm = (saved?.viewMode ?? initialRef.current?.viewMode ?? "streams") as "streams" | "channels";
-    const rawTab = saved?.tab ?? initialRef.current?.tab ?? Tabs.LIVE_UPCOMING;
-    const initTab = rawTab === Tabs.LIVE_UPCOMING && appRef.current.settings.hideLive && appRef.current.settings.hideUpcoming ? Tabs.ARCHIVE : rawTab;
-    if (saved) {
-      if (initVm !== viewMode) setViewMode(initVm);
-      if (initTab !== tab) setTabState(initTab);
-    }
-    init(true, initFav);
-    if (refreshTimer.current) clearInterval(refreshTimer.current);
-    refreshTimer.current = setInterval(() => refreshLive(appRef.current, favRef.current), 120_000);
-    return () => { if (refreshTimer.current) clearInterval(refreshTimer.current); };
+    if (app.settings.defaultOpen === "multiview") { router.replace("/multiview"); return; }
+    init(true);
   }, [app.hydrated]);
 
+  // React to nav-state changes (from the nav bar or the local controls): scroll back to the
+  // top, and refetch when the favorites/home context flips.
+  useEffect(() => {
+    const prev = prevNav.current;
+    prevNav.current = { viewMode, isFavPage, tab };
+    if (prev.viewMode === viewMode && prev.isFavPage === isFavPage && prev.tab === tab) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    if (prev.isFavPage !== isFavPage) setTimeout(() => init(true, isFavPage), 0);
+  }, [viewMode, isFavPage, tab]);
+
   useEffect(() => { document.title = isFavPage ? `${t("component.mainNav.favorites")} - Holodex` : "Holodex"; }, [isFavPage, t]);
-  useEffect(() => { if (app.visibilityState === "visible") refreshLive(app, isFavPage); }, [app.visibilityState]);
   useEffect(() => { if (isFavPage) init(false); }, [app.favoriteChannelIDs.size]);
   useEffect(() => {
     if (app.settings.hideLive && app.settings.hideUpcoming && tab === Tabs.LIVE_UPCOMING) setTab(Tabs.ARCHIVE);
   }, [app.settings.hideLive, app.settings.hideUpcoming, tab]);
 
   useEffect(() => {
-    const onHomeNav = (event: Event) => {
-      const next = normalizeHomeState((event as CustomEvent<HomeUiState>).detail);
-      if (!next) return;
-      const nextFav = next.isFavPage ?? isFavPage;
-      switchTo(nextFav, next.viewMode ?? viewMode, next.tab ?? tab, nextFav !== isFavPage);
-    };
-    window.addEventListener("holodex-home-nav", onHomeNav);
-    return () => window.removeEventListener("holodex-home-nav", onHomeNav);
-  }, [isFavPage, viewMode, tab]);
-
-  useEffect(() => {
     const tr = app.reloadTrigger;
     if (!tr || tr.consumed || tr.source !== "logo-home" || lastLogoTrigger.current === tr.timestamp) return;
     lastLogoTrigger.current = tr.timestamp;
     void app.reloadCurrentPage({ ...tr, consumed: true });
-    clearSavedHomePageState();
     const fav = tr.defaultOpen === "favorites";
-    setIsFavPage(fav); setViewMode("streams"); setTabState(Tabs.LIVE_UPCOMING);
-    saveState({ viewMode: "streams", isFavPage: fav, tab: Tabs.LIVE_UPCOMING });
+    app.setHomeNav({ viewMode: "streams", isFavPage: fav, tab: Tabs.LIVE_UPCOMING });
     setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       if (fav) {

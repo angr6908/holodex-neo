@@ -19,9 +19,8 @@ import { ChannelImg } from "@/components/channel/ChannelImg";
 import { CellControl } from "@/components/multiview/CellControl";
 import { useAppState } from "@/lib/store";
 import { useMultiviewStore, useOptionalMultiviewStore } from "@/lib/multiview-store";
-import { encodeLayout } from "@/lib/mv-utils";
+import { asTwitchVideo, encodeLayout } from "@/lib/mv-utils";
 import { getVideoIDFromUrl } from "@/lib/functions";
-import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
 import { cn } from "@/lib/utils";
 // Tailwind v4 scans source for arbitrary-value class strings; arrays must stay literal.
 const colStartClasses = ["", "col-start-[1]", "col-start-[2]", "col-start-[3]", "col-start-[4]", "col-start-[5]", "col-start-[6]", "col-start-[7]", "col-start-[8]", "col-start-[9]", "col-start-[10]", "col-start-[11]", "col-start-[12]", "col-start-[13]", "col-start-[14]", "col-start-[15]", "col-start-[16]", "col-start-[17]", "col-start-[18]", "col-start-[19]", "col-start-[20]", "col-start-[21]", "col-start-[22]", "col-start-[23]", "col-start-[24]"];
@@ -60,19 +59,6 @@ export function LayoutPreview({ layout = [], content = {}, mobile = false, scale
         </div>
       </AspectRatio>
     </div>
-  );
-}
-
-export function LayoutPreviewCard({ preset, custom = false, active = false, scale = 1, children, pre, post }: { preset: Record<string, any>; custom?: boolean; active?: boolean; scale?: number; children?: React.ReactNode; pre?: React.ReactNode; post?: React.ReactNode }) {
-  return (
-    <Card size="sm" className="block p-2">
-      <LayoutPreview layout={preset.layout} content={preset.content} mobile={preset.portrait} scale={scale} />
-      <div className="relative mt-2 flex items-center justify-center gap-2 text-center text-sm">
-        {pre}
-        <span className={cn("min-w-0 truncate", custom && "flex-grow", active && "text-primary")}>{children || preset.name}</span>
-        {post}
-      </div>
-    </Card>
   );
 }
 
@@ -137,9 +123,8 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
       const video = JSON.parse(json);
       let v = video;
       if (video.type === "placeholder") {
-        const tw = video.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
-        if (!tw) return;
-        v = { ...video, id: tw, type: "twitch" };
+        v = asTwitchVideo(video);
+        if (!v) return;
       } else if (video.type !== "twitch" && !(video.id?.length === 11 && video.channel?.name)) {
         return;
       }

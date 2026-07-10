@@ -23,7 +23,6 @@ import {
   Settings as SettingsIcon,
   type AnyIcon,
 } from "@/lib/icons";
-import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -47,28 +46,16 @@ import { SkeletonCardList } from "@/components/video/SkeletonCardList";
 import { VideoCardList } from "@/components/video/VideoCardList";
 import { ALL_VTUBERS_ORG, musicdexURL, TL_LANGS } from "@/lib/consts";
 import { getLiveViewerCount } from "@/lib/functions";
-import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureFavoritesVideoFetch, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache, refreshFavoritesVideoFetch, refreshHomeMultiOrgVideoFetch } from "@/lib/home-video-loader";
+import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureFavoritesVideoFetch, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache } from "@/lib/home-video-loader";
 import { useDomElement } from "@/lib/hooks";
+import { useTopicsCache } from "@/lib/topics";
 import { cn, getBreakpoint } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
-import { readJSON, writeJSON } from "@/lib/browser";
-import { encodeCookieJson, HOME_STATE_COOKIE, HOME_STATE_STORAGE_KEY, HOME_TABS, primeHomePageState, type AppBootState, type HomeUiState } from "@/lib/cookie-codec";
+import { HOME_TABS, type AppBootState, type HomeUiState } from "@/lib/cookie-codec";
 import { useTranslations } from "next-intl";
 
 const NAV_ACTIVE_BUTTON_CLASS = "bg-muted! text-foreground! data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px active:bg-muted! active:text-foreground!";
-
-type HomeNavState = {
-  viewMode: "streams" | "channels";
-  isFavPage: boolean;
-  tab: number;
-};
-
-const liveHomeState: HomeNavState = {
-  viewMode: "streams",
-  isFavPage: false,
-  tab: HOME_TABS.LIVE_UPCOMING,
-};
 
 const liveCountFrom = (videos: any[] | undefined | null) =>
   (videos || []).filter((v) => v?.status === "live").length;
@@ -78,33 +65,6 @@ const displayModeFor = (viewMode: string | undefined, gridSize: number): Display
   if (viewMode === "denseList") return "denseList";
   return `grid-${Math.min(Math.max(gridSize ?? 0, 0), 2)}` as DisplayMode;
 };
-
-function normalizeHomeNavState(next?: HomeUiState | null): HomeNavState | null {
-  if (!next || typeof next !== "object") return null;
-  const viewMode = next.viewMode === "channels" ? "channels" : "streams";
-  const isFavPage = !!next.isFavPage;
-  const tab = typeof next.tab === "number" && next.tab >= 0 && next.tab <= 2 ? next.tab : HOME_TABS.LIVE_UPCOMING;
-  return { viewMode, isFavPage, tab };
-}
-
-function readStoredHomeNavState(): HomeNavState | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return normalizeHomeNavState(JSON.parse(localStorage.getItem(HOME_STATE_STORAGE_KEY) || "null"));
-  } catch {
-    return null;
-  }
-}
-
-function writeHomeNavState(next: HomeNavState) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(HOME_STATE_STORAGE_KEY, JSON.stringify(next));
-    const encoded = encodeCookieJson(next);
-    if (encoded) document.cookie = `${HOME_STATE_COOKIE}=${encoded}; Path=/; SameSite=Lax`;
-    primeHomePageState(next);
-  } catch {}
-}
 
 function homeNavModeFor(tab: number, viewMode: "streams" | "channels"): HomeNavMode {
   if (viewMode === "channels") return "channels";
@@ -127,10 +87,8 @@ function getHomeCachedLoaderPage(cacheKey: string, page: number, limit: number) 
 }
 
 export function MainNav({
-  initialHomeState,
   initialBootState,
 }: {
-  initialHomeState?: HomeUiState | null;
   initialBootState?: AppBootState | null;
 }) {
   const pathname = usePathname();
@@ -143,8 +101,6 @@ export function MainNav({
   const [playlistOpen, setPlaylistOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const userMenu = useNavUserMenu();
-  const [initialNavState] = useState(() => normalizeHomeNavState(initialHomeState));
-  const [homeNavState, setHomeNavState] = useState<HomeNavState | null>(initialNavState);
 
   const showTopBar =
     !pathname.startsWith("/multiview") &&
@@ -152,7 +108,7 @@ export function MainNav({
     !pathname.startsWith("/scripteditor");
   const playlistCount = app.playlist.length;
   const isHomePath = pathname === "/";
-  const storedHomeNavState = homeNavState || initialNavState || (app.settings.defaultOpen === "favorites" ? { ...liveHomeState, isFavPage: true } : liveHomeState);
+  const storedHomeNavState = app.homeNav;
   const selectedLive = storedHomeNavState.isFavPage ? app.favoritesLive : app.homeLive;
   const hideLive = app.settings.hideLive;
   const hideUpcoming = app.settings.hideUpcoming;
@@ -187,15 +143,6 @@ export function MainNav({
 
   useEffect(() => { setMobileSearchOpen(false); }, [pathname, searchParams]);
   useEffect(() => {
-    setHomeNavState((prev) => prev || readStoredHomeNavState());
-    const onHomeState = (event: Event) => {
-      const next = normalizeHomeNavState((event as CustomEvent<HomeUiState>).detail);
-      if (next) setHomeNavState(next);
-    };
-    window.addEventListener("holodex-home-nav-state", onHomeState);
-    return () => window.removeEventListener("holodex-home-nav-state", onHomeState);
-  }, []);
-  useEffect(() => {
     if (!app.orgs.length) app.fetchOrgs();
     app.loginCheck();
   }, []);
@@ -209,20 +156,8 @@ export function MainNav({
   }
 
   function openHome(next: HomeUiState) {
-    const current = homeNavState || readStoredHomeNavState() || storedHomeNavState;
-    const normalized = normalizeHomeNavState({
-      viewMode: next.viewMode ?? current.viewMode,
-      isFavPage: next.isFavPage ?? current.isFavPage,
-      tab: next.tab ?? current.tab,
-    }) || liveHomeState;
-    setHomeNavState(normalized);
-    writeHomeNavState(normalized);
-    window.dispatchEvent(new CustomEvent("holodex-home-nav-state", { detail: normalized }));
-    if (isHomePath) {
-      window.dispatchEvent(new CustomEvent("holodex-home-nav", { detail: normalized }));
-      return;
-    }
-    router.push("/");
+    app.setHomeNav(next);
+    if (!isHomePath) router.push("/");
   }
 
   const openHomeStreams = (fav: boolean) => {
@@ -440,8 +375,6 @@ export function MainNav({
   );
 }
 
-type TopicOption = { value: string; count?: number };
-
 type VideoListFiltersProps = {
   topicFilter?: boolean;
   liveFilter?: boolean;
@@ -456,7 +389,6 @@ type VideoListFiltersProps = {
   onSortByChange?: (value: string) => void;
 };
 
-const TOPICS_STORAGE_KEY = "holodex-topics-cache";
 const SORT_OPTIONS: { value: string; icon: AnyIcon; labelKey: string }[] = [
   { value: "viewers", icon: Eye, labelKey: "views.home.controls.viewers" },
   { value: "latest", icon: Clock, labelKey: "views.home.controls.latest" },
@@ -477,29 +409,14 @@ export function VideoListFilters({
 }: VideoListFiltersProps) {
   const app = useAppState();
   const t = useTranslations();
-  const [topics, setTopics] = useState<TopicOption[]>([]);
-  const [topicsLoading, setTopicsLoading] = useState(false);
+  const { topics, topicsLoading, fetchTopics } = useTopicsCache();
   const topicComboboxAnchor = useComboboxAnchor();
 
-  useEffect(() => { if (topicFilter) setTopics(readJSON(TOPICS_STORAGE_KEY, [])); }, [topicFilter]);
   useEffect(() => { if (topicFilter) void fetchTopics(); }, [topicFilter]);
 
   const ignoredTopics = app.settings.ignoredTopics || [];
   const topicValues = useMemo(() => topics.map((topic) => topic.value), [topics]);
   const showSort = sortBy !== undefined && onSortByChange !== undefined;
-
-  async function fetchTopics() {
-    if (topics.length || topicsLoading) return;
-    setTopicsLoading(true);
-    try {
-      const { data }: any = await api.topics();
-      const next = (data || []).map(({ id, count }: any) => ({ value: id, count }));
-      setTopics(next);
-      writeJSON(TOPICS_STORAGE_KEY, next);
-    } finally {
-      setTopicsLoading(false);
-    }
-  }
 
   function updateIgnoredTopics(values: string[]) {
     app.patchSettings({ ignoredTopics: [...new Set(values)].sort() });
@@ -848,20 +765,18 @@ export function ConnectedVideoList({
   const portalTarget = useDomElement(datePortalName || `date-selector${isFavPage}`);
 
   const hasLiveContentOverride = liveContent !== null;
-  const getLiveSrc = useCallback((): any[] =>
-    hasLiveContentOverride ? liveContent || [] : (isFavPage ? app.favoritesLive : app.homeLive),
-    [hasLiveContentOverride, liveContent, isFavPage, app.favoritesLive, app.homeLive]);
-  const liveSource = getLiveSrc();
+  const liveSource: any[] = hasLiveContentOverride ? liveContent || [] : (isFavPage ? app.favoritesLive : app.homeLive);
 
   // Concurrent-viewer counts (`_ccv`) are injected into the live list server-side, straight
   // from YouTube/Twitch, so the list arrives already sort-ready — just order by it.
   const live = useMemo(() =>
     sortBy === "viewers" ? [...liveSource].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : liveSource,
   [liveSource, sortBy]);
-  const lives = live.filter((v: any) => v.status === "live");
-  const livesVisible = app.settings.hideLive ? [] : lives;
-  const upcoming = app.settings.hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming")
-    .sort((a: any, b: any) => a.available_at !== b.available_at || a.type === b.type ? 0 : a.type === "placeholder" ? 1 : -1);
+  const { livesVisible, upcoming } = useMemo(() => ({
+    livesVisible: app.settings.hideLive ? [] : live.filter((v: any) => v.status === "live"),
+    upcoming: app.settings.hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming")
+      .sort((a: any, b: any) => a.available_at !== b.available_at || a.type === b.type ? 0 : a.type === "placeholder" ? 1 : -1),
+  }), [live, app.settings.hideLive, app.settings.hideUpcoming]);
   const isLoading = hasLiveContentOverride ? false : isFavPage ? app.favoritesLoading : app.homeLoading;
   const hasError = hasLiveContentOverride ? false : isFavPage ? app.favoritesError : app.homeError;
   const showLoading = isLoading;
@@ -897,23 +812,12 @@ export function ConnectedVideoList({
     router.replace(`${pathname}${q ? `?${q}` : ""}${typeof window !== "undefined" ? window.location.hash : ""}`);
   }, [scrollMode, isActive, sp, pathname, router]);
 
-  // Keep live viewer counts fresh on a 60s cadence. Counts ride along with the list — the
-  // server injects `_ccv` from YouTube/Twitch on every fetch — so we just re-pull the live
-  // list instead of polling counts separately. The background `warm` refresher below covers
-  // the other tabs; this covers the one on screen. Paused while the tab is hidden and fires
-  // immediately on return. Overridden lists (multiview) run their own refresh.
+  // Register this list as the poll focus: the store's central poll refreshes the complete
+  // on-screen live list every 60s. Overridden lists (multiview) run their own refresh.
   useEffect(() => {
     if (!isActive || tab !== HOME_TABS.LIVE_UPCOMING || hasLiveContentOverride) return;
-    const refresh = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      if (isFavPage) app.fetchFavoritesLive({ force: true, minutes: 1 });
-      else app.fetchHomeLive({ force: true, minutes: 1 });
-    };
-    const timer = setInterval(refresh, 60_000);
-    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    app.setLivePollFocus(isFavPage ? "favorites" : "home");
+    return () => app.setLivePollFocus(null);
   }, [isActive, tab, hasLiveContentOverride, isFavPage]);
 
   useEffect(() => {
@@ -937,7 +841,12 @@ export function ConnectedVideoList({
     if (prevTab.current === null) { prevTab.current = tab; return; }
     const old = prevTab.current;
     prevTab.current = tab;
-    if (isActive && tab !== old && tab === HOME_TABS.LIVE_UPCOMING) init(false);
+    if (!isActive || tab === old) return;
+    if (tab === HOME_TABS.LIVE_UPCOMING) { init(false); return; }
+    // Freshen the newly shown tab's warmed cache if it has gone stale — replaces the old
+    // rolling 60s background re-fetch of every off-screen tab.
+    const entry = getHomeMultiOrgVideoCache(keyFor(tab));
+    if (entry?.isReady() && entry.isStale(60_000)) void entry.refresh();
   }, [tab, isActive]);
 
   // Reset the live/upcoming window when the list identity changes (tab/org/fav switch), then grow on scroll.
@@ -953,35 +862,23 @@ export function ConnectedVideoList({
     return () => io.disconnect();
   }, [tab, perRow, cacheKey, liveLimit, luTotal]);
 
+  // Warm the other tabs' caches once so switching to them is instant. Each cache is then
+  // freshened on activation (tab-change effect above) instead of on a rolling 60s timer,
+  // and the live lists are owned by the store's central poll.
   useEffect(() => {
     if (!isActive || !app.hydrated) return;
     const jwt = app.userdata.jwt;
     const loggedInFav = !!jwt && app.isLoggedIn && app.favoriteChannelIDs.size > 0;
-    const allTabs = [HOME_TABS.LIVE_UPCOMING, HOME_TABS.ARCHIVE, HOME_TABS.CLIPS];
     const contexts = loggedInFav && !isFavPage ? [false, true] : [isFavPage];
-    const warm = (refresh: boolean) => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      contexts.forEach((fav) => {
-        allTabs.forEach((tv) => {
-          if (fav === isFavPage && tv === tab) return;
-          if (tv === HOME_TABS.LIVE_UPCOMING) {
-            if (fav) app.fetchFavoritesLive({ force: refresh, minutes: 1 });
-            else if (!liveContent?.length) app.fetchHomeLive({ force: refresh, minutes: 1 });
-            return;
-          }
-          const key = keyFor(tv, fav);
-          const q = buildQuery(tv);
-          if (fav) {
-            if (refresh) refreshFavoritesVideoFetch(key, q, jwt!, tv);
-            else ensureFavoritesVideoFetch(key, q, jwt!, tv);
-          } else if (refresh) refreshHomeMultiOrgVideoFetch(key, q, targets, tv);
-          else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
-        });
+    contexts.forEach((fav) => {
+      [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((tv) => {
+        if (fav === isFavPage && tv === tab) return;
+        const key = keyFor(tv, fav);
+        const q = buildQuery(tv);
+        if (fav) ensureFavoritesVideoFetch(key, q, jwt!, tv);
+        else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
       });
-    };
-    warm(false);
-    const timer = setInterval(() => warm(true), 60_000);
-    return () => clearInterval(timer);
+    });
   }, [isActive, isFavPage, app.hydrated, app.isLoggedIn, app.userdata.jwt, app.favoriteChannelIDs.size, tab, targets.join("\0"), scrollMode, gs, orgsKey, overrideKey, langsKey, toDate]);
 
   const toggleClipLang = (value: string, checked: boolean) => {
@@ -1108,7 +1005,7 @@ export function ConnectedVideoList({
                 {liveLimit < luTotal ? <div ref={liveSentinel} className="h-px w-full" /> : null}
               </>
             ) : null}
-            {!showLoading && !lives.length && !upcoming.length ? emptyMessage : null}
+            {!showLoading && !live.some((v: any) => v.status === "live") && !upcoming.length ? emptyMessage : null}
           </>
         )
       ) : (

@@ -13,11 +13,7 @@ import { ChannelCard } from "@/components/channel/ChannelCard";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
-import { cn, getBreakpoint } from "@/lib/utils";
-
-const COL_CLASSES: Record<number, string> = {
-  1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5",
-};
+import { cn, getBreakpoint, GRID_COLUMN_CLASSES } from "@/lib/utils";
 
 export function ChannelList({
   channels, cardView = false, includeVideoCount = false,
@@ -30,7 +26,7 @@ export function ChannelList({
   const app = useAppState();
   const isXs = app.windowWidth <= 420;
   const cols = ({ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 } as const)[getBreakpoint(app.windowWidth)];
-  const gridClass = cn("grid gap-x-1 gap-y-[0.35rem]", COL_CLASSES[cols] || "grid-cols-1");
+  const gridClass = cn("grid gap-x-1 gap-y-[0.35rem]", GRID_COLUMN_CLASSES[cols] || "grid-cols-1");
 
   const isHidden = (g: string) => app.settings.hiddenGroups?.[app.currentOrg.name]?.includes(g.toLowerCase()) ?? false;
 

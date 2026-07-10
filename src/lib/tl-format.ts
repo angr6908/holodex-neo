@@ -14,6 +14,14 @@ export function formatTlTimestamp(raw: number) {
   return `${pad2(h)}:${pad2(m)}:${pad2(s)}.${pad2(Math.floor(ms / 10))}`;
 }
 
+// Compact ruler label: formatTlTimestamp with leading zero units and centiseconds trimmed ("1:30").
+export function formatTlRulerTimestamp(sec: number) {
+  let stamp = formatTlTimestamp(sec * 1000);
+  for (let i = 0; i < 3 && stamp.slice(0, 2) === "00"; i++) stamp = stamp.slice(3);
+  if (stamp[0] === "0") stamp = stamp.slice(1);
+  return stamp.slice(0, -3);
+}
+
 const stringifyTlExportTime = (t: number, srt: boolean) => {
   const [h, m, s, ms] = splitHMS(t);
   return `${pad2(h)}:${pad2(m)}:${pad2(s)}${srt ? "," : "."}${ms}`;

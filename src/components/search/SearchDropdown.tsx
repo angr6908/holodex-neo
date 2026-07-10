@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG, CHANNEL_URL_REGEX, VIDEO_URL_REGEX } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
 import { useAppState } from "@/lib/store";
-import { readJSON, writeJSON } from "@/lib/browser";
+import { useTopicsCache } from "@/lib/topics";
 import { useTranslations } from "next-intl";
 import {
   Combobox,
@@ -24,10 +24,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const TOPICS_STORAGE_KEY = "holodex-topics-cache";
-
 type FilterItem = { type: string; value: string; text: string };
-type TopicOption = { value: string };
 type Suggestion = { id: string; type: "channel" | "topic" | "org" | "video" | "freeText"; value: string; text: string; org?: string };
 
 const TYPE_ICON: Record<Suggestion["type"], typeof Tv> = {
@@ -84,14 +81,12 @@ export function SearchDropdown() {
 
   const [channelSearch, setChannelSearch] = useState("");
   const [channelOptions, setChannelOptions] = useState<FilterItem[]>([]);
-  const [topicOptions, setTopicOptions] = useState<TopicOption[]>([]);
-  const [topicsLoading, setTopicsLoading] = useState(false);
+  const { topics: topicOptions, topicsLoading, fetchTopics } = useTopicsCache();
 
   const orgAnchor = useComboboxAnchor();
   const channelAnchor = useComboboxAnchor();
   const topicAnchor = useComboboxAnchor();
 
-  useEffect(() => { setTopicOptions(readJSON(TOPICS_STORAGE_KEY, [])); }, []);
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => { if (!open) return; void app.fetchOrgs(); void fetchTopics(); }, [open]);
 
@@ -218,19 +213,6 @@ export function SearchDropdown() {
 
   const hasContent = !!(query.trim() || orgs.length || channels.length || topics.length);
   const focusInput = () => containerRef.current?.querySelector("input")?.focus();
-
-  async function fetchTopics() {
-    if (topicOptions.length || topicsLoading) return;
-    setTopicsLoading(true);
-    try {
-      const { data }: any = await api.topics();
-      const next = (data || []).map(({ id }: any) => ({ value: id }));
-      setTopicOptions(next);
-      writeJSON(TOPICS_STORAGE_KEY, next);
-    } finally {
-      setTopicsLoading(false);
-    }
-  }
 
   function updateChannels(values: string[]) {
     setChannels(unique(values).map((value) => ({ type: "channel", value, text: channelLabels.get(value) || value })));

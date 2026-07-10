@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatDuration } from "@/lib/time";
+import { formatDuration, timestampToSeconds } from "@/lib/time";
 const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])([^\r\n]+)?/gm;
 const STOP_WORDS = new Set(["an", "the"]);
 const TIME_THRESHOLD_SECONDS = 40;
@@ -65,10 +65,7 @@ function filterByWordCount(limit = 2) {
 }
 
 function timestampMatchToSeconds(match: RegExpExecArray) {
-  const hours = Number(match[1] ?? 0);
-  const minutes = Number(match[2]);
-  const seconds = Number(match[3]);
-  return hours * 3600 + minutes * 60 + seconds;
+  return timestampToSeconds(match[1], match[2], match[3]);
 }
 
 function parseTimestampComments(message = "", videoDuration: number): ParsedTimestampComment[] {

@@ -1,25 +1,10 @@
 "use client";
 
-import { cn, getBreakpoint } from "@/lib/utils";
+import { cn, getBreakpoint, GRID_COLUMN_CLASSES } from "@/lib/utils";
 import { useAppState } from "@/lib/store";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const gridColumnClasses: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-  5: "grid-cols-5",
-  6: "grid-cols-6",
-  7: "grid-cols-7",
-  8: "grid-cols-8",
-  9: "grid-cols-9",
-  10: "grid-cols-10",
-  11: "grid-cols-11",
-  12: "grid-cols-12",
-};
 
 export function SkeletonCardList({
   count,
@@ -107,7 +92,7 @@ export function SkeletonCardList({
       <div
         className={cn(
           "grid gap-x-2 gap-y-2.5",
-          !autoFitGrid && (gridColumnClasses[colSize] || "grid-cols-1"),
+          !autoFitGrid && (GRID_COLUMN_CLASSES[colSize] || "grid-cols-1"),
           isFlat && "overflow-hidden rounded-xl border gap-y-0 empty:border-0",
         )}
         style={autoFitGrid ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` } : undefined}

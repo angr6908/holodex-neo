@@ -43,7 +43,3 @@ export function preloadImage(url?: string | null) {
   else void img.decode?.().then(done, () => {});
   return promise;
 }
-
-export function preloadImages(urls: Array<string | null | undefined>) {
-  urls.forEach((url) => { void preloadImage(url); });
-}

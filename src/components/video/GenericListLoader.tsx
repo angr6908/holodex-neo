@@ -56,8 +56,6 @@ function cachedSnapshotForPage(cacheKey: string, page: number, paginate: boolean
 export function GenericListLoader({
   infiniteLoad = false,
   paginate = false,
-  pageless = false,
-  endIfPartialPage = false,
   preloadAdjacent = false,
   keepPreviousData = false,
   getCachedPage,
@@ -68,8 +66,6 @@ export function GenericListLoader({
 }: {
   infiniteLoad?: boolean;
   paginate?: boolean;
-  pageless?: boolean;
-  endIfPartialPage?: boolean;
   preloadAdjacent?: boolean;
   keepPreviousData?: boolean;
   getCachedPage?: (cacheKey: string, page: number, limit: number) => any | null | undefined;
@@ -111,7 +107,7 @@ export function GenericListLoader({
   const randomId = useId().replace(/:/g, "");
   const t = useTranslations();
   const pages = total ? Math.ceil(total / perPage) : 1;
-  const pageLessMode = pageless || total === null;
+  const pageLessMode = total === null;
 
   const currentSearchParams = useCallback(() => {
     if (typeof window !== "undefined") return new URLSearchParams(window.location.search);
@@ -143,6 +139,24 @@ export function GenericListLoader({
     }
   }, [fetchPage, perPage]);
 
+  const applyPaginatedPayload = useCallback((page: number, payload: PagePayload) => {
+    setData(payload.items);
+    setTotal(payload.total);
+    setIsLoading(false);
+    setIsFetching(false);
+    restoredFromCache.current = false;
+    writeCache(payload.items, { page, total: payload.total });
+    const resolvedOffset = payload.offset ?? (page - 1) * perPage;
+    if (payload.total === null) {
+      setStatus(payload.items.length === 0 ? STATUSES.COMPLETED : STATUSES.READY);
+    } else if (resolvedOffset + perPage >= payload.total) {
+      setStatus(STATUSES.COMPLETED);
+    } else {
+      setStatus(STATUSES.READY);
+    }
+    if (preloadAdjacent) prefetchNeighbors(page, payload.total);
+  }, [perPage, preloadAdjacent, prefetchNeighbors, writeCache]);
+
   const runLoad = useCallback(async (page: number, mode: "infinite" | "paginate") => {
     const usePageCache = mode === "paginate";
     const external = usePageCache ? readExternalPage(page) : undefined;
@@ -159,34 +173,24 @@ export function GenericListLoader({
       setStatus(STATUSES.LOADING);
     }
     try {
-      const { items, total: nextTotal, offset } = cached ?? (usePageCache ? await fetchPage(page) : extractListPayload(await loadFn((page - 1) * perPage, perPage)));
+      const payload = cached ?? (usePageCache ? await fetchPage(page) : extractListPayload(await loadFn((page - 1) * perPage, perPage)));
       if (requestId !== requestSeq.current) return;
-      if (usePageCache) pageCacheRef.current.set(page, { items, total: nextTotal, offset });
-      setIsLoading(false);
-      setIsFetching(false);
-      setTotal(nextTotal);
+      if (usePageCache) pageCacheRef.current.set(page, payload);
       if (mode === "infinite") {
+        const { items, total: nextTotal } = payload;
+        setIsLoading(false);
+        setIsFetching(false);
+        setTotal(nextTotal);
         setData((prev) => {
           const next = restoredFromCache.current && page === 1 ? items : prev.concat(items);
           restoredFromCache.current = false;
           writeCache(next, { nextPage: page + 1 });
           return next;
         });
-        if ((items.length < perPage && endIfPartialPage) || items.length === 0) setStatus(STATUSES.COMPLETED);
+        if (items.length === 0) setStatus(STATUSES.COMPLETED);
         else { setNextPage(page + 1); setStatus(STATUSES.READY); }
       } else {
-        setData(items);
-        restoredFromCache.current = false;
-        writeCache(items, { page, total: nextTotal });
-        const resolvedOffset = offset ?? (page - 1) * perPage;
-        if (pageless || nextTotal === null) {
-          setStatus((items.length < perPage && endIfPartialPage) || items.length === 0 ? STATUSES.COMPLETED : STATUSES.READY);
-        } else if (resolvedOffset + perPage >= nextTotal) {
-          setStatus(STATUSES.COMPLETED);
-        } else {
-          setStatus(STATUSES.READY);
-        }
-        if (preloadAdjacent) prefetchNeighbors(page, nextTotal);
+        applyPaginatedPayload(page, payload);
       }
     } catch (e) {
       console.error(e);
@@ -195,25 +199,7 @@ export function GenericListLoader({
       setIsFetching(false);
       setStatus(STATUSES.ERROR);
     }
-  }, [endIfPartialPage, loadFn, pageless, perPage, preloadAdjacent, prefetchNeighbors, readExternalPage, writeCache]);
-
-  const applyPaginatedPayload = useCallback((page: number, payload: PagePayload) => {
-    setData(payload.items);
-    setTotal(payload.total);
-    setIsLoading(false);
-    setIsFetching(false);
-    restoredFromCache.current = false;
-    writeCache(payload.items, { page, total: payload.total });
-    const resolvedOffset = payload.offset ?? (page - 1) * perPage;
-    if (pageless || payload.total === null) {
-      setStatus((payload.items.length < perPage && endIfPartialPage) || payload.items.length === 0 ? STATUSES.COMPLETED : STATUSES.READY);
-    } else if (resolvedOffset + perPage >= payload.total) {
-      setStatus(STATUSES.COMPLETED);
-    } else {
-      setStatus(STATUSES.READY);
-    }
-    if (preloadAdjacent) prefetchNeighbors(page, payload.total);
-  }, [endIfPartialPage, pageless, perPage, preloadAdjacent, prefetchNeighbors, writeCache]);
+  }, [applyPaginatedPayload, fetchPage, loadFn, perPage, readExternalPage, writeCache]);
 
   useEffect(() => { dataLenRef.current = data.length; }, [data.length]);
   useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);

@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useParams, useSearchParams } from "next/navigation";
 import { ArrowDownUp, BrushCleaning, ChevronDown, Grid2x2, Grid2x2Plus, Maximize2, RefreshCw, Save, SlidersVertical, Video } from "lucide-react";
 import { api } from "@/lib/api";
-import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
-import { decodeLayout, generateContentId, type Content as MultiviewContent } from "@/lib/mv-utils";
+import { asTwitchVideo, decodeLayout, generateContentId, type Content as MultiviewContent } from "@/lib/mv-utils";
 import { useTranslations } from "next-intl";
 import { useAppState } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -298,14 +297,8 @@ function Content({ routeLayout }: { routeLayout: string }) {
     setOverwriteDialog(true);
   }
 
-  function checkStream(v: any) {
-    if (v.type !== "placeholder") return v;
-    const tw = v.link?.match(TWITCH_VIDEO_URL_REGEX)?.groups?.id;
-    return tw ? { ...v, id: tw, type: "twitch" } : null;
-  }
-
   function toolbarClick(v: any) {
-    const video = checkStream(v);
+    const video = asTwitchVideo(v);
     if (!video) return;
     if (findEmptyCell(store)) tryFillVideo(store, video);
     else addVideoAutoLayout(store, video, app.isMobile, (l) => { setOverwriteMerge(true); promptLayoutChange(l); });
@@ -317,7 +310,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
   }
 
   function cellDropdownClick(id: string | number, v: any) {
-    const video = checkStream(v);
+    const video = asTwitchVideo(v);
     if (!video) return;
     if (store.layout.length) addVideoWithId(store, video, id);
     else createInitialCell({ id: video.id, type: "video", video });

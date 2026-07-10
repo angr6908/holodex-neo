@@ -18,7 +18,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
 import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { TwitchChat } from "@/components/watch/TwitchChat";
-import { twitchLoginOf } from "@/lib/twitch-viewers";
+import { fetchTwitchViewerCounts, twitchLoginOf } from "@/lib/twitch-viewers";
+import { fetchYoutubeViewerCounts } from "@/lib/youtube-viewers";
 import { WatchToolbar } from "@/components/watch/WatchToolbar";
 import { WatchInfo } from "@/components/watch/WatchInfo";
 import { WatchHighlights } from "@/components/watch/WatchHighlights";
@@ -49,6 +50,7 @@ export default function WatchPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [mobileChatHeight, setMobileChatHeight] = useState("65dvh");
   const [plIdx, setPlIdx] = useState(-1);
+  const [twitchInfo, setTwitchInfo] = useState<{ title: string; category: string; description: string } | null>(null);
   const player = useRef<YoutubePlayerHandle | null>(null);
   const layout = useRef<HTMLDivElement | null>(null);
   const toolbarShell = useRef<HTMLDivElement | null>(null);
@@ -84,8 +86,26 @@ export default function WatchPage() {
     setTheater(defaultWatchControlsState.theaterMode);
     writeWatchControlsState(defaultWatchControlsState);
     setCurrentTime(0); setIsLoading(true); setHasError(false);
-    api.video(videoId, app.settings.clipLangs.join(","), 1).then(({ data }: any) => {
+
+    // Start the direct YouTube CCV lookup alongside the video metadata request. Previously
+    // LiveViewers did not mount (and therefore did not request the count) until api.video had
+    // completed, making the badge visibly pop in one request later than the rest of the page.
+    // The shared viewer client deduplicates this with LiveViewers' own refresh and seeds its
+    // synchronous cache before the toolbar mounts in the usual case.
+    if (/^[\w-]{11}$/.test(videoId)) void fetchYoutubeViewerCounts([videoId]);
+
+    api.video(videoId, app.settings.clipLangs.join(","), 1).then(async ({ data }: any) => {
       if (cancelled) return;
+
+      // Unlike YouTube, the Twitch login is stored in the fetched video metadata, so it cannot
+      // be prefetched at page entry. Warm the shared cache before mounting WatchToolbar; this
+      // prevents LiveViewers from first rendering empty and popping in after its own request.
+      const twitchLogin = twitchLoginOf(data);
+      if (data.status === "live" && twitchLogin) {
+        await fetchTwitchViewerCounts([twitchLogin]);
+        if (cancelled) return;
+      }
+
       setVideo(data); setIsLoading(false);
       document.title = (data.title && decodeHTMLEntities(data.title)) || "Holodex";
       addWatchedVideo(data);
@@ -94,6 +114,21 @@ export default function WatchPage() {
   }, [videoId]);
 
   useEffect(() => { if (title) document.title = title; }, [title]);
+  // Twitch streams reach us as placeholders whose Holodex `description` is auto-generated bot
+  // junk. Pull the real description (channel bio + current title/category) from Twitch instead.
+  useEffect(() => {
+    if (!twitchChannel) { setTwitchInfo(null); return; }
+    let cancelled = false;
+    setTwitchInfo(null);
+    fetch(`/twitch-stream-info?login=${encodeURIComponent(twitchChannel)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((info: { title?: string; category?: string; description?: string } | null) => {
+        if (cancelled || !info) return;
+        setTwitchInfo({ title: info.title || "", category: info.category || "", description: info.description || "" });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [twitchChannel]);
   useEffect(() => { writeWatchControlsState({ showTL, showLiveChat, theaterMode: theater }); }, [showTL, showLiveChat, theater]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.altKey && e.key.toLowerCase() === "t") { e.preventDefault(); toggleTheater(); } };
@@ -216,7 +251,7 @@ export default function WatchPage() {
               <div className="relative">
                 {video.id ? (
                   twitchChannel ? (
-                    <TwitchPlayer key={twitchChannel} channel={twitchChannel} className={playerClass} autoplay onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} />
+                    <TwitchPlayer key={twitchChannel} channel={twitchChannel} className={playerClass} onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} />
                   ) : (
                     <YoutubePlayer ref={player} className={playerClass} videoId={video.id} start={timeOffset} autoplay lang={getYTLangFromState({ settings: { lang: app.settings.lang } })} onReady={(p) => { player.current = p; }} onCurrentTime={setCurrentTime} onEnded={() => { if (plIdx >= 0) setPlIdx((v) => v + 1); }} />
                   )
@@ -239,6 +274,8 @@ export default function WatchPage() {
           <WatchInfo
             key="info"
             video={video}
+            description={twitchChannel ? (twitchInfo?.description ?? "") : undefined}
+            twitchMeta={twitchChannel ? { category: twitchInfo?.category ?? "" } : undefined}
             onTimeJump={seekTo}
             actions={youtubeLikeButton}
           />

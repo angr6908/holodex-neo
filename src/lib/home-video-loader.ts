@@ -11,17 +11,11 @@ type CacheEntry = {
   fetchMore: () => Promise<void>;
   isReady: () => boolean;
   isExhausted: () => boolean;
+  isStale: (maxAgeMs: number) => boolean;
   refresh: () => Promise<void>;
 };
 
 const dataCache = new Map<string, CacheEntry>();
-
-export function sortPayloadForHomeTab(payload: any, tab: number) {
-  if (tab !== Tabs.ARCHIVE) return payload;
-  if (Array.isArray(payload)) return sortVideosForTab(payload, true);
-  if (Array.isArray(payload?.items)) return { ...payload, items: sortVideosForTab(payload.items, true) };
-  return payload;
-}
 
 export const buildHomeTabQuery = ({ tab, clipLangs, toDate }: { tab: number; clipLangs: string[]; toDate?: string | null }) => ({
   status: tab === Tabs.ARCHIVE ? "past,missing" : "past",
@@ -48,8 +42,9 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   let inflight: Promise<void> | null = null;
   let current: any[] = [];
   let ready = false;
+  let lastLoaded = Date.now();
 
-  const merge = () => { current = sortVideosForTab(dedupeVideos(items.flat()), archive); };
+  const merge = () => { current = sortVideosForTab(dedupeVideos(items.flat()), archive); lastLoaded = Date.now(); };
 
   const page1Promises = sources.map((fetchPage, i) =>
     fetchPage(undefined, MAX)
@@ -112,6 +107,7 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
     fetchMore,
     isReady: () => ready,
     isExhausted: () => exhausted.every(Boolean),
+    isStale: (maxAgeMs: number) => Date.now() - lastLoaded > maxAgeMs,
     refresh,
   };
 }
@@ -126,12 +122,6 @@ export function ensureHomeMultiOrgVideoFetch(key: string, query: Record<string, 
   dataCache.set(key, createCacheEntry(sources, tab === Tabs.ARCHIVE));
 }
 
-export function refreshHomeMultiOrgVideoFetch(key: string, query: Record<string, any>, targets: string[], tab: number = Tabs.ARCHIVE) {
-  const entry = dataCache.get(key);
-  if (!entry) return ensureHomeMultiOrgVideoFetch(key, query, targets, tab);
-  return void entry.refresh();
-}
-
 export function ensureFavoritesVideoFetch(key: string, query: Record<string, any>, jwt: string, tab: number = Tabs.ARCHIVE) {
   if (dataCache.has(key) || !jwt) return;
   const source: PageFetch = (cursor, limit) => {
@@ -142,10 +132,4 @@ export function ensureFavoritesVideoFetch(key: string, query: Record<string, any
     });
   };
   dataCache.set(key, createCacheEntry([source], tab === Tabs.ARCHIVE));
-}
-
-export function refreshFavoritesVideoFetch(key: string, query: Record<string, any>, jwt: string, tab: number = Tabs.ARCHIVE) {
-  const entry = dataCache.get(key);
-  if (!entry) return ensureFavoritesVideoFetch(key, query, jwt, tab);
-  return void entry.refresh();
 }

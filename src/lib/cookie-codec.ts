@@ -31,8 +31,6 @@ export type HomeUiState = {
   tab?: number;
 };
 
-let savedHomePageState: { tab: number; isFavPage: boolean; viewMode: "streams" | "channels" } | null = null;
-
 export function encodeCookieJson(value: unknown) {
   try { return encodeURIComponent(JSON.stringify(value)); } catch { return ""; }
 }
@@ -47,13 +45,3 @@ function decodeCookieJson<T>(value?: string | null): T | null {
 
 export const decodeAppBootCookie = (v?: string | null) => decodeCookieJson<AppBootState>(v);
 export const decodeHomeStateCookie = (v?: string | null) => decodeCookieJson<HomeUiState>(v);
-export const getSavedHomePageState = () => savedHomePageState;
-export const clearSavedHomePageState = () => { savedHomePageState = null; };
-
-export function primeHomePageState(next: HomeUiState) {
-  savedHomePageState = {
-    tab: next.tab ?? 0,
-    isFavPage: next.isFavPage ?? false,
-    viewMode: next.viewMode ?? "streams",
-  };
-}

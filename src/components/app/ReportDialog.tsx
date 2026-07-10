@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { filterVideo } from "@/lib/filter-videos";
+import { fetchTopicOptions } from "@/lib/topics";
 import { ChannelChip } from "@/components/channel/ChannelChip";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { VideoListFilters } from "@/components/nav/MainNav";
@@ -92,8 +93,7 @@ export function ReportDialog() {
 
   async function loadTopics() {
     if (topics.length) return;
-    const { data } = await api.topics();
-    setTopics(data.map((tp: any) => ({ value: tp.id, text: `${tp.id} (${tp.count ?? 0})` })));
+    setTopics(await fetchTopicOptions());
   }
 
   function loadMentions() {

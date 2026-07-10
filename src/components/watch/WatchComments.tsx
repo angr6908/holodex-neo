@@ -7,9 +7,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Comment } from "@/components/video/Comment";
-import { formatDuration } from "@/lib/time";
+import { formatDuration, TIMESTAMP_REGEX, timestampToSeconds } from "@/lib/time";
 import { useTranslations } from "next-intl";
-const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/gm;
 const BUCKET_THRESHOLD_SECONDS = 10;
 
 type WatchComment = {
@@ -43,22 +42,19 @@ type WatchCommentsProps = {
 };
 
 function parseCommentTimes(message = "", duration: number) {
-  COMMENT_TIMESTAMP_REGEX.lastIndex = 0;
+  TIMESTAMP_REGEX.lastIndex = 0;
 
   const times = new Set<number>();
-  let match = COMMENT_TIMESTAMP_REGEX.exec(message);
+  let match = TIMESTAMP_REGEX.exec(message);
 
   while (match !== null) {
-    const hours = Number(match[1] ?? 0);
-    const minutes = Number(match[2]);
-    const seconds = Number(match[3]);
-    const time = hours * 3600 + minutes * 60 + seconds;
+    const time = timestampToSeconds(match[1], match[2], match[3]);
 
     if (time < duration) {
       times.add(time);
     }
 
-    match = COMMENT_TIMESTAMP_REGEX.exec(message);
+    match = TIMESTAMP_REGEX.exec(message);
   }
 
   return Array.from(times);
