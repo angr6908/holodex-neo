@@ -2,22 +2,43 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { Radio, BroadcastIcon, Calendar, Check, AlarmClock, Clock, Music, Plus, TwitchIcon, TwitterIcon, YoutubeIcon, type AnyIcon } from "@/lib/icons";
+import { ChannelImg } from "@/components/channel/ChannelImg";
+import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { ChannelImg } from "@/components/channel/ChannelImg";
-import { VideoCardMenu } from "@/components/common/VideoCardMenu";
-import { useAppState } from "@/lib/store";
-import { useOptionalMultiviewStore } from "@/lib/multiview-store";
-import { useLocale, useTranslations } from "next-intl";
-import { absoluteTime, channelDisplayName, compactVideoTime, formattedDuration, videoImage, videoTitle, viewerCountText } from "@/lib/video-format";
-import { cn } from "@/lib/utils";
-import { hasWatched as hasWatchedVideo, hasWatchedSync } from "@/lib/browser";
-import { preloadImage } from "@/lib/image-preload";
+import { hasWatchedSync, hasWatched as hasWatchedVideo } from "@/lib/browser";
 import * as icons from "@/lib/icons";
+import {
+  AlarmClock,
+  type AnyIcon,
+  BroadcastIcon,
+  Calendar,
+  Check,
+  Clock,
+  Music,
+  Plus,
+  Radio,
+  TwitchIcon,
+  TwitterIcon,
+  YoutubeIcon,
+} from "@/lib/icons";
+import { preloadImage } from "@/lib/image-preload";
+import { useOptionalMultiviewStore } from "@/lib/multiview-store";
+import { useAppState } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import {
+  absoluteTime,
+  channelDisplayName,
+  compactVideoTime,
+  formattedDuration,
+  videoImage,
+  videoTitle,
+  viewerCountText,
+} from "@/lib/video-format";
 
 function externalHref(link = "") {
   if (!link) return "";
@@ -59,7 +80,25 @@ function TickingCompactTime({ video, lang }: { video: any; lang: string }) {
   return <>{text}</>;
 }
 
-export function VideoCard({ video, source, fluid = false, includeChannel = false, includeAvatar = false, hideThumbnail = false, horizontal = false, colSize = 1, active = false, disableDefaultClick = false, activePlaylistItem = false, parentPlaylistId = null, denseList = false, inMultiViewSelector = false, onVideoClicked, children, action }: any) {
+export function VideoCard({
+  video,
+  source,
+  fluid = false,
+  includeChannel = false,
+  includeAvatar = false,
+  hideThumbnail = false,
+  horizontal = false,
+  colSize = 1,
+  active = false,
+  disableDefaultClick = false,
+  activePlaylistItem = false,
+  parentPlaylistId = null,
+  denseList = false,
+  inMultiViewSelector = false,
+  onVideoClicked,
+  children,
+  action,
+}: any) {
   const data = source || video;
   const router = useRouter();
   const pathname = usePathname();
@@ -77,8 +116,15 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     let cancelled = false;
     const initial = hasWatchedSync(data?.id);
     setHasWatched(initial);
-    if (!initial && data?.id) hasWatchedVideo(data.id).then((watched) => { if (!cancelled && watched) setHasWatched(true); }).catch(console.error);
-    return () => { cancelled = true; };
+    if (!initial && data?.id)
+      hasWatchedVideo(data.id)
+        .then((watched) => {
+          if (!cancelled && watched) setHasWatched(true);
+        })
+        .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
   }, [data?.id]);
   useEffect(() => {
     window.addEventListener("mouseup", releaseDragLock);
@@ -97,27 +143,37 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   // youtube videos and twitch streams to the Holodex watch page; off sends them to their
   // source (youtu.be / twitch.tv). Other placeholders only ever have their external source.
   const isTwitch = data?.type === "twitch" || (data?.link || "").includes("twitch");
-  const externalUrl = isPlaceholder || isTwitch
-    ? externalHref(data?.link || (isTwitch ? `twitch.tv/${data?.id}` : ""))
-    : `https://youtu.be/${data?.id}`;
+  const externalUrl =
+    isPlaceholder || isTwitch
+      ? externalHref(data?.link || (isTwitch ? `twitch.tv/${data?.id}` : ""))
+      : `https://youtu.be/${data?.id}`;
   const watchableOnHolodex = !isPlaceholder || isTwitch;
   const openExternal = app.settings.redirectMode || !watchableOnHolodex;
   const titleHref = openExternal ? externalUrl : watchLink;
   const hasSaved = !!app.playlist.find((v) => v.id === data?.id);
   const tlLang = app.settings.liveTlLang;
-  const hasTLs = (data?.status === "past" && data?.live_tl_count?.[tlLang]) || data?.recent_live_tls?.includes?.(tlLang);
+  const hasTLs =
+    (data?.status === "past" && data?.live_tl_count?.[tlLang]) ||
+    data?.recent_live_tls?.includes?.(tlLang);
   const isClip = data?.type === "clip";
   const isCertain = !isPlaceholder || data?.certainty === "certain";
-  const placeholderIconMap: Record<string, AnyIcon> = { event: Calendar, "scheduled-yt-stream": YoutubeIcon, "external-stream": Radio };
+  const placeholderIconMap: Record<string, AnyIcon> = {
+    event: Calendar,
+    "scheduled-yt-stream": YoutubeIcon,
+    "external-stream": Radio,
+  };
   const twitchPlaceholder = data?.link?.includes("twitch.tv");
   const twitterPlaceholder = data?.link?.includes("/i/spaces/");
   const inMultiViewActiveVideos = !!(
-    inMultiViewSelector &&
-    multiviewStore?.activeVideos?.some((video: any) => video.id === data?.id)
+    inMultiViewSelector && multiviewStore?.activeVideos?.some((video: any) => video.id === data?.id)
   );
-  const channelTitle = data?.channel ? `${data.channel.name || ""}${data.channel.english_name ? `\nEN: ${data.channel.english_name}` : ""}${data.channel.org ? `\n> ${data.channel.org}` : ""}${data.channel.group ? `\n> ${data.channel.group}` : ""}` : channelName;
+  const channelTitle = data?.channel
+    ? `${data.channel.name || ""}${data.channel.english_name ? `\nEN: ${data.channel.english_name}` : ""}${data.channel.org ? `\n> ${data.channel.org}` : ""}${data.channel.group ? `\n> ${data.channel.group}` : ""}`
+    : channelName;
 
-  useEffect(() => { if (!denseList && !shouldHideThumbnail) void preloadImage(imageSrc); }, [denseList, imageSrc, shouldHideThumbnail]);
+  useEffect(() => {
+    if (!denseList && !shouldHideThumbnail) void preloadImage(imageSrc);
+  }, [denseList, imageSrc, shouldHideThumbnail]);
 
   function shouldIgnoreTextClick(event: any) {
     const selection = window.getSelection?.();
@@ -125,7 +181,8 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     const currentTarget = event?.currentTarget;
     if (!(currentTarget instanceof Element) || selection.rangeCount === 0) return true;
     const commonAncestor = selection.getRangeAt(0).commonAncestorContainer;
-    const selectionRoot = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    const selectionRoot =
+      commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
     return !selectionRoot || currentTarget.contains(selectionRoot);
   }
   function goToVideo() {
@@ -152,7 +209,9 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     if (!(target instanceof Element)) return false;
     return !!target.closest(".video-card-text, .video-card-item-actions");
   }
-  function releaseDragLock() { setDragSelectionLocked(false); }
+  function releaseDragLock() {
+    setDragSelectionLocked(false);
+  }
   function cleanupDragPreview() {
     dragPreviewEl.current?.remove();
     dragPreviewEl.current = null;
@@ -185,7 +244,11 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     });
     document.body.appendChild(preview);
     dragPreviewEl.current = preview;
-    ev.dataTransfer.setDragImage(preview, Math.min(rect.width / 2, 120), Math.min(rect.height / 2, 90));
+    ev.dataTransfer.setDragImage(
+      preview,
+      Math.min(rect.width / 2, 120),
+      Math.min(rect.height / 2, 90),
+    );
   }
   function handleDragEnd() {
     setDragging(false);
@@ -211,14 +274,19 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   const viewerLabel = viewerCount ? t("component.videoCard.watching", { arg0: viewerCount }) : "";
   const isLiveStatus = data.status === "live";
   // Elapsed live duration ticks every second; keep the ticking inside its own child.
-  const durationNode = isLiveStatus && data.start_actual ? <TickingDuration video={data} t={t} /> : durationText;
+  const durationNode =
+    isLiveStatus && data.start_actual ? <TickingDuration video={data} t={t} /> : durationText;
   const showChannelViewers = includeChannel && isLiveStatus && !!viewerCount;
-  const showViewerBadge = !includeChannel && !denseList && !horizontal && isLiveStatus && !!viewerCount;
+  const showViewerBadge =
+    !includeChannel && !denseList && !horizontal && isLiveStatus && !!viewerCount;
   // Count only clips in the user's selected clip languages (same filter as the watch page's
   // clips tab); some endpoints return clips in every language.
-  const clipsInLang = !isPlaceholder && Array.isArray(data.clips)
-    ? data.clips.filter((clip: any) => clip.status !== "missing" && app.settings.clipLangs.includes(clip.lang)).length
-    : 0;
+  const clipsInLang =
+    !isPlaceholder && Array.isArray(data.clips)
+      ? data.clips.filter(
+          (clip: any) => clip.status !== "missing" && app.settings.clipLangs.includes(clip.lang),
+        ).length
+      : 0;
   const clipsCount = clipsInLang ? t("component.videoCard.clips", { n: clipsInLang }) : "";
   const isFlat = horizontal || denseList;
   const articleClass = cn(
@@ -240,14 +308,23 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     horizontal && "my-1.5 ml-1.5 h-[72px] w-[128px] self-center rounded-lg",
     inMultiViewActiveVideos && "grayscale opacity-30",
   );
-  const overlayClass = "pointer-events-none absolute inset-0 z-[1] flex h-full w-full flex-col justify-between overflow-hidden rounded-[inherit]";
+  const overlayClass =
+    "pointer-events-none absolute inset-0 z-[1] flex h-full w-full flex-col justify-between overflow-hidden rounded-[inherit]";
   const textClass = cn(
     "video-card-text flex flex-1 flex-row gap-2.5",
-    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 pt-2 pb-1.5",
+    denseList
+      ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1"
+      : horizontal
+        ? "px-2 py-1.5"
+        : "px-2.5 pt-2 pb-1.5",
   );
   const linesClass = cn(
     "flex min-w-0 flex-1",
-    denseList ? "flex-row flex-nowrap items-center gap-2.5" : horizontal ? "flex-col gap-0.5" : "flex-col gap-1.5",
+    denseList
+      ? "flex-row flex-nowrap items-center gap-2.5"
+      : horizontal
+        ? "flex-col gap-0.5"
+        : "flex-col gap-1.5",
     horizontal && "justify-around",
   );
   const titleWrapClass = cn(
@@ -256,7 +333,9 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   );
   const titleClass = cn(
     "video-card-title select-text text-left font-medium no-underline",
-    denseList ? "block w-full truncate text-sm leading-[1.3]" : "cursor-pointer break-words leading-5 hyphens-auto",
+    denseList
+      ? "block w-full truncate text-sm leading-[1.3]"
+      : "cursor-pointer break-words leading-5 hyphens-auto",
     hasWatched && "text-primary/70 opacity-60",
     inMultiViewActiveVideos && "grayscale opacity-30",
   );
@@ -267,25 +346,49 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
   );
   const channelSlotClass = cn(
     "flex min-w-0 items-center gap-2 text-sm leading-none",
-    denseList ? "max-w-[min(360px,42vw)] flex-[0_1_360px] overflow-hidden" : "min-h-0 justify-between",
+    denseList
+      ? "max-w-[min(360px,42vw)] flex-[0_1_360px] overflow-hidden"
+      : "min-h-0 justify-between",
   );
-  const metaRightClass = "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap font-ibm text-sm! leading-none tabular-nums text-muted-foreground";
-  const metricPairClass = "inline-grid h-4 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
-  const metricTextOnlyClass = "inline-block whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metaRightClass =
+    "ml-auto flex flex-none items-center gap-1.5 whitespace-nowrap font-ibm text-sm! leading-none tabular-nums text-muted-foreground";
+  const metricPairClass =
+    "inline-grid h-4 grid-cols-[0.875rem_auto] items-center gap-x-1 whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
+  const metricTextOnlyClass =
+    "inline-block whitespace-nowrap leading-none [backface-visibility:hidden] [transform:translateZ(0)] [will-change:transform]";
   const metricIconClass = "block size-3.5 shrink-0 -translate-y-[0.5px]";
   const metricTextClass = "block leading-none";
-  function renderMetric(icon: AnyIcon | null, text: React.ReactNode, title: string, truncate = false) {
+  function renderMetric(
+    icon: AnyIcon | null,
+    text: React.ReactNode,
+    title: string,
+    truncate = false,
+  ) {
     const Icon = icon;
     return (
-      <span className={cn(Icon ? metricPairClass : metricTextOnlyClass, truncate && "truncate")} title={title}>
+      <span
+        className={cn(Icon ? metricPairClass : metricTextOnlyClass, truncate && "truncate")}
+        title={title}
+      >
         {Icon ? <Icon className={metricIconClass} /> : null}
         <span className={metricTextClass}>{text}</span>
       </span>
     );
   }
   function renderStatusMetric(showViewers: boolean, truncateTime = false) {
-    if (isLiveStatus && showViewers && viewerCount) return renderMetric(BroadcastIcon, viewerCount, viewerLabel);
-    if (!isLiveStatus && compactTimeText) return renderMetric(data.status !== "past" ? Clock : null, data.status === "upcoming" ? <TickingCompactTime video={data} lang={lang} /> : compactTimeText, absoluteTimeText, truncateTime);
+    if (isLiveStatus && showViewers && viewerCount)
+      return renderMetric(BroadcastIcon, viewerCount, viewerLabel);
+    if (!isLiveStatus && compactTimeText)
+      return renderMetric(
+        data.status !== "past" ? Clock : null,
+        data.status === "upcoming" ? (
+          <TickingCompactTime video={data} lang={lang} />
+        ) : (
+          compactTimeText
+        ),
+        absoluteTimeText,
+        truncateTime,
+      );
     return null;
   }
   const itemActionsClass = cn(
@@ -293,22 +396,97 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     denseList ? "h-auto self-stretch border-l px-2 py-0" : "border-t px-3 py-2",
   );
   const isLive = data.status === "live";
-  const durationBadgeClass = cn("m-1 font-ibm font-light", isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white");
+  const durationBadgeClass = cn(
+    "m-1 font-ibm font-light",
+    isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white",
+  );
   const avatarButton = (size?: number) => (
-    <Button type="button" variant="ghost" className="h-auto w-auto rounded-full border-0 p-0" title={channelName} onClick={(e) => { e.stopPropagation(); goToChannel(); }}>
+    <Button
+      type="button"
+      variant="ghost"
+      className="h-auto w-auto rounded-full border-0 p-0"
+      title={channelName}
+      onClick={(e) => {
+        e.stopPropagation();
+        goToChannel();
+      }}
+    >
       <ChannelImg channel={data.channel} rounded size={size} noLink />
     </Button>
   );
   const titleNode = (
-    <div className={titleWrapClass}><Link href={titleHref} lang="en" className={cn(titleClass, !denseList && (app.currentGridSize === 2 ? "text-sm" : app.currentGridSize === 1 ? "text-[0.9375rem]" : "text-base"))} style={titleStyle} title={title} onMouseDown={(e) => { if (e.button === 2 || (e.button === 0 && e.ctrlKey)) e.currentTarget.style.userSelect = "none"; }} onContextMenu={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); const el = e.currentTarget; requestAnimationFrame(() => { el.style.userSelect = ""; }); }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>{!isCertain ? <AlarmClock className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom" aria-label={t("component.videoCard.uncertainPlaceholder")} /> : null}{title}</Link></div>
+    <div className={titleWrapClass}>
+      <Link
+        href={titleHref}
+        lang="en"
+        className={cn(
+          titleClass,
+          !denseList &&
+            (app.currentGridSize === 2
+              ? "text-sm"
+              : app.currentGridSize === 1
+                ? "text-[0.9375rem]"
+                : "text-base"),
+        )}
+        style={titleStyle}
+        title={title}
+        onMouseDown={(e) => {
+          if (e.button === 2 || (e.button === 0 && e.ctrlKey))
+            e.currentTarget.style.userSelect = "none";
+        }}
+        onContextMenu={(e) => {
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+          const el = e.currentTarget;
+          requestAnimationFrame(() => {
+            el.style.userSelect = "";
+          });
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (shouldIgnoreTextClick(e)) return;
+          goToVideo();
+        }}
+      >
+        {!isCertain ? (
+          <AlarmClock
+            className="mr-1 inline-block h-[18px] w-[18px] align-text-bottom"
+            aria-label={t("component.videoCard.uncertainPlaceholder")}
+          />
+        ) : null}
+        {title}
+      </Link>
+    </div>
   );
   const metaNode = (
     <div className={metaClass}>
       {includeChannel ? (
         <div className={channelSlotClass}>
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            {includeAvatar && !denseList && !isClip && ["live", "upcoming"].includes(data.status) && data.channel ? avatarButton(24) : null}
-            <Button type="button" variant="link" className={cn("-ml-0.5 block h-auto min-w-0 flex-1 truncate border-0 p-0 pl-0.5 text-left text-sm font-normal leading-tight text-muted-foreground no-underline hover:text-foreground hover:no-underline", denseList && "max-w-[180px]")} title={channelTitle} onClick={(e) => { e.stopPropagation(); if (shouldIgnoreTextClick(e)) return; goToChannel(); }}>{channelName}</Button>
+            {includeAvatar &&
+            !denseList &&
+            !isClip &&
+            ["live", "upcoming"].includes(data.status) &&
+            data.channel
+              ? avatarButton(24)
+              : null}
+            <Button
+              type="button"
+              variant="link"
+              className={cn(
+                "-ml-0.5 block h-auto min-w-0 flex-1 truncate border-0 p-0 pl-0.5 text-left text-sm font-normal leading-tight text-muted-foreground no-underline hover:text-foreground hover:no-underline",
+                denseList && "max-w-[180px]",
+              )}
+              title={channelTitle}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (shouldIgnoreTextClick(e)) return;
+                goToChannel();
+              }}
+            >
+              {channelName}
+            </Button>
           </div>
           <div className={metaRightClass}>
             {renderStatusMetric(showChannelViewers)}
@@ -316,7 +494,12 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           </div>
         </div>
       ) : (
-        <div className={cn("flex min-h-4 items-center gap-1.5 font-ibm text-sm! leading-none tabular-nums text-muted-foreground", denseList && "min-w-20 whitespace-nowrap")}>
+        <div
+          className={cn(
+            "flex min-h-4 items-center gap-1.5 font-ibm text-sm! leading-none tabular-nums text-muted-foreground",
+            denseList && "min-w-20 whitespace-nowrap",
+          )}
+        >
           {renderStatusMetric(!!viewerCount, true)}
           {clipsCount ? <span className="text-primary">· {clipsCount}</span> : null}
         </div>
@@ -324,26 +507,171 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
     </div>
   );
   return (
-    <article className={articleClass} draggable={!dragSelectionLocked} onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))} onDragStart={drag} onDragEnd={handleDragEnd} onClick={(e) => { if ((e.target as HTMLElement).closest("a,button")) return; if (shouldIgnoreTextClick(e)) return; goToVideo(); }}>
+    <article
+      className={articleClass}
+      draggable={!dragSelectionLocked}
+      onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))}
+      onDragStart={drag}
+      onDragEnd={handleDragEnd}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("a,button")) return;
+        if (shouldIgnoreTextClick(e)) return;
+        goToVideo();
+      }}
+    >
       <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
         <ContextMenuTrigger render={<Card className={shellClass} />}>
-          {!denseList ? <div className={thumbnailClass}>
-            {horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="128" height="72" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover" alt="" /> : null}
-            <Button type="button" variant="ghost" className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary" onClick={(e) => { e.stopPropagation(); onThumbnailClicked(); }}>
-              <span className="sr-only">{title}</span>
-            </Button>
-            <div className={overlayClass}>
-              <div className="flex items-start justify-between"><div>{data.topic_id && !isClip ? <Badge variant="secondary" className="m-1.5 max-w-full truncate capitalize font-ibm">{data.topic_id}</Badge> : null}</div>{!isPlaceholder ? <Button type="button" variant="secondary" size="icon-xs" className="pointer-events-auto m-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data); }}>{hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}</Button> : null}</div>
-              <div className="flex min-w-0 items-end justify-between gap-2">
-                <div className="min-w-0 flex-1">{showViewerBadge ? <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}><BroadcastIcon className="size-3.5" />{viewerCount}</Badge> : null}</div>
-                {!isPlaceholder ? <div className="flex flex-col items-end">{data.songcount ? <Badge variant="secondary" className="m-1" title={t("component.videoCard.totalSongs")}>{data.songcount > 1 ? data.songcount : ""}<Music className="h-3.5 w-3.5" /></Badge> : null}{hasTLs ? <Badge variant="secondary" className="m-1" title={data.status === "past" ? t("component.videoCard.totalTLs") : t("component.videoCard.tlPresence")}>{data.status === "past" ? data.live_tl_count?.[app.settings.liveTlLang || "en"] : ""}<icons.TlChatIcon className="h-3.5 w-3.5" /></Badge> : null}{(data.duration > 0 || data.start_actual) ? <Badge variant="secondary" className={durationBadgeClass}>{durationNode}</Badge> : null}</div> : <div className="flex flex-col items-end"><Badge variant="secondary" className={durationBadgeClass}>{durationText ? <span className="inline-block leading-[13px] group-hover:hidden">{durationNode}</span> : null}{data.placeholderType === "scheduled-yt-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeScheduledYT")}</span> : data.placeholderType === "external-stream" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeExternalStream")}</span> : data.placeholderType === "event" ? <span className="hidden leading-[13px] group-hover:inline-block">{t("component.videoCard.typeEventPlaceholder")}</span> : null}{(() => { const C = twitchPlaceholder ? TwitchIcon : twitterPlaceholder ? TwitterIcon : placeholderIconMap[data.placeholderType]; return <C className="h-4 w-4 rounded-sm" />; })()}</Badge></div>}
+          {!denseList ? (
+            <div className={thumbnailClass}>
+              {horizontal && !shouldHideThumbnail ? (
+                <img
+                  src={imageSrc}
+                  width="128"
+                  height="72"
+                  loading="lazy"
+                  decoding="async"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                  alt=""
+                />
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onThumbnailClicked();
+                }}
+              >
+                <span className="sr-only">{title}</span>
+              </Button>
+              <div className={overlayClass}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    {data.topic_id && !isClip ? (
+                      <Badge
+                        variant="secondary"
+                        className="m-1.5 max-w-full truncate capitalize font-ibm"
+                      >
+                        {data.topic_id}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  {!isPlaceholder ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon-xs"
+                      className="pointer-events-auto m-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data);
+                      }}
+                    >
+                      {hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="flex min-w-0 items-end justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    {showViewerBadge ? (
+                      <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}>
+                        <BroadcastIcon className="size-3.5" />
+                        {viewerCount}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  {!isPlaceholder ? (
+                    <div className="flex flex-col items-end">
+                      {data.songcount ? (
+                        <Badge
+                          variant="secondary"
+                          className="m-1"
+                          title={t("component.videoCard.totalSongs")}
+                        >
+                          {data.songcount > 1 ? data.songcount : ""}
+                          <Music className="h-3.5 w-3.5" />
+                        </Badge>
+                      ) : null}
+                      {hasTLs ? (
+                        <Badge
+                          variant="secondary"
+                          className="m-1"
+                          title={
+                            data.status === "past"
+                              ? t("component.videoCard.totalTLs")
+                              : t("component.videoCard.tlPresence")
+                          }
+                        >
+                          {data.status === "past"
+                            ? data.live_tl_count?.[app.settings.liveTlLang || "en"]
+                            : ""}
+                          <icons.TlChatIcon className="h-3.5 w-3.5" />
+                        </Badge>
+                      ) : null}
+                      {data.duration > 0 || data.start_actual ? (
+                        <Badge variant="secondary" className={durationBadgeClass}>
+                          {durationNode}
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-end">
+                      <Badge variant="secondary" className={durationBadgeClass}>
+                        {durationText ? (
+                          <span className="inline-block leading-[13px] group-hover:hidden">
+                            {durationNode}
+                          </span>
+                        ) : null}
+                        {data.placeholderType === "scheduled-yt-stream" ? (
+                          <span className="hidden leading-[13px] group-hover:inline-block">
+                            {t("component.videoCard.typeScheduledYT")}
+                          </span>
+                        ) : data.placeholderType === "external-stream" ? (
+                          <span className="hidden leading-[13px] group-hover:inline-block">
+                            {t("component.videoCard.typeExternalStream")}
+                          </span>
+                        ) : data.placeholderType === "event" ? (
+                          <span className="hidden leading-[13px] group-hover:inline-block">
+                            {t("component.videoCard.typeEventPlaceholder")}
+                          </span>
+                        ) : null}
+                        {(() => {
+                          const C = twitchPlaceholder
+                            ? TwitchIcon
+                            : twitterPlaceholder
+                              ? TwitterIcon
+                              : placeholderIconMap[data.placeholderType];
+                          return <C className="h-4 w-4 rounded-sm" />;
+                        })()}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               </div>
+              {!horizontal && !shouldHideThumbnail ? (
+                <img
+                  src={imageSrc}
+                  width="100%"
+                  loading="lazy"
+                  decoding="async"
+                  className="pointer-events-none aspect-video w-full object-cover"
+                  alt=""
+                />
+              ) : !horizontal && shouldHideThumbnail ? (
+                <div className="pointer-events-none aspect-[60/9] w-full bg-muted" />
+              ) : null}
             </div>
-            {!horizontal && !shouldHideThumbnail ? <img src={imageSrc} width="100%" loading="lazy" decoding="async" className="pointer-events-none aspect-video w-full object-cover" alt="" /> : !horizontal && shouldHideThumbnail ? <div className="pointer-events-none aspect-[60/9] w-full bg-muted" /> : null}
-          </div> : null}
+          ) : null}
           <div className={textClass}>
-            {denseList && data.channel ? <div className="mx-2 flex flex-col self-center">{avatarButton()}</div> : null}
-            <div className={linesClass}>{titleNode}{metaNode}</div>
+            {denseList && data.channel ? (
+              <div className="mx-2 flex flex-col self-center">{avatarButton()}</div>
+            ) : null}
+            <div className={linesClass}>
+              {titleNode}
+              {metaNode}
+            </div>
           </div>
         </ContextMenuTrigger>
         {menuOpen ? (
@@ -352,7 +680,52 @@ export function VideoCard({ video, source, fluid = false, includeChannel = false
           </ContextMenuContent>
         ) : null}
       </ContextMenu>
-      {(children || action || activePlaylistItem) ? <div className={itemActionsClass}>{activePlaylistItem ? <><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("up"); }}><icons.ChevronUp className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); app.removeFromPlaylist(data.id); }}><icons.Trash2 className="h-4 w-4" /></Button><Button type="button" variant="ghost" size="icon-xs" onClick={(event) => { event.stopPropagation(); event.preventDefault(); move("down"); }}><icons.ChevronDown className="h-4 w-4" /></Button></> : action || children}</div> : null}
+      {children || action || activePlaylistItem ? (
+        <div className={itemActionsClass}>
+          {activePlaylistItem ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  move("up");
+                }}
+              >
+                <icons.ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  app.removeFromPlaylist(data.id);
+                }}
+              >
+                <icons.Trash2 className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  move("down");
+                }}
+              >
+                <icons.ChevronDown className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            action || children
+          )}
+        </div>
+      ) : null}
     </article>
   );
 }

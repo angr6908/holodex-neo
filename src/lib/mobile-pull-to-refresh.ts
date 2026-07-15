@@ -2,13 +2,21 @@
 
 type PanEvent = TouchEvent & { deltaX: number; deltaY: number };
 
-function onTouchPan({ element, onpanstart, onpanmove, onpanend }: {
+function onTouchPan({
+  element,
+  onpanstart,
+  onpanmove,
+  onpanend,
+}: {
   element: Element;
   onpanstart?: (e: PanEvent) => void;
   onpanmove?: (e: PanEvent) => void;
   onpanend?: (e: PanEvent) => void;
 }) {
-  let id: number | null = null, sx = 0, sy = 0, started = false;
+  let id: number | null = null,
+    sx = 0,
+    sy = 0,
+    started = false;
 
   const calc = (e: TouchEvent): PanEvent | false => {
     const t = [...e.changedTouches].find((x) => x.identifier === id);
@@ -21,12 +29,18 @@ function onTouchPan({ element, onpanstart, onpanmove, onpanend }: {
   const start = (e: TouchEvent) => {
     const t = e.changedTouches[0];
     if (!t) return;
-    id = t.identifier; sx = t.screenX; sy = t.screenY; started = false;
+    id = t.identifier;
+    sx = t.screenX;
+    sy = t.screenY;
+    started = false;
   };
   const move = (e: TouchEvent) => {
     const p = calc(e);
     if (!p) return;
-    if (onpanstart && !started) { onpanstart(p); started = true; }
+    if (onpanstart && !started) {
+      onpanstart(p);
+      started = true;
+    }
     onpanmove?.(p);
   };
   const end = (e: TouchEvent) => {
@@ -67,7 +81,14 @@ const material = {
       elControl.style.transition = "transform 0.3s, opacity 0.15s";
       elControl.style.transform = "translate3d(-50%, 0, 0)";
       elControl.style.opacity = 0;
-      elControl.addEventListener("transitionend", () => { elControl.style.transition = ""; resolve(); }, { once: true });
+      elControl.addEventListener(
+        "transitionend",
+        () => {
+          elControl.style.transition = "";
+          resolve();
+        },
+        { once: true },
+      );
     });
   },
   restoring({ elControl }: any) {
@@ -75,7 +96,14 @@ const material = {
       if (!elControl) return resolve();
       elControl.style.transition = "transform 0.3s";
       elControl.style.transform += " scale(0.01)";
-      elControl.addEventListener("transitionend", () => { elControl.style.transition = ""; resolve(); }, { once: true });
+      elControl.addEventListener(
+        "transitionend",
+        () => {
+          elControl.style.transition = "";
+          resolve();
+        },
+        { once: true },
+      );
     });
   },
 };
@@ -83,13 +111,33 @@ const material = {
 type State = "pulling" | "aborting" | "reached" | "refreshing" | "restoring" | null;
 
 export function pullToRefresh(opts: any) {
-  opts = { scrollable: document.body, threshold: 150, onStateChange() {}, shouldPullToRefresh: () => true, animates: material, ...opts };
-  const { container, scrollable, threshold, refresh, onStateChange, animates, shouldPullToRefresh } = opts;
-  let distance: number | null = null, offset: number | null = null, state: State = null;
+  opts = {
+    scrollable: document.body,
+    threshold: 150,
+    onStateChange() {},
+    shouldPullToRefresh: () => true,
+    animates: material,
+    ...opts,
+  };
+  const {
+    container,
+    scrollable,
+    threshold,
+    refresh,
+    onStateChange,
+    animates,
+    shouldPullToRefresh,
+  } = opts;
+  let distance: number | null = null,
+    offset: number | null = null,
+    state: State = null;
 
   const cls = (op: "add" | "remove", c: string) => container.classList[op](`pull-to-refresh--${c}`);
   const scrollTop = () => {
-    if (!scrollable || [window, document, document.body, document.documentElement].includes(scrollable))
+    if (
+      !scrollable ||
+      [window, document, document.body, document.documentElement].includes(scrollable)
+    )
       return document.documentElement.scrollTop || document.body.scrollTop;
     return scrollable.scrollTop;
   };
@@ -99,33 +147,62 @@ export function pullToRefresh(opts: any) {
     onpanmove(event) {
       let d = event.deltaY;
       if (scrollTop() > 0 && state === "reached") {
-        cls("remove", state); state = "pulling"; cls("add", state); onStateChange(state, opts);
+        cls("remove", state);
+        state = "pulling";
+        cls("add", state);
+        onStateChange(state, opts);
       }
-      if (!shouldPullToRefresh() || scrollTop() > 0 || (d < 0 && !state) || (state && ["aborting", "refreshing", "restoring"].includes(state))) return;
+      if (
+        !shouldPullToRefresh() ||
+        scrollTop() > 0 ||
+        (d < 0 && !state) ||
+        (state && ["aborting", "refreshing", "restoring"].includes(state))
+      )
+        return;
       if (event.cancelable) event.preventDefault();
-      if (distance == null) { offset = d; state = "pulling"; cls("add", state); onStateChange(state, opts); }
+      if (distance == null) {
+        offset = d;
+        state = "pulling";
+        cls("add", state);
+        onStateChange(state, opts);
+      }
       d -= offset || 0;
       if (d < 0) d = 0;
       distance = d;
       if ((d >= threshold && state !== "reached") || (d < threshold && state !== "pulling")) {
         if (state) cls("remove", state);
         state = state === "reached" ? "pulling" : "reached";
-        cls("add", state); onStateChange(state, opts);
+        cls("add", state);
+        onStateChange(state, opts);
       }
       animates.pulling(d, opts);
     },
     onpanend() {
       if (!state) return;
-      const reset = () => { if (state) cls("remove", state); distance = null; state = null; offset = null; onStateChange(state); };
+      const reset = () => {
+        if (state) cls("remove", state);
+        distance = null;
+        state = null;
+        offset = null;
+        onStateChange(state);
+      };
       if (state === "pulling") {
-        cls("remove", state); state = "aborting"; onStateChange(state); cls("add", state);
+        cls("remove", state);
+        state = "aborting";
+        onStateChange(state);
+        cls("add", state);
         animates.aborting(opts).then(reset);
       } else if (state === "reached") {
-        cls("remove", state); state = "refreshing"; cls("add", state); onStateChange(state, opts);
+        cls("remove", state);
+        state = "refreshing";
+        cls("add", state);
+        onStateChange(state, opts);
         animates.refreshing(opts);
         Promise.resolve(refresh()).then(() => {
           if (state) cls("remove", state);
-          state = "restoring"; cls("add", state); onStateChange(state);
+          state = "restoring";
+          cls("add", state);
+          onStateChange(state);
           animates.restoring(opts).then(reset);
         });
       }

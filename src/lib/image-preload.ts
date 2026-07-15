@@ -26,7 +26,9 @@ export function preloadImage(url?: string | null) {
   img.fetchPriority = "high";
   let resolvePromise: () => void = () => {};
   let settled = false;
-  const promise = new Promise<void>((resolve) => { resolvePromise = resolve; });
+  const promise = new Promise<void>((resolve) => {
+    resolvePromise = resolve;
+  });
   inflight.set(url, promise);
   const done = () => {
     if (settled) return;

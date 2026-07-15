@@ -1,23 +1,45 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { FileText } from "@/lib/icons";
+import { TlEntryRow } from "@/components/tl/ScriptEditorParts";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TlEntryRow } from "@/components/tl/ScriptEditorParts";
-import { useTranslations } from "next-intl";
+import { FileText } from "@/lib/icons";
 import { parseSrtCues, parseTlAssImport, parseTlTtmlImport } from "@/lib/tl-format";
+
 function mapProfiles(profiles: any[]) {
   return profiles.map(({ Name, CC, OC }) => ({ Name, useCC: true, CC, useOC: true, OC }));
 }
 function mapEntries(entries: any[]) {
-  return entries.map(({ text: SText, startTime: Time, duration: Duration, profileIndex: Profile }) => ({ SText, Time, Duration, Profile }));
+  return entries.map(
+    ({ text: SText, startTime: Time, duration: Duration, profileIndex: Profile }) => ({
+      SText,
+      Time,
+      Duration,
+      Profile,
+    }),
+  );
 }
 
-export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boolean; onOpenChange: (value: boolean) => void; onBounceDataBack: (payload: { entriesData: any[]; profileData: any[] }) => void }) {
+export function ImportFile({
+  show,
+  onOpenChange,
+  onBounceDataBack,
+}: {
+  show: boolean;
+  onOpenChange: (value: boolean) => void;
+  onBounceDataBack: (payload: { entriesData: any[]; profileData: any[] }) => void;
+}) {
   const t = useTranslations();
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [parsed, setParsed] = useState(false);
@@ -53,18 +75,21 @@ export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boo
     const reader = new FileReader();
     reader.onload = (res) => {
       const text = res.target!.result as string;
-      if ((/\.ass$/i).test(e.name)) parseAss(text);
-      else if ((/\.srt$/i).test(e.name)) parseSrt(text);
-      else if ((/\.ttml$/i).test(e.name)) parseTtml(text);
+      if (/\.ass$/i.test(e.name)) parseAss(text);
+      else if (/\.srt$/i.test(e.name)) parseSrt(text);
+      else if (/\.ttml$/i.test(e.name)) parseTtml(text);
       else setNotifText(t("views.watch.uploadPanel.notifTextErrExt"));
     };
-    if ((/\.(ass|srt|ttml)$/i).test(e.name)) reader.readAsText(e);
+    if (/\.(ass|srt|ttml)$/i.test(e.name)) reader.readAsText(e);
     else setNotifText(t("views.watch.uploadPanel.notifTextErrExt"));
   }
 
   function parseAss(dataFeed: string) {
     const parsed = parseTlAssImport(dataFeed);
-    if (!parsed) { setNotifText(t("views.watch.uploadPanel.notifTextErr")); return; }
+    if (!parsed) {
+      setNotifText(t("views.watch.uploadPanel.notifTextErr"));
+      return;
+    }
     const nextProfile = mapProfiles(parsed.profiles);
     const nextEntries = mapEntries(parsed.entries);
     setProfile(nextProfile);
@@ -75,17 +100,39 @@ export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boo
 
   function parseTtml(dataFeed: string) {
     const parsed = parseTlTtmlImport(dataFeed);
-    if (!parsed) { setNotifText(t("views.watch.uploadPanel.notifTextErr")); return; }
+    if (!parsed) {
+      setNotifText(t("views.watch.uploadPanel.notifTextErr"));
+      return;
+    }
     const nextProfile = mapProfiles(parsed.profiles);
     const nextEntries = mapEntries(parsed.entries);
     setProfile(nextProfile);
     setEntries(nextEntries);
-    setNotifText(`Parsed TTML file, ${nextProfile.length} colour profiles, ${nextEntries.length} Entries.`);
+    setNotifText(
+      `Parsed TTML file, ${nextProfile.length} colour profiles, ${nextEntries.length} Entries.`,
+    );
     setParsed(true);
   }
   function parseSrt(dataFeed: string) {
-    const nextProfile = [{ Name: "Profile1", Prefix: "", Suffix: "", useCC: false, CC: "#000000", useOC: false, OC: "#000000" }];
-    const nextEntries = parseSrtCues(dataFeed).map(({ text: SText, startTime: Time, duration: Duration }) => ({ SText, Time, Duration, Profile: 0 }));
+    const nextProfile = [
+      {
+        Name: "Profile1",
+        Prefix: "",
+        Suffix: "",
+        useCC: false,
+        CC: "#000000",
+        useOC: false,
+        OC: "#000000",
+      },
+    ];
+    const nextEntries = parseSrtCues(dataFeed).map(
+      ({ text: SText, startTime: Time, duration: Duration }) => ({
+        SText,
+        Time,
+        Duration,
+        Profile: 0,
+      }),
+    );
     setProfile(nextProfile);
     setEntries(nextEntries);
     setNotifText(`Parsed SRT file, ${nextEntries.length} Entries.`);
@@ -99,41 +146,62 @@ export function ImportFile({ show, onOpenChange, onBounceDataBack }: { show: boo
   return (
     <Dialog open={show} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[500px] max-w-[80%]">
-          <div className="space-y-4">
-            <DialogHeader className="items-center text-center sm:text-center">
-              <DialogTitle>
-                {t("views.scriptEditor.menu.importFile")}
-              </DialogTitle>
-            </DialogHeader>
-            <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm leading-5 font-normal text-muted-foreground">
-              <FileText className="h-5 w-5" />
-              <span className="truncate">{selectedFileName || ".ass, .ttml, .srt"}</span>
-              <Input ref={fileInput} accept=".ass,.TTML,.srt" type="file" className="hidden" onChange={handleFileInput} />
-            </Label>
-            <p className="text-sm text-muted-foreground">{notifText}</p>
-            {entries.length > 0 ? (
-              <div className="max-h-[40vh] overflow-auto rounded-xl border">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-background">
-                    <TableRow>
-                      <TableHead>{t("views.watch.uploadPanel.headerStart")}</TableHead>
-                      <TableHead>{t("views.watch.uploadPanel.headerEnd")}</TableHead>
-                      <TableHead>{t("views.watch.uploadPanel.headerText")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>{entries.map((entry, index) => <TlEntryRow key={index} time={entry.Time} duration={entry.Duration} stext={entry.SText} cc={profile[entry.Profile].useCC ? profile[entry.Profile].CC : ""} oc={profile[entry.Profile].useOC ? profile[entry.Profile].OC : ""} />)}</TableBody>
-                </Table>
-              </div>
-            ) : null}
-            <DialogFooter className="flex-row items-center justify-start gap-3 sm:justify-start">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                {t("views.tlClient.cancelBtn")}
-              </Button>
-              <Button type="button" variant="destructive" className="ml-auto" disabled={!parsed} onClick={clickOk}>
-                {t("views.scriptEditor.importFile.overwriteBtn")}
-              </Button>
-            </DialogFooter>
-          </div>
+        <div className="space-y-4">
+          <DialogHeader className="items-center text-center sm:text-center">
+            <DialogTitle>{t("views.scriptEditor.menu.importFile")}</DialogTitle>
+          </DialogHeader>
+          <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm leading-5 font-normal text-muted-foreground">
+            <FileText className="h-5 w-5" />
+            <span className="truncate">{selectedFileName || ".ass, .ttml, .srt"}</span>
+            <Input
+              ref={fileInput}
+              accept=".ass,.TTML,.srt"
+              type="file"
+              className="hidden"
+              onChange={handleFileInput}
+            />
+          </Label>
+          <p className="text-sm text-muted-foreground">{notifText}</p>
+          {entries.length > 0 ? (
+            <div className="max-h-[40vh] overflow-auto rounded-xl border">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background">
+                  <TableRow>
+                    <TableHead>{t("views.watch.uploadPanel.headerStart")}</TableHead>
+                    <TableHead>{t("views.watch.uploadPanel.headerEnd")}</TableHead>
+                    <TableHead>{t("views.watch.uploadPanel.headerText")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.map((entry, index) => (
+                    <TlEntryRow
+                      key={index}
+                      time={entry.Time}
+                      duration={entry.Duration}
+                      stext={entry.SText}
+                      cc={profile[entry.Profile].useCC ? profile[entry.Profile].CC : ""}
+                      oc={profile[entry.Profile].useOC ? profile[entry.Profile].OC : ""}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : null}
+          <DialogFooter className="flex-row items-center justify-start gap-3 sm:justify-start">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              {t("views.tlClient.cancelBtn")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="ml-auto"
+              disabled={!parsed}
+              onClick={clickOk}
+            >
+              {t("views.scriptEditor.importFile.overwriteBtn")}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

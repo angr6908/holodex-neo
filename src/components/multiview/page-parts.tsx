@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Crosshair, Languages, MessageCircle, MessageSquare, Play, Radio, Save, Trash2 } from "lucide-react";
+import {
+  Check,
+  Crosshair,
+  Languages,
+  MessageCircle,
+  MessageSquare,
+  Play,
+  Radio,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChannelImg } from "@/components/channel/ChannelImg";
+import { CellControl } from "@/components/multiview/CellControl";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -15,26 +27,129 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toggle } from "@/components/ui/toggle";
-import { ChannelImg } from "@/components/channel/ChannelImg";
-import { CellControl } from "@/components/multiview/CellControl";
-import { useAppState } from "@/lib/store";
+import { getVideoIDFromUrl } from "@/lib/functions";
 import { useMultiviewStore, useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { asTwitchVideo, encodeLayout } from "@/lib/mv-utils";
-import { getVideoIDFromUrl } from "@/lib/functions";
 import { cn } from "@/lib/utils";
+
 // Tailwind v4 scans source for arbitrary-value class strings; arrays must stay literal.
-const colStartClasses = ["", "col-start-[1]", "col-start-[2]", "col-start-[3]", "col-start-[4]", "col-start-[5]", "col-start-[6]", "col-start-[7]", "col-start-[8]", "col-start-[9]", "col-start-[10]", "col-start-[11]", "col-start-[12]", "col-start-[13]", "col-start-[14]", "col-start-[15]", "col-start-[16]", "col-start-[17]", "col-start-[18]", "col-start-[19]", "col-start-[20]", "col-start-[21]", "col-start-[22]", "col-start-[23]", "col-start-[24]"];
-const rowStartClasses = ["", "row-start-[1]", "row-start-[2]", "row-start-[3]", "row-start-[4]", "row-start-[5]", "row-start-[6]", "row-start-[7]", "row-start-[8]", "row-start-[9]", "row-start-[10]", "row-start-[11]", "row-start-[12]", "row-start-[13]", "row-start-[14]", "row-start-[15]", "row-start-[16]", "row-start-[17]", "row-start-[18]", "row-start-[19]", "row-start-[20]", "row-start-[21]", "row-start-[22]", "row-start-[23]", "row-start-[24]"];
-const colSpanClasses = ["", "col-span-[1]", "col-span-[2]", "col-span-[3]", "col-span-[4]", "col-span-[5]", "col-span-[6]", "col-span-[7]", "col-span-[8]", "col-span-[9]", "col-span-[10]", "col-span-[11]", "col-span-[12]", "col-span-[13]", "col-span-[14]", "col-span-[15]", "col-span-[16]", "col-span-[17]", "col-span-[18]", "col-span-[19]", "col-span-[20]", "col-span-[21]", "col-span-[22]", "col-span-[23]", "col-span-[24]"];
-const rowSpanClasses = ["", "row-span-[1]", "row-span-[2]", "row-span-[3]", "row-span-[4]", "row-span-[5]", "row-span-[6]", "row-span-[7]", "row-span-[8]", "row-span-[9]", "row-span-[10]", "row-span-[11]", "row-span-[12]", "row-span-[13]", "row-span-[14]", "row-span-[15]", "row-span-[16]", "row-span-[17]", "row-span-[18]", "row-span-[19]", "row-span-[20]", "row-span-[21]", "row-span-[22]", "row-span-[23]", "row-span-[24]"];
+const colStartClasses = [
+  "",
+  "col-start-[1]",
+  "col-start-[2]",
+  "col-start-[3]",
+  "col-start-[4]",
+  "col-start-[5]",
+  "col-start-[6]",
+  "col-start-[7]",
+  "col-start-[8]",
+  "col-start-[9]",
+  "col-start-[10]",
+  "col-start-[11]",
+  "col-start-[12]",
+  "col-start-[13]",
+  "col-start-[14]",
+  "col-start-[15]",
+  "col-start-[16]",
+  "col-start-[17]",
+  "col-start-[18]",
+  "col-start-[19]",
+  "col-start-[20]",
+  "col-start-[21]",
+  "col-start-[22]",
+  "col-start-[23]",
+  "col-start-[24]",
+];
+const rowStartClasses = [
+  "",
+  "row-start-[1]",
+  "row-start-[2]",
+  "row-start-[3]",
+  "row-start-[4]",
+  "row-start-[5]",
+  "row-start-[6]",
+  "row-start-[7]",
+  "row-start-[8]",
+  "row-start-[9]",
+  "row-start-[10]",
+  "row-start-[11]",
+  "row-start-[12]",
+  "row-start-[13]",
+  "row-start-[14]",
+  "row-start-[15]",
+  "row-start-[16]",
+  "row-start-[17]",
+  "row-start-[18]",
+  "row-start-[19]",
+  "row-start-[20]",
+  "row-start-[21]",
+  "row-start-[22]",
+  "row-start-[23]",
+  "row-start-[24]",
+];
+const colSpanClasses = [
+  "",
+  "col-span-[1]",
+  "col-span-[2]",
+  "col-span-[3]",
+  "col-span-[4]",
+  "col-span-[5]",
+  "col-span-[6]",
+  "col-span-[7]",
+  "col-span-[8]",
+  "col-span-[9]",
+  "col-span-[10]",
+  "col-span-[11]",
+  "col-span-[12]",
+  "col-span-[13]",
+  "col-span-[14]",
+  "col-span-[15]",
+  "col-span-[16]",
+  "col-span-[17]",
+  "col-span-[18]",
+  "col-span-[19]",
+  "col-span-[20]",
+  "col-span-[21]",
+  "col-span-[22]",
+  "col-span-[23]",
+  "col-span-[24]",
+];
+const rowSpanClasses = [
+  "",
+  "row-span-[1]",
+  "row-span-[2]",
+  "row-span-[3]",
+  "row-span-[4]",
+  "row-span-[5]",
+  "row-span-[6]",
+  "row-span-[7]",
+  "row-span-[8]",
+  "row-span-[9]",
+  "row-span-[10]",
+  "row-span-[11]",
+  "row-span-[12]",
+  "row-span-[13]",
+  "row-span-[14]",
+  "row-span-[15]",
+  "row-span-[16]",
+  "row-span-[17]",
+  "row-span-[18]",
+  "row-span-[19]",
+  "row-span-[20]",
+  "row-span-[21]",
+  "row-span-[22]",
+  "row-span-[23]",
+  "row-span-[24]",
+];
 
 const clamp = (v: number) => Math.max(1, Math.min(24, v));
-export const gridAreaClass = (i: any) => cn(
-  colStartClasses[clamp(Number(i.x) + 1)],
-  rowStartClasses[clamp(Number(i.y) + 1)],
-  colSpanClasses[clamp(Number(i.w))],
-  rowSpanClasses[clamp(Number(i.h))],
-);
+export const gridAreaClass = (i: any) =>
+  cn(
+    colStartClasses[clamp(Number(i.x) + 1)],
+    rowStartClasses[clamp(Number(i.y) + 1)],
+    colSpanClasses[clamp(Number(i.w))],
+    rowSpanClasses[clamp(Number(i.h))],
+  );
 
 function previewSizeClass(mobile: boolean, scale: number) {
   if (scale <= 0.3) return mobile ? "h-12 w-7" : "h-7 w-12";
@@ -43,15 +158,35 @@ function previewSizeClass(mobile: boolean, scale: number) {
   return mobile ? "h-[192px] w-[108px]" : "h-[108px] w-[192px]";
 }
 
-export function LayoutPreview({ layout = [], content = {}, mobile = false, scale = 1 }: { layout?: any[]; content?: Record<string, any>; mobile?: boolean; scale?: number }) {
+export function LayoutPreview({
+  layout = [],
+  content = {},
+  mobile = false,
+  scale = 1,
+}: {
+  layout?: any[];
+  content?: Record<string, any>;
+  mobile?: boolean;
+  scale?: number;
+}) {
   return (
     <div className={previewSizeClass(mobile, scale)}>
-      <AspectRatio ratio={mobile ? 9 / 16 : 16 / 9} className="overflow-hidden rounded border bg-card">
+      <AspectRatio
+        ratio={mobile ? 9 / 16 : 16 / 9}
+        className="overflow-hidden rounded border bg-card"
+      >
         <div className="absolute inset-0 grid grid-cols-[repeat(24,minmax(0,1fr))] grid-rows-[repeat(24,minmax(0,1fr))]">
           {layout.map((item) => {
             const isChat = content?.[item.i]?.type === "chat";
             return (
-              <div key={item.i} className={cn("flex items-center justify-center overflow-hidden rounded border bg-muted text-[0.55rem]", isChat && "bg-secondary", gridAreaClass(item))}>
+              <div
+                key={item.i}
+                className={cn(
+                  "flex items-center justify-center overflow-hidden rounded border bg-muted text-[0.55rem]",
+                  isChat && "bg-secondary",
+                  gridAreaClass(item),
+                )}
+              >
                 {isChat ? <MessageSquare className="size-3" /> : null}
               </div>
             );
@@ -64,7 +199,19 @@ export function LayoutPreview({ layout = [], content = {}, mobile = false, scale
 
 // ---------- EmptyCell ----------
 
-export function EmptyCell({ item, onDelete, streamSelector, onSetChat, showDeleteControl = true }: { item: any; onDelete?: (id: string) => void; streamSelector?: React.ReactNode; onSetChat?: (id: string, initAsTL: boolean) => void; showDeleteControl?: boolean }) {
+export function EmptyCell({
+  item,
+  onDelete,
+  streamSelector,
+  onSetChat,
+  showDeleteControl = true,
+}: {
+  item: any;
+  onDelete?: (id: string) => void;
+  streamSelector?: React.ReactNode;
+  onSetChat?: (id: string, initAsTL: boolean) => void;
+  showDeleteControl?: boolean;
+}) {
   const t = useTranslations();
   const store = useOptionalMultiviewStore();
   const setItemAsChat = (initAsTL: boolean) => {
@@ -79,24 +226,50 @@ export function EmptyCell({ item, onDelete, streamSelector, onSetChat, showDelet
       <Empty className="relative grow shrink basis-auto gap-0 overflow-hidden rounded-none p-0 md:p-0">
         <ButtonGroup className="absolute left-2 top-2 z-10">
           {streamSelector}
-          <Toggle variant="outline" size="lg" aria-label={t("component.common.chat")} title={t("component.common.chat")} onPressedChange={() => setItemAsChat(false)}>
+          <Toggle
+            variant="outline"
+            size="lg"
+            aria-label={t("component.common.chat")}
+            title={t("component.common.chat")}
+            onPressedChange={() => setItemAsChat(false)}
+          >
             <MessageCircle />
             {t("component.common.chat")}
           </Toggle>
-          <Toggle variant="outline" size="lg" aria-label="TL" title="TL" onPressedChange={() => setItemAsChat(true)}>
+          <Toggle
+            variant="outline"
+            size="lg"
+            aria-label="TL"
+            title="TL"
+            onPressedChange={() => setItemAsChat(true)}
+          >
             <Languages />
             TL
           </Toggle>
         </ButtonGroup>
       </Empty>
-      {showDeleteControl ? <CellControl playIcon={Play} className="mx-1 mb-2" onDelete={() => onDelete?.(item.i)} /> : null}
+      {showDeleteControl ? (
+        <CellControl playIcon={Play} className="mx-1 mb-2" onDelete={() => onDelete?.(item.i)} />
+      ) : null}
     </div>
   );
 }
 
 // ---------- CellContainer ----------
 
-export function CellContainer({ item, editMode: editModeProp, disablePointerEvents = false, onSetContent, children }: { item: Record<string, any>; editMode?: boolean; disablePointerEvents?: boolean; onSetContent?: (id: string, content: any) => void; children: React.ReactNode }) {
+export function CellContainer({
+  item,
+  editMode: editModeProp,
+  disablePointerEvents = false,
+  onSetContent,
+  children,
+}: {
+  item: Record<string, any>;
+  editMode?: boolean;
+  disablePointerEvents?: boolean;
+  onSetContent?: (id: string, content: any) => void;
+  children: React.ReactNode;
+}) {
   const store = useOptionalMultiviewStore();
   const [showDropOverlay, setShowDropOverlay] = useState(false);
   const [enterTarget, setEnterTarget] = useState<EventTarget | null>(null);
@@ -112,7 +285,10 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
       onSetContent(item.i, content);
       return;
     }
-    if (store) { store.setLayoutContentById({ id: item.i, content }); store.fetchVideoData(); }
+    if (store) {
+      store.setLayoutContentById({ id: item.i, content });
+      store.fetchVideoData();
+    }
   };
 
   function drop(ev: React.DragEvent) {
@@ -135,8 +311,26 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
     if (v?.id) setContent({ id: v.id, type: "video", video: v });
   }
   return (
-    <div className={cn("relative flex h-full min-h-0 w-full min-w-0 flex-col content-stretch items-stretch justify-start overflow-hidden border bg-background bg-contain bg-center", disablePointerEvents && "pointer-events-none")} onDrop={drop} onDragOver={(ev) => ev.preventDefault()} onDragLeave={(ev) => { if (enterTarget === ev.target) setShowDropOverlay(false); }} onDragEnter={(ev) => { setEnterTarget(ev.target); setShowDropOverlay(true); }}>
-      {showDropOverlay ? <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted"><Crosshair className="size-7" /></div> : null}
+    <div
+      className={cn(
+        "relative flex h-full min-h-0 w-full min-w-0 flex-col content-stretch items-stretch justify-start overflow-hidden border bg-background bg-contain bg-center",
+        disablePointerEvents && "pointer-events-none",
+      )}
+      onDrop={drop}
+      onDragOver={(ev) => ev.preventDefault()}
+      onDragLeave={(ev) => {
+        if (enterTarget === ev.target) setShowDropOverlay(false);
+      }}
+      onDragEnter={(ev) => {
+        setEnterTarget(ev.target);
+        setShowDropOverlay(true);
+      }}
+    >
+      {showDropOverlay ? (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted">
+          <Crosshair className="size-7" />
+        </div>
+      ) : null}
       {children}
     </div>
   );
@@ -144,10 +338,26 @@ export function CellContainer({ item, editMode: editModeProp, disablePointerEven
 
 // ---------- LayoutChangePrompt ----------
 
-export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, confirmFn = () => {}, defaultOverwrite = false, layoutPreview = { layout: [], content: {} } }: { open: boolean; onOpenChange?: (value: boolean) => void; cancelFn?: (overwriteMerge: boolean) => void; confirmFn?: (overwriteMerge: boolean) => void; defaultOverwrite?: boolean; layoutPreview?: { layout: any[]; content: Record<string, any> } }) {
+export function LayoutChangePrompt({
+  open,
+  onOpenChange,
+  cancelFn = () => {},
+  confirmFn = () => {},
+  defaultOverwrite = false,
+  layoutPreview = { layout: [], content: {} },
+}: {
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
+  cancelFn?: (overwriteMerge: boolean) => void;
+  confirmFn?: (overwriteMerge: boolean) => void;
+  defaultOverwrite?: boolean;
+  layoutPreview?: { layout: any[]; content: Record<string, any> };
+}) {
   const t = useTranslations();
   const [overwriteMerge, setOverwriteMerge] = useState(defaultOverwrite);
-  useEffect(() => { setOverwriteMerge(defaultOverwrite); }, [defaultOverwrite, open]);
+  useEffect(() => {
+    setOverwriteMerge(defaultOverwrite);
+  }, [defaultOverwrite, open]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[400px]">
@@ -155,7 +365,10 @@ export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, co
         <div className="mt-4 flex flex-col items-center justify-center gap-4 text-sm">
           <LayoutPreview layout={layoutPreview.layout} content={layoutPreview.content} />
           <Label className="w-full">
-            <Checkbox checked={overwriteMerge} onCheckedChange={(checked) => setOverwriteMerge(checked === true)} />
+            <Checkbox
+              checked={overwriteMerge}
+              onCheckedChange={(checked) => setOverwriteMerge(checked === true)}
+            />
             <span>{t("views.multiview.fillEmptyCells")}</span>
           </Label>
         </div>
@@ -174,13 +387,27 @@ export function LayoutChangePrompt({ open, onOpenChange, cancelFn = () => {}, co
 
 // ---------- PresetEditor ----------
 
-export function PresetEditor({ layout, content, onClose }: { layout: any[]; content: Record<string, any>; onClose?: () => void }) {
+export function PresetEditor({
+  layout,
+  content,
+  onClose,
+}: {
+  layout: any[];
+  content: Record<string, any>;
+  onClose?: () => void;
+}) {
   const t = useTranslations();
   const store = useMultiviewStore();
   const [name, setName] = useState("");
   const [autoLayout, setAutoLayout] = useState(false);
-  const videoCells = useMemo(() => layout.filter((item) => !content[item.i] || content[item.i].type !== "chat").length, [layout, content]);
-  const canSave = name.length > 0 && !store.presetLayout.find((item: any) => item.name === name) && layout.length > 0;
+  const videoCells = useMemo(
+    () => layout.filter((item) => !content[item.i] || content[item.i].type !== "chat").length,
+    [layout, content],
+  );
+  const canSave =
+    name.length > 0 &&
+    !store.presetLayout.find((item: any) => item.name === name) &&
+    layout.length > 0;
   function addPresetLayout() {
     const data = { layout: encodeLayout({ layout, contents: content }), name };
     store.addPresetLayout(data);
@@ -189,16 +416,37 @@ export function PresetEditor({ layout, content, onClose }: { layout: any[]; cont
   }
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-normal">{t("views.multiview.presetEditor.title")}<span className="text-xs font-normal text-muted-foreground">{t("component.channelInfo.videoCount", { arg0: videoCells })}</span></div>
-      <div className="flex justify-center"><LayoutPreview layout={layout} content={content} /></div>
+      <div className="flex items-center gap-2 text-sm font-normal">
+        {t("views.multiview.presetEditor.title")}
+        <span className="text-xs font-normal text-muted-foreground">
+          {t("component.channelInfo.videoCount", { arg0: videoCells })}
+        </span>
+      </div>
+      <div className="flex justify-center">
+        <LayoutPreview layout={layout} content={content} />
+      </div>
       <div className="flex items-center gap-2">
-        <Input value={name} className="flex-1" placeholder={t("views.multiview.presetEditor.name")} onChange={(event) => setName(event.target.value)} />
-        <Button variant="ghost" size="icon" disabled={!canSave} title={t("views.multiview.presetEditor.title")} onClick={addPresetLayout}>
+        <Input
+          value={name}
+          className="flex-1"
+          placeholder={t("views.multiview.presetEditor.name")}
+          onChange={(event) => setName(event.target.value)}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={!canSave}
+          title={t("views.multiview.presetEditor.title")}
+          onClick={addPresetLayout}
+        >
           <Save />
         </Button>
       </div>
       <Label>
-        <Checkbox checked={autoLayout} onCheckedChange={(checked) => setAutoLayout(checked === true)} />
+        <Checkbox
+          checked={autoLayout}
+          onCheckedChange={(checked) => setAutoLayout(checked === true)}
+        />
         <span>{t("views.multiview.presetEditor.autoLayout")}</span>
       </Label>
     </div>
@@ -234,11 +482,18 @@ export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => v
       }}
     >
       <div className="flex justify-center">
-        <LayoutPreview layout={preset.layout} content={preset.content} mobile={preset.portrait} scale={0.5} />
+        <LayoutPreview
+          layout={preset.layout}
+          content={preset.content}
+          mobile={preset.portrait}
+          scale={0.5}
+        />
       </div>
       <div className="flex min-w-0 items-center gap-1">
         {inAuto(preset) ? <Check className="size-3 shrink-0 text-primary" /> : null}
-        <span className="min-w-0 flex-1 truncate text-center text-xs leading-tight">{preset.name}</span>
+        <span className="min-w-0 flex-1 truncate text-center text-xs leading-tight">
+          {preset.name}
+        </span>
         {showRemove ? (
           <Button
             type="button"
@@ -259,15 +514,23 @@ export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => v
   return (
     <ScrollArea className="max-h-[min(64vh,26rem)] w-full overflow-hidden">
       <div className="space-y-3 p-2.5">
-        {store.desktopGroups.map((g: any[], i: number) => g?.length ? (
-          <FieldSet key={`group-${i}`} className="gap-0">
-            <div className="px-1.5 text-xs font-medium text-muted-foreground">{t("component.channelInfo.videoCount", { arg0: i })}</div>
-            <div className="mt-1.5 grid grid-cols-3 gap-2 px-0.5">
-              {g.map((p: any) => renderTile(p, !!p.custom))}
-            </div>
-          </FieldSet>
-        ) : null)}
-        {!hasPresets ? <div className="px-3 py-4 text-center text-sm text-muted-foreground">{t("views.multiview.preset.noPresets")}</div> : null}
+        {store.desktopGroups.map((g: any[], i: number) =>
+          g?.length ? (
+            <FieldSet key={`group-${i}`} className="gap-0">
+              <div className="px-1.5 text-xs font-medium text-muted-foreground">
+                {t("component.channelInfo.videoCount", { arg0: i })}
+              </div>
+              <div className="mt-1.5 grid grid-cols-3 gap-2 px-0.5">
+                {g.map((p: any) => renderTile(p, !!p.custom))}
+              </div>
+            </FieldSet>
+          ) : null,
+        )}
+        {!hasPresets ? (
+          <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+            {t("views.multiview.preset.noPresets")}
+          </div>
+        ) : null}
       </div>
     </ScrollArea>
   );
@@ -292,8 +555,11 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
     e.preventDefault();
     const { x, y } = relativePoint(e.changedTouches[0]);
     const br = container.current!.getBoundingClientRect();
-    const unitX = x / (br.width / 24), unitY = y / (br.height / 24);
-    const dropIdx = store.layout.findIndex((it: any) => unitX >= it.x && unitX < it.x + it.w && unitY >= it.y && unitY < it.y + it.h);
+    const unitX = x / (br.width / 24),
+      unitY = y / (br.height / 24);
+    const dropIdx = store.layout.findIndex(
+      (it: any) => unitX >= it.x && unitX < it.x + it.w && unitY >= it.y && unitY < it.y + it.h,
+    );
     if (dropIdx !== undefined) store.swapGridPosition({ id1: startIdx, id2: dropIdx });
     setDraggingIdx(-1);
   };
@@ -312,14 +578,37 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
   };
   return (
     <div className="flex justify-center p-3">
-      <AspectRatio ref={container} ratio={isMobile ? 9 / 16 : 16 / 9} className="w-[384px] max-w-full overflow-hidden rounded-lg bg-muted/30 max-[640px]:w-[216px]">
+      <AspectRatio
+        ref={container}
+        ratio={isMobile ? 9 / 16 : 16 / 9}
+        className="w-[384px] max-w-full overflow-hidden rounded-lg bg-muted/30 max-[640px]:w-[216px]"
+      >
         {store.layout.map((item: any, idx: number) => (
-          <div key={item.i} className="absolute p-1" style={tileStyle(item)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const start = Number(e.dataTransfer.getData("index")); store.swapGridPosition({ id1: start, id2: idx }); setDraggingIdx(-1); }}>
-            <div className={cn("flex size-full items-center justify-center overflow-hidden rounded-md bg-background/80 text-foreground shadow-sm", store.layoutContent[item.i]?.type === "chat" && "bg-secondary/80")}>
+          <div
+            key={item.i}
+            className="absolute p-1"
+            style={tileStyle(item)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const start = Number(e.dataTransfer.getData("index"));
+              store.swapGridPosition({ id1: start, id2: idx });
+              setDraggingIdx(-1);
+            }}
+          >
+            <div
+              className={cn(
+                "flex size-full items-center justify-center overflow-hidden rounded-md bg-background/80 text-foreground shadow-sm",
+                store.layoutContent[item.i]?.type === "chat" && "bg-secondary/80",
+              )}
+            >
               {store.layoutContent[item.i] ? (
                 <div
                   draggable
-                  className={cn("flex size-full cursor-move items-center justify-center p-3 [&_*]:cursor-move", draggingIdx === idx && "opacity-0")}
+                  className={cn(
+                    "flex size-full cursor-move items-center justify-center p-3 [&_*]:cursor-move",
+                    draggingIdx === idx && "opacity-0",
+                  )}
                   onDragStart={(e) => {
                     e.dataTransfer.setData("index", String(idx));
                     setDraggingIdx(idx);

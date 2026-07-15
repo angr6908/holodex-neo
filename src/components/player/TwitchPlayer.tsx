@@ -1,13 +1,17 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+
 let pid = 0;
 let twitchScriptPromise: Promise<void> | null = null;
 
 function loadTwitchScript(src: string): Promise<void> {
   if (twitchScriptPromise) return twitchScriptPromise;
   twitchScriptPromise = new Promise((resolve, reject) => {
-    if ((window as any).Twitch?.Player) { resolve(); return; }
+    if ((window as any).Twitch?.Player) {
+      resolve();
+      return;
+    }
     const existing = document.querySelector(`script[src="${src}"]`);
     if (existing) {
       existing.addEventListener("load", () => resolve(), { once: true });
@@ -17,7 +21,10 @@ function loadTwitchScript(src: string): Promise<void> {
     const s = document.createElement("script");
     s.src = src;
     s.onload = () => resolve();
-    s.onerror = (e) => { twitchScriptPromise = null; reject(e); };
+    s.onerror = (e) => {
+      twitchScriptPromise = null;
+      reject(e);
+    };
     document.head.appendChild(s);
   });
   return twitchScriptPromise;
@@ -37,49 +44,55 @@ export type TwitchPlayerHandle = {
   updateListeners: () => void;
 };
 
-export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
-  height?: number | string;
-  width?: number | string;
-  mute?: boolean;
-  autoplay?: boolean;
-  refreshRate?: number;
-  manualUpdate?: boolean;
-  quality?: string;
-  playsInline?: boolean;
-  channel?: string;
-  video?: string;
-  className?: string;
-  onReady?: (player: TwitchPlayerHandle) => void;
-  onError?: (error: unknown) => void;
-  onCurrentTime?: (value: number) => void;
-  onPlaybackRate?: (value: number) => void;
-  onMute?: (value: boolean) => void;
-  onVolume?: (value: number) => void;
-  onEnded?: () => void;
-  onPaused?: () => void;
-  onPlaying?: () => void;
-}>(function TwitchPlayer({
-  height = 720,
-  width = 1280,
-  mute = false,
-  autoplay = false,
-  refreshRate = 500,
-  manualUpdate = false,
-  quality = "medium",
-  playsInline = false,
-  channel = "",
-  video = "",
-  className = "",
-  onReady,
-  onError,
-  onCurrentTime,
-  onPlaybackRate,
-  onMute,
-  onVolume,
-  onEnded,
-  onPaused,
-  onPlaying,
-}, ref) {
+export const TwitchPlayer = forwardRef<
+  TwitchPlayerHandle,
+  {
+    height?: number | string;
+    width?: number | string;
+    mute?: boolean;
+    autoplay?: boolean;
+    refreshRate?: number;
+    manualUpdate?: boolean;
+    quality?: string;
+    playsInline?: boolean;
+    channel?: string;
+    video?: string;
+    className?: string;
+    onReady?: (player: TwitchPlayerHandle) => void;
+    onError?: (error: unknown) => void;
+    onCurrentTime?: (value: number) => void;
+    onPlaybackRate?: (value: number) => void;
+    onMute?: (value: boolean) => void;
+    onVolume?: (value: number) => void;
+    onEnded?: () => void;
+    onPaused?: () => void;
+    onPlaying?: () => void;
+  }
+>(function TwitchPlayer(
+  {
+    height = 720,
+    width = 1280,
+    mute = false,
+    autoplay = false,
+    refreshRate = 500,
+    manualUpdate = false,
+    quality = "medium",
+    playsInline = false,
+    channel = "",
+    video = "",
+    className = "",
+    onReady,
+    onError,
+    onCurrentTime,
+    onPlaybackRate,
+    onMute,
+    onVolume,
+    onEnded,
+    onPaused,
+    onPlaying,
+  },
+  ref,
+) {
   const [elementId] = useState(() => {
     pid += 1;
     return `twitch-player-${pid}`;
@@ -87,24 +100,40 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
   const twitchPlayer = useRef<any>(null);
   const readyRef = useRef(false);
 
-  const handle: TwitchPlayerHandle = useMemo(() => ({
-    play: () => { twitchPlayer.current?.play?.(); },
-    pause: () => { twitchPlayer.current?.pause?.(); },
-    getCurrentTime: () => twitchPlayer.current?.getCurrentTime?.() ?? 0,
-    getPlaybackRate: () => 1,
-    getVolume: () => (twitchPlayer.current?.getVolume?.() ?? 0) * 100,
-    isMuted: () => twitchPlayer.current?.getMuted?.() ?? false,
-    setMute: (value: boolean) => { twitchPlayer.current?.setMuted?.(value); },
-    setPlaying: (playing: boolean) => { if (playing) twitchPlayer.current?.play?.(); else twitchPlayer.current?.pause?.(); },
-    setVolume: (volume: number) => { twitchPlayer.current?.setVolume?.(volume / 100); },
-    seekTo: (time: number) => { twitchPlayer.current?.seek?.(time); },
-    updateListeners: () => {
-      onMute?.(twitchPlayer.current?.getMuted?.() ?? false);
-      onPlaybackRate?.(1);
-      onCurrentTime?.(twitchPlayer.current?.getCurrentTime?.() ?? 0);
-      onVolume?.((twitchPlayer.current?.getVolume?.() ?? 0) * 100);
-    },
-  }), [onCurrentTime, onMute, onPlaybackRate, onVolume]);
+  const handle: TwitchPlayerHandle = useMemo(
+    () => ({
+      play: () => {
+        twitchPlayer.current?.play?.();
+      },
+      pause: () => {
+        twitchPlayer.current?.pause?.();
+      },
+      getCurrentTime: () => twitchPlayer.current?.getCurrentTime?.() ?? 0,
+      getPlaybackRate: () => 1,
+      getVolume: () => (twitchPlayer.current?.getVolume?.() ?? 0) * 100,
+      isMuted: () => twitchPlayer.current?.getMuted?.() ?? false,
+      setMute: (value: boolean) => {
+        twitchPlayer.current?.setMuted?.(value);
+      },
+      setPlaying: (playing: boolean) => {
+        if (playing) twitchPlayer.current?.play?.();
+        else twitchPlayer.current?.pause?.();
+      },
+      setVolume: (volume: number) => {
+        twitchPlayer.current?.setVolume?.(volume / 100);
+      },
+      seekTo: (time: number) => {
+        twitchPlayer.current?.seek?.(time);
+      },
+      updateListeners: () => {
+        onMute?.(twitchPlayer.current?.getMuted?.() ?? false);
+        onPlaybackRate?.(1);
+        onCurrentTime?.(twitchPlayer.current?.getCurrentTime?.() ?? 0);
+        onVolume?.((twitchPlayer.current?.getVolume?.() ?? 0) * 100);
+      },
+    }),
+    [onCurrentTime, onMute, onPlaybackRate, onVolume],
+  );
 
   useImperativeHandle(ref, () => handle, [handle]);
 
@@ -113,11 +142,19 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
     loadTwitchScript("https://player.twitch.tv/js/embed/v1.js")
       .then(() => {
         if (cancelled) return;
-        const options: Record<string, any> = { width, height, parent: [window.location.hostname], autoplay };
+        const options: Record<string, any> = {
+          width,
+          height,
+          parent: [window.location.hostname],
+          autoplay,
+        };
         if (playsInline) options.playsinline = true;
         if (channel) options.channel = channel;
         else if (video) options.video = video;
-        else { onError?.("no source specified"); return; }
+        else {
+          onError?.("no source specified");
+          return;
+        }
         const tp = new (window as any).Twitch.Player(elementId, options);
         twitchPlayer.current = tp;
         tp.addEventListener("ended", () => onEnded?.());
@@ -139,9 +176,15 @@ export const TwitchPlayer = forwardRef<TwitchPlayerHandle, {
     };
   }, [elementId]);
 
-  useEffect(() => { if (readyRef.current && channel) twitchPlayer.current?.setChannel?.(channel); }, [channel]);
-  useEffect(() => { if (readyRef.current && video) twitchPlayer.current?.setVideo?.(video); }, [video]);
-  useEffect(() => { if (readyRef.current) twitchPlayer.current?.setMuted?.(mute); }, [mute]);
+  useEffect(() => {
+    if (readyRef.current && channel) twitchPlayer.current?.setChannel?.(channel);
+  }, [channel]);
+  useEffect(() => {
+    if (readyRef.current && video) twitchPlayer.current?.setVideo?.(video);
+  }, [video]);
+  useEffect(() => {
+    if (readyRef.current) twitchPlayer.current?.setMuted?.(mute);
+  }, [mute]);
   useEffect(() => {
     if (manualUpdate || !(onCurrentTime || onPlaybackRate || onMute || onVolume)) return;
     const timer = setInterval(() => handle.updateListeners(), refreshRate);

@@ -50,9 +50,16 @@ export function MultiviewVideoCellsProvider({ children }: { children: React.Reac
     };
   }, []);
 
-  const value = useMemo(() => ({ cells: Array.from(cellMap.values()), registerCell }), [cellMap, registerCell]);
+  const value = useMemo(
+    () => ({ cells: Array.from(cellMap.values()), registerCell }),
+    [cellMap, registerCell],
+  );
 
-  return <MultiviewVideoCellsContext.Provider value={value}>{children}</MultiviewVideoCellsContext.Provider>;
+  return (
+    <MultiviewVideoCellsContext.Provider value={value}>
+      {children}
+    </MultiviewVideoCellsContext.Provider>
+  );
 }
 
 export function useRegisterMultiviewVideoCell(id: string, cell: MultiviewVideoCellHandle | null) {
@@ -71,7 +78,9 @@ export function useOrderedMultiviewVideoCells(layout: ReadonlyArray<{ i: string 
   const registeredCells = useMultiviewVideoCells();
 
   return useMemo(() => {
-    const cellsById = new Map<string, MultiviewVideoCellHandle>([...registeredCells].reverse().map((cell) => [cell.id, cell] as const));
+    const cellsById = new Map<string, MultiviewVideoCellHandle>(
+      [...registeredCells].reverse().map((cell) => [cell.id, cell] as const),
+    );
 
     return layout
       .map((item) => cellsById.get(String(item.i)))

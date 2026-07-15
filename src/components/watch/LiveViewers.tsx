@@ -1,16 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatCount } from "@/lib/functions";
-import { fetchYoutubeViewerCounts, readLastKnownYoutubeViewerCounts, subscribeYoutubeViewerCounts } from "@/lib/youtube-viewers";
-import { fetchTwitchViewerCounts, readLastKnownTwitchViewerCounts, subscribeTwitchViewerCounts } from "@/lib/twitch-viewers";
 import * as icons from "@/lib/icons";
+import {
+  fetchTwitchViewerCounts,
+  readLastKnownTwitchViewerCounts,
+  subscribeTwitchViewerCounts,
+} from "@/lib/twitch-viewers";
+import {
+  fetchYoutubeViewerCounts,
+  readLastKnownYoutubeViewerCounts,
+  subscribeYoutubeViewerCounts,
+} from "@/lib/youtube-viewers";
 
 const SOURCES = {
-  youtube: { seed: readLastKnownYoutubeViewerCounts, fetch: fetchYoutubeViewerCounts, subscribe: subscribeYoutubeViewerCounts },
-  twitch: { seed: readLastKnownTwitchViewerCounts, fetch: fetchTwitchViewerCounts, subscribe: subscribeTwitchViewerCounts },
+  youtube: {
+    seed: readLastKnownYoutubeViewerCounts,
+    fetch: fetchYoutubeViewerCounts,
+    subscribe: subscribeYoutubeViewerCounts,
+  },
+  twitch: {
+    seed: readLastKnownTwitchViewerCounts,
+    fetch: fetchTwitchViewerCounts,
+    subscribe: subscribeTwitchViewerCounts,
+  },
 } as const;
 
 // Live concurrent-viewer badge for the watch page, sourced only from the platform itself
@@ -40,9 +56,16 @@ export function LiveViewers({ platform, id }: { platform: "youtube" | "twitch"; 
     };
     tick();
     const timer = setInterval(tick, 60_000);
-    const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
     document.addEventListener("visibilitychange", onVisible);
-    return () => { alive.current = false; unsubscribe(); clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+    return () => {
+      alive.current = false;
+      unsubscribe();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [platform, id]);
 
   if (count == null || count <= 0) return null;

@@ -1,24 +1,42 @@
-import { dayjs, formatDistance, formatDuration, getDayjsLocale, TIMESTAMP_REGEX, timestampToSeconds, titleTimeString } from "@/lib/time";
-import { getChannelPhoto, getLiveViewerCount, getVideoThumbnails, decodeHTMLEntities, formatCount, videoTemporalComparator } from "@/lib/functions";
+import {
+  decodeHTMLEntities,
+  formatCount,
+  getChannelPhoto,
+  getLiveViewerCount,
+  getVideoThumbnails,
+  videoTemporalComparator,
+} from "@/lib/functions";
+import {
+  dayjs,
+  formatDuration,
+  getDayjsLocale,
+  TIMESTAMP_REGEX,
+  timestampToSeconds,
+  titleTimeString,
+} from "@/lib/time";
 import { twitchLoginOf } from "@/lib/twitch-viewers";
 
 type ThumbnailSize = "default" | "medium" | "standard" | "maxres";
 const TWITCH_HOST = "static-cdn.jtvnw.net";
 const TWITCH_SIZES: Record<ThumbnailSize, [number, number]> = {
-  default: [320, 180], medium: [320, 180], standard: [640, 360], maxres: [1920, 1080],
+  default: [320, 180],
+  medium: [320, 180],
+  standard: [640, 360],
+  maxres: [1920, 1080],
 };
 
 export const channelDisplayName = (c: any, useEnglish = true) =>
   (useEnglish ? c?.english_name : null) || c?.name || "";
 
-export const channelGroup = (c: any) =>
-  c?.group || (c?.suborg ? String(c.suborg).slice(2) : null);
+export const channelGroup = (c: any) => c?.group || (c?.suborg ? String(c.suborg).slice(2) : null);
 
 const isTwitchPreview = (t: string) => {
   try {
     const u = new URL(t);
     return u.hostname === TWITCH_HOST && u.pathname.startsWith("/previews-ttv/live_user_");
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 };
 
 const twitchPreviewUrl = (login: string, size: ThumbnailSize) => {
@@ -34,7 +52,8 @@ const resizeTwitchPreview = (t: string, size: ThumbnailSize) => {
 const sizeForVideo = (opts: { horizontal?: boolean; colSize?: number } = {}): ThumbnailSize => {
   if (opts.horizontal) return "medium";
   const cs = opts.colSize || 1;
-  if (cs > 2 && cs <= 8 && typeof window !== "undefined") return window.devicePixelRatio > 1 ? "standard" : "medium";
+  if (cs > 2 && cs <= 8 && typeof window !== "undefined")
+    return window.devicePixelRatio > 1 ? "standard" : "medium";
   return "standard";
 };
 
@@ -73,13 +92,19 @@ export function linkifyVideoTimestamps(message: string, videoId: string, redirec
 
 export function videoTitle(v: any, useEnglish = true) {
   if (!v) return "";
-  const t = v.type === "placeholder"
-    ? (useEnglish ? v.title ?? v.jp_name : v.jp_name ?? v.title)
-    : v.title;
+  const t =
+    v.type === "placeholder"
+      ? useEnglish
+        ? (v.title ?? v.jp_name)
+        : (v.jp_name ?? v.title)
+      : v.title;
   return decodeHTMLEntities(t || "");
 }
 
-export function videoImage(v: any, opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {}) {
+export function videoImage(
+  v: any,
+  opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {},
+) {
   if (!v) return "";
   const size = sizeForVideo(opts);
   if (v.thumbnail) return thumbnailImage(v.thumbnail, size);
@@ -96,7 +121,8 @@ export function formattedDuration(v: any, t: any, now = Date.now()) {
   return v.duration ? formatDuration(v.duration * 1000) : "";
 }
 
-const isExtendablePast = (v: any) => v?.status === "past" && v?.type === "stream" && Number(v?.duration) > 0;
+const isExtendablePast = (v: any) =>
+  v?.status === "past" && v?.type === "stream" && Number(v?.duration) > 0;
 
 function videoEndTimestamp(v: any) {
   if (!v) return 0;
@@ -127,7 +153,7 @@ export function extractItems(payload: any): any[] {
 }
 
 export const extractListPayload = (p: any) => {
-  const num = (v: any) => typeof v === "number" ? v : null;
+  const num = (v: any) => (typeof v === "number" ? v : null);
   return { items: extractItems(p), total: num(p?.total), offset: num(p?.offset) };
 };
 
@@ -166,7 +192,9 @@ export const absoluteTime = (v: any, lang: string) => titleTimeString(videoDispl
 export function compactVideoTime(v: any, lang: string, now = Date.now()): string {
   if (!v) return "";
   if (v.status === "live") return "";
-  const target = dayjs(v.status === "upcoming" ? (v.start_scheduled || v.available_at) : videoDisplayTime(v));
+  const target = dayjs(
+    v.status === "upcoming" ? v.start_scheduled || v.available_at : videoDisplayTime(v),
+  );
   if (!target.isValid()) return "";
   const n = dayjs(now);
   const diffMs = target.valueOf() - n.valueOf();
@@ -183,7 +211,9 @@ export function compactVideoTime(v: any, lang: string, now = Date.now()): string
     return dateLabel;
   }
   // past
-  const loc = Intl.DateTimeFormat.supportedLocalesOf([lang || "", getDayjsLocale(lang)].filter(Boolean))[0] || "en";
+  const loc =
+    Intl.DateTimeFormat.supportedLocalesOf([lang || "", getDayjsLocale(lang)].filter(Boolean))[0] ||
+    "en";
   if (absMs < 60_000) return diffMs > 0 ? "soon" : "just now";
   if (absMs < 86_400_000) {
     const rtf = new Intl.RelativeTimeFormat(loc, { numeric: "auto" });
@@ -191,16 +221,28 @@ export function compactVideoTime(v: any, lang: string, now = Date.now()): string
       ? rtf.format(Math.round(diffMs / 60_000), "minute")
       : rtf.format(Math.round(diffMs / 3_600_000), "hour");
   }
-  return new Intl.DateTimeFormat(loc, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(target.valueOf());
+  return new Intl.DateTimeFormat(loc, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(target.valueOf());
 }
 
-function isSameDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.format("YYYY-MM-DD"); }
-function isNextDay(a: any, b: any) { return a.format("YYYY-MM-DD") === b.add(1, "day").format("YYYY-MM-DD"); }
-function sameYear(a: any, b: any) { return a.format("YYYY") === b.format("YYYY"); }
+function isSameDay(a: any, b: any) {
+  return a.format("YYYY-MM-DD") === b.format("YYYY-MM-DD");
+}
+function isNextDay(a: any, b: any) {
+  return a.format("YYYY-MM-DD") === b.add(1, "day").format("YYYY-MM-DD");
+}
+function sameYear(a: any, b: any) {
+  return a.format("YYYY") === b.format("YYYY");
+}
 function shortDur(ms: number) {
   const m = Math.round(ms / 60_000);
   if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60), rem = m % 60;
+  const h = Math.floor(m / 60),
+    rem = m % 60;
   return rem ? `${h}h ${rem}m` : `${h}h`;
 }
 function shortLabel(key: "tom" | "yest", lang: string) {

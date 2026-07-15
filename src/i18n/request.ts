@@ -1,8 +1,27 @@
-import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
+import { getRequestConfig } from "next-intl/server";
+
 const messageLocales = new Set([
-  "en", "lol-UWU", "lol-PEKO", "ja", "zh", "zh-CN", "ko",
-  "es-ES", "es", "ms", "id", "ru", "pt", "de", "it", "fr", "tr", "vi", "hu", "th",
+  "en",
+  "lol-UWU",
+  "lol-PEKO",
+  "ja",
+  "zh",
+  "zh-CN",
+  "ko",
+  "es-ES",
+  "es",
+  "ms",
+  "id",
+  "ru",
+  "pt",
+  "de",
+  "it",
+  "fr",
+  "tr",
+  "vi",
+  "hu",
+  "th",
 ]);
 
 const intlLocaleOverrides: Record<string, string> = {

@@ -151,7 +151,6 @@
   #mainNavPageControls:has(#channels-panel-portal:not(:empty)) [data-nav-controls-skeleton] {
     display: none;
   }
-
 }
 
 @layer base {

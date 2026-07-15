@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, type MouseEvent, type ReactNode } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Gamepad2, TwitchIcon } from "@/lib/icons";
+import { useLocale, useTranslations } from "next-intl";
+import { type MouseEvent, type ReactNode, useMemo } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { TruncatedText } from "@/components/common/TruncatedText";
-import { useAppState } from "@/lib/store";
-import { useLocale, useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { decodeHTMLEntities, formatCount } from "@/lib/functions";
+import { Gamepad2, TwitchIcon } from "@/lib/icons";
+import { useAppState } from "@/lib/store";
 import { channelDisplayName, channelGroup, linkifyVideoTimestamps } from "@/lib/video-format";
 
 type WatchInfoProps = {
@@ -22,7 +22,14 @@ type WatchInfoProps = {
   onTimeJump?: (time: number) => void;
 };
 
-export function WatchInfo({ video, onTimeJump, noSubCount = false, description, twitchMeta, actions }: WatchInfoProps) {
+export function WatchInfo({
+  video,
+  onTimeJump,
+  noSubCount = false,
+  description,
+  twitchMeta,
+  actions,
+}: WatchInfoProps) {
   const app = useAppState();
   const t = useTranslations();
   const locale = useLocale();
@@ -32,8 +39,17 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, description, 
   const group = channelGroup(ch);
   const orgText = ch.org ? ch.org + (group ? ` / ${group}` : "") : null;
   const orgUrl = ch.org ? `/?${new URLSearchParams({ org: ch.org })}` : null;
-  const subCountText = !noSubCount && ch.subscriber_count ? t("component.channelInfo.subscriberCount", { n: formatCount(ch.subscriber_count, lang) }) : null;
-  const title = decodeHTMLEntities(video.jp_name ? (app.settings.useEnglishName ? video.title || video.jp_name : video.jp_name || video.title) : video.title);
+  const subCountText =
+    !noSubCount && ch.subscriber_count
+      ? t("component.channelInfo.subscriberCount", { n: formatCount(ch.subscriber_count, lang) })
+      : null;
+  const title = decodeHTMLEntities(
+    video.jp_name
+      ? app.settings.useEnglishName
+        ? video.title || video.jp_name
+        : video.jp_name || video.title
+      : video.title,
+  );
 
   const desc = description ?? video.description;
   const processedMessage = useMemo(
@@ -43,13 +59,15 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, description, 
 
   function handleClick(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    if (target.matches(".comment-chip")) { onTimeJump?.(Number(target.getAttribute("data-time") || 0)); e.preventDefault(); }
+    if (target.matches(".comment-chip")) {
+      onTimeJump?.(Number(target.getAttribute("data-time") || 0));
+      e.preventDefault();
+    }
   }
 
   return (
     <>
       <section className="flex flex-col gap-0 px-4 pt-4">
-
         {/* Title */}
         <h1 className="text-xl font-semibold leading-snug text-foreground">{title}</h1>
 
@@ -58,20 +76,27 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, description, 
           <div className="flex min-w-0 items-center gap-3.5">
             <ChannelImg channel={ch} size={48} className="shrink-0" />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <Link href={`/channel/${ch.id}`} className="truncate text-base font-medium text-foreground no-underline hover:underline">
+              <Link
+                href={`/channel/${ch.id}`}
+                className="truncate text-base font-medium text-foreground no-underline hover:underline"
+              >
                 {chName}
               </Link>
               <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
-                {orgText && orgUrl
-                  ? <Link href={orgUrl} className="no-underline hover:underline">{orgText}</Link>
-                  : null}
+                {orgText && orgUrl ? (
+                  <Link href={orgUrl} className="no-underline hover:underline">
+                    {orgText}
+                  </Link>
+                ) : null}
                 {orgText && subCountText ? <span>·</span> : null}
-                {subCountText
-                  ? <Tooltip>
-                      <TooltipTrigger><span className="cursor-default">{subCountText}</span></TooltipTrigger>
-                      <TooltipContent>{ch.subscriber_count?.toLocaleString()}</TooltipContent>
-                    </Tooltip>
-                  : null}
+                {subCountText ? (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="cursor-default">{subCountText}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{ch.subscriber_count?.toLocaleString()}</TooltipContent>
+                  </Tooltip>
+                ) : null}
               </div>
             </div>
           </div>
@@ -88,20 +113,38 @@ export function WatchInfo({ video, onTimeJump, noSubCount = false, description, 
         ) : (
           <div className="pb-4" />
         )}
-
       </section>
-      {(twitchMeta || desc) ? (
+      {twitchMeta || desc ? (
         <div className="px-4 pb-4">
           <div className="overflow-hidden rounded-xl border border-border/60 bg-card/50">
             {twitchMeta ? (
               <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
-                <Badge className="gap-1 border-transparent bg-[#9146FF] text-white"><TwitchIcon />Twitch</Badge>
-                {twitchMeta.category ? <Badge variant="outline" className="gap-1"><Gamepad2 />{twitchMeta.category}</Badge> : null}
+                <Badge className="gap-1 border-transparent bg-[#9146FF] text-white">
+                  <TwitchIcon />
+                  Twitch
+                </Badge>
+                {twitchMeta.category ? (
+                  <Badge variant="outline" className="gap-1">
+                    <Gamepad2 />
+                    {twitchMeta.category}
+                  </Badge>
+                ) : null}
               </div>
             ) : null}
             {desc ? (
-              <div className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground" onClick={handleClick}>
-                <TruncatedText html={processedMessage} lines={4} renderButton={(expanded) => expanded ? t("component.description.showLess") : t("component.description.showMore")} />
+              <div
+                className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground"
+                onClick={handleClick}
+              >
+                <TruncatedText
+                  html={processedMessage}
+                  lines={4}
+                  renderButton={(expanded) =>
+                    expanded
+                      ? t("component.description.showLess")
+                      : t("component.description.showMore")
+                  }
+                />
               </div>
             ) : null}
           </div>

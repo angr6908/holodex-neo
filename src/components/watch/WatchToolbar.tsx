@@ -2,24 +2,30 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "@/lib/icons";
+import { ChannelChip } from "@/components/channel/ChannelChip";
+import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toggle } from "@/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChannelChip } from "@/components/channel/ChannelChip";
 import { LiveViewers } from "@/components/watch/LiveViewers";
-import { twitchLoginOf } from "@/lib/twitch-viewers";
-import { VideoCardMenu } from "@/components/common/VideoCardMenu";
-import { useAppState } from "@/lib/store";
-import { useLocale, useTranslations } from "next-intl";
-import { elapsedLiveDuration } from "@/lib/video-format";
-import { formatDistance, formatDuration, titleTimeString } from "@/lib/time";
 import * as icons from "@/lib/icons";
+import { ArrowLeft } from "@/lib/icons";
+import { useAppState } from "@/lib/store";
+import { formatDistance, formatDuration, titleTimeString } from "@/lib/time";
+import { twitchLoginOf } from "@/lib/twitch-viewers";
+import { elapsedLiveDuration } from "@/lib/video-format";
 
-export function WatchToolbar({ video, children }: { video: Record<string, any>; children?: React.ReactNode }) {
+export function WatchToolbar({
+  video,
+  children,
+}: {
+  video: Record<string, any>;
+  children?: React.ReactNode;
+}) {
   const router = useRouter();
   const app = useAppState();
   const t = useTranslations();
@@ -28,20 +34,26 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
   const [elapsedTime, setElapsedTime] = useState("");
 
   const hasSaved = app.playlist.some((item) => item.id === video.id);
-  const saveLabel = hasSaved ? t("views.watch.removeFromPlaylist") : t("views.watch.saveToPlaylist");
+  const saveLabel = hasSaved
+    ? t("views.watch.removeFromPlaylist")
+    : t("views.watch.saveToPlaylist");
 
   // YouTube ids are 11 URL-safe chars; those get the direct-from-YouTube live count. Twitch
   // streams (twitch link/channel/type) get the direct-from-Twitch count instead.
-  const isYoutube = /^[\w-]{11}$/.test(video.id || "") && video.type !== "twitch" && !video.link?.includes?.("twitch");
+  const isYoutube =
+    /^[\w-]{11}$/.test(video.id || "") &&
+    video.type !== "twitch" &&
+    !video.link?.includes?.("twitch");
   const twitchLogin = isYoutube ? "" : twitchLoginOf(video);
 
-  const timeLabel = video.status === "upcoming"
-    ? formatDistance(video.start_scheduled, locale, t)
-    : video.status === "live"
-    ? elapsedTime || (video.start_actual ? elapsedLiveDuration(video.start_actual) : "")
-    : video.status === "past" && video.duration
-    ? formatDuration(video.duration * 1000)
-    : null;
+  const timeLabel =
+    video.status === "upcoming"
+      ? formatDistance(video.start_scheduled, locale, t)
+      : video.status === "live"
+        ? elapsedTime || (video.start_actual ? elapsedLiveDuration(video.start_actual) : "")
+        : video.status === "past" && video.duration
+          ? formatDuration(video.duration * 1000)
+          : null;
 
   const absoluteTimeString = titleTimeString(video.available_at, locale);
 
@@ -62,9 +74,12 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
     return () => clearInterval(timer);
   }, [video.status, video.start_actual]);
 
-  function toggleSaved() { if (hasSaved) app.removeFromPlaylist(video.id); else app.addToPlaylist(video); }
+  function toggleSaved() {
+    if (hasSaved) app.removeFromPlaylist(video.id);
+    else app.addToPlaylist(video);
+  }
   const reloadVideo = () => {
-    const curr = document.querySelector("[id^=\"youtube-player\"]") as HTMLIFrameElement | null;
+    const curr = document.querySelector('[id^="youtube-player"]') as HTMLIFrameElement | null;
     if (curr?.contentWindow) curr.contentWindow.location.replace(curr.src);
   };
 
@@ -84,19 +99,29 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
           ) : null}
           {video.topic_id ? (
             <Badge
-              render={<Link href={searchTopicUrl} className="inline-flex shrink-0 items-center gap-1.5 capitalize no-underline font-ibm" />}
+              render={
+                <Link
+                  href={searchTopicUrl}
+                  className="inline-flex shrink-0 items-center gap-1.5 capitalize no-underline font-ibm"
+                />
+              }
               variant="secondary"
             >
-              <icons.Tag className="size-3.5" />{video.topic_id}
+              <icons.Tag className="size-3.5" />
+              {video.topic_id}
             </Badge>
           ) : null}
           {timeLabel ? (
             <Tooltip>
-              <TooltipTrigger render={<Badge variant="secondary" className="shrink-0 gap-1.5 cursor-default" />}>
+              <TooltipTrigger
+                render={<Badge variant="secondary" className="shrink-0 gap-1.5 cursor-default" />}
+              >
                 <icons.Clock className="size-3.5" />
                 <span className="font-ibm-digits">{timeLabel}</span>
               </TooltipTrigger>
-              <TooltipContent className="whitespace-pre-line text-center">{absoluteTimeString}</TooltipContent>
+              <TooltipContent className="whitespace-pre-line text-center">
+                {absoluteTimeString}
+              </TooltipContent>
             </Tooltip>
           ) : null}
           {mentions.length > 0 ? (
@@ -113,20 +138,51 @@ export function WatchToolbar({ video, children }: { video: Record<string, any>; 
         <div className="flex shrink-0 items-center gap-1">
           {children}
           <Tooltip>
-            <TooltipTrigger render={<Button type="button" size="icon" variant="ghost" aria-label={t("views.watch.reloadVideoFrame")} onClick={reloadVideo} />}>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t("views.watch.reloadVideoFrame")}
+                  onClick={reloadVideo}
+                />
+              }
+            >
               <icons.RefreshCw className="size-5" />
             </TooltipTrigger>
             <TooltipContent>{t("views.watch.reloadVideoFrame")}</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger render={<Toggle pressed={hasSaved} aria-label={saveLabel} onPressedChange={toggleSaved} />}>
-              {hasSaved ? <icons.Check className="size-5" /> : <icons.SquarePlus className="size-5" />}
+            <TooltipTrigger
+              render={
+                <Toggle pressed={hasSaved} aria-label={saveLabel} onPressedChange={toggleSaved} />
+              }
+            >
+              {hasSaved ? (
+                <icons.Check className="size-5" />
+              ) : (
+                <icons.SquarePlus className="size-5" />
+              )}
             </TooltipTrigger>
             <TooltipContent>{saveLabel}</TooltipContent>
           </Tooltip>
           <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <Tooltip>
-              <TooltipTrigger render={<PopoverTrigger render={<Button type="button" size="icon" variant="ghost" aria-label={t("component.common.moreActions")} />} />}>
+              <TooltipTrigger
+                render={
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label={t("component.common.moreActions")}
+                      />
+                    }
+                  />
+                }
+              >
                 <icons.MoreVertical className="size-5" />
               </TooltipTrigger>
               <TooltipContent>{t("component.common.moreActions")}</TooltipContent>

@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useTranslations } from "next-intl";
+import { type KeyboardEvent, type MouseEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemMedia } from "@/components/ui/item";
-import { type AnyIcon } from "@/lib/icons";
-import { useAppState } from "@/lib/store";
-import { channelDisplayName } from "@/lib/video-format";
-import { formatDistance, formatDuration, secondsToHuman } from "@/lib/time";
-import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
+import type { AnyIcon } from "@/lib/icons";
 import * as icons from "@/lib/icons";
+import { useAppState } from "@/lib/store";
+import { formatDistance, formatDuration, secondsToHuman } from "@/lib/time";
+import { cn } from "@/lib/utils";
+import { channelDisplayName } from "@/lib/video-format";
 
 type SongChannel = {
   name?: string;
@@ -59,7 +59,8 @@ export function SongItem({
   const [hover, setHover] = useState(false);
   const [hoverInner, setHoverInner] = useState(false);
   const user = app.userdata?.user;
-  const userCanDelete = user?.role && user?.id && (user.role !== "user" || +user.id === +song.creator_id);
+  const userCanDelete =
+    user?.role && user?.id && (user.role !== "user" || +user.id === +song.creator_id);
   const formattedTime = formatDistance(song.available_at, app.settings.lang, t);
   const channelName = channelDisplayName(song.channel, app.settings.useEnglishName);
 
@@ -114,7 +115,10 @@ export function SongItem({
         )}
 
         {hover && !hoverInner ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45" aria-hidden="true">
+          <div
+            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45"
+            aria-hidden="true"
+          >
             <HoverIcon className="size-5 text-white drop-shadow-sm" />
           </div>
         ) : null}

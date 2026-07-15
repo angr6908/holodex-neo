@@ -1,6 +1,13 @@
 import { TWITCH_VIDEO_URL_REGEX } from "@/lib/consts";
 
-export type LayoutItem = { i: string; x: number; y: number; w: number; h: number; [key: string]: any };
+export type LayoutItem = {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  [key: string]: any;
+};
 
 export interface Content {
   id?: string;
@@ -19,7 +26,8 @@ export interface Content {
 const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.";
 export const sortLayout = (a, b) => a.x - b.x || a.y - b.y;
 
-export const generateContentId = () => Array.from({ length: 8 }, () => b64[Math.floor(Math.random() * b64.length)]).join("");
+export const generateContentId = () =>
+  Array.from({ length: 8 }, () => b64[Math.floor(Math.random() * b64.length)]).join("");
 
 // A Twitch-link placeholder becomes a playable twitch-typed video; other placeholders are
 // unplayable (null). Non-placeholders pass through unchanged.
@@ -38,12 +46,16 @@ export function encodeLayout({ layout, contents, includeVideo = false }) {
       const c = contents[i.i];
       if (c) {
         if (c.type === "chat") b += `chat${c.currentTab || 0}`;
-        else if (c.type === "video" && includeVideo) b += c.video?.type === "twitch" ? `twitch${c.id}` : c.id;
+        else if (c.type === "video" && includeVideo)
+          b += c.video?.type === "twitch" ? `twitch${c.id}` : c.id;
       }
       parts.push(b);
     }
     return parts.join(",");
-  } catch (e) { console.error(e); return "error"; }
+  } catch (e) {
+    console.error(e);
+    return "error";
+  }
 }
 
 export function decodeLayout(encoded) {
@@ -57,8 +69,14 @@ export function decodeLayout(encoded) {
     const code = s.substring(4, 15);
     let isVideoCell = true;
     const item: LayoutItem = {
-      x: b64.indexOf(s[0]), y: b64.indexOf(s[1]), w: b64.indexOf(s[2]), h: b64.indexOf(s[3]),
-      i: idx, isDraggable: true, isResizable: true, moved: false,
+      x: b64.indexOf(s[0]),
+      y: b64.indexOf(s[1]),
+      w: b64.indexOf(s[2]),
+      h: b64.indexOf(s[3]),
+      i: idx,
+      isDraggable: true,
+      isResizable: true,
+      moved: false,
     };
     if (code.startsWith("chat")) {
       isVideoCell = false;
@@ -66,10 +84,18 @@ export function decodeLayout(encoded) {
       content[idx] = { type: "chat", ...(tab >= 0 && { currentTab: tab }) };
     } else if (code.startsWith("twitch")) {
       const tw = s.substring(10);
-      content[idx] = { type: "video", id: tw, video: { id: tw, type: "twitch", channel: { name: tw } } };
+      content[idx] = {
+        type: "video",
+        id: tw,
+        video: { id: tw, type: "twitch", channel: { name: tw } },
+      };
     } else if (code.length === 11) {
       const name = s.substring(15);
-      content[idx] = { type: "video", id: code, video: { id: code, channel: { name: name || code } } };
+      content[idx] = {
+        type: "video",
+        id: code,
+        video: { id: code, channel: { name: name || code } },
+      };
     }
     if (isVideoCell) videoCellCount++;
     layout.push(item);
@@ -97,17 +123,40 @@ export const desktopPresets = Object.freeze([
   { layout: "AAKM,AMKM,RAHI,KAHI,RQHI,KQHI,KIHI,RIHI", name: "8🎞️", default: 8 },
   { layout: "AAII,AIII,AQII,IAII,IIII,IQII,QAII,QIII,QQII", name: "3 x 3🎞️", default: 9 },
   { layout: "AAGI,GAGI,MAGI,AIGI,GIGI,MIGI,AQGI,GQGI,MQGI,SAGYchat", name: "3x3🎞️ 1💬" },
-  { layout: "AAHI,AQHI,AIHI,HAHI,HIHI,HQHI,OAHI,OIHI,OQHI,VIDIchat0,VADIchat0,VQDIchat0", name: "3x3🎞️ 3💬" },
+  {
+    layout: "AAHI,AQHI,AIHI,HAHI,HIHI,HQHI,OAHI,OIHI,OQHI,VIDIchat0,VADIchat0,VQDIchat0",
+    name: "3x3🎞️ 3💬",
+  },
   { layout: "AAML,MAML,ALGH,GLGH,MLGH,SLGH,ASGG,GSGG,MSGG,SSGG", name: "Among Us 1", default: 10 },
   { layout: "AAKL,KAKL,UAEYchat,ALFH,FLFH,KLFH,PLFH,ASFG,FSFG,KSFG,PSFG", name: "Among Us 2" },
   { layout: "AASR,SAGYchat,ARGH,GRGH,MRGH", name: "Sports Fes 1" },
   { layout: "AAMM,SAGYchat,AMGG,ASGG,GMGG,GSGG,MAGG,MGGG,MMGG,MSGG", name: "Sports Fes 2" },
   { layout: "GAMM,GMMM,AAGG,AGGG,AMGG,ASGG,SAGG,SGGG,SMGG,SSGG", name: "Sports Fes 3" },
-  { layout: "AAIK,IAIK,QAIK,AKGH,GKGH,MKGH,SKGH,SRGH,ARGH,MRGH,GRGH", name: "Among Us 3", default: 11 },
-  { layout: "AAGI,GAGI,MAGI,AIGI,GIGI,MIGI,SIGI,SQGI,AQGI,MQGI,GQGI,SAGI", name: "4x3", default: 12 },
-  { layout: "AAMM,MMGG,AMGG,GMGG,MGGG,SSGG,MSGG,MAGG,SMGG,SGGG,SAGG,ASGG,GSGG", name: "13🎞️", default: 13 },
-  { layout: "AMJM,OMFG,OGFG,TGFG,JMFG,AAJM,OAFG,TMFG,JAFG,TSFG,OSFG,JGFG,TAFG,JSFG", name: "14🎞️", default: 14 },
-  { layout: "AGGG,MMGG,MGGG,SGGG,GMGG,AAGG,MAGG,SMGG,GAGG,SSGG,MSGG,GGGG,SAGG,GSGG,AMGG,ASGG", name: "4x4", default: 16 },
+  {
+    layout: "AAIK,IAIK,QAIK,AKGH,GKGH,MKGH,SKGH,SRGH,ARGH,MRGH,GRGH",
+    name: "Among Us 3",
+    default: 11,
+  },
+  {
+    layout: "AAGI,GAGI,MAGI,AIGI,GIGI,MIGI,SIGI,SQGI,AQGI,MQGI,GQGI,SAGI",
+    name: "4x3",
+    default: 12,
+  },
+  {
+    layout: "AAMM,MMGG,AMGG,GMGG,MGGG,SSGG,MSGG,MAGG,SMGG,SGGG,SAGG,ASGG,GSGG",
+    name: "13🎞️",
+    default: 13,
+  },
+  {
+    layout: "AMJM,OMFG,OGFG,TGFG,JMFG,AAJM,OAFG,TMFG,JAFG,TSFG,OSFG,JGFG,TAFG,JSFG",
+    name: "14🎞️",
+    default: 14,
+  },
+  {
+    layout: "AGGG,MMGG,MGGG,SGGG,GMGG,AAGG,MAGG,SMGG,GAGG,SSGG,MSGG,GGGG,SAGG,GSGG,AMGG,ASGG",
+    name: "4x4",
+    default: 16,
+  },
   { layout: "AAHY,HAHY,OAFYchat,TAFYchat", name: "2📱 2💬" },
   { layout: "AAGY,GAGY,MAGY,SAGYchat", name: "3📱 1💬" },
   { layout: "AAMM,AMMM,MAHY,TAFYchat2", name: "2🎞️ 1📱 1💬" },

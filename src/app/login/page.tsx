@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api";
 import { useAppState } from "@/lib/store";
-import { useTranslations } from "next-intl";
 export default function LoginPage() {
   const t = useTranslations();
   const router = useRouter();
@@ -35,7 +35,9 @@ export default function LoginPage() {
       if (!cancelled) router.replace("/");
     }
     void run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

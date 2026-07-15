@@ -1,36 +1,48 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { api } from "@/lib/api";
-import { useAppState } from "@/lib/store";
 import { useTranslations } from "next-intl";
-import { decodeHTMLEntities, getYTLangFromState } from "@/lib/functions";
+import { useEffect, useRef, useState } from "react";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
-import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
-import { WatchInfo } from "@/components/watch/WatchInfo";
-import { WatchToolbar } from "@/components/watch/WatchToolbar";
-import { WatchLiveChat } from "@/components/watch/WatchLiveChat";
-import { WatchComments } from "@/components/watch/WatchComments";
-import { VideoEditSongs, type VideoEditSongsHandle } from "@/components/edit/VideoEditSongs";
 import { VideoEditMentions } from "@/components/edit/VideoEditMentions";
+import { VideoEditSongs, type VideoEditSongsHandle } from "@/components/edit/VideoEditSongs";
 import { CommentSongParser } from "@/components/media/CommentSongParser";
+import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
-import * as icons from "@/lib/icons";
+import { WatchComments } from "@/components/watch/WatchComments";
+import { WatchInfo } from "@/components/watch/WatchInfo";
+import { WatchLiveChat } from "@/components/watch/WatchLiveChat";
+import { WatchToolbar } from "@/components/watch/WatchToolbar";
+import { api } from "@/lib/api";
 import { readWatchControlsState, writeWatchControlsState } from "@/lib/browser";
+import { decodeHTMLEntities, getYTLangFromState } from "@/lib/functions";
+import * as icons from "@/lib/icons";
+import { useAppState } from "@/lib/store";
 import { fetchTopicOptions } from "@/lib/topics";
 
-const TABS = Object.freeze({ TOPIC: "topic", MUSIC: "music", MENTIONS: "mentions", SOURCES_CLIPS: "sources" });
+const TABS = Object.freeze({
+  TOPIC: "topic",
+  MUSIC: "music",
+  MENTIONS: "mentions",
+  SOURCES_CLIPS: "sources",
+});
 type TabKey = (typeof TABS)[keyof typeof TABS];
 
-const playerClass = "relative aspect-video h-auto w-full overflow-hidden rounded-lg bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full";
+const playerClass =
+  "relative aspect-video h-auto w-full overflow-hidden rounded-lg bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full";
 
 export default function EditVideoPage() {
   const params = useParams<{ id?: string; tab?: string[] }>();
@@ -117,25 +129,37 @@ export default function EditVideoPage() {
     setCurrentTab((tab && known.includes(tab) ? tab : TABS.TOPIC) as TabKey);
   }, [params.tab]);
 
-  useEffect(() => { if (title) document.title = title; }, [title]);
+  useEffect(() => {
+    if (title) document.title = title;
+  }, [title]);
   useEffect(() => {
     const current = readWatchControlsState();
     writeWatchControlsState({ ...current, showTL, showLiveChat });
   }, [showTL, showLiveChat]);
-  useEffect(() => { fetchVideo(); }, [videoId]);
-  useEffect(() => { if (currentTab === TABS.TOPIC) populateTopics(); }, [currentTab]);
-  useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
-
-  if (isLoading || hasError || !video) return (
-    <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5">
-      {isLoading && !hasError ? (
-        <Card className="inline-flex flex-row items-center gap-3 px-4 py-3">
-          <Spinner />
-        </Card>
-      ) : null}
-      {hasError ? <ApiErrorMessage /> : null}
-    </div>
+  useEffect(() => {
+    fetchVideo();
+  }, [videoId]);
+  useEffect(() => {
+    if (currentTab === TABS.TOPIC) populateTopics();
+  }, [currentTab]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearInterval(timer.current);
+    },
+    [],
   );
+
+  if (isLoading || hasError || !video)
+    return (
+      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5">
+        {isLoading && !hasError ? (
+          <Card className="inline-flex flex-row items-center gap-3 px-4 py-3">
+            <Spinner />
+          </Card>
+        ) : null}
+        {hasError ? <ApiErrorMessage /> : null}
+      </div>
+    );
 
   return (
     <section className="mx-auto min-h-screen w-full max-w-screen-2xl px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5">
@@ -155,18 +179,31 @@ export default function EditVideoPage() {
               start={timeOffset}
               autoplay
               lang={getLang}
-              onReady={(p) => { player.current = p; setTimer(); }}
+              onReady={(p) => {
+                player.current = p;
+                setTimer();
+              }}
             />
           ) : null}
 
           <WatchToolbar video={video}>
             {isLive ? (
-              <Toggle pressed={showTL} aria-label={showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn")} onPressedChange={setShowTL}>
+              <Toggle
+                pressed={showTL}
+                aria-label={
+                  showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn")
+                }
+                onPressedChange={setShowTL}
+              >
                 <icons.TlChatIcon className="size-5" />
               </Toggle>
             ) : null}
             {isLive ? (
-              <Toggle pressed={showLiveChat} aria-label={t("views.watch.chat.ytChatLabel")} onPressedChange={setShowLiveChat}>
+              <Toggle
+                pressed={showLiveChat}
+                aria-label={t("views.watch.chat.ytChatLabel")}
+                onPressedChange={setShowLiveChat}
+              >
                 <icons.YtChatIcon className="size-5" />
               </Toggle>
             ) : null}
@@ -184,7 +221,10 @@ export default function EditVideoPage() {
                   setVideo((value: any) => ({
                     ...value,
                     status: update.status,
-                    start_actual: typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
+                    start_actual:
+                      typeof update.start_actual === "string"
+                        ? update.start_actual
+                        : value.start_actual,
                   }));
                 }}
               />
@@ -198,10 +238,18 @@ export default function EditVideoPage() {
           <Card className="gap-4 p-4">
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as TabKey)}>
               <TabsList className="h-auto flex-wrap">
-                <TabsTrigger value={TABS.TOPIC} disabled={!isStream}>{t("component.search.type.topic")}</TabsTrigger>
-                <TabsTrigger value={TABS.MUSIC} disabled={!isStream}>{t("component.mainNav.music")}</TabsTrigger>
-                <TabsTrigger value={TABS.MENTIONS}>{t("views.editor.channelMentions.title")}</TabsTrigger>
-                <TabsTrigger value={TABS.SOURCES_CLIPS} disabled>{t("views.editor.sources.title")}</TabsTrigger>
+                <TabsTrigger value={TABS.TOPIC} disabled={!isStream}>
+                  {t("component.search.type.topic")}
+                </TabsTrigger>
+                <TabsTrigger value={TABS.MUSIC} disabled={!isStream}>
+                  {t("component.mainNav.music")}
+                </TabsTrigger>
+                <TabsTrigger value={TABS.MENTIONS}>
+                  {t("views.editor.channelMentions.title")}
+                </TabsTrigger>
+                <TabsTrigger value={TABS.SOURCES_CLIPS} disabled>
+                  {t("views.editor.sources.title")}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value={TABS.TOPIC} className="space-y-4">
@@ -209,25 +257,47 @@ export default function EditVideoPage() {
                   <icons.CirclePlay className="size-5" />
                   <h2>{t("views.editor.changeTopic.title")}</h2>
                 </div>
-                <p className="text-sm text-muted-foreground">{t("views.editor.changeTopic.info")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("views.editor.changeTopic.info")}
+                </p>
                 <div className="space-y-2">
                   <Label htmlFor="edit-topic-select">{t("component.search.type.topic")}</Label>
-                  <Select value={newTopic || "__unset__"} onValueChange={(value) => setNewTopic(value === "__unset__" ? null : value)}>
-                    <SelectTrigger id="edit-topic-select" className="w-full"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={newTopic || "__unset__"}
+                    onValueChange={(value) => setNewTopic(value === "__unset__" ? null : value)}
+                  >
+                    <SelectTrigger id="edit-topic-select" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__unset__">{t("component.search.unset")}</SelectItem>
-                      {topics.map((topic) => <SelectItem key={topic.value} value={topic.value}>{topic.text}</SelectItem>)}
+                      {topics.map((topic) => (
+                        <SelectItem key={topic.value} value={topic.value}>
+                          {topic.text}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="button" onClick={saveTopic}>{t("views.editor.changeTopic.button")}</Button>
+                <Button type="button" onClick={saveTopic}>
+                  {t("views.editor.changeTopic.button")}
+                </Button>
               </TabsContent>
 
               <TabsContent value={TABS.MUSIC} keepMounted className="space-y-4">
                 {video.comments?.length ? (
-                  <CommentSongParser comments={video.comments} onSongSelected={selectSongCandidate} />
+                  <CommentSongParser
+                    comments={video.comments}
+                    onSongSelected={selectSongCandidate}
+                  />
                 ) : null}
-                <VideoEditSongs id="musicEditor" ref={musicEditor} video={video} currentTime={currentTime} onTimeJump={seekTo} />
+                <VideoEditSongs
+                  id="musicEditor"
+                  ref={musicEditor}
+                  video={video}
+                  currentTime={currentTime}
+                  onTimeJump={seekTo}
+                />
               </TabsContent>
 
               <TabsContent value={TABS.MENTIONS}>
@@ -242,7 +312,14 @@ export default function EditVideoPage() {
 
           {video.comments?.length ? (
             <Card className="mt-4 max-h-[60vh] gap-0 overflow-y-auto overflow-x-hidden p-4">
-              <WatchComments hideBuckets defaultExpanded comments={video.comments} video={video} limit={app.isMobile ? 5 : 0} onTimeJump={seekTo} />
+              <WatchComments
+                hideBuckets
+                defaultExpanded
+                comments={video.comments}
+                video={video}
+                limit={app.isMobile ? 5 : 0}
+                onTimeJump={seekTo}
+              />
             </Card>
           ) : null}
         </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import { cn, getBreakpoint, GRID_COLUMN_CLASSES } from "@/lib/utils";
-import { useAppState } from "@/lib/store";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAppState } from "@/lib/store";
+import { cn, GRID_COLUMN_CLASSES, getBreakpoint } from "@/lib/utils";
 
 export function SkeletonCardList({
   count,
@@ -34,9 +34,7 @@ export function SkeletonCardList({
   const app = useAppState();
   const [keyBase] = useState(() => Date.now());
   const itemCount = Number(count ?? expectedSize);
-  const width =
-    app.windowWidth ||
-    (typeof window !== "undefined" ? window.innerWidth : 1440);
+  const width = app.windowWidth || (typeof window !== "undefined" ? window.innerWidth : 1440);
   const isFlat = horizontal || denseList;
   const autoFitGrid = autoFit && !isFlat;
   const colSize = isFlat ? 1 : autoFit ? 2 : cols[getBreakpoint(width)];
@@ -64,15 +62,29 @@ export function SkeletonCardList({
   );
   const textClass = cn(
     "video-card-text flex flex-1 flex-row gap-2.5",
-    denseList ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1" : horizontal ? "px-2 py-1.5" : "px-2.5 pt-2 pb-1.5",
+    denseList
+      ? "items-center gap-2 overflow-hidden py-0 pr-2 pl-1"
+      : horizontal
+        ? "px-2 py-1.5"
+        : "px-2.5 pt-2 pb-1.5",
   );
   const linesClass = cn(
     "flex min-w-0 flex-1",
-    denseList ? "flex-row flex-nowrap items-center gap-2.5" : horizontal ? "flex-col gap-0.5" : "flex-col gap-1.5",
+    denseList
+      ? "flex-row flex-nowrap items-center gap-2.5"
+      : horizontal
+        ? "flex-col gap-0.5"
+        : "flex-col gap-1.5",
     horizontal && "justify-around",
   );
   const metaRow = (
-    <div className={cn("flex items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground", metaMinH, includeChannel && "justify-between gap-2")}>
+    <div
+      className={cn(
+        "flex items-center gap-1.5 text-sm leading-none tabular-nums text-muted-foreground",
+        metaMinH,
+        includeChannel && "justify-between gap-2",
+      )}
+    >
       {includeChannel ? (
         <>
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
@@ -95,10 +107,17 @@ export function SkeletonCardList({
           !autoFitGrid && (GRID_COLUMN_CLASSES[colSize] || "grid-cols-1"),
           isFlat && "overflow-hidden rounded-xl border gap-y-0 empty:border-0",
         )}
-        style={autoFitGrid ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` } : undefined}
+        style={
+          autoFitGrid
+            ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` }
+            : undefined
+        }
       >
         {Array.from({ length: itemCount }).map((_, index) => (
-          <div key={`${index}-${keyBase + index}`} className={cn("min-w-0 overflow-visible", isFlat && "[&:not(:last-child)]:border-b")}>
+          <div
+            key={`${index}-${keyBase + index}`}
+            className={cn("min-w-0 overflow-visible", isFlat && "[&:not(:last-child)]:border-b")}
+          >
             <article className={articleClass}>
               <Card className={shellClass}>
                 {!denseList ? (
@@ -122,7 +141,9 @@ export function SkeletonCardList({
                     {denseList ? (
                       <>
                         <Skeleton className="h-4 min-w-0 flex-1" />
-                        {includeChannel ? <Skeleton className="hidden h-4 w-[min(180px,24vw)] shrink sm:block" /> : null}
+                        {includeChannel ? (
+                          <Skeleton className="hidden h-4 w-[min(180px,24vw)] shrink sm:block" />
+                        ) : null}
                         <Skeleton className="h-4 w-20 shrink-0" />
                       </>
                     ) : (
@@ -133,9 +154,7 @@ export function SkeletonCardList({
                             <Skeleton className="h-4 w-3/5" />
                           </div>
                         </div>
-                        <div className="flex min-h-0 flex-1 flex-col justify-end">
-                          {metaRow}
-                        </div>
+                        <div className="flex min-h-0 flex-1 flex-col justify-end">{metaRow}</div>
                       </>
                     )}
                   </div>

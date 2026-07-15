@@ -1,29 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import throttle from "lodash-es/throttle";
-import { toast } from "sonner";
 import { FastForward, Gauge, Link, Pause, Play, Rewind, Settings, Trash2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ChannelImg } from "@/components/channel/ChannelImg";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { ChannelImg } from "@/components/channel/ChannelImg";
-import { dayjs, formatDuration } from "@/lib/time";
-import { encodeLayout } from "@/lib/mv-utils";
-import { useTranslations } from "next-intl";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { useOrderedMultiviewVideoCells } from "@/lib/multiview-video-cells";
+import { encodeLayout } from "@/lib/mv-utils";
+import { dayjs, formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 const availablePlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-export function MultiviewSyncBar({ className = "", onClose }: { className?: string; onClose?: () => void }) {
+export function MultiviewSyncBar({
+  className = "",
+  onClose,
+}: {
+  className?: string;
+  onClose?: () => void;
+}) {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const store = useMultiviewStore();
@@ -47,9 +59,16 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
 
   const routeCurrentTs = searchParams.get("t") || undefined;
   const routeOffsets = searchParams.get("offsets")?.split(",");
-  const pastVideos = useMemo(() => store.activeVideos.filter((v: any) => v.status === "past"), [store.activeVideos]);
+  const pastVideos = useMemo(
+    () => store.activeVideos.filter((v: any) => v.status === "past"),
+    [store.activeVideos],
+  );
   const videoWithTs = useMemo(() => {
-    const videos = pastVideos.map((v: any) => ({ ...v, startTs: dayjs(v.available_at).unix(), endTs: dayjs(v.available_at).unix() + (v.duration || 0) }));
+    const videos = pastVideos.map((v: any) => ({
+      ...v,
+      startTs: dayjs(v.available_at).unix(),
+      endTs: dayjs(v.available_at).unix() + (v.duration || 0),
+    }));
     videos.sort((a: any, b: any) => a.startTs - b.startTs);
     return videos;
   }, [pastVideos]);
@@ -71,7 +90,10 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
   const hasVideosToSync = overlapVideos.length >= 1;
   const minTs = hasVideosToSync ? Math.min(...overlapVideos.map((v: any) => v.startTs)) : 0;
   const maxTs = hasVideosToSync ? Math.max(...overlapVideos.map((v: any) => v.endTs)) : 0;
-  const splitProgressBarData = useMemo(() => overlapVideos.map((v: any) => ({ id: v.id, channel: v.channel })), [overlapVideos]);
+  const splitProgressBarData = useMemo(
+    () => overlapVideos.map((v: any) => ({ id: v.id, channel: v.channel })),
+    [overlapVideos],
+  );
   const currentProgress = getPercentForTime(currentTs);
   const currentDuration = minTs ? formatDuration(Math.round(currentTs - minTs) * 1000) : "0:00";
   const totalDuration = minTs ? formatDuration((maxTs - minTs) * 1000) : "0:00";
@@ -79,9 +101,12 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
   const offsets = useMemo(() => {
     const local = store.syncOffsets;
     if (routeOffsets && overlapVideos.length) {
-      return overlapVideos
-        .map((v: any, index: number) => ({ [v.id]: local[v.id] ?? Number(routeOffsets[index] || 0) }))
-        .reduce((acc: any, current: any) => ({ ...acc, ...current }), {});
+      return Object.fromEntries(
+        overlapVideos.map((v: any, index: number) => [
+          v.id,
+          local[v.id] ?? Number(routeOffsets[index] || 0),
+        ]),
+      );
     }
     return local;
   }, [store.syncOffsets, routeOffsets, overlapVideos]);
@@ -102,7 +127,7 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
   }
 
   function getTimeForPercent(percent: number) {
-    return ((percent / 100) * (maxTs - minTs)) + minTs;
+    return (percent / 100) * (maxTs - minTs) + minTs;
   }
 
   function getPercentForTime(ts: number) {
@@ -136,29 +161,32 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
     return firstOverlap;
   }, [cells, minTs, overlapVideos, routeCurrentTs]);
 
-  const setTime = useCallback((ts: number) => {
-    setCurrentTs(ts);
-    lastSeekByCellRef.current = {};
-    cells.forEach((cell) => {
-      const { video } = cell;
-      const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
-      if (!olVideo) return;
-      const nextTime = ts - olVideo.startTs;
-      const isBefore = nextTime < 0;
-      const isAfter = nextTime / olVideo.duration > 1;
-      if (isBefore || isAfter) {
-        cell.setPlaying(false);
-        cell.seekTo(isBefore ? 0 : olVideo.duration - 1);
-        return;
-      }
-      if (firstPlay.current) {
-        setPaused(false);
-        firstPlay.current = false;
-      }
-      cell.setPlaying(!pausedRef.current);
-      cell.seekTo(nextTime);
-    });
-  }, [cells, maxTs, minTs, overlapVideos]);
+  const setTime = useCallback(
+    (ts: number) => {
+      setCurrentTs(ts);
+      lastSeekByCellRef.current = {};
+      cells.forEach((cell) => {
+        const { video } = cell;
+        const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
+        if (!olVideo) return;
+        const nextTime = ts - olVideo.startTs;
+        const isBefore = nextTime < 0;
+        const isAfter = nextTime / olVideo.duration > 1;
+        if (isBefore || isAfter) {
+          cell.setPlaying(false);
+          cell.seekTo(isBefore ? 0 : olVideo.duration - 1);
+          return;
+        }
+        if (firstPlay.current) {
+          setPaused(false);
+          firstPlay.current = false;
+        }
+        cell.setPlaying(!pausedRef.current);
+        cell.seekTo(nextTime);
+      });
+    },
+    [cells, maxTs, minTs, overlapVideos],
+  );
 
   const sync = useCallback(() => {
     if (!cells || !hasVideosToSync) return;
@@ -181,7 +209,10 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
       const olVideo = video && overlapVideos.find((v: any) => v.id === video.id);
       if (!olVideo) return;
 
-      const percentProgress = nextTs > olVideo.endTs ? 100 : Number(((cellCurrentTime / olVideo.duration) * 100).toFixed(2));
+      const percentProgress =
+        nextTs > olVideo.endTs
+          ? 100
+          : Number(((cellCurrentTime / olVideo.duration) * 100).toFixed(2));
       nextProgress[olVideo.id] = percentProgress;
 
       const expectedDuration = nextTs - olVideo.startTs + (offsets[olVideo.id] ?? 0);
@@ -202,7 +233,9 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
     setCurrentProgressByVideo(nextProgress);
   }, [cells, findStartTime, hasVideosToSync, maxTs, minTs, offsets, overlapVideos]);
 
-  useEffect(() => { syncRef.current = sync; }, [sync]);
+  useEffect(() => {
+    syncRef.current = sync;
+  }, [sync]);
   useEffect(() => {
     const timer = setInterval(() => syncRef.current?.(), 500);
     return () => clearInterval(timer);
@@ -230,12 +263,18 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
     });
   }, [playbackRate, cells, overlapVideos]);
 
-  const onMouseOverThrottled = useMemo(() => throttle((clientX: number, offsetLeft: number, width: number) => {
-    const percent = ((clientX - offsetLeft) / width) * 100;
-    if (!(percent >= 0 && percent <= 100)) return;
-    const hoverTs = getTimeForPercent(percent);
-    setTimeTooltipText(`${formatUnixTime(hoverTs)}\n${formatDuration((hoverTs - minTs) * 1000)}/${totalDuration}`);
-  }, 10), [maxTs, minTs, totalDuration]);
+  const onMouseOverThrottled = useMemo(
+    () =>
+      throttle((clientX: number, offsetLeft: number, width: number) => {
+        const percent = ((clientX - offsetLeft) / width) * 100;
+        if (!(percent >= 0 && percent <= 100)) return;
+        const hoverTs = getTimeForPercent(percent);
+        setTimeTooltipText(
+          `${formatUnixTime(hoverTs)}\n${formatDuration((hoverTs - minTs) * 1000)}/${totalDuration}`,
+        );
+      }, 10),
+    [maxTs, minTs, totalDuration],
+  );
 
   useEffect(() => {
     const throttled = throttle((percent: number) => {
@@ -249,45 +288,95 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
     };
   }, [maxTs, minTs, setTime]);
 
-  useEffect(() => () => {
-    onMouseOverThrottled.cancel();
-  }, [onMouseOverThrottled]);
+  useEffect(
+    () => () => {
+      onMouseOverThrottled.cancel();
+    },
+    [onMouseOverThrottled],
+  );
 
-  function setOffset(id: string, value: number) { store.setSyncOffsets({ id, value }); }
+  function setOffset(id: string, value: number) {
+    store.setSyncOffsets({ id, value });
+  }
 
   function onShareClick() {
-    const layoutParam = encodeURIComponent(encodeLayout({ layout: store.layout, contents: store.layoutContent, includeVideo: true }));
+    const layoutParam = encodeURIComponent(
+      encodeLayout({ layout: store.layout, contents: store.layoutContent, includeVideo: true }),
+    );
     const params = new URLSearchParams();
     if (currentTsRef.current) params.append("t", String(Math.round(currentTsRef.current)));
     const offsetArr = overlapVideos.map((v: any) => offsets[v.id] ?? 0);
-    if (offsetArr.find((offset: any) => Number(offset))) params.append("offsets", offsetArr.join(","));
-    navigator.clipboard?.writeText(`${window.origin}/multiview/${layoutParam}${params.toString() ? `?${params.toString()}` : ""}`).then(() => {
-      toast.success(t("component.videoCard.copiedToClipboard"));
-    });
+    if (offsetArr.find((offset: any) => Number(offset)))
+      params.append("offsets", offsetArr.join(","));
+    navigator.clipboard
+      ?.writeText(
+        `${window.origin}/multiview/${layoutParam}${params.toString() ? `?${params.toString()}` : ""}`,
+      )
+      .then(() => {
+        toast.success(t("component.videoCard.copiedToClipboard"));
+      });
   }
 
   return (
-    <Card size="sm" className={cn("sticky bottom-0 z-20 w-full overflow-visible rounded-none border-x-0 border-b-0 bg-card/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/90", className)}>
+    <Card
+      size="sm"
+      className={cn(
+        "sticky bottom-0 z-20 w-full overflow-visible rounded-none border-x-0 border-b-0 bg-card/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/90",
+        className,
+      )}
+    >
       <div className="flex items-center gap-1">
         {/* Playback controls */}
-        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setTime(currentTsRef.current - 10)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          disabled={syncDisabled}
+          onClick={() => setTime(currentTsRef.current - 10)}
+        >
           <Rewind />
         </Button>
-        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setPaused(!paused)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          disabled={syncDisabled}
+          onClick={() => setPaused(!paused)}
+        >
           {paused ? <Play /> : <Pause />}
         </Button>
-        <Button type="button" variant="ghost" size="icon-sm" disabled={syncDisabled} onClick={() => setTime(currentTsRef.current + 10)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          disabled={syncDisabled}
+          onClick={() => setTime(currentTsRef.current + 10)}
+        >
           <FastForward />
         </Button>
         <Popover>
           <PopoverTrigger
-            render={<Button type="button" variant="ghost" size="icon-sm" disabled={!overlapVideos.length} aria-label={t("views.multiview.sync.syncSettings")} />}
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={!overlapVideos.length}
+                aria-label={t("views.multiview.sync.syncSettings")}
+              />
+            }
           >
             <Settings />
           </PopoverTrigger>
-          <PopoverContent side="top" align="start" className="w-[28rem] max-w-[calc(100vw-1rem)] gap-3 p-3">
+          <PopoverContent
+            side="top"
+            align="start"
+            className="w-[28rem] max-w-[calc(100vw-1rem)] gap-3 p-3"
+          >
             <PopoverTitle>{t("views.multiview.sync.syncSettings")}</PopoverTitle>
-            <p className="text-sm text-muted-foreground">{t("views.multiview.sync.syncSettingsDetail")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("views.multiview.sync.syncSettingsDetail")}
+            </p>
 
             {splitProgressBarData.length > 0 && (
               <div className="space-y-1.5 rounded-lg border p-3">
@@ -295,7 +384,10 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
                 {splitProgressBarData.map((video: any, index: number) => (
                   <div key={`progress-${video.id || index}`} className="flex items-center gap-2">
                     <ChannelImg channel={video.channel} size={16} noLink />
-                    <Progress value={currentProgressByVideo[video.id] || 0} className="h-1.5 flex-1" />
+                    <Progress
+                      value={currentProgressByVideo[video.id] || 0}
+                      className="h-1.5 flex-1"
+                    />
                     <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
                       {Math.round(currentProgressByVideo[video.id] || 0)}%
                     </span>
@@ -306,47 +398,96 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
 
             <div className="space-y-2">
               {overlapVideos.map((video: any, index: number) => (
-                <div key={`${video.id || "video"}-${index}`} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div
+                  key={`${video.id || "video"}-${index}`}
+                  className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
                   <div className="flex min-w-0 items-center gap-3">
                     <ChannelImg channel={video.channel} size={36} noLink />
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{video.channel?.name || video.id}</div>
-                      <div className="text-xs text-muted-foreground">{formatDuration((video.duration || 0) * 1000)}</div>
+                      <div className="truncate text-sm font-medium">
+                        {video.channel?.name || video.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDuration((video.duration || 0) * 1000)}
+                      </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}>-0.5</Button>
-                    <Input value={offsets[video.id] ?? "0"} className="w-20" type="number" onChange={(event) => setOffset(video.id, +event.target.value)} />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setOffset(video.id, (offsets[video.id] || 0) - 0.5)}
+                    >
+                      -0.5
+                    </Button>
+                    <Input
+                      value={offsets[video.id] ?? "0"}
+                      className="w-20"
+                      type="number"
+                      onChange={(event) => setOffset(video.id, +event.target.value)}
+                    />
                     <span className="text-sm text-muted-foreground">s</span>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}>+0.5</Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setOffset(video.id, (offsets[video.id] || 0) + 0.5)}
+                    >
+                      +0.5
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           </PopoverContent>
         </Popover>
-        <Button type="button" variant="ghost" size="icon-sm" disabled={!store.layout.length} onClick={onShareClick}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          disabled={!store.layout.length}
+          onClick={onShareClick}
+        >
           <Link />
         </Button>
         {onClose ? (
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Delete archive sync panel" title="Delete archive sync panel" onClick={onClose}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Delete archive sync panel"
+            title="Delete archive sync panel"
+            onClick={onClose}
+          >
             <Trash2 />
           </Button>
         ) : null}
 
         {/* Speed */}
-        <Select value={String(playbackRate)} onValueChange={(value) => setPlaybackRate(Number(value))}>
+        <Select
+          value={String(playbackRate)}
+          onValueChange={(value) => setPlaybackRate(Number(value))}
+        >
           <SelectTrigger size="sm" className="ml-1 h-7 w-[4.5rem] shrink-0 px-2">
             <Gauge className="size-3.5" />
             <SelectValue />
           </SelectTrigger>
           <SelectContent side="top">
-            {availablePlaybackRates.map((rate) => <SelectItem key={rate} value={String(rate)}>{rate}x</SelectItem>)}
+            {availablePlaybackRates.map((rate) => (
+              <SelectItem key={rate} value={String(rate)}>
+                {rate}x
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         {/* Time readout */}
-        <Badge variant="outline" className="h-auto shrink-0 gap-1 px-2.5 py-1 text-sm tabular-nums font-normal">
+        <Badge
+          variant="outline"
+          className="h-auto shrink-0 gap-1 px-2.5 py-1 text-sm tabular-nums font-normal"
+        >
           {currentDuration}
           <span className="opacity-30">/</span>
           {totalDuration}
@@ -360,7 +501,9 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="hidden shrink-0 whitespace-nowrap text-sm tabular-nums text-muted-foreground xl:block">{formatUnixTime(minTs)}</span>
+              <span className="hidden shrink-0 whitespace-nowrap text-sm tabular-nums text-muted-foreground xl:block">
+                {formatUnixTime(minTs)}
+              </span>
               <div
                 className="relative min-w-0 flex-1 py-1.5"
                 onMouseEnter={() => setHovering(true)}
@@ -385,16 +528,21 @@ export function MultiviewSyncBar({ className = "", onClose }: { className?: stri
                   value={[currentProgress]}
                   step={0.01}
                   onWheel={(event) => (event.currentTarget as HTMLElement).blur()}
-                  onValueChange={(value) => onSliderInputThrottled.current?.(Array.isArray(value) ? value[0] : value)}
-                  onValueCommitted={(value) => setTime(getTimeForPercent(Array.isArray(value) ? value[0] : value))}
+                  onValueChange={(value) =>
+                    onSliderInputThrottled.current?.(Array.isArray(value) ? value[0] : value)
+                  }
+                  onValueCommitted={(value) =>
+                    setTime(getTimeForPercent(Array.isArray(value) ? value[0] : value))
+                  }
                 />
               </div>
-              <span className="hidden shrink-0 whitespace-nowrap text-right text-sm tabular-nums text-muted-foreground xl:block">{formatUnixTime(maxTs)}</span>
+              <span className="hidden shrink-0 whitespace-nowrap text-right text-sm tabular-nums text-muted-foreground xl:block">
+                {formatUnixTime(maxTs)}
+              </span>
             </div>
           )}
         </div>
       </div>
-
     </Card>
   );
 }

@@ -32,7 +32,11 @@ export type HomeUiState = {
 };
 
 export function encodeCookieJson(value: unknown) {
-  try { return encodeURIComponent(JSON.stringify(value)); } catch { return ""; }
+  try {
+    return encodeURIComponent(JSON.stringify(value));
+  } catch {
+    return "";
+  }
 }
 
 function decodeCookieJson<T>(value?: string | null): T | null {
@@ -40,7 +44,9 @@ function decodeCookieJson<T>(value?: string | null): T | null {
   try {
     const parsed = JSON.parse(decodeURIComponent(value));
     return parsed !== null && typeof parsed === "object" ? parsed : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export const decodeAppBootCookie = (v?: string | null) => decodeCookieJson<AppBootState>(v);

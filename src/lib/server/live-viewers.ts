@@ -40,16 +40,19 @@ const ytCache = new Map<string, { at: number; data: YoutubeViewerResult }>();
 const ytInflight = new Map<string, Promise<YoutubeViewerResult>>();
 
 async function fetchYoutube(videoId: string): Promise<YoutubeViewerResult> {
-  const upstream = await fetch(`https://www.youtube.com/youtubei/v1/updated_metadata?key=${INNERTUBE_KEY}&prettyPrint=false`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Origin: "https://www.youtube.com",
-      Referer: `https://www.youtube.com/watch?v=${videoId}`,
+  const upstream = await fetch(
+    `https://www.youtube.com/youtubei/v1/updated_metadata?key=${INNERTUBE_KEY}&prettyPrint=false`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: "https://www.youtube.com",
+        Referer: `https://www.youtube.com/watch?v=${videoId}`,
+      },
+      body: JSON.stringify({ context: { client: YT_CLIENT }, videoId }),
+      cache: "no-store",
     },
-    body: JSON.stringify({ context: { client: YT_CLIENT }, videoId }),
-    cache: "no-store",
-  });
+  );
   if (!upstream.ok) throw new Error(`youtube ${upstream.status}`);
   return extractYoutube(await upstream.json());
 }
@@ -62,7 +65,8 @@ export function getYoutubeViewers(videoId: string): Promise<YoutubeViewerResult>
   const p = fetchYoutube(videoId)
     .then((data) => {
       ytCache.set(videoId, { at: Date.now(), data });
-      if (ytCache.size > 512) for (const [k, v] of ytCache) if (Date.now() - v.at >= YT_TTL_MS) ytCache.delete(k);
+      if (ytCache.size > 512)
+        for (const [k, v] of ytCache) if (Date.now() - v.at >= YT_TTL_MS) ytCache.delete(k);
       return data;
     })
     .finally(() => ytInflight.delete(videoId));
@@ -80,22 +84,33 @@ const twCache = new Map<string, { at: number; value: number }>();
 const twInflight = new Map<string, Promise<Record<string, number>>>();
 
 async function fetchTwitch(logins: string[]): Promise<Record<string, number>> {
-  const fields = logins.map((l, i) => `u${i}: user(login: ${JSON.stringify(l)}) { stream { viewersCount } }`).join("\n");
+  const fields = logins
+    .map((l, i) => `u${i}: user(login: ${JSON.stringify(l)}) { stream { viewersCount } }`)
+    .join("\n");
   const body = JSON.stringify({ query: `query HolodexTwitchLiveViewerCounts {\n${fields}\n}` });
   const r = await fetch("https://gql.twitch.tv/gql", {
     method: "POST",
-    headers: { Accept: "application/json", "Client-Id": TWITCH_CLIENT_ID, "Content-Type": "application/json", Origin: "https://www.twitch.tv", Referer: "https://www.twitch.tv/" },
+    headers: {
+      Accept: "application/json",
+      "Client-Id": TWITCH_CLIENT_ID,
+      "Content-Type": "application/json",
+      Origin: "https://www.twitch.tv",
+      Referer: "https://www.twitch.tv/",
+    },
     body,
   });
   if (!r.ok) throw new Error(`twitch ${r.status}`);
   const payload = await r.json();
   const data = Array.isArray(payload) ? payload[0]?.data : payload?.data;
-  return logins.reduce((acc, l, i) => {
-    const stream = data?.[`u${i}`]?.stream;
-    const v = Number(stream?.viewersCount ?? 0);
-    acc[l] = stream ? (Number.isFinite(v) ? v : 0) : TW_OFFLINE;
-    return acc;
-  }, {} as Record<string, number>);
+  return logins.reduce(
+    (acc, l, i) => {
+      const stream = data?.[`u${i}`]?.stream;
+      const v = Number(stream?.viewersCount ?? 0);
+      acc[l] = stream ? (Number.isFinite(v) ? v : 0) : TW_OFFLINE;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 }
 
 export async function getTwitchViewers(logins: string[]): Promise<Record<string, number>> {
@@ -111,14 +126,20 @@ export async function getTwitchViewers(logins: string[]): Promise<Record<string,
   const key = missing.join(",");
   let req = twInflight.get(key);
   if (!req) {
-    req = fetchTwitch(missing).then((counts) => {
-      const now = Date.now();
-      for (const [l, v] of Object.entries(counts)) twCache.set(l, { at: now, value: v });
-      return counts;
-    }).finally(() => twInflight.delete(key));
+    req = fetchTwitch(missing)
+      .then((counts) => {
+        const now = Date.now();
+        for (const [l, v] of Object.entries(counts)) twCache.set(l, { at: now, value: v });
+        return counts;
+      })
+      .finally(() => twInflight.delete(key));
     twInflight.set(key, req);
   }
-  try { return { ...out, ...(await req) }; } catch { return out; }
+  try {
+    return { ...out, ...(await req) };
+  } catch {
+    return out;
+  }
 }
 
 // ===================== Twitch stream info (title/category/bio) =====================
@@ -136,7 +157,13 @@ async function fetchTwitchInfo(login: string): Promise<TwitchStreamInfo | null> 
   const query = `query HolodexTwitchStreamInfo { user(login: ${JSON.stringify(login)}) { description broadcastSettings { title } stream { game { displayName } } lastBroadcast { game { displayName } } } }`;
   const r = await fetch("https://gql.twitch.tv/gql", {
     method: "POST",
-    headers: { Accept: "application/json", "Client-Id": TWITCH_CLIENT_ID, "Content-Type": "application/json", Origin: "https://www.twitch.tv", Referer: "https://www.twitch.tv/" },
+    headers: {
+      Accept: "application/json",
+      "Client-Id": TWITCH_CLIENT_ID,
+      "Content-Type": "application/json",
+      Origin: "https://www.twitch.tv",
+      Referer: "https://www.twitch.tv/",
+    },
     body: JSON.stringify({ query }),
   });
   if (!r.ok) throw new Error(`twitch ${r.status}`);
@@ -159,7 +186,10 @@ export function getTwitchStreamInfo(login: string): Promise<TwitchStreamInfo | n
   const pending = twInfoInflight.get(l);
   if (pending) return pending;
   const p = fetchTwitchInfo(l)
-    .then((value) => { twInfoCache.set(l, { at: Date.now(), value }); return value; })
+    .then((value) => {
+      twInfoCache.set(l, { at: Date.now(), value });
+      return value;
+    })
     .catch(() => hit?.value ?? null) // keep last good value on a transient failure
     .finally(() => twInfoInflight.delete(l));
   twInfoInflight.set(l, p);
@@ -202,9 +232,19 @@ export async function injectLiveViewerCounts(videos: any[]): Promise<any[]> {
     // Every YouTube id in parallel, no concurrency cap — one wave, cache-backed. Only ids
     // that actually resolve land in ytResults; timeouts/errors stay absent (never removed).
     ...ytIds.map(async (id) => {
-      try { ytResults[id] = await getYoutubeViewers(id); } catch { /* unreachable -> leave absent */ }
+      try {
+        ytResults[id] = await getYoutubeViewers(id);
+      } catch {
+        /* unreachable -> leave absent */
+      }
     }),
-    (async () => { try { Object.assign(twMap, await getTwitchViewers(twLogins)); } catch { /* ignore */ } })(),
+    (async () => {
+      try {
+        Object.assign(twMap, await getTwitchViewers(twLogins));
+      } catch {
+        /* ignore */
+      }
+    })(),
   ]);
   await Promise.race([done, new Promise((r) => setTimeout(r, INJECT_BUDGET_MS))]);
 
@@ -218,7 +258,8 @@ export async function injectLiveViewerCounts(videos: any[]): Promise<any[]> {
     const y = ytIdOf(v);
     if (y != null) {
       const r = ytResults[y];
-      if (r?.isLive && typeof r.live_viewers === "number" && r.live_viewers >= 0) return [{ ...v, _ccv: r.live_viewers }];
+      if (r?.isLive && typeof r.live_viewers === "number" && r.live_viewers >= 0)
+        return [{ ...v, _ccv: r.live_viewers }];
       if (r?.found && !r.isLive && !isMembersOnly(v)) return []; // YouTube confirms ended -> drop stale live
       return [v]; // live-but-no-count (members/just-started), unreadable, or unreached -> keep
     }

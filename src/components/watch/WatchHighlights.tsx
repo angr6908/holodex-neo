@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDuration, timestampToSeconds } from "@/lib/time";
+
 const COMMENT_TIMESTAMP_REGEX = /(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])([^\r\n]+)?/gm;
 const STOP_WORDS = new Set(["an", "the"]);
 const TIME_THRESHOLD_SECONDS = 40;
@@ -117,40 +118,46 @@ export function WatchHighlights({ comments, video, limit = 0, onTimeJump }: Watc
     const videoDuration = video.duration || 0;
     const videoStartTimestamp = +new Date(video.start_actual || video.available_at || 0);
     const parsed = comments.flatMap((comment) => {
-      const pairs = parseTimestampComments(comment.message, videoDuration).filter((pair) => pair.text);
+      const pairs = parseTimestampComments(comment.message, videoDuration).filter(
+        (pair) => pair.text,
+      );
       return pairs.length >= MIN_TIMESTAMP_OCCURRENCE ? pairs : [];
     });
     const result: HighlightBucket[] = [];
     let bucket: ParsedTimestampComment[] = [];
 
-    parsed.toSorted((a, b) => a.time - b.time).forEach((comment, index, sorted) => {
-      bucket.push(comment);
+    parsed
+      .toSorted((a, b) => a.time - b.time)
+      .forEach((comment, index, sorted) => {
+        bucket.push(comment);
 
-      const next = sorted[index + 1];
-      if (next && next.time - comment.time <= TIME_THRESHOLD_SECONDS) {
-        return;
-      }
-
-      const median = bucket[Math.floor(bucket.length / 3)]?.time ?? comment.time;
-      const matchingSong = video.songs?.find((song) => Math.abs(song.start - median) <= TIME_THRESHOLD_SECONDS);
-
-      if (!matchingSong) {
-        const best = bestTimestampLabel(bucket);
-
-        if (best) {
-          const medianMs = median * 1000;
-          result.push({
-            time: median,
-            count: bucket.length,
-            best,
-            display: formatDuration(medianMs),
-            absolute: new Date(videoStartTimestamp + medianMs).toISOString(),
-          });
+        const next = sorted[index + 1];
+        if (next && next.time - comment.time <= TIME_THRESHOLD_SECONDS) {
+          return;
         }
-      }
 
-      bucket = [];
-    });
+        const median = bucket[Math.floor(bucket.length / 3)]?.time ?? comment.time;
+        const matchingSong = video.songs?.find(
+          (song) => Math.abs(song.start - median) <= TIME_THRESHOLD_SECONDS,
+        );
+
+        if (!matchingSong) {
+          const best = bestTimestampLabel(bucket);
+
+          if (best) {
+            const medianMs = median * 1000;
+            result.push({
+              time: median,
+              count: bucket.length,
+              best,
+              display: formatDuration(medianMs),
+              absolute: new Date(videoStartTimestamp + medianMs).toISOString(),
+            });
+          }
+        }
+
+        bucket = [];
+      });
 
     result.push(
       ...(video.songs?.map((song) => ({

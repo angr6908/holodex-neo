@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-
-import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { channelAvatarSizeClass } from "@/components/channel/ChannelImg";
+import { ChannelSocials } from "@/components/channel/ChannelSocials";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { getChannelPhoto } from "@/lib/functions";
-import { channelDisplayName, channelGroup } from "@/lib/video-format";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { channelDisplayName, channelGroup } from "@/lib/video-format";
 
 export function ChannelChip({
   channel,
@@ -52,7 +51,13 @@ export function ChannelChip({
         }
       >
         <Avatar className={channelAvatarSizeClass(size)}>
-          <AvatarImage src={photo} alt={`${channel.name}'s profile picture`} width={size} height={size} decoding="async" />
+          <AvatarImage
+            src={photo}
+            alt={`${channel.name}'s profile picture`}
+            width={size}
+            height={size}
+            decoding="async"
+          />
         </Avatar>
         {children ? children({ isHover: open }) : null}
       </HoverCardTrigger>
@@ -64,10 +69,15 @@ export function ChannelChip({
             <AvatarImage src={photo} alt="" width={40} height={40} decoding="async" />
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <Link href={`/channel/${channel.id}`} className="truncate text-sm font-medium text-foreground no-underline hover:underline">
+            <Link
+              href={`/channel/${channel.id}`}
+              className="truncate text-sm font-medium text-foreground no-underline hover:underline"
+            >
               {channelName}
             </Link>
-            {orgText ? <span className="truncate text-xs text-muted-foreground">{orgText}</span> : null}
+            {orgText ? (
+              <span className="truncate text-xs text-muted-foreground">{orgText}</span>
+            ) : null}
           </div>
         </div>
         <ChannelSocials channel={channel} className="mt-2.5" />

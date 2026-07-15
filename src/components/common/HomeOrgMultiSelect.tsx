@@ -1,16 +1,25 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Building, RotateCcw } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ALL_VTUBERS_ORG, DEFAULT_ORG } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
+import { Building, ChevronDown, RotateCcw } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+
 type HomeOrgMultiSelectProps = {
   hideTrigger?: boolean;
   buttonVariant?: string;
@@ -64,7 +73,8 @@ export function HomeOrgMultiSelect({
   const draftSelectedNamesRef = useRef<string[]>([]);
   const allVtubersLabel = t("component.search.allVtubers");
 
-  const formatSelectionLabel = (name: string) => name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
+  const formatSelectionLabel = (name: string) =>
+    name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
 
   useEffect(() => {
     if (!app.orgs.length) void app.fetchOrgs();
@@ -94,9 +104,7 @@ export function HomeOrgMultiSelect({
 
   const triggerLabel = useMemo(() => {
     if (selectedNames.length === 0) {
-      return emptySelectionLabel === ALL_VTUBERS_ORG
-        ? allVtubersLabel
-        : emptySelectionLabel;
+      return emptySelectionLabel === ALL_VTUBERS_ORG ? allVtubersLabel : emptySelectionLabel;
     }
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
@@ -183,7 +191,13 @@ export function HomeOrgMultiSelect({
           </>
         )}
       </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={8} positionMethod="fixed" initialFocus={false} className="w-[min(92vw,26.5rem)] p-0">
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        positionMethod="fixed"
+        initialFocus={false}
+        className="w-[min(92vw,26.5rem)] p-0"
+      >
         <Command shouldFilter={false}>
           <CommandInput
             value={search}

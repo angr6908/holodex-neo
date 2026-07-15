@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import linkifyHtml from "linkify-html";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
 function escapeHtml(value: string) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -22,15 +23,37 @@ const lineClampClasses: Record<number, string> = {
   6: "line-clamp-6",
 };
 
-export function TruncatedText({ html = "", text = "", lines = 5, className = "", renderButton }: { html?: string; text?: string; lines?: number | string; className?: string; renderButton?: (expanded: boolean) => React.ReactNode }) {
+export function TruncatedText({
+  html = "",
+  text = "",
+  lines = 5,
+  className = "",
+  renderButton,
+}: {
+  html?: string;
+  text?: string;
+  lines?: number | string;
+  className?: string;
+  renderButton?: (expanded: boolean) => React.ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const lineCount = useMemo(() => (html.split(/\r\n|\r|\n/).length || text.split(/\r\n|\r|\n/).length), [html, text]);
+  const lineCount = useMemo(
+    () => html.split(/\r\n|\r|\n/).length || text.split(/\r\n|\r|\n/).length,
+    [html, text],
+  );
   const linkedHtml = useMemo(() => linkifyHtml(html || escapeHtml(text)), [html, text]);
   const lineLimit = Number(lines);
   const shouldTruncate = lineCount > lineLimit;
   return (
     <div className={className}>
-      <div className={cn("whitespace-pre-wrap break-words", !expanded && shouldTruncate && lineClampClasses[lineLimit])}><span dangerouslySetInnerHTML={{ __html: linkedHtml }} /></div>
+      <div
+        className={cn(
+          "whitespace-pre-wrap break-words",
+          !expanded && shouldTruncate && lineClampClasses[lineLimit],
+        )}
+      >
+        <span dangerouslySetInnerHTML={{ __html: linkedHtml }} />
+      </div>
       {shouldTruncate ? (
         <Button
           type="button"
@@ -39,7 +62,11 @@ export function TruncatedText({ html = "", text = "", lines = 5, className = "",
           className="mt-3 h-auto p-0"
           onClick={() => setExpanded((value) => !value)}
         >
-          {renderButton ? renderButton(expanded) : <span>{expanded ? "Show less" : "Show more"}</span>}
+          {renderButton ? (
+            renderButton(expanded)
+          ) : (
+            <span>{expanded ? "Show less" : "Show more"}</span>
+          )}
         </Button>
       ) : null}
     </div>

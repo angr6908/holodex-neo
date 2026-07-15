@@ -1,16 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
-import { jsonpItunes, type ItunesTrack } from "@/lib/api";
-import { formatDuration, secondsToHuman, timestampToSeconds } from "@/lib/time";
-import { useTranslations } from "next-intl";
+import { type ItunesTrack, jsonpItunes } from "@/lib/api";
 import * as icons from "@/lib/icons";
+import { formatDuration, secondsToHuman, timestampToSeconds } from "@/lib/time";
 
-const TS_PARSING_REGEX = /(?<pre>.*?)(?:(?<s_h>[0-5]?[0-9]):)?(?<s_m>[0-5]?[0-9]):(?<s_s>[0-5][0-9])(?:(?<mid>.*?)(?:(?:(?<e_h>[0-5]?[0-9]):)?(?<e_m>[0-5]?[0-9]):(?<e_s>[0-5][0-9])))?(?<post>.*?)?$/gm;
+const TS_PARSING_REGEX =
+  /(?<pre>.*?)(?:(?<s_h>[0-5]?[0-9]):)?(?<s_m>[0-5]?[0-9]):(?<s_s>[0-5][0-9])(?:(?<mid>.*?)(?:(?:(?<e_h>[0-5]?[0-9]):)?(?<e_m>[0-5]?[0-9]):(?<e_s>[0-5][0-9])))?(?<post>.*?)?$/gm;
 
 type TimestampGroups = {
   e_h?: string;
@@ -112,7 +112,11 @@ export function CommentSongParser({
 
         return {
           ...track,
-          trackName: foundEn?.trackCensoredName || foundEn?.trackName || track.trackCensoredName || track.trackName,
+          trackName:
+            foundEn?.trackCensoredName ||
+            foundEn?.trackName ||
+            track.trackCensoredName ||
+            track.trackName,
         };
       }),
     );
@@ -123,19 +127,33 @@ export function CommentSongParser({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger
           render={
-            <Button type="button" variant="ghost" className="h-auto w-full justify-start p-0 text-base font-medium" />
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-auto w-full justify-start p-0 text-base font-medium"
+            />
           }
         >
           {t("component.media.automatedSongHelper")}
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-4">
-          <h5 className="mb-3 text-sm font-normal">{t("component.media.clickSearchableTimestamp")}</h5>
+          <h5 className="mb-3 text-sm font-normal">
+            {t("component.media.clickSearchableTimestamp")}
+          </h5>
 
           {selection.map((timeframe, idx) => (
             <div key={`s${timeframe.index}`} className="mb-4">
               <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => onSongSelected?.(timeframe)}>
-                  [{timeframe.start_human + (timeframe.end_time ? `\t- ${timeframe.end_human}` : "\t- ?")}]
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onSongSelected?.(timeframe)}
+                >
+                  [
+                  {timeframe.start_human +
+                    (timeframe.end_time ? `\t- ${timeframe.end_human}` : "\t- ?")}
+                  ]
                 </Button>
 
                 {timeframe.tokens.map((token, tokenidx) => (
@@ -154,11 +172,19 @@ export function CommentSongParser({
               {idx === searchResultIdx ? (
                 <div className="mt-3">
                   <div className="flex justify-end">
-                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSearchResultIdx(-1)}>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => setSearchResultIdx(-1)}
+                    >
                       <icons.XIcon className="size-4" />
                     </Button>
                   </div>
-                  <h5 className="px-2 py-2 text-sm font-medium">{t("editor.music.pickItunesResult")}</h5>
+                  <h5 className="px-2 py-2 text-sm font-medium">
+                    {t("editor.music.pickItunesResult")}
+                  </h5>
                   <div className="mt-2 space-y-2">
                     {searchResult.map((song) => (
                       <Button
@@ -168,13 +194,18 @@ export function CommentSongParser({
                         className="h-auto w-full justify-start gap-3 px-3 py-2 text-left font-normal"
                         onClick={() => onSongSelected?.(timeframe, song)}
                       >
-                        <img src={song.artworkUrl100} alt="" className="h-12 w-12 rounded-md object-cover" />
+                        <img
+                          src={song.artworkUrl100}
+                          alt=""
+                          className="h-12 w-12 rounded-md object-cover"
+                        />
                         <div className="min-w-0">
                           <div className="truncate text-sm">
                             🎵 {song.trackName} [{formatDuration(song.trackTimeMillis)}]
                           </div>
                           <div className="truncate text-xs text-muted-foreground">
-                            🎤 {song.artistName} / {song.collectionName} / {song.releaseDate ? song.releaseDate.slice(0, 7) : ""}
+                            🎤 {song.artistName} / {song.collectionName} /{" "}
+                            {song.releaseDate ? song.releaseDate.slice(0, 7) : ""}
                           </div>
                         </div>
                       </Button>

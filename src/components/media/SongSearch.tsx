@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Command, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-import { useTranslations } from "next-intl";
-import { api, jsonpItunes, type ItunesTrack } from "@/lib/api";
-import { formatDuration } from "@/lib/time";
+import { api, type ItunesTrack, jsonpItunes } from "@/lib/api";
 import * as icons from "@/lib/icons";
+import { formatDuration } from "@/lib/time";
 
 type SongSearchItem = ItunesTrack & {
   index?: string;
@@ -34,14 +33,18 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
   const [isComposing, setIsComposing] = useState(false);
 
   const results = fromApi.concat(query ? [query] : []);
-  useEffect(() => { setQuery(value || null); }, [value]);
+  useEffect(() => {
+    setQuery(value || null);
+  }, [value]);
   useEffect(() => {
     if (isComposing) return;
     const val = search;
     const timer = setTimeout(() => void performSearch(val), 500);
     return () => clearTimeout(timer);
   }, [search, isComposing]);
-  useEffect(() => { if (query) onInput?.(query); }, [query]);
+  useEffect(() => {
+    if (query) onInput?.(query);
+  }, [query]);
 
   async function performSearch(val: string) {
     if (!val) return;
@@ -68,15 +71,23 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
     ]);
   }
 
-  async function searchRegionsAlternative(queryStr: string, country = "JP", regions: string[] = ["ja_jp", "en_us"]) {
+  async function searchRegionsAlternative(
+    queryStr: string,
+    country = "JP",
+    regions: string[] = ["ja_jp", "en_us"],
+  ) {
     const ids = new Set<number>();
-    const responses = await Promise.all(regions.map((lang) => jsonpItunes(queryStr, { country, lang, limit: 10 })));
+    const responses = await Promise.all(
+      regions.map((lang) => jsonpItunes(queryStr, { country, lang, limit: 10 })),
+    );
 
-    return responses.flatMap((data) => data.results || []).filter((song) => {
-      if (ids.has(song.trackId)) return false;
-      ids.add(song.trackId);
-      return true;
-    });
+    return responses
+      .flatMap((data) => data.results || [])
+      .filter((song) => {
+        if (ids.has(song.trackId)) return false;
+        ids.add(song.trackId);
+        return true;
+      });
   }
 
   async function searchMusicdex(queryStr: string): Promise<SongSearchItem[]> {
@@ -98,7 +109,10 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
     }
   }
 
-  function clearSelection() { setQuery(null); onInput?.(null); }
+  function clearSelection() {
+    setQuery(null);
+    onInput?.(null);
+  }
   function selectItem(item: SongSearchItem) {
     setQuery(item);
     setSearch("");
@@ -109,7 +123,9 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
   function renderSongSummary(item: SongSearchItem, showSource = false) {
     return (
       <>
-        {item.artworkUrl100 ? <img src={item.artworkUrl100} className="h-12 w-12 rounded-lg object-cover" alt="" /> : null}
+        {item.artworkUrl100 ? (
+          <img src={item.artworkUrl100} className="h-12 w-12 rounded-lg object-cover" alt="" />
+        ) : null}
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm text-foreground">
             🎵 {item.trackName} [{formatDuration(item.trackTimeMillis)}]
@@ -131,31 +147,30 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
 
   return (
     <Popover open={openMenu && results.length > 0} onOpenChange={setOpenMenu}>
-      <PopoverTrigger
-        nativeButton={false}
-        render={<Card className="gap-0 p-2" />}
-      >
-          {query ? (
-            <div className="mb-2 flex items-center gap-3 rounded-xl border px-3 py-2">
-              {renderSongSummary(query)}
-              <Button type="button" variant="ghost" size="icon-xs" onClick={clearSelection}>
-                <icons.XIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : null}
-          <Input
-            value={search}
-            autoFocus={autofocus}
-            placeholder={t("editor.music.itunesLookupPlaceholder")}
-            onFocus={() => setOpenMenu(true)}
-            onChange={(event) => setSearch(event.target.value)}
-            onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => {
-              setIsComposing(false);
-              void performSearch(search);
-            }}
-          />
+      <PopoverTrigger nativeButton={false} render={<Card className="gap-0 p-2" />}>
+        {query ? (
+          <div className="mb-2 flex items-center gap-3 rounded-xl border px-3 py-2">
+            {renderSongSummary(query)}
+            <Button type="button" variant="ghost" size="icon-xs" onClick={clearSelection}>
+              <icons.XIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : null}
+        <Input
+          value={search}
+          autoFocus={autofocus}
+          placeholder={t("editor.music.itunesLookupPlaceholder")}
+          onFocus={() => setOpenMenu(true)}
+          onChange={(event) => setSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.preventDefault();
+          }}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => {
+            setIsComposing(false);
+            void performSearch(search);
+          }}
+        />
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={6} className="w-[var(--anchor-width)] p-0">
         <Command shouldFilter={false}>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState, type MouseEvent } from "react";
+import { useTranslations } from "next-intl";
+import { type MouseEvent, useMemo, useState } from "react";
+import { SectionPanel } from "@/components/common/SectionPanel";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { SectionPanel } from "@/components/common/SectionPanel";
 import { Comment } from "@/components/video/Comment";
 import { formatDuration, TIMESTAMP_REGEX, timestampToSeconds } from "@/lib/time";
-import { useTranslations } from "next-intl";
+
 const BUCKET_THRESHOLD_SECONDS = 10;
 
 type WatchComment = {
@@ -99,7 +100,11 @@ export function WatchComments({
   const [expanded, setExpanded] = useState(false);
 
   const groupedComments = useMemo(
-    () => comments.map((comment) => ({ ...comment, times: parseCommentTimes(comment.message, video.duration || 0) })),
+    () =>
+      comments.map((comment) => ({
+        ...comment,
+        times: parseCommentTimes(comment.message, video.duration || 0),
+      })),
     [comments, video.duration],
   );
 
@@ -109,12 +114,15 @@ export function WatchComments({
     }
 
     return groupedComments
-      .filter((comment) => comment.times.some((time) => Math.abs(currentFilter - time) <= BUCKET_THRESHOLD_SECONDS))
+      .filter((comment) =>
+        comment.times.some((time) => Math.abs(currentFilter - time) <= BUCKET_THRESHOLD_SECONDS),
+      )
       .sort((a, b) => a.times.length - b.times.length);
   }, [currentFilter, groupedComments]);
 
   const shouldLimit = !!limit && filteredComments.length > limit;
-  const visibleComments = shouldLimit && !expanded ? filteredComments.slice(0, limit) : filteredComments;
+  const visibleComments =
+    shouldLimit && !expanded ? filteredComments.slice(0, limit) : filteredComments;
 
   const buckets = useMemo(
     () => buildCommentBuckets(groupedComments, t("component.watch.Comments.all")),
@@ -131,7 +139,12 @@ export function WatchComments({
   }
 
   return (
-    <SectionPanel title={t("component.watch.Comments.title")} count={comments.length} defaultOpen={defaultExpanded} contentClassName="px-4 py-3">
+    <SectionPanel
+      title={t("component.watch.Comments.title")}
+      count={comments.length}
+      defaultOpen={defaultExpanded}
+      contentClassName="px-4 py-3"
+    >
       {!hideBuckets ? (
         <ToggleGroup
           value={[String(currentFilter)]}
@@ -156,7 +169,13 @@ export function WatchComments({
       </div>
 
       {shouldLimit ? (
-        <Button type="button" variant="ghost" size="sm" className="mt-1" onClick={() => setExpanded((value) => !value)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mt-1"
+          onClick={() => setExpanded((value) => !value)}
+        >
           {expanded ? t("views.app.close_btn") : t("component.description.showMore")}
         </Button>
       ) : null}

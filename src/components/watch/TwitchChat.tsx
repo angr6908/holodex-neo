@@ -14,7 +14,12 @@ export function TwitchChat({ channel, className = "" }: { channel: string; class
 
   const src = `https://www.twitch.tv/embed/${channel}/chat?parent=${parent}${app.settings.darkMode ? "&darkpopout" : ""}`;
   return (
-    <div className={cn("relative z-0 flex min-h-0 flex-col overflow-hidden rounded-[inherit] text-base", className)}>
+    <div
+      className={cn(
+        "relative z-0 flex min-h-0 flex-col overflow-hidden rounded-[inherit] text-base",
+        className,
+      )}
+    >
       <div className="relative min-h-0 w-full flex-1 [&>iframe]:absolute [&>iframe]:z-[3] [&>iframe]:h-full [&>iframe]:w-full">
         <iframe src={src} title="Twitch chat" frameBorder={0} />
       </div>

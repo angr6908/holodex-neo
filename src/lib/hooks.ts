@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "react";
+import { type TouchEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // `useLayoutEffect` is a no-op during SSR, so fall back to `useEffect` there to
 // silence the React warning. Client-side it runs synchronously after DOM
@@ -13,10 +13,11 @@ export function useDomElement<T extends HTMLElement = HTMLElement>(id: string) {
   const [element, setElement] = useState<T | null>(null);
 
   useIsomorphicLayoutEffect(() => {
-    const update = () => setElement((prev) => {
-      const next = document.getElementById(id) as T | null;
-      return prev === next ? prev : next;
-    });
+    const update = () =>
+      setElement((prev) => {
+        const next = document.getElementById(id) as T | null;
+        return prev === next ? prev : next;
+      });
     update();
     const observer = new MutationObserver(update);
     observer.observe(document.body, { childList: true, subtree: true });

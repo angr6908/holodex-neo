@@ -45,13 +45,16 @@ export function VirtualVideoCardList({
     <ScrollArea
       className={cn(
         "[&>[data-slot=scroll-area-viewport]]:overscroll-contain",
-        !pageMode && "max-h-[min(70dvh,36rem)] [&>[data-slot=scroll-area-viewport]]:max-h-[inherit]",
+        !pageMode &&
+          "max-h-[min(70dvh,36rem)] [&>[data-slot=scroll-area-viewport]]:max-h-[inherit]",
       )}
     >
       {videos.map((video: any, index: number) => (
         <div
           key={`${video.id || "video"}-${index}`}
-          ref={(el) => { itemRefs.current[index] = el; }}
+          ref={(el) => {
+            itemRefs.current[index] = el;
+          }}
           className="relative px-1 py-1.5"
           aria-current={index === activeIndex ? "true" : undefined}
         >

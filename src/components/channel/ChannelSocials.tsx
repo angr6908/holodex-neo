@@ -1,11 +1,11 @@
 "use client";
 
-import { UserX, Heart, TwitchIcon } from "@/lib/icons";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useAppState } from "@/lib/store";
-import { useTranslations } from "next-intl";
 import * as icons from "@/lib/icons";
+import { Heart, TwitchIcon, UserX } from "@/lib/icons";
+import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
 export function ChannelSocials({
   channel,
@@ -65,7 +65,8 @@ export function ChannelSocials({
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button nativeButton={false}
+                <Button
+                  nativeButton={false}
                   render={
                     <a
                       href={`https://www.youtube.com/channel/${channel.id}`}
@@ -88,7 +89,8 @@ export function ChannelSocials({
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button nativeButton={false}
+                <Button
+                  nativeButton={false}
                   render={
                     <a
                       href={`https://twitter.com/${channel.twitter}`}
@@ -111,7 +113,8 @@ export function ChannelSocials({
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button nativeButton={false}
+                <Button
+                  nativeButton={false}
                   render={
                     <a
                       href={`https://twitch.tv/${channel.twitch}`}
@@ -143,7 +146,13 @@ export function ChannelSocials({
                 />
               }
             >
-              {isFavorited ? <icons.Heart className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")} /> : <Heart className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")} />}
+              {isFavorited ? (
+                <icons.Heart
+                  className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")}
+                />
+              ) : (
+                <Heart className={cn("size-5", isFavorited && app.isLoggedIn && "text-primary")} />
+              )}
             </TooltipTrigger>
             <TooltipContent>{tooltip}</TooltipContent>
           </Tooltip>
@@ -166,9 +175,7 @@ export function ChannelSocials({
               }
             >
               <UserX className="size-5" />
-              {isBlocked ? (
-                <span>{t("component.channelSocials.blocked")}</span>
-              ) : null}
+              {isBlocked ? <span>{t("component.channelSocials.blocked")}</span> : null}
             </TooltipTrigger>
             <TooltipContent>{blockTooltip}</TooltipContent>
           </Tooltip>

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   // Batch form (video grids): many ids in one request, fetched in parallel with no
   // concurrency cap so the whole grid resolves in a single wave.
   if (Array.isArray(body?.videoIds)) {
-    const ids = ([...new Set<unknown>(body.videoIds)]).filter(isValidId).slice(0, 500);
+    const ids = [...new Set<unknown>(body.videoIds)].filter(isValidId).slice(0, 500);
     const results = await Promise.all(ids.map((id) => getYoutubeViewers(id).catch(() => miss)));
     const entries = ids.map((id, i) => [id, results[i]] as const);
     return Response.json(Object.fromEntries(entries), { headers: { "cache-control": "no-store" } });
@@ -23,7 +23,9 @@ export async function POST(request: Request) {
   const { videoId } = body;
   if (!isValidId(videoId)) return Response.json(miss, { status: 400 });
   try {
-    return Response.json(await getYoutubeViewers(videoId), { headers: { "cache-control": "no-store" } });
+    return Response.json(await getYoutubeViewers(videoId), {
+      headers: { "cache-control": "no-store" },
+    });
   } catch {
     return Response.json(miss, { status: 502 });
   }

@@ -1,4 +1,11 @@
-import { TL_LANGS, VIDEO_URL_REGEX, TWITCH_VIDEO_URL_REGEX, langConversion, langs } from "@/lib/consts";
+import {
+  langConversion,
+  langs,
+  TL_LANGS,
+  TWITCH_VIDEO_URL_REGEX,
+  VIDEO_URL_REGEX,
+} from "@/lib/consts";
+
 const validUiLangs = new Set<string>(langs.map((x) => x.val));
 const validTlLangs = new Set(TL_LANGS.map((x) => x.value));
 const STATIC_BASE = "https://holodex.net/statics";
@@ -10,20 +17,27 @@ const orgDisplayNameOverrides: Record<string, string> = {
   MillionProduction: "Million Pro",
 };
 
-export const formatOrgDisplayName = (name: string) => orgDisplayNameOverrides[name] || (name || "");
+export const formatOrgDisplayName = (name: string) => orgDisplayNameOverrides[name] || name || "";
 
 export const getChannelPhoto = (channelId?: string, size = 150) =>
   channelId ? `${STATIC_BASE}/channelImg/${channelId}/${size}.png` : "";
 
 export const resizeChannelPhoto = (url: string) =>
   typeof url === "string" && url.includes("ggpht.com")
-    ? `${url.split("=s")[0]}=s176-c-k-c0x00ffffff-no-rj-mo` : url;
+    ? `${url.split("=s")[0]}=s176-c-k-c0x00ffffff-no-rj-mo`
+    : url;
 
 export function getVideoThumbnails(key: string, webp = false) {
   const base = `https://i.ytimg.com/vi${webp ? "_webp" : ""}/${key}`;
   const ext = webp ? "webp" : "jpg";
   const src = (q: string) => `${base}/${q}.${ext}`;
-  return { default: src("default"), medium: src("mqdefault"), standard: src("sddefault"), maxres: src("maxresdefault"), hq720: src("hq720") };
+  return {
+    default: src("default"),
+    medium: src("mqdefault"),
+    standard: src("sddefault"),
+    maxres: src("maxresdefault"),
+    hq720: src("hq720"),
+  };
 }
 
 export function getUILang(weblang?: string) {
@@ -34,7 +48,9 @@ export function getUILang(weblang?: string) {
 }
 
 export function getLang(weblang?: string) {
-  const s = String(weblang || "en").split("-")[0].toLowerCase();
+  const s = String(weblang || "en")
+    .split("-")[0]
+    .toLowerCase();
   return validTlLangs.has(s) ? s : "en";
 }
 
@@ -59,7 +75,11 @@ const numFmtAdjust: Record<string, string> = { "lol-UWU": "en", "lol-PEKO": "en"
 
 export function formatCount(n: any, lang = "en") {
   const k = numFmtAdjust[lang] ?? lang;
-  formatters[k] ||= new Intl.NumberFormat(k, { compactDisplay: "short", notation: "compact", maximumSignificantDigits: 3 });
+  formatters[k] ||= new Intl.NumberFormat(k, {
+    compactDisplay: "short",
+    notation: "compact",
+    maximumSignificantDigits: 3,
+  });
   return formatters[k].format(typeof n === "string" ? +n : n);
 }
 
@@ -72,7 +92,8 @@ const toNum = (v: unknown) => {
 // Concurrent viewers come ONLY from the live platform (YouTube / Twitch), merged onto
 // videos as `_ccv`. Holodex's own live_viewers/ccv are intentionally never read.
 export const getKnownLiveViewerCount = (v?: Record<string, any> | null) => toNum(v?._ccv);
-export const getLiveViewerCount = (v?: Record<string, any> | null) => getKnownLiveViewerCount(v) ?? 0;
+export const getLiveViewerCount = (v?: Record<string, any> | null) =>
+  getKnownLiveViewerCount(v) ?? 0;
 export const decodeHTMLEntities = (s = "") => s.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 
 export const videoTemporalComparator = (a: any, b: any) =>
@@ -84,7 +105,8 @@ export function getVideoIDFromUrl(url: string) {
   const yt = url?.match?.(VIDEO_URL_REGEX);
   if (yt?.groups?.id) return { id: yt.groups.id, custom: true, channel: { name: yt.groups.id } };
   const tw = url?.match?.(TWITCH_VIDEO_URL_REGEX);
-  if (tw?.groups?.id) return { id: tw.groups.id, type: "twitch", custom: true, channel: { name: tw.groups.id } };
+  if (tw?.groups?.id)
+    return { id: tw.groups.id, type: "twitch", custom: true, channel: { name: tw.groups.id } };
 }
 
 export const videoCodeParser = (c: string) =>
@@ -93,7 +115,11 @@ export const videoCodeParser = (c: string) =>
 export function checkIOS() {
   if (typeof navigator === "undefined") return false;
   if (/iPad|iPhone|iPod/.test(navigator.platform)) return true;
-  return navigator.userAgent.includes("Mac") && typeof document !== "undefined" && "ontouchend" in document;
+  return (
+    navigator.userAgent.includes("Mac") &&
+    typeof document !== "undefined" &&
+    "ontouchend" in document
+  );
 }
 
 export async function buildSearchUrl(query: any[]) {
@@ -103,7 +129,10 @@ export async function buildSearchUrl(query: any[]) {
 
 const NUMERIC_FIELDS = new Set(["video_count", "subscriber_count", "clip_count"]);
 
-export function localSortChannels(channels: any[], { sort, order = "asc" }: { sort?: string; order?: string }) {
+export function localSortChannels(
+  channels: any[],
+  { sort, order = "asc" }: { sort?: string; order?: string },
+) {
   if (!sort) return channels;
   const dir = order === "desc" ? -1 : 1;
   const numeric = NUMERIC_FIELDS.has(sort);

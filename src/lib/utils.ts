@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function getBreakpoint(width: number): "xs" | "sm" | "md" | "lg" | "xl" {
@@ -33,4 +33,5 @@ export const GRID_COLUMN_CLASSES: Record<number, string> = {
 // Layout-significant width thresholds used across the app (breakpoints + nav/list/multiview cutoffs).
 // Resizes within a band don't change any derived layout, so windowWidth only needs to update on band changes.
 const VIEWPORT_THRESHOLDS = [420, 600, 768, 960, 1264, 1904];
-export const viewportBand = (width: number) => VIEWPORT_THRESHOLDS.reduce((n, t) => n + (width >= t ? 1 : 0), 0);
+export const viewportBand = (width: number) =>
+  VIEWPORT_THRESHOLDS.reduce((n, t) => n + (width >= t ? 1 : 0), 0);

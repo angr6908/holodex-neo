@@ -3,9 +3,58 @@
 import dayjs from "dayjs";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
 import {
+  type HomeNavMode,
+  HomeNavSegments,
+  type HomeNavSelection,
+} from "@/components/nav/HomeNavSegments";
+import { useNavUserMenu } from "@/components/nav/NavUserMenu";
+import { PlaylistPanel } from "@/components/nav/PlaylistPanel";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { AboutSection } from "@/components/setting/AboutSection";
+import { SettingsPage } from "@/components/setting/SettingsPage";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { GenericListLoader } from "@/components/video/GenericListLoader";
+import { SkeletonCardList } from "@/components/video/SkeletonCardList";
+import { VideoCardList } from "@/components/video/VideoCardList";
+import { ALL_VTUBERS_ORG, musicdexURL, TL_LANGS } from "@/lib/consts";
+import { type AppBootState, HOME_TABS, type HomeUiState } from "@/lib/cookie-codec";
+import { getLiveViewerCount } from "@/lib/functions";
+import {
+  buildHomeTabQuery,
+  clearHomeMultiOrgVideoCache,
+  ensureFavoritesVideoFetch,
+  ensureHomeMultiOrgVideoFetch,
+  getHomeMultiOrgVideoCache,
+  hasHomeMultiOrgVideoCache,
+} from "@/lib/home-video-loader";
+import { useDomElement } from "@/lib/hooks";
+import {
+  type AnyIcon,
   Calendar as CalendarIcon,
   Check,
   Clock,
@@ -21,40 +70,13 @@ import {
   Rows3,
   Search,
   Settings as SettingsIcon,
-  type AnyIcon,
 } from "@/lib/icons";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Calendar } from "@/components/ui/calendar";
-import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList, useComboboxAnchor } from "@/components/ui/combobox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toggle } from "@/components/ui/toggle";
-import { AboutSection } from "@/components/setting/AboutSection";
-import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
-import { HomeNavSegments, type HomeNavMode, type HomeNavSelection } from "@/components/nav/HomeNavSegments";
-import { useNavUserMenu } from "@/components/nav/NavUserMenu";
-import { PlaylistPanel } from "@/components/nav/PlaylistPanel";
-import { SearchDropdown } from "@/components/search/SearchDropdown";
-import { SettingsPage } from "@/components/setting/SettingsPage";
-import { GenericListLoader } from "@/components/video/GenericListLoader";
-import { SkeletonCardList } from "@/components/video/SkeletonCardList";
-import { VideoCardList } from "@/components/video/VideoCardList";
-import { ALL_VTUBERS_ORG, musicdexURL, TL_LANGS } from "@/lib/consts";
-import { getLiveViewerCount } from "@/lib/functions";
-import { buildHomeTabQuery, clearHomeMultiOrgVideoCache, ensureFavoritesVideoFetch, ensureHomeMultiOrgVideoFetch, getHomeMultiOrgVideoCache, hasHomeMultiOrgVideoCache } from "@/lib/home-video-loader";
-import { useDomElement } from "@/lib/hooks";
+import { useAppState } from "@/lib/store";
 import { useTopicsCache } from "@/lib/topics";
 import { cn, getBreakpoint } from "@/lib/utils";
-import { useAppState } from "@/lib/store";
-import { HOME_TABS, type AppBootState, type HomeUiState } from "@/lib/cookie-codec";
-import { useTranslations } from "next-intl";
 
-const NAV_ACTIVE_BUTTON_CLASS = "bg-muted! text-foreground! data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
+const NAV_ACTIVE_BUTTON_CLASS =
+  "bg-muted! text-foreground! data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px active:bg-muted! active:text-foreground!";
 
 const liveCountFrom = (videos: any[] | undefined | null) =>
@@ -86,11 +108,7 @@ function getHomeCachedLoaderPage(cacheKey: string, page: number, limit: number) 
   };
 }
 
-export function MainNav({
-  initialBootState,
-}: {
-  initialBootState?: AppBootState | null;
-}) {
+export function MainNav({ initialBootState }: { initialBootState?: AppBootState | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -112,13 +130,23 @@ export function MainNav({
   const selectedLive = storedHomeNavState.isFavPage ? app.favoritesLive : app.homeLive;
   const hideLive = app.settings.hideLive;
   const hideUpcoming = app.settings.hideUpcoming;
-  const bootLiveCount = storedHomeNavState.isFavPage ? initialBootState?.favoritesLiveCount : initialBootState?.homeLiveCount;
-  const liveCount = hideLive ? undefined : app.hydrated || selectedLive.length ? liveCountFrom(selectedLive) : bootLiveCount;
+  const bootLiveCount = storedHomeNavState.isFavPage
+    ? initialBootState?.favoritesLiveCount
+    : initialBootState?.homeLiveCount;
+  const liveCount = hideLive
+    ? undefined
+    : app.hydrated || selectedLive.length
+      ? liveCountFrom(selectedLive)
+      : bootLiveCount;
   const homeSelection: HomeNavSelection = isHomePath
-    ? { fav: storedHomeNavState.isFavPage, mode: homeNavModeFor(storedHomeNavState.tab, storedHomeNavState.viewMode) }
+    ? {
+        fav: storedHomeNavState.isFavPage,
+        mode: homeNavModeFor(storedHomeNavState.tab, storedHomeNavState.viewMode),
+      }
     : null;
   const skeletonDisplayMode = displayModeFor(app.settings.homeViewMode, app.currentGridSize);
-  const showNavControlsSkeleton = isHomePath && storedHomeNavState.viewMode === "streams" && !app.hydrated;
+  const showNavControlsSkeleton =
+    isHomePath && storedHomeNavState.viewMode === "streams" && !app.hydrated;
   const navWindowWidth = app.windowWidth || initialBootState?.windowWidth || 1440;
   const showMobileSearchButton = navWindowWidth < 960;
   const showMusicButton = navWindowWidth >= 768;
@@ -141,7 +169,9 @@ export function MainNav({
     return () => ro.disconnect();
   }, [showTopBar, mobileSearchOpen]);
 
-  useEffect(() => { setMobileSearchOpen(false); }, [pathname, searchParams]);
+  useEffect(() => {
+    setMobileSearchOpen(false);
+  }, [pathname, searchParams]);
   useEffect(() => {
     if (!app.orgs.length) app.fetchOrgs();
     app.loginCheck();
@@ -193,15 +223,42 @@ export function MainNav({
               onClick={goHomeFromLogo}
               className="flex shrink-0 items-center gap-2 pr-1 text-left no-underline select-none"
             >
-              <img src="/img/icons/uetchy_logo_morespace.png" className="h-7 w-7 object-contain" alt="" />
-              <span className="hidden text-base font-semibold leading-none tracking-tight text-foreground sm:inline" style={{ fontFamily: '"IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif', fontWeight: 600 }}>Holodex</span>
+              <img
+                src="/img/icons/uetchy_logo_morespace.png"
+                className="h-7 w-7 object-contain"
+                alt=""
+              />
+              <span
+                className="hidden text-base font-semibold leading-none tracking-tight text-foreground sm:inline"
+                style={{
+                  fontFamily: '"IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif',
+                  fontWeight: 600,
+                }}
+              >
+                Holodex
+              </span>
             </a>
 
             <div className="shrink-0 sm:hidden">
-              <HomeOrgMultiSelect iconOnly buttonVariant="outline" buttonClass={cn("size-9 p-0 justify-center dark:data-[popup-open]:bg-muted!", NAV_BUTTON_PRESS_CLASS, "active:translate-y-0!")} />
+              <HomeOrgMultiSelect
+                iconOnly
+                buttonVariant="outline"
+                buttonClass={cn(
+                  "size-9 p-0 justify-center dark:data-[popup-open]:bg-muted!",
+                  NAV_BUTTON_PRESS_CLASS,
+                  "active:translate-y-0!",
+                )}
+              />
             </div>
             <div className="hidden shrink-0 sm:block">
-              <HomeOrgMultiSelect buttonVariant="outline" buttonClass={cn("h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted!", NAV_BUTTON_PRESS_CLASS, "active:translate-y-0!")} />
+              <HomeOrgMultiSelect
+                buttonVariant="outline"
+                buttonClass={cn(
+                  "h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted!",
+                  NAV_BUTTON_PRESS_CLASS,
+                  "active:translate-y-0!",
+                )}
+              />
             </div>
 
             <div
@@ -218,9 +275,17 @@ export function MainNav({
                 onTab={openHomeTab}
                 onChannels={openHomeChannels}
               />
-              <div id="mainNavPageControls" className="flex shrink-0 items-center gap-1.5 empty:hidden">
+              <div
+                id="mainNavPageControls"
+                className="flex shrink-0 items-center gap-1.5 empty:hidden"
+              >
                 {showNavControlsSkeleton ? (
-                  <div data-nav-controls-skeleton inert className="pointer-events-none flex shrink-0 items-center gap-1.5" aria-hidden="true">
+                  <div
+                    data-nav-controls-skeleton
+                    inert
+                    className="pointer-events-none flex shrink-0 items-center gap-1.5"
+                    aria-hidden="true"
+                  >
                     <VideoListTopControls
                       tab={storedHomeNavState.tab}
                       isActive
@@ -256,7 +321,10 @@ export function MainNav({
                     aria-pressed={mobileSearchOpen || undefined}
                     title={t("component.search.toggleSearch")}
                     onClick={() => setMobileSearchOpen((v) => !v)}
-                    className={cn(NAV_BUTTON_PRESS_CLASS, mobileSearchOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                    className={cn(
+                      NAV_BUTTON_PRESS_CLASS,
+                      mobileSearchOpen && NAV_ACTIVE_BUTTON_CLASS,
+                    )}
                   >
                     <Search className="size-4" aria-hidden="true" />
                   </Button>
@@ -264,7 +332,14 @@ export function MainNav({
                 {showMusicButton ? (
                   <Button
                     nativeButton={false}
-                    render={<a href={musicdexURL} target="_blank" rel="noopener noreferrer" aria-label="Musicdex" />}
+                    render={
+                      <a
+                        href={musicdexURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Musicdex"
+                      />
+                    }
                     variant="outline"
                     size="lg"
                     title="Musicdex"
@@ -280,7 +355,10 @@ export function MainNav({
                   size="lg"
                   aria-pressed={pathname.startsWith("/multiview") || undefined}
                   title={t("component.mainNav.multiview")}
-                  className={cn(NAV_BUTTON_PRESS_CLASS, pathname.startsWith("/multiview") && NAV_ACTIVE_BUTTON_CLASS)}
+                  className={cn(
+                    NAV_BUTTON_PRESS_CLASS,
+                    pathname.startsWith("/multiview") && NAV_ACTIVE_BUTTON_CLASS,
+                  )}
                 >
                   <LayoutDashboard className="size-4" aria-hidden="true" />
                 </Button>
@@ -294,13 +372,19 @@ export function MainNav({
                         size="lg"
                         aria-label={t("component.mainNav.playlist")}
                         title={t("component.mainNav.playlist")}
-                        className={cn("relative", NAV_BUTTON_PRESS_CLASS, playlistOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                        className={cn(
+                          "relative",
+                          NAV_BUTTON_PRESS_CLASS,
+                          playlistOpen && NAV_ACTIVE_BUTTON_CLASS,
+                        )}
                       />
                     }
                   >
                     <ListVideo className="size-4" aria-hidden="true" />
                     {playlistCount ? (
-                      <Badge variant="secondary" className="absolute -right-1 -top-1">{playlistCount}</Badge>
+                      <Badge variant="secondary" className="absolute -right-1 -top-1">
+                        {playlistCount}
+                      </Badge>
                     ) : null}
                   </PopoverTrigger>
                   <PlaylistPanel open={playlistOpen} onOpenChange={setPlaylistOpen} />
@@ -315,7 +399,10 @@ export function MainNav({
                         size="lg"
                         aria-label={t("component.mainNav.settings")}
                         title={t("component.mainNav.settings")}
-                        className={cn(NAV_BUTTON_PRESS_CLASS, settingsOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                        className={cn(
+                          NAV_BUTTON_PRESS_CLASS,
+                          settingsOpen && NAV_ACTIVE_BUTTON_CLASS,
+                        )}
                       />
                     }
                   >
@@ -329,7 +416,9 @@ export function MainNav({
                     <Tabs defaultValue="settings" className="flex min-h-0 flex-1 flex-col gap-0">
                       <div className="flex items-center px-3 py-2">
                         <TabsList>
-                          <TabsTrigger value="settings">{t("component.mainNav.settings")}</TabsTrigger>
+                          <TabsTrigger value="settings">
+                            {t("component.mainNav.settings")}
+                          </TabsTrigger>
                           <TabsTrigger value="about">{t("component.mainNav.about")}</TabsTrigger>
                         </TabsList>
                       </div>
@@ -337,7 +426,10 @@ export function MainNav({
                       <TabsContent value="settings" className="min-h-0 flex-1 overflow-hidden">
                         <SettingsPage />
                       </TabsContent>
-                      <TabsContent value="about" className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]">
+                      <TabsContent
+                        value="about"
+                        className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin]"
+                      >
                         <AboutSection />
                       </TabsContent>
                     </Tabs>
@@ -351,7 +443,12 @@ export function MainNav({
                         type="button"
                         variant="outline"
                         size="lg"
-                        className={cn("cursor-pointer overflow-hidden", NAV_BUTTON_PRESS_CLASS, hasUser && "w-9 p-0", userMenu.menuOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                        className={cn(
+                          "cursor-pointer overflow-hidden",
+                          NAV_BUTTON_PRESS_CLASS,
+                          hasUser && "w-9 p-0",
+                          userMenu.menuOpen && NAV_ACTIVE_BUTTON_CLASS,
+                        )}
                         aria-label={userMenu.triggerLabel}
                       />
                     }
@@ -412,7 +509,9 @@ export function VideoListFilters({
   const { topics, topicsLoading, fetchTopics } = useTopicsCache();
   const topicComboboxAnchor = useComboboxAnchor();
 
-  useEffect(() => { if (topicFilter) void fetchTopics(); }, [topicFilter]);
+  useEffect(() => {
+    if (topicFilter) void fetchTopics();
+  }, [topicFilter]);
 
   const ignoredTopics = app.settings.ignoredTopics || [];
   const topicValues = useMemo(() => topics.map((topic) => topic.value), [topics]);
@@ -422,19 +521,41 @@ export function VideoListFilters({
     app.patchSettings({ ignoredTopics: [...new Set(values)].sort() });
   }
 
-  function chip({ checked, label, onChange }: { checked: boolean; label: string; onChange: (value: boolean) => void }) {
+  function chip({
+    checked,
+    label,
+    onChange,
+  }: {
+    checked: boolean;
+    label: string;
+    onChange: (value: boolean) => void;
+  }) {
     return (
-      <Toggle pressed={checked} variant="outline" className="w-full justify-start" aria-label={label} onPressedChange={onChange}>
+      <Toggle
+        pressed={checked}
+        variant="outline"
+        className="w-full justify-start"
+        aria-label={label}
+        onPressedChange={onChange}
+      >
         <span className="truncate">{label}</span>
       </Toggle>
     );
   }
 
   return (
-    <div className={cn("flex flex-col gap-3", compact ? "" : "max-h-[60vh] overflow-y-auto pr-1", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        compact ? "" : "max-h-[60vh] overflow-y-auto pr-1",
+        className,
+      )}
+    >
       {showSort ? (
         <div className="flex flex-col gap-[0.45rem]">
-          <span className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">{t("views.home.controls.sortBy")}</span>
+          <span className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">
+            {t("views.home.controls.sortBy")}
+          </span>
           <div className="grid grid-cols-2 gap-2">
             {SORT_OPTIONS.map((option) => {
               const Icon = option.icon;
@@ -460,10 +581,14 @@ export function VideoListFilters({
       {topicFilter ? (
         <div className="flex flex-col gap-[0.45rem]">
           <div className="space-y-1">
-            <div className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">{t("views.settings.filters.blockedTopics")}</div>
+            <div className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">
+              {t("views.settings.filters.blockedTopics")}
+            </div>
             {showDescriptions ? (
               <div className="text-xs text-muted-foreground">
-                {topicsLoading ? t("component.search.loading") : t("views.settings.filters.blockedTopicsDescription")}
+                {topicsLoading
+                  ? t("component.search.loading")
+                  : t("views.settings.filters.blockedTopicsDescription")}
               </div>
             ) : null}
           </div>
@@ -471,21 +596,39 @@ export function VideoListFilters({
             multiple
             items={topicValues}
             value={ignoredTopics}
-            onOpenChange={(open) => { if (open) void fetchTopics(); }}
+            onOpenChange={(open) => {
+              if (open) void fetchTopics();
+            }}
             onValueChange={updateIgnoredTopics}
           >
             <ComboboxChips ref={topicComboboxAnchor}>
-              {ignoredTopics.map((topicValue) => <ComboboxChip key={topicValue}>{topicValue}</ComboboxChip>)}
+              {ignoredTopics.map((topicValue) => (
+                <ComboboxChip key={topicValue}>{topicValue}</ComboboxChip>
+              ))}
               <ComboboxChipsInput
-                placeholder={ignoredTopics.length ? undefined : topicsLoading ? t("component.search.loading") : t("views.settings.filters.searchTopics")}
-                onFocus={() => { void fetchTopics(); }}
+                placeholder={
+                  ignoredTopics.length
+                    ? undefined
+                    : topicsLoading
+                      ? t("component.search.loading")
+                      : t("views.settings.filters.searchTopics")
+                }
+                onFocus={() => {
+                  void fetchTopics();
+                }}
               />
             </ComboboxChips>
             <ComboboxContent anchor={topicComboboxAnchor}>
-              <ComboboxEmpty>{topicsLoading ? t("component.search.loading") : t("component.search.noTopicsFound")}</ComboboxEmpty>
+              <ComboboxEmpty>
+                {topicsLoading
+                  ? t("component.search.loading")
+                  : t("component.search.noTopicsFound")}
+              </ComboboxEmpty>
               <ComboboxList>
                 {(topicValue: string, index: number) => (
-                  <ComboboxItem key={topicValue} value={topicValue} index={index}>{topicValue}</ComboboxItem>
+                  <ComboboxItem key={topicValue} value={topicValue} index={index}>
+                    {topicValue}
+                  </ComboboxItem>
                 )}
               </ComboboxList>
             </ComboboxContent>
@@ -495,13 +638,45 @@ export function VideoListFilters({
 
       {liveFilter || upcomingFilter || collabFilter || placeholderFilter || missingFilter ? (
         <div className="flex flex-col gap-[0.45rem]">
-          <span className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">{t("views.settings.filters.hideStreams")}</span>
+          <span className="text-[0.68rem] font-normal uppercase tracking-[0.16em] text-muted-foreground">
+            {t("views.settings.filters.hideStreams")}
+          </span>
           <div className="grid grid-cols-2 gap-2">
-            {liveFilter ? chip({ checked: app.settings.hideLive, label: t("views.home.liveLabel"), onChange: (v) => app.patchSettings({ hideLive: v }) }) : null}
-            {upcomingFilter ? chip({ checked: app.settings.hideUpcoming, label: t("views.home.upcomingLabel"), onChange: (v) => app.patchSettings({ hideUpcoming: v }) }) : null}
-            {collabFilter ? chip({ checked: app.settings.hideCollabStreams, label: t("views.settings.filters.collab"), onChange: (v) => app.patchSettings({ hideCollabStreams: v }) }) : null}
-            {placeholderFilter ? chip({ checked: app.settings.hidePlaceholder, label: t("views.settings.filters.placeholder"), onChange: (v) => app.patchSettings({ hidePlaceholder: v }) }) : null}
-            {missingFilter ? chip({ checked: app.settings.hideMissing, label: t("views.settings.filters.missing"), onChange: (v) => app.patchSettings({ hideMissing: v }) }) : null}
+            {liveFilter
+              ? chip({
+                  checked: app.settings.hideLive,
+                  label: t("views.home.liveLabel"),
+                  onChange: (v) => app.patchSettings({ hideLive: v }),
+                })
+              : null}
+            {upcomingFilter
+              ? chip({
+                  checked: app.settings.hideUpcoming,
+                  label: t("views.home.upcomingLabel"),
+                  onChange: (v) => app.patchSettings({ hideUpcoming: v }),
+                })
+              : null}
+            {collabFilter
+              ? chip({
+                  checked: app.settings.hideCollabStreams,
+                  label: t("views.settings.filters.collab"),
+                  onChange: (v) => app.patchSettings({ hideCollabStreams: v }),
+                })
+              : null}
+            {placeholderFilter
+              ? chip({
+                  checked: app.settings.hidePlaceholder,
+                  label: t("views.settings.filters.placeholder"),
+                  onChange: (v) => app.patchSettings({ hidePlaceholder: v }),
+                })
+              : null}
+            {missingFilter
+              ? chip({
+                  checked: app.settings.hideMissing,
+                  label: t("views.settings.filters.missing"),
+                  onChange: (v) => app.patchSettings({ hideMissing: v }),
+                })
+              : null}
           </div>
         </div>
       ) : null}
@@ -511,13 +686,34 @@ export function VideoListFilters({
 
 export type DisplayMode = "grid-0" | "grid-1" | "grid-2" | "list" | "denseList";
 
-const DISPLAY_OPTIONS: { value: DisplayMode; icon: AnyIcon; labelKey: string; fallback: string }[] = [
-  { value: "grid-0", icon: LayoutGrid, labelKey: "views.settings.gridSize.0", fallback: "Large grid" },
-  { value: "grid-1", icon: LayoutDashboard, labelKey: "views.settings.gridSize.1", fallback: "Medium grid" },
-  { value: "grid-2", icon: Grid2x2, labelKey: "views.settings.gridSize.2", fallback: "Small grid" },
-  { value: "list", icon: List, labelKey: "views.home.controls.list", fallback: "List" },
-  { value: "denseList", icon: Rows3, labelKey: "views.home.controls.denseList", fallback: "Dense list" },
-];
+const DISPLAY_OPTIONS: { value: DisplayMode; icon: AnyIcon; labelKey: string; fallback: string }[] =
+  [
+    {
+      value: "grid-0",
+      icon: LayoutGrid,
+      labelKey: "views.settings.gridSize.0",
+      fallback: "Large grid",
+    },
+    {
+      value: "grid-1",
+      icon: LayoutDashboard,
+      labelKey: "views.settings.gridSize.1",
+      fallback: "Medium grid",
+    },
+    {
+      value: "grid-2",
+      icon: Grid2x2,
+      labelKey: "views.settings.gridSize.2",
+      fallback: "Small grid",
+    },
+    { value: "list", icon: List, labelKey: "views.home.controls.list", fallback: "List" },
+    {
+      value: "denseList",
+      icon: Rows3,
+      labelKey: "views.home.controls.denseList",
+      fallback: "Dense list",
+    },
+  ];
 
 export function VideoListTopControls({
   tab,
@@ -552,11 +748,10 @@ export function VideoListTopControls({
   const showFilter = tab !== HOME_TABS.CLIPS;
   const selectedDate = toDate ? new Date(`${toDate}T12:00:00`) : undefined;
 
-  const labelFor = (option: typeof DISPLAY_OPTIONS[number]) => {
+  const labelFor = (option: (typeof DISPLAY_OPTIONS)[number]) => {
     const label = t(option.labelKey as any);
     return label === option.labelKey ? option.fallback : label;
   };
-
 
   return (
     <ButtonGroup className="shrink-0">
@@ -633,7 +828,10 @@ export function VideoListTopControls({
                 type="button"
                 variant="outline"
                 size="lg"
-                className={cn(NAV_BUTTON_PRESS_CLASS, (dateOpen || !!toDate) && NAV_ACTIVE_BUTTON_CLASS)}
+                className={cn(
+                  NAV_BUTTON_PRESS_CLASS,
+                  (dateOpen || !!toDate) && NAV_ACTIVE_BUTTON_CLASS,
+                )}
                 aria-pressed={dateOpen || !!toDate}
                 aria-label={t("views.home.controls.pickDate")}
                 title={t("views.home.controls.pickDate")}
@@ -671,7 +869,9 @@ export function VideoListTopControls({
           }
         >
           {(() => {
-            const Icon = (DISPLAY_OPTIONS.find((option) => option.value === displayMode) ?? DISPLAY_OPTIONS[0]).icon;
+            const Icon = (
+              DISPLAY_OPTIONS.find((option) => option.value === displayMode) ?? DISPLAY_OPTIONS[0]
+            ).icon;
             return <Icon className="size-4" />;
           })()}
         </PopoverTrigger>
@@ -690,7 +890,9 @@ export function VideoListTopControls({
               >
                 <Icon className="size-4" />
                 <span className="flex-1 text-left whitespace-nowrap">{labelFor(option)}</span>
-                {displayMode === option.value ? <Check className="absolute right-2 size-4" /> : null}
+                {displayMode === option.value ? (
+                  <Check className="absolute right-2 size-4" />
+                ) : null}
               </button>
             );
           })}
@@ -736,10 +938,17 @@ export function ConnectedVideoList({
   const scrollMode = app.settings.scrollMode;
   const prevScroll = useRef(scrollMode);
   const gs = app.currentGridSize;
-  const cols = useMemo(() => ({ xs: 1 + gs, sm: 2 + gs, md: 3 + gs, lg: 4 + gs, xl: 5 + gs }), [gs]);
-  const bp = useMemo(() => getBreakpoint(app.windowWidth || (typeof window !== "undefined" ? window.innerWidth : 1440)), [app.windowWidth]);
+  const cols = useMemo(
+    () => ({ xs: 1 + gs, sm: 2 + gs, md: 3 + gs, lg: 4 + gs, xl: 5 + gs }),
+    [gs],
+  );
+  const bp = useMemo(
+    () =>
+      getBreakpoint(app.windowWidth || (typeof window !== "undefined" ? window.innerWidth : 1440)),
+    [app.windowWidth],
+  );
   const includeAvatar = !((bp === "md" && gs > 1) || ((bp === "sm" || bp === "xs") && gs > 0));
-  const perRow = cols[bp] || (5 + gs);
+  const perRow = cols[bp] || 5 + gs;
   const PAGE = perRow * 4;
   const orgsKey = JSON.stringify(app.selectedHomeOrgs || []);
   const overrideKey = JSON.stringify(orgTargetsOverride || []);
@@ -748,36 +957,97 @@ export function ConnectedVideoList({
   const activeOrgsKey = activeOrgs.join("\0");
 
   const keyFor = (tv: number, fav = isFavPage) =>
-    ["vlx", fav ? "fav" : "home", tv, scrollMode ? "scroll" : "page", gs, fav ? "" : orgsKey, fav ? "" : overrideKey, toDate || "", langsKey].join("-");
+    [
+      "vlx",
+      fav ? "fav" : "home",
+      tv,
+      scrollMode ? "scroll" : "page",
+      gs,
+      fav ? "" : orgsKey,
+      fav ? "" : overrideKey,
+      toDate || "",
+      langsKey,
+    ].join("-");
   const cacheKey = keyFor(tab);
-  const hideCollabs = tab !== HOME_TABS.CLIPS && app.settings.hideCollabStreams && (isFavPage || activeOrgs.length > 0);
-  const targets = useMemo(() => orgTargetsOverride?.length ? orgTargetsOverride : (activeOrgs.length ? activeOrgs : [ALL_VTUBERS_ORG]), [overrideKey, activeOrgsKey]);
-  const filterOrg = isFavPage ? "none" : targets.length > 1 ? ALL_VTUBERS_ORG : targets[0] || app.currentOrg.name;
-  const filterConfig = useMemo(() => ({
-    forOrg: filterOrg,
-    forOrgs: isFavPage ? undefined : targets,
-    hideCollabs,
-    hidePlaceholder: app.settings.hidePlaceholder,
-    hideMissing: app.settings.hideMissing,
-    hideUpcoming: app.settings.hideUpcoming,
-    hideLive: app.settings.hideLive,
-  }), [filterOrg, isFavPage, targets, hideCollabs, app.settings.hidePlaceholder, app.settings.hideMissing, app.settings.hideUpcoming, app.settings.hideLive]);
+  const hideCollabs =
+    tab !== HOME_TABS.CLIPS &&
+    app.settings.hideCollabStreams &&
+    (isFavPage || activeOrgs.length > 0);
+  const targets = useMemo(
+    () =>
+      orgTargetsOverride?.length
+        ? orgTargetsOverride
+        : activeOrgs.length
+          ? activeOrgs
+          : [ALL_VTUBERS_ORG],
+    [overrideKey, activeOrgsKey],
+  );
+  const filterOrg = isFavPage
+    ? "none"
+    : targets.length > 1
+      ? ALL_VTUBERS_ORG
+      : targets[0] || app.currentOrg.name;
+  const filterConfig = useMemo(
+    () => ({
+      forOrg: filterOrg,
+      forOrgs: isFavPage ? undefined : targets,
+      hideCollabs,
+      hidePlaceholder: app.settings.hidePlaceholder,
+      hideMissing: app.settings.hideMissing,
+      hideUpcoming: app.settings.hideUpcoming,
+      hideLive: app.settings.hideLive,
+    }),
+    [
+      filterOrg,
+      isFavPage,
+      targets,
+      hideCollabs,
+      app.settings.hidePlaceholder,
+      app.settings.hideMissing,
+      app.settings.hideUpcoming,
+      app.settings.hideLive,
+    ],
+  );
   const portalTarget = useDomElement(datePortalName || `date-selector${isFavPage}`);
 
   const hasLiveContentOverride = liveContent !== null;
-  const liveSource: any[] = hasLiveContentOverride ? liveContent || [] : (isFavPage ? app.favoritesLive : app.homeLive);
+  const liveSource: any[] = hasLiveContentOverride
+    ? liveContent || []
+    : isFavPage
+      ? app.favoritesLive
+      : app.homeLive;
 
   // Concurrent-viewer counts (`_ccv`) are injected into the live list server-side, straight
   // from YouTube/Twitch, so the list arrives already sort-ready — just order by it.
-  const live = useMemo(() =>
-    sortBy === "viewers" ? [...liveSource].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a)) : liveSource,
-  [liveSource, sortBy]);
-  const { livesVisible, upcoming } = useMemo(() => ({
-    livesVisible: app.settings.hideLive ? [] : live.filter((v: any) => v.status === "live"),
-    upcoming: app.settings.hideUpcoming ? [] : live.filter((v: any) => v.status === "upcoming")
-      .sort((a: any, b: any) => a.available_at !== b.available_at || a.type === b.type ? 0 : a.type === "placeholder" ? 1 : -1),
-  }), [live, app.settings.hideLive, app.settings.hideUpcoming]);
-  const isLoading = hasLiveContentOverride ? false : isFavPage ? app.favoritesLoading : app.homeLoading;
+  const live = useMemo(
+    () =>
+      sortBy === "viewers"
+        ? [...liveSource].sort((a, b) => getLiveViewerCount(b) - getLiveViewerCount(a))
+        : liveSource,
+    [liveSource, sortBy],
+  );
+  const { livesVisible, upcoming } = useMemo(
+    () => ({
+      livesVisible: app.settings.hideLive ? [] : live.filter((v: any) => v.status === "live"),
+      upcoming: app.settings.hideUpcoming
+        ? []
+        : live
+            .filter((v: any) => v.status === "upcoming")
+            .sort((a: any, b: any) =>
+              a.available_at !== b.available_at || a.type === b.type
+                ? 0
+                : a.type === "placeholder"
+                  ? 1
+                  : -1,
+            ),
+    }),
+    [live, app.settings.hideLive, app.settings.hideUpcoming],
+  );
+  const isLoading = hasLiveContentOverride
+    ? false
+    : isFavPage
+      ? app.favoritesLoading
+      : app.homeLoading;
   const hasError = hasLiveContentOverride ? false : isFavPage ? app.favoritesError : app.homeError;
   const showLoading = isLoading;
   const hasVisibleLiveUpcoming = livesVisible.length > 0 || upcoming.length > 0;
@@ -786,7 +1056,8 @@ export function ConnectedVideoList({
   // ever unmounts -> no thumbnail reload). Keeps switching tabs and resizing cheap even with 100+ streams.
   const luFirstFull = viewMode === "grid" || app.settings.hideUpcoming ? livesVisible : live;
   const luFirst = luFirstFull.slice(0, liveLimit);
-  const luUpcoming = viewMode === "grid" ? upcoming.slice(0, Math.max(0, liveLimit - livesVisible.length)) : [];
+  const luUpcoming =
+    viewMode === "grid" ? upcoming.slice(0, Math.max(0, liveLimit - livesVisible.length)) : [];
   const luTotal = viewMode === "grid" ? livesVisible.length + upcoming.length : luFirstFull.length;
 
   function init(force: boolean) {
@@ -802,14 +1073,19 @@ export function ConnectedVideoList({
   const buildQuery = (tv: number) => buildHomeTabQuery({ tab: tv, clipLangs, toDate });
 
   useEffect(() => {
-    if (!isActive) { prevScroll.current = scrollMode; return; }
+    if (!isActive) {
+      prevScroll.current = scrollMode;
+      return;
+    }
     const prev = prevScroll.current;
     prevScroll.current = scrollMode;
     if (prev === scrollMode || !scrollMode || !sp.get("page")) return;
     const params = new URLSearchParams(sp.toString());
     params.delete("page");
     const q = params.toString();
-    router.replace(`${pathname}${q ? `?${q}` : ""}${typeof window !== "undefined" ? window.location.hash : ""}`);
+    router.replace(
+      `${pathname}${q ? `?${q}` : ""}${typeof window !== "undefined" ? window.location.hash : ""}`,
+    );
   }, [scrollMode, isActive, sp, pathname, router]);
 
   // Register this list as the poll focus: the store's central poll refreshes the complete
@@ -829,7 +1105,10 @@ export function ConnectedVideoList({
 
   useEffect(() => {
     if (!app.hydrated) return;
-    if (prevOrgsKey.current === null) { prevOrgsKey.current = orgsKey; return; }
+    if (prevOrgsKey.current === null) {
+      prevOrgsKey.current = orgsKey;
+      return;
+    }
     if (prevOrgsKey.current === orgsKey) return;
     prevOrgsKey.current = orgsKey;
     if (!isActive || isFavPage) return;
@@ -841,11 +1120,17 @@ export function ConnectedVideoList({
   }, [orgsKey, isActive, isFavPage, tab]);
 
   useEffect(() => {
-    if (prevTab.current === null) { prevTab.current = tab; return; }
+    if (prevTab.current === null) {
+      prevTab.current = tab;
+      return;
+    }
     const old = prevTab.current;
     prevTab.current = tab;
     if (!isActive || tab === old) return;
-    if (tab === HOME_TABS.LIVE_UPCOMING) { init(false); return; }
+    if (tab === HOME_TABS.LIVE_UPCOMING) {
+      init(false);
+      return;
+    }
     // Freshen the newly shown tab's warmed cache if it has gone stale — replaces the old
     // rolling 60s background re-fetch of every off-screen tab.
     const entry = getHomeMultiOrgVideoCache(keyFor(tab));
@@ -856,14 +1141,19 @@ export function ConnectedVideoList({
   // The initial window must extend past the observer's lookahead margin below the first viewport;
   // otherwise the sentinel is immediately "near" and the list grows in several quick steps right
   // after the switch, making the page height (and scrollbar) visibly jump.
-  useEffect(() => { setLiveLimit(Math.max(perRow * 10, 60)); }, [cacheKey]);
+  useEffect(() => {
+    setLiveLimit(Math.max(perRow * 10, 60));
+  }, [cacheKey]);
   useEffect(() => {
     if (tab !== HOME_TABS.LIVE_UPCOMING || liveLimit >= luTotal) return;
     const el = liveSentinel.current;
     if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) setLiveLimit((l) => l + perRow * 8);
-    }, { rootMargin: "600px 0px" });
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setLiveLimit((l) => l + perRow * 8);
+      },
+      { rootMargin: "600px 0px" },
+    );
     io.observe(el);
     return () => io.disconnect();
   }, [tab, perRow, cacheKey, liveLimit, luTotal]);
@@ -885,7 +1175,22 @@ export function ConnectedVideoList({
         else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
       });
     });
-  }, [isActive, isFavPage, app.hydrated, app.isLoggedIn, app.userdata.jwt, app.favoriteChannelIDs.size, tab, targets.join("\0"), scrollMode, gs, orgsKey, overrideKey, langsKey, toDate]);
+  }, [
+    isActive,
+    isFavPage,
+    app.hydrated,
+    app.isLoggedIn,
+    app.userdata.jwt,
+    app.favoriteChannelIDs.size,
+    tab,
+    targets.join("\0"),
+    scrollMode,
+    gs,
+    orgsKey,
+    overrideKey,
+    langsKey,
+    toDate,
+  ]);
 
   const toggleClipLang = (value: string, checked: boolean) => {
     const next = new Set(clipLangs);
@@ -913,11 +1218,14 @@ export function ConnectedVideoList({
       const cached = getHomeMultiOrgVideoCache(key)!;
       return async (offset: number, limit: number) => {
         await cached.page1;
-        while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted()) await cached.fetchMore();
+        while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted())
+          await cached.fetchMore();
         const snap = cached.getCurrentItems();
         const slice = snap.slice(offset, offset + limit);
         if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
-        return scrollMode ? slice : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
+        return scrollMode
+          ? slice
+          : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
       };
     };
     if (isFavPage) {
@@ -927,7 +1235,8 @@ export function ConnectedVideoList({
       [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
         if (otherTab === tab) return;
         const key = keyFor(otherTab, true);
-        if (!hasHomeMultiOrgVideoCache(key)) ensureFavoritesVideoFetch(key, buildQuery(otherTab), jwt, otherTab);
+        if (!hasHomeMultiOrgVideoCache(key))
+          ensureFavoritesVideoFetch(key, buildQuery(otherTab), jwt, otherTab);
       });
       return readCache(cacheKey);
     }
@@ -935,7 +1244,8 @@ export function ConnectedVideoList({
     [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
       if (otherTab === tab) return;
       const key = keyFor(otherTab);
-      if (!hasHomeMultiOrgVideoCache(key)) ensureHomeMultiOrgVideoFetch(key, buildQuery(otherTab), targets, otherTab);
+      if (!hasHomeMultiOrgVideoCache(key))
+        ensureHomeMultiOrgVideoFetch(key, buildQuery(otherTab), targets, otherTab);
     });
     return readCache(cacheKey);
   }
@@ -998,24 +1308,39 @@ export function ConnectedVideoList({
           emptyMessage
         ) : (
           <>
-            {showLoading && !hasVisibleLiveUpcoming ? renderSkeletons(viewMode === "grid" ? { denseList: false, horizontal: false } : undefined) : null}
+            {showLoading && !hasVisibleLiveUpcoming
+              ? renderSkeletons(
+                  viewMode === "grid" ? { denseList: false, horizontal: false } : undefined,
+                )
+              : null}
             {hasVisibleLiveUpcoming ? (
               <>
                 {renderList(luFirst)}
                 {viewMode === "grid" ? (
                   <>
-                    {luFirst.length > 0 && luUpcoming.length > 0 ? <Separator className="my-3" /> : null}
+                    {luFirst.length > 0 && luUpcoming.length > 0 ? (
+                      <Separator className="my-3" />
+                    ) : null}
                     {renderList(luUpcoming, { denseList: false, horizontal: false })}
                   </>
                 ) : null}
                 {liveLimit < luTotal ? <div ref={liveSentinel} className="h-px w-full" /> : null}
               </>
             ) : null}
-            {!showLoading && !live.some((v: any) => v.status === "live") && !upcoming.length ? emptyMessage : null}
+            {!showLoading && !live.some((v: any) => v.status === "live") && !upcoming.length
+              ? emptyMessage
+              : null}
           </>
         )
       ) : (
-        <GenericListLoader cacheKey={cacheKey} getCachedPage={scrollMode ? undefined : getHomeCachedLoaderPage} infiniteLoad={scrollMode} paginate={!scrollMode} perPage={PAGE} loadFn={loaderLoadFn}>
+        <GenericListLoader
+          cacheKey={cacheKey}
+          getCachedPage={scrollMode ? undefined : getHomeCachedLoaderPage}
+          infiniteLoad={scrollMode}
+          paginate={!scrollMode}
+          perPage={PAGE}
+          loadFn={loaderLoadFn}
+        >
           {({ data, isLoading: loading, isFetching }) => (
             <>
               {isFetching && data.length > 0 && !scrollMode ? (
@@ -1025,7 +1350,9 @@ export function ConnectedVideoList({
                   </div>
                 </div>
               ) : null}
-              <div className={scrollMode || data.length > 0 || !loading ? undefined : "hidden"}>{renderList(data)}</div>
+              <div className={scrollMode || data.length > 0 || !loading ? undefined : "hidden"}>
+                {renderList(data)}
+              </div>
               {loading && !data.length ? renderSkeletons() : null}
               {!loading && !data.length ? emptyMessage : null}
             </>

@@ -1,12 +1,12 @@
 "use client";
 
-import { Archive, Clapperboard, Heart, Home, Radio, Users } from "@/lib/icons";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { HOME_TABS } from "@/lib/cookie-codec";
+import { Archive, Clapperboard, Heart, Home, Radio, Users } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 const selectedButtonClass = "bg-muted! text-foreground!";
 // Nav selection buttons change their highlight instantly — no fade in or out. Colors are excluded from
@@ -14,7 +14,8 @@ const selectedButtonClass = "bg-muted! text-foreground!";
 // button) and the previously-selected tab drops its highlight immediately, with no lingering fade or
 // flicker on switch. `active:` reflects the color the moment it's pressed; the press dip and focus ring
 // keep animating.
-const navSegmentClass = "transition-[transform,translate,box-shadow,border-color] active:bg-muted! active:text-foreground!";
+const navSegmentClass =
+  "transition-[transform,translate,box-shadow,border-color] active:bg-muted! active:text-foreground!";
 
 export type HomeNavMode = "live-upcoming" | "archive" | "clips" | "channels";
 
@@ -86,7 +87,9 @@ export function HomeNavSegments({
             className={cn(navSegmentClass, is("live-upcoming") && selectedButtonClass)}
           >
             <Radio className="size-4" />
-            {!hideLive && liveCount !== undefined ? <Badge variant="outline">{liveCount}</Badge> : null}
+            {!hideLive && liveCount !== undefined ? (
+              <Badge variant="outline">{liveCount}</Badge>
+            ) : null}
           </Button>
         ) : null}
         <Button

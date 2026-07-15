@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
-import localFont from "next/font/local";
 import { Noto_Sans_JP } from "next/font/google";
+import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -10,28 +10,68 @@ import { AppProviders } from "@/components/app/AppProviders";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { APP_BOOT_COOKIE, decodeAppBootCookie, decodeHomeStateCookie, HOME_STATE_COOKIE } from "@/lib/cookie-codec";
-import { cn } from "@/lib/utils";
+import {
+  APP_BOOT_COOKIE,
+  decodeAppBootCookie,
+  decodeHomeStateCookie,
+  HOME_STATE_COOKIE,
+} from "@/lib/cookie-codec";
 import { LEGACY_THEME_COLOR } from "@/lib/themes";
+import { cn } from "@/lib/utils";
 
-const geistSans = localFont({ src: "./fonts/GeistVF.woff2", variable: "--font-geist", weight: "100 900" });
-const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff2", variable: "--font-geist-mono", weight: "100 900" });
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff2",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
 // Video-card title typeface. Noto Sans JP covers Latin + CJK, so titles render consistently in every UI language.
 // preload disabled — the glyph set is large and only needed for the title.
-const notoSansJp = Noto_Sans_JP({ weight: ["400", "500", "700"], variable: "--font-noto-jp", display: "swap", preload: false });
+const notoSansJp = Noto_Sans_JP({
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-jp",
+  display: "swap",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.holodex.net"),
   title: "Holodex",
-  description: "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.",
+  description:
+    "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.",
   applicationName: "Holodex",
   appleWebApp: { capable: true, title: "Holodex", statusBarStyle: "default" },
   icons: { icon: "/favicon.ico", apple: "/img/icons/apple-touch-icon-152x152.png" },
-  openGraph: { type: "website", title: "Holodex", description: "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.", images: ["/img/intro-promo.jpg"], siteName: "HOLODEX" },
-  twitter: { card: "summary_large_image", site: "@holodex", title: "Holodex", description: "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.", images: ["/img/intro-promo.jpg"] },
+  openGraph: {
+    type: "website",
+    title: "Holodex",
+    description:
+      "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.",
+    images: ["/img/intro-promo.jpg"],
+    siteName: "HOLODEX",
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@holodex",
+    title: "Holodex",
+    description:
+      "Catch collabs and streams with Multiview, find clips, and listen to music, karaoke, and covers from your favorite VTubers.",
+    images: ["/img/intro-promo.jpg"],
+  },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, viewportFit: "cover", themeColor: LEGACY_THEME_COLOR };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: LEGACY_THEME_COLOR,
+};
 
 // Minified theme-palette injector — must stay in sync with buildThemeCss() in themes.ts.
 // Key points:
@@ -123,7 +163,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const requestHeaders = await headers();
   const cookieBootState = decodeAppBootCookie(cookieStore.get(APP_BOOT_COOKIE)?.value);
   const initialHomeState = decodeHomeStateCookie(cookieStore.get(HOME_STATE_COOKIE)?.value);
-  const requestIsMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(requestHeaders.get("user-agent") || "");
+  const requestIsMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(
+    requestHeaders.get("user-agent") || "",
+  );
   const initialBootState = {
     ...(cookieBootState || {}),
     isMobile: cookieBootState?.isMobile ?? requestIsMobile,
@@ -131,7 +173,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
   const locale = await getLocale();
   return (
-    <html lang={locale} suppressHydrationWarning data-theme="holodex" className={cn(geistSans.variable, geistMono.variable, notoSansJp.variable, "dark font-sans [color-scheme:dark]")}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      data-theme="holodex"
+      className={cn(
+        geistSans.variable,
+        geistMono.variable,
+        notoSansJp.variable,
+        "dark font-sans [color-scheme:dark]",
+      )}
+    >
       <head suppressHydrationWarning>
         <link rel="preconnect" href="https://holodex.net" />
         <link rel="preconnect" href="https://i.ytimg.com" />
@@ -139,10 +191,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         <link rel="dns-prefetch" href="https://yt3.ggpht.com" />
         <link rel="dns-prefetch" href="https://static-cdn.jtvnw.net" />
-        <Script id="holodex-boot-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: bootInit }} />
+        <Script
+          id="holodex-boot-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: bootInit }}
+        />
         <Script src="/config.js" strategy="beforeInteractive" />
       </head>
-      <body className="group/ptr bg-background pt-[env(safe-area-inset-top)] text-foreground" suppressHydrationWarning>
+      <body
+        className="group/ptr bg-background pt-[env(safe-area-inset-top)] text-foreground"
+        suppressHydrationWarning
+      >
         <noscript>
           <Alert>
             <AlertDescription>

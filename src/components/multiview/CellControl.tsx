@@ -1,18 +1,34 @@
 "use client";
 
+import { CircleArrowLeft, type LucideIcon, RefreshCw, Trash, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { CircleArrowLeft, RefreshCw, Trash, Trash2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useTranslations } from "next-intl";
 
-export function CellControl({ playIcon, className = "", onBack, onPlaypause, onReset, onDelete }: { playIcon?: LucideIcon; className?: string; onBack?: () => void; onPlaypause?: () => void; onReset?: () => void; onDelete?: () => void }) {
+export function CellControl({
+  playIcon,
+  className = "",
+  onBack,
+  onPlaypause,
+  onReset,
+  onDelete,
+}: {
+  playIcon?: LucideIcon;
+  className?: string;
+  onBack?: () => void;
+  onPlaypause?: () => void;
+  onReset?: () => void;
+  onDelete?: () => void;
+}) {
   const t = useTranslations();
   const [hoverDelete, setHoverDelete] = useState(false);
   const PlayIcon = playIcon;
   return (
     <TooltipProvider>
-      <div className={`flex shrink-0 flex-wrap items-center gap-2 p-[0.35rem_0.35rem_0.4rem] ${className}`}>
+      <div
+        className={`flex shrink-0 flex-wrap items-center gap-2 p-[0.35rem_0.35rem_0.4rem] ${className}`}
+      >
         {onBack ? (
           <div className="mr-auto">
             <Button type="button" variant="ghost" size="icon" onClick={onBack}>
@@ -33,7 +49,17 @@ export function CellControl({ playIcon, className = "", onBack, onPlaypause, onR
         <div className="ml-auto">
           <Tooltip>
             <TooltipTrigger
-              render={<Button type="button" variant="ghost" size="icon" aria-label={t("views.multiview.deleteCell")} onMouseEnter={() => setHoverDelete(true)} onMouseLeave={() => setHoverDelete(false)} onClick={onDelete} />}
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("views.multiview.deleteCell")}
+                  onMouseEnter={() => setHoverDelete(true)}
+                  onMouseLeave={() => setHoverDelete(false)}
+                  onClick={onDelete}
+                />
+              }
             >
               {hoverDelete ? <Trash /> : <Trash2 />}
             </TooltipTrigger>
