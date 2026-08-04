@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const apiBase = "https://holodex.net";
+
 const withNextIntl = createNextIntlPlugin();
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   poweredByHeader: false,
@@ -12,10 +14,7 @@ const nextConfig: NextConfig = {
     removeConsole: { exclude: ["error"] },
   },
   experimental: {
-    optimizePackageImports: ["@mdi/js", "dayjs"],
-    // TypeScript 7 ships without the JS compiler API, so `next build` must shell
-    // out to the project-local tsc instead of loading it in-process.
-    useTypeScriptCli: true,
+    optimizePackageImports: ["dayjs"],
   },
   async rewrites() {
     return [
@@ -24,4 +23,5 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
 export default withNextIntl(nextConfig);
