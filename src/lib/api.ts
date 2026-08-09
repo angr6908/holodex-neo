@@ -154,6 +154,11 @@ export const api = {
       .then((res: any) => ({ ...res, data: normalizeAutocomplete(res.data) }));
   },
   searchVideo: (q: any) => ax.post("/search/videoSearch", q),
+  searchVideoByOrgs: (
+    query: any,
+    requests: Array<{ org: string; offset: number }>,
+    limit: number,
+  ) => axios.post("/api/search/multi-org", { query, requests, limit }, { timeout: 35000 }),
   searchChannel: (q: any) => ax.post("/search/channelSearch", q),
   searchMusicdexSongs(query: string) {
     const searchBody = {

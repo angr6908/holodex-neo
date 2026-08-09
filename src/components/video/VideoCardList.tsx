@@ -14,6 +14,7 @@ export function VideoCardList({
   includeAvatar = false,
   hideThumbnail = false,
   denseList = false,
+  displayStartTime = false,
   horizontal = false,
   autoFit = false,
   autoFill = false,
@@ -115,6 +116,7 @@ export function VideoCardList({
               active={video.id === activeId}
               disableDefaultClick={disableDefaultClick}
               denseList={denseList}
+              displayStartTime={displayStartTime}
               hideThumbnail={hideThumbnail}
               inMultiViewSelector={inMultiViewSelector}
               onVideoClicked={onVideoClicked}

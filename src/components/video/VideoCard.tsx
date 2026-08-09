@@ -94,6 +94,7 @@ export function VideoCard({
   activePlaylistItem = false,
   parentPlaylistId = null,
   denseList = false,
+  displayStartTime = false,
   inMultiViewSelector = false,
   onVideoClicked,
   children,
@@ -268,8 +269,8 @@ export function VideoCard({
   }
   if (!data) return null;
   const durationText = formattedDuration(data, t);
-  const compactTimeText = compactVideoTime(data, lang);
-  const absoluteTimeText = absoluteTime(data, lang);
+  const compactTimeText = compactVideoTime(data, lang, undefined, displayStartTime);
+  const absoluteTimeText = absoluteTime(data, lang, displayStartTime);
   const viewerCount = viewerCountText(data, lang);
   const viewerLabel = viewerCount ? t("component.videoCard.watching", { arg0: viewerCount }) : "";
   const isLiveStatus = data.status === "live";

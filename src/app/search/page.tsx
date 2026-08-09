@@ -12,13 +12,19 @@ import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG } from "@/lib/consts";
 import { Search } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
+import { videoStartTimestamp } from "@/lib/video-format";
 
 const pageLength = 30;
-const ORG_SEARCH_PAGE_SIZE = 100;
+const ORG_SOURCE_BATCH_SIZE = 100;
 
 type SearchFilterItem = { type: string; value: string; text: string };
 type SearchResultPage = { items: any[]; total: number | null };
-type OrgResultPage = SearchResultPage & { exhausted: boolean };
+type OrgSource = {
+  chunks: Map<number, SearchResultPage>;
+  items: any[];
+  exhausted: boolean;
+  unavailable: boolean;
+};
 
 function buildSearchQuery(
   items: SearchFilterItem[],
@@ -58,10 +64,6 @@ function searchResultPage(response: any): SearchResultPage {
   };
 }
 
-function videoTime(item: any) {
-  return new Date(item?.published_at || item?.available_at || 0).getTime();
-}
-
 function routeSearchType(searchParams: Pick<URLSearchParams, "get">) {
   const channelType = searchParams.get("channelType");
   if (searchParams.get("vtuber") === "false" || channelType === "subber" || channelType === "clip")
@@ -93,8 +95,9 @@ export default function SearchPage() {
     if (!executedQuery || executedQuery.length < 5) return null;
     const selectedOrgs = mainOrgFilterKey ? (JSON.parse(mainOrgFilterKey) as string[]) : [];
     const targetOrgs = selectedOrgs.length ? selectedOrgs : [ALL_VTUBERS_ORG];
-    const orgPages = new Map<string, OrgResultPage>();
-    const pendingOrgPages = new Map<string, Promise<void>>();
+    const orgSources = new Map<string, OrgSource>();
+    const pendingOrgRequests = new Map<string, Promise<void>>();
+    let initialPrefetchStarted = false;
     let queryPromise: ReturnType<typeof loadSearchQuery> | null = null;
     const getSearchQuery = () => {
       queryPromise ??= loadSearchQuery(
@@ -119,60 +122,159 @@ export default function SearchPage() {
         };
       }
 
-      const ensureOrgResults = async (org: string, required: number) => {
-        while (true) {
-          const current = orgPages.get(org);
-          if (current && (current.items.length >= required || current.exhausted)) return;
-          const pending = pendingOrgPages.get(org);
-          if (pending) {
-            await pending;
+      const getOrgSource = (org: string) => {
+        let source = orgSources.get(org);
+        if (!source) {
+          source = {
+            chunks: new Map(),
+            items: [],
+            exhausted: false,
+            unavailable: false,
+          };
+          orgSources.set(org, source);
+        }
+        return source;
+      };
+
+      const rebuildOrgSource = (source: OrgSource) => {
+        const items: any[] = [];
+        let expectedOffset = 0;
+        let total: number | null = null;
+        let exhausted = source.unavailable;
+        const chunks = [...source.chunks.entries()].sort(([a], [b]) => a - b);
+        for (const [offset, page] of chunks) {
+          if (offset !== expectedOffset) break;
+          items.push(...page.items);
+          if (page.total !== null) total = page.total;
+          expectedOffset += page.items.length;
+          if (
+            !exhausted &&
+            (page.items.length === 0 ||
+              (total !== null ? items.length >= total : page.items.length < ORG_SOURCE_BATCH_SIZE))
+          ) {
+            exhausted = true;
+            break;
+          }
+        }
+        source.items = items;
+        source.exhausted = exhausted;
+      };
+
+      const applyOrgResults = (response: any, ignoreFailures: boolean) => {
+        for (const result of response.data?.results || []) {
+          const org = String(result.org || "");
+          if (!org) continue;
+          const source = getOrgSource(org);
+          if (result.failed) {
+            if (!ignoreFailures) {
+              source.unavailable = true;
+              rebuildOrgSource(source);
+            }
             continue;
           }
-          const offsetToFetch = current?.items.length || 0;
-          const request = api
-            .searchVideo({
-              ...searchQuery,
-              // The main selector replaces any organization filters encoded in the URL.
-              org: [org],
-              paginated: true,
-              offset: offsetToFetch,
-              limit: ORG_SEARCH_PAGE_SIZE,
-            })
-            .then((response) => {
-              const { items, total } = searchResultPage(response);
-              const allItems = [...(current?.items || []), ...items];
-              orgPages.set(org, {
-                items: allItems,
-                total,
-                exhausted:
-                  items.length === 0 ||
-                  (total !== null ? allItems.length >= total : items.length < ORG_SEARCH_PAGE_SIZE),
+          const { items, total } = searchResultPage({ data: result.data });
+          const offset = Math.max(0, Number(result.offset) || 0);
+          source.chunks.set(offset, { items, total });
+          rebuildOrgSource(source);
+        }
+      };
+
+      const startOrgBatch = (
+        requests: Array<{ org: string; offset: number }>,
+        ignoreFailures: boolean,
+      ) => {
+        const keys = requests.map(({ org, offset }) => `${org}:${offset}`);
+        let tracked: Promise<void>;
+        tracked = api
+          .searchVideoByOrgs(searchQuery, requests, ORG_SOURCE_BATCH_SIZE)
+          .then((response) => applyOrgResults(response, ignoreFailures))
+          .finally(() => {
+            for (const key of keys) {
+              if (pendingOrgRequests.get(key) === tracked) pendingOrgRequests.delete(key);
+            }
+          });
+        for (const key of keys) pendingOrgRequests.set(key, tracked);
+        return tracked;
+      };
+
+      const prefetchNextOrgBatch = () => {
+        const requests = targetOrgs.flatMap((org) => {
+          const source = getOrgSource(org);
+          if (source.exhausted) return [];
+          const offset = source.items.length;
+          if (pendingOrgRequests.has(`${org}:${offset}`)) return [];
+          return [{ org, offset }];
+        });
+        if (!requests.length) return;
+        void startOrgBatch(requests, true).catch(() => {});
+      };
+
+      const ensureOrgResults = async (required: number) => {
+        while (true) {
+          const requests = targetOrgs.flatMap((org) => {
+            const source = getOrgSource(org);
+            return source.items.length >= required || source.exhausted
+              ? []
+              : [{ org, offset: source.items.length }];
+          });
+          if (!requests.length) return;
+          const waiters: Promise<void>[] = [];
+          const newRequests = requests.filter((request) => {
+            const pending = pendingOrgRequests.get(`${request.org}:${request.offset}`);
+            if (pending) {
+              waiters.push(pending);
+              return false;
+            }
+            return true;
+          });
+          if (newRequests.length) {
+            const foregroundBatch = startOrgBatch(newRequests, false);
+            waiters.push(foregroundBatch);
+            if (!initialPrefetchStarted && newRequests.some((request) => request.offset === 0)) {
+              initialPrefetchStarted = true;
+              const aheadRequests = targetOrgs.flatMap((org) => {
+                const source = getOrgSource(org);
+                if (source.exhausted || pendingOrgRequests.has(`${org}:${ORG_SOURCE_BATCH_SIZE}`)) {
+                  return [];
+                }
+                return [{ org, offset: ORG_SOURCE_BATCH_SIZE }];
               });
-            })
-            .finally(() => pendingOrgPages.delete(org));
-          pendingOrgPages.set(org, request);
-          await request;
+              if (aheadRequests.length) void startOrgBatch(aheadRequests, true).catch(() => {});
+            }
+          }
+          await Promise.all(waiters);
         }
       };
 
       const mergeResults = () => {
-        const merged: any[] = [];
+        const uniqueItems: any[] = [];
         const seen = new Set<string>();
-        for (const item of targetOrgs.flatMap((org) => orgPages.get(org)?.items || [])) {
+        for (const item of targetOrgs.flatMap((org) => getOrgSource(org).items)) {
           if (!item?.id || seen.has(item.id)) continue;
           seen.add(item.id);
-          merged.push(item);
+          uniqueItems.push(item);
         }
-        merged.sort((a, b) => {
-          const result =
-            filterSort === "longest"
-              ? (b.duration || 0) - (a.duration || 0)
-              : filterSort === "oldest"
-                ? videoTime(a) - videoTime(b)
-                : videoTime(b) - videoTime(a);
-          return result || String(a.id).localeCompare(String(b.id));
-        });
-        return merged;
+        return uniqueItems
+          .map((item, index) => ({
+            item,
+            index,
+            id: String(item.id),
+            startTime: videoStartTimestamp(item),
+          }))
+          .sort((a, b) => {
+            if (filterSort === "longest") {
+              return (
+                (Number(b.item.duration) || 0) - (Number(a.item.duration) || 0) ||
+                b.id.localeCompare(a.id) ||
+                a.index - b.index
+              );
+            }
+            if (filterSort === "oldest") {
+              return a.startTime - b.startTime || a.id.localeCompare(b.id) || a.index - b.index;
+            }
+            return b.startTime - a.startTime || b.id.localeCompare(a.id) || a.index - b.index;
+          })
+          .map(({ item }) => item);
       };
 
       const pageEnd = offset + limit;
@@ -180,18 +282,22 @@ export default function SearchPage() {
       let merged: any[] = [];
       let exhausted = false;
       do {
-        await Promise.all(targetOrgs.map((org) => ensureOrgResults(org, requiredPerOrg)));
+        await ensureOrgResults(requiredPerOrg);
         merged = mergeResults();
-        exhausted = targetOrgs.every((org) => orgPages.get(org)?.exhausted);
-        requiredPerOrg += ORG_SEARCH_PAGE_SIZE;
+        exhausted = targetOrgs.every((org) => getOrgSource(org).exhausted);
+        requiredPerOrg += ORG_SOURCE_BATCH_SIZE;
       } while (merged.length < pageEnd && !exhausted);
 
+      prefetchNextOrgBatch();
       return {
         items: merged.slice(offset, offset + limit),
         total: exhausted ? merged.length : Math.max(merged.length + limit, offset + limit * 2),
         offset,
       };
     };
+    if (mainOrgFilterKey && !targetOrgs.includes(ALL_VTUBERS_ORG)) {
+      void load(0, pageLength).catch(() => {});
+    }
     return load;
   }, [executedQuery, filterSort, filterType, clipLangsKey, mainOrgFilterKey]);
 
@@ -230,6 +336,7 @@ export default function SearchPage() {
                 videos={data}
                 includeChannel
                 dense
+                displayStartTime
                 cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }}
                 className={isLoading && data.length === 0 ? "hidden" : undefined}
               />

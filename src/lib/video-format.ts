@@ -124,11 +124,23 @@ export function formattedDuration(v: any, t: any, now = Date.now()) {
 const isExtendablePast = (v: any) =>
   v?.status === "past" && v?.type === "stream" && Number(v?.duration) > 0;
 
+export function videoStartTimestamp(v: any) {
+  if (!v) return 0;
+  const value = videoStartTime(v);
+  if (!value) return 0;
+  const start = dayjs(value);
+  return start.isValid() ? start.valueOf() : 0;
+}
+
+function videoStartTime(v: any) {
+  return v?.start_actual || v?.available_at || v?.start_scheduled || "";
+}
+
 function videoEndTimestamp(v: any) {
   if (!v) return 0;
-  const t = dayjs(v.start_actual || v.available_at || v.start_scheduled);
-  if (!t.isValid()) return 0;
-  return isExtendablePast(v) ? t.add(Number(v.duration), "second").valueOf() : t.valueOf();
+  const start = videoStartTimestamp(v);
+  if (!start) return 0;
+  return isExtendablePast(v) ? start + Number(v.duration) * 1000 : start;
 }
 
 function videoDisplayTime(v: any) {
@@ -168,7 +180,8 @@ export function sortVideosForTab(items: any[], isArchive: boolean) {
     .map(({ item }) => item);
 }
 
-export const absoluteTime = (v: any, lang: string) => titleTimeString(videoDisplayTime(v), lang);
+export const absoluteTime = (v: any, lang: string, displayStartTime = false) =>
+  titleTimeString(displayStartTime ? videoStartTime(v) : videoDisplayTime(v), lang);
 
 /**
  * Compact, space-saving time label for the video card meta row.
@@ -189,11 +202,20 @@ export const absoluteTime = (v: any, lang: string) => titleTimeString(videoDispl
  *      same year    → "12/15"
  *      else         → "12/15/24"
  */
-export function compactVideoTime(v: any, lang: string, now = Date.now()): string {
+export function compactVideoTime(
+  v: any,
+  lang: string,
+  now = Date.now(),
+  displayStartTime = false,
+): string {
   if (!v) return "";
   if (v.status === "live") return "";
   const target = dayjs(
-    v.status === "upcoming" ? v.start_scheduled || v.available_at : videoDisplayTime(v),
+    v.status === "upcoming"
+      ? v.start_scheduled || v.available_at
+      : displayStartTime
+        ? videoStartTime(v)
+        : videoDisplayTime(v),
   );
   if (!target.isValid()) return "";
   const n = dayjs(now);
