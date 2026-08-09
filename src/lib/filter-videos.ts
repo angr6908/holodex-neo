@@ -16,6 +16,7 @@ type FilterOptions = {
   hideIgnoredTopics?: boolean;
   forOrg?: string | string[];
   forOrgs?: string[];
+  channelOrgById?: Record<string, string>;
   hidePlaceholder?: boolean;
   hideMissing?: boolean;
   hideUpcoming?: boolean;
@@ -34,6 +35,7 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
     hideIgnoredTopics = true,
     forOrg,
     forOrgs,
+    channelOrgById = {},
     hidePlaceholder = false,
     hideMissing = false,
     hideUpcoming = false,
@@ -65,7 +67,7 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
     if (hideUpcoming && v.status === "upcoming") return false;
     if (hideLive && v.status === "live") return false;
 
-    const channelOrg: string = channel.org || "";
+    const channelOrg: string = channel.org || channelOrgById[channelId] || "";
     if (hideGroups && hiddenGroups[channelOrg]?.includes(channelGroupKey(channel))) return false;
     if (noTargetOrgs) return true;
 
@@ -76,7 +78,7 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
       if (blockedChannels.has(id)) return false;
       if (hideGroups && hiddenGroups[org ?? ""]?.includes(channelGroupKey({ suborg })))
         return false;
-      return matchesTargetOrg(org) || favoriteChannels.has(id);
+      return matchesTargetOrg(org || channelOrgById[id]) || favoriteChannels.has(id);
     });
   };
 }

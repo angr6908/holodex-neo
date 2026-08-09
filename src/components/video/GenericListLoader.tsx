@@ -177,7 +177,16 @@ export function GenericListLoader({
       for (const target of [page - 1, page + 1]) {
         if (target < 1) continue;
         if (totalCount !== null && (target - 1) * perPage >= totalCount) continue;
-        if (pageCacheRef.current.has(target) || inflightRef.current.has(target)) continue;
+        if (inflightRef.current.has(target)) continue;
+        const cached = pageCacheRef.current.get(target);
+        const expectedLength =
+          totalCount === null
+            ? perPage
+            : Math.min(perPage, Math.max(0, totalCount - (target - 1) * perPage));
+        // A sparse page can be cached while its loader is still discovering later matches.
+        // Refresh it so adjacent-page preloading never strands a short page.
+        if (cached && cached.items.length >= expectedLength) continue;
+        if (cached) pageCacheRef.current.delete(target);
         void fetchPage(target);
       }
     },

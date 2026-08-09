@@ -116,6 +116,8 @@
       "toggleSearch": "Togol carian",
       "organizations": "Organisasi",
       "searchOrganizations": "Cari organisasi",
+      "searchTopics": "Cari topik",
+      "useMainOrgFilter": "Tapis mengikut organisasi yang dipilih dalam bar navigasi",
       "quickSelect": "Pilih pantas",
       "allVtubers": "Semua VTuber",
       "selectedOrgCount": "{count} organisasi",

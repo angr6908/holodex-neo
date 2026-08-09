@@ -116,6 +116,8 @@
       "toggleSearch": "검색 전환",
       "organizations": "소속",
       "searchOrganizations": "소속 검색",
+      "searchTopics": "주제 검색",
+      "useMainOrgFilter": "탐색 모음에서 선택한 조직으로 필터링",
       "quickSelect": "빠른 선택",
       "allVtubers": "모든 VTuber",
       "selectedOrgCount": "{count}개 조직",

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -109,6 +110,7 @@ export function HomeOrgMultiSelect({
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
   }, [selectedNames, emptySelectionLabel, allVtubersLabel, t]);
+  const showSelectedCount = selectedNames.length > 2;
 
   const clearLabel =
     clearSelectionLabel === ALL_VTUBERS_ORG ? allVtubersLabel : clearSelectionLabel;
@@ -174,18 +176,30 @@ export function HomeOrgMultiSelect({
               "justify-between transition-colors",
               buttonClass,
               className,
+              showSelectedCount && iconOnly && "relative",
               selectedNames.length > 0 && buttonVariant !== "outline" && "bg-muted dark:bg-muted",
             )}
           />
         }
       >
         {iconOnly ? (
-          <Building className="size-4" />
+          <>
+            <Building className="size-4" />
+            {showSelectedCount ? (
+              <Badge variant="outline" className="absolute -right-1 -top-1">
+                {selectedNames.length}
+              </Badge>
+            ) : null}
+          </>
         ) : (
           <>
             <span className="flex min-w-0 flex-1 items-center gap-2">
               <Building className="size-4 shrink-0" />
-              <span className="truncate">{triggerLabel}</span>
+              {showSelectedCount ? (
+                <Badge variant="outline">{selectedNames.length}</Badge>
+              ) : (
+                <span className="truncate">{triggerLabel}</span>
+              )}
             </span>
             <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
           </>

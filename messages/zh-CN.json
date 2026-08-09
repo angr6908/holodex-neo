@@ -116,6 +116,8 @@
       "toggleSearch": "切换搜索",
       "organizations": "组织",
       "searchOrganizations": "搜索组织",
+      "searchTopics": "搜索主题",
+      "useMainOrgFilter": "按导航栏中选择的组织筛选",
       "quickSelect": "快速选择",
       "allVtubers": "所有 VTuber",
       "selectedOrgCount": "{count} 个组织",

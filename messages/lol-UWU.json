@@ -116,6 +116,8 @@
       "toggleSearch": "Toggwe seawch",
       "organizations": "Owganyizations",
       "searchOrganizations": "Seawch owganyizations",
+      "searchTopics": "Seawch topics",
+      "useMainOrgFilter": "Fiwtew by owganizations sewected in the navigation baw",
       "quickSelect": "Quick sewect",
       "allVtubers": "Aww VTubews",
       "selectedOrgCount": "{count} owganyizations",

@@ -116,6 +116,8 @@
       "toggleSearch": "切換搜尋",
       "organizations": "組織",
       "searchOrganizations": "搜尋組織",
+      "searchTopics": "搜尋主題",
+      "useMainOrgFilter": "依導覽列中選擇的組織篩選",
       "quickSelect": "快速選擇",
       "allVtubers": "所有 VTuber",
       "selectedOrgCount": "{count} 個組織",

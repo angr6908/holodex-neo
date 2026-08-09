@@ -11,6 +11,7 @@ import {
   ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxInput,
   ComboboxItem,
   ComboboxList,
   useComboboxAnchor,
@@ -29,9 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG, CHANNEL_URL_REGEX, VIDEO_URL_REGEX } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
+import { Building } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { useTopicsCache } from "@/lib/topics";
 
@@ -93,7 +96,7 @@ export function SearchDropdown() {
   // -- Filter state
   const [orgs, setOrgs] = useState<string[]>([]);
   const [channels, setChannels] = useState<FilterItem[]>([]);
-  const [topics, setTopics] = useState<string[]>([]);
+  const [topic, setTopic] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterSort, setFilterSort] = useState("newest");
 
@@ -103,7 +106,6 @@ export function SearchDropdown() {
 
   const orgAnchor = useComboboxAnchor();
   const channelAnchor = useComboboxAnchor();
-  const topicAnchor = useComboboxAnchor();
 
   useEffect(() => {
     setOpen(false);
@@ -123,7 +125,7 @@ export function SearchDropdown() {
     const reset = () => {
       setOrgs([]);
       setChannels([]);
-      setTopics([]);
+      setTopic("");
       setQuery("");
     };
     if (!q) {
@@ -136,8 +138,9 @@ export function SearchDropdown() {
         const items = (await csv2json(q)) as FilterItem[];
         setOrgs(items.filter((i) => i.type === "org").map((i) => i.value));
         setChannels(items.filter((i) => i.type === "channel"));
-        setTopics(items.filter((i) => i.type === "topic").map((i) => i.value));
-        setQuery(items.find((i) => i.type === "title & desc")?.text || "");
+        const selectedTopic = items.find((i) => i.type === "topic")?.value || "";
+        setTopic(selectedTopic);
+        setQuery(String(items.find((i) => i.type === "title & desc")?.text ?? ""));
       } catch {
         reset();
       }
@@ -220,7 +223,7 @@ export function SearchDropdown() {
       if (containerRef.current?.contains(target)) return;
       if (
         target.closest(
-          "[data-slot=combobox-content],[data-slot=combobox-list],[data-slot=select-content],[role=listbox],[role=option]",
+          "[data-slot=combobox-content],[data-slot=combobox-list],[data-slot=select-content],[data-slot=popover-content],[data-slot=command],[data-slot=command-item],[role=listbox],[role=option]",
         )
       )
         return;
@@ -234,6 +237,15 @@ export function SearchDropdown() {
     () => (app.orgs || []).filter((org) => org.name !== ALL_VTUBERS_ORG).map((org) => org.name),
     [app.orgs],
   );
+  const mainOrgValues = useMemo(
+    () => (app.selectedHomeOrgs?.length ? unique(app.selectedHomeOrgs) : [ALL_VTUBERS_ORG]),
+    [app.selectedHomeOrgs],
+  );
+  const displayedOrgs = app.searchUseMainOrgFilter ? mainOrgValues : orgs;
+  const displayedOrgOptions = useMemo(
+    () => unique([...orgOptions, ...displayedOrgs]),
+    [orgOptions, displayedOrgs],
+  );
   const selectedChannelValues = useMemo(() => channels.map((channel) => channel.value), [channels]);
   const channelLabels = useMemo(() => {
     const labels = new Map<string, string>();
@@ -246,8 +258,7 @@ export function SearchDropdown() {
     () => unique([...selectedChannelValues, ...channelOptions.map((channel) => channel.value)]),
     [selectedChannelValues, channelOptions],
   );
-  const topicValues = useMemo(() => topicOptions.map((topic) => topic.value), [topicOptions]);
-
+  const topicValues = useMemo(() => topicOptions.map((option) => option.value), [topicOptions]);
   // -- Suggestions (autocomplete results + URL recognition + trailing free-text option)
   const suggestions = useMemo<Suggestion[]>(() => {
     const trimmed = query.trim();
@@ -272,7 +283,7 @@ export function SearchDropdown() {
         value: channelMatch.groups.id,
         text: channelMatch.groups.id,
       });
-    // Org matches locally — v3 autocomplete has no org group.
+    // Include local organization matches even when autocomplete omits its org group.
     const ql = trimmed.toLowerCase();
     orgOptions
       .filter(
@@ -293,8 +304,10 @@ export function SearchDropdown() {
     return list;
   }, [query, results, orgOptions]);
 
-  const hasContent = !!(query.trim() || orgs.length || channels.length || topics.length);
+  const hasContent = !!(query.trim() || orgs.length || channels.length || topic);
   const focusInput = () => containerRef.current?.querySelector("input")?.focus();
+  const orgLabel = (name: string) =>
+    name === ALL_VTUBERS_ORG ? t("component.search.allVtubers") : formatOrgDisplayName(name);
 
   function updateChannels(values: string[]) {
     setChannels(
@@ -310,12 +323,13 @@ export function SearchDropdown() {
   function clearAll() {
     setOrgs([]);
     setChannels([]);
-    setTopics([]);
+    setTopic("");
     setQuery("");
     setResults([]);
     setChannelSearch("");
     setFilterType("all");
     setFilterSort("newest");
+    app.setSearchUseMainOrgFilter(false);
     setOpen(false);
     // Refocus the input without reopening the dropdown.
     suppressOpenRef.current = true;
@@ -328,15 +342,25 @@ export function SearchDropdown() {
 
   async function runSearch() {
     const payload: FilterItem[] = [
-      ...orgs.map((value) => ({ type: "org", value, text: value })),
+      ...(app.searchUseMainOrgFilter
+        ? []
+        : orgs.map((value) => ({ type: "org", value, text: value }))),
       ...channels,
-      ...topics.map((value) => ({ type: "topic", value, text: value })),
+      ...(topic ? [{ type: "topic", value: topic, text: topic }] : []),
     ];
     const text = query.trim();
     if (text) payload.push({ type: "title & desc", value: text, text });
     if (!payload.length) return;
     router.push(await buildSearchUrl(payload, filterSort, filterType));
     setOpen(false);
+  }
+
+  function toggleMainOrgFilter(next = !app.searchUseMainOrgFilter) {
+    app.setSearchUseMainOrgFilter(next);
+    if (!pathname.startsWith("/search") || !searchParams.get("page")) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    router.replace(`${pathname}${params.toString() ? `?${params}` : ""}`);
   }
 
   function addSuggestion(s: Suggestion) {
@@ -356,7 +380,7 @@ export function SearchDropdown() {
           ? prev
           : [...prev, { type: "channel", value: s.value, text: s.text }],
       );
-    else if (s.type === "topic") setTopics((prev) => unique([...prev, s.value]));
+    else if (s.type === "topic") setTopic(s.value);
     else if (s.type === "org") setOrgs((prev) => unique([...prev, s.value]));
     setQuery("");
     setResults([]);
@@ -480,11 +504,11 @@ export function SearchDropdown() {
                   onInputValueChange={setChannelSearch}
                   onValueChange={updateChannels}
                 >
-                  <ComboboxChips ref={channelAnchor}>
+                  <ComboboxChips ref={channelAnchor} className="gap-1.5">
                     {selectedChannelValues.map((value) => (
                       <ComboboxChip key={value}>{channelLabels.get(value) || value}</ComboboxChip>
                     ))}
-                    <ComboboxChipsInput onKeyDown={onFilterKeyDown} />
+                    <ComboboxChipsInput className="px-1" onKeyDown={onFilterKeyDown} />
                   </ComboboxChips>
                   <ComboboxContent anchor={channelAnchor}>
                     <ComboboxEmpty className="justify-start px-2 text-left">
@@ -506,26 +530,23 @@ export function SearchDropdown() {
               <Field>
                 <FieldLabel>{t("component.search.type.topic")}</FieldLabel>
                 <Combobox
-                  multiple
                   items={topicValues}
-                  value={topics}
+                  value={topic || null}
+                  itemToStringLabel={(value) => value || ""}
                   onOpenChange={(nextOpen) => {
                     if (nextOpen) void fetchTopics();
                   }}
-                  onValueChange={(values) => setTopics(unique(values))}
+                  onValueChange={(value) => {
+                    const next = typeof value === "string" ? value : "";
+                    setTopic(next);
+                  }}
                 >
-                  <ComboboxChips ref={topicAnchor}>
-                    {topics.map((value) => (
-                      <ComboboxChip key={value}>{value}</ComboboxChip>
-                    ))}
-                    <ComboboxChipsInput
-                      onFocus={() => {
-                        void fetchTopics();
-                      }}
-                      onKeyDown={onFilterKeyDown}
-                    />
-                  </ComboboxChips>
-                  <ComboboxContent anchor={topicAnchor}>
+                  <ComboboxInput
+                    placeholder={t("component.search.searchTopics")}
+                    showClear={!!topic}
+                    onKeyDown={onFilterKeyDown}
+                  />
+                  <ComboboxContent>
                     <ComboboxEmpty>
                       {topicsLoading
                         ? t("component.search.loading")
@@ -544,34 +565,58 @@ export function SearchDropdown() {
 
               <Field>
                 <FieldLabel>{t("component.search.type.org")}</FieldLabel>
-                <Combobox
-                  multiple
-                  items={orgOptions}
-                  value={orgs}
-                  onValueChange={(values) => setOrgs(unique(values))}
-                >
-                  <ComboboxChips ref={orgAnchor}>
-                    {orgs.map((value) => (
-                      <ComboboxChip key={value}>{formatOrgDisplayName(value)}</ComboboxChip>
-                    ))}
-                    <ComboboxChipsInput
-                      onFocus={() => {
-                        void app.fetchOrgs();
-                      }}
-                      onKeyDown={onFilterKeyDown}
-                    />
-                  </ComboboxChips>
-                  <ComboboxContent anchor={orgAnchor}>
-                    <ComboboxEmpty>{t("component.search.noOrganizationsFound")}</ComboboxEmpty>
-                    <ComboboxList>
-                      {(value: string, index: number) => (
-                        <ComboboxItem key={value} value={value} index={index}>
-                          {formatOrgDisplayName(value)}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+                <div className="flex min-w-0 items-start gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <Combobox
+                      multiple
+                      items={displayedOrgOptions}
+                      value={displayedOrgs}
+                      disabled={app.searchUseMainOrgFilter}
+                      onValueChange={(values) => setOrgs(unique(values))}
+                    >
+                      <ComboboxChips
+                        ref={orgAnchor}
+                        className="gap-1.5 data-disabled:cursor-not-allowed data-disabled:opacity-60"
+                      >
+                        {displayedOrgs.map((value) => (
+                          <ComboboxChip key={value} showRemove={!app.searchUseMainOrgFilter}>
+                            {orgLabel(value)}
+                          </ComboboxChip>
+                        ))}
+                        <ComboboxChipsInput
+                          className="px-1"
+                          disabled={app.searchUseMainOrgFilter}
+                          onFocus={() => {
+                            void app.fetchOrgs();
+                          }}
+                          onKeyDown={onFilterKeyDown}
+                        />
+                      </ComboboxChips>
+                      <ComboboxContent anchor={orgAnchor}>
+                        <ComboboxEmpty>{t("component.search.noOrganizationsFound")}</ComboboxEmpty>
+                        <ComboboxList>
+                          {(value: string, index: number) => (
+                            <ComboboxItem key={value} value={value} index={index}>
+                              {orgLabel(value)}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+                  </div>
+                  <Toggle
+                    type="button"
+                    pressed={app.searchUseMainOrgFilter}
+                    onPressedChange={toggleMainOrgFilter}
+                    aria-label={t("component.search.useMainOrgFilter")}
+                    title={t("component.search.useMainOrgFilter")}
+                    variant="outline"
+                    size="default"
+                    className="size-8 p-0"
+                  >
+                    <Building className="size-4" aria-hidden="true" />
+                  </Toggle>
+                </div>
               </Field>
             </div>
 

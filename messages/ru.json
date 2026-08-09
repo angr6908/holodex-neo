@@ -116,6 +116,8 @@
       "toggleSearch": "Переключить поиск",
       "organizations": "Организации",
       "searchOrganizations": "Искать организации",
+      "searchTopics": "Искать темы",
+      "useMainOrgFilter": "Фильтровать по организациям, выбранным на панели навигации",
       "quickSelect": "Быстрый выбор",
       "allVtubers": "Все VTuber",
       "selectedOrgCount": "{count} организаций",

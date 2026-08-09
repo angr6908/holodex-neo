@@ -132,10 +132,6 @@ export const api = {
   stats: () => axios.get(`/statics/stats.json`),
   channels: (q: Record<string, any> = {}) => dedupGet(`/channels?${qs(q)}`),
   videos: (q: Record<string, any> = {}) => dedupGet(`/videos?${qs(q)}`),
-  videosV3: ({ org, ...q }: Record<string, any> = {}) =>
-    dedupGet<any>(`/videos?${qs({ ...(org && org !== ALL_VTUBERS_ORG ? { org } : {}), ...q })}`, {
-      baseURL: "/api/v3",
-    }),
   live: ({ org, ...q }: Record<string, any> = {}, { force = false }: { force?: boolean } = {}) => {
     const scoped = org && org !== ALL_VTUBERS_ORG;
     const url = `/live?${qs({ limit: 3000, ...(scoped ? { org } : {}), ...q })}`;
@@ -154,12 +150,10 @@ export const api = {
       });
     const ch = query.match(CHANNEL_URL_REGEX);
     return ax
-      .get(`/search/autocomplete?${qs({ q: ch?.groups?.id || query, t: type, n })}`, {
-        baseURL: "/api/v3",
-      })
+      .get(`/search/autocomplete?${qs({ q: ch?.groups?.id || query, t: type, n })}`)
       .then((res: any) => ({ ...res, data: normalizeAutocomplete(res.data) }));
   },
-  searchVideo: (q: any) => ax.post("/search/videoSearch", q, { baseURL: "/api/v3" }),
+  searchVideo: (q: any) => ax.post("/search/videoSearch", q),
   searchChannel: (q: any) => ax.post("/search/channelSearch", q),
   searchMusicdexSongs(query: string) {
     const searchBody = {

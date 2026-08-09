@@ -116,6 +116,8 @@
       "toggleSearch": "検索を切り替え",
       "organizations": "組織",
       "searchOrganizations": "組織を検索",
+      "searchTopics": "トピックを検索",
+      "useMainOrgFilter": "ナビゲーションバーで選択した組織で絞り込む",
       "quickSelect": "クイック選択",
       "allVtubers": "すべてのVTuber",
       "selectedOrgCount": "{count} 件の組織",

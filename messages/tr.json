@@ -116,6 +116,8 @@
       "toggleSearch": "Aramayı aç/kapat",
       "organizations": "Organizasyonlar",
       "searchOrganizations": "Organizasyon ara",
+      "searchTopics": "Konu ara",
+      "useMainOrgFilter": "Gezinti çubuğunda seçilen kuruluşlara göre filtrele",
       "quickSelect": "Hızlı seçim",
       "allVtubers": "Tüm VTuber'lar",
       "selectedOrgCount": "{count} organizasyon",

@@ -171,7 +171,7 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
     const chunks: string[][] = [];
     for (let i = 0; i < arr.length; i += BATCH) chunks.push(arr.slice(i, i + BATCH));
     const res = await Promise.allSettled(
-      chunks.map((c) => api.videosV3({ include: "live_info", id: c.join(",") })),
+      chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })),
     );
     const backend = res.flatMap((r) => {
       if (r.status === "fulfilled") return (r.value as any)?.data?.items || [];

@@ -116,6 +116,8 @@
       "toggleSearch": "สลับการค้นหา",
       "organizations": "องค์กร",
       "searchOrganizations": "ค้นหาองค์กร",
+      "searchTopics": "ค้นหาหัวข้อ",
+      "useMainOrgFilter": "กรองตามองค์กรที่เลือกในแถบนำทาง",
       "quickSelect": "เลือกด่วน",
       "allVtubers": "VTuber ทั้งหมด",
       "selectedOrgCount": "{count} องค์กร",

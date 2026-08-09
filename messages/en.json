@@ -116,6 +116,8 @@
       "toggleSearch": "Toggle search",
       "organizations": "Organizations",
       "searchOrganizations": "Search organizations",
+      "searchTopics": "Search topics",
+      "useMainOrgFilter": "Filter by organizations selected in the navigation bar",
       "quickSelect": "Quick Select",
       "allVtubers": "All VTubers",
       "selectedOrgCount": "{count} organizations",

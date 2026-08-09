@@ -116,6 +116,8 @@
       "toggleSearch": "Toggle sagasu peko",
       "organizations": "Organizations peko",
       "searchOrganizations": "sagasu organizations peko",
+      "searchTopics": "sagasu topics peko",
+      "useMainOrgFilter": "Filter by soshikis selected in navigation peko",
       "quickSelect": "Quick select peko",
       "allVtubers": "All VTubers peko",
       "selectedOrgCount": "{count} soshikis peko",

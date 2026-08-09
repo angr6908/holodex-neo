@@ -116,6 +116,8 @@
       "toggleSearch": "Bật/tắt tìm kiếm",
       "organizations": "Tổ chức",
       "searchOrganizations": "Tìm tổ chức",
+      "searchTopics": "Tìm chủ đề",
+      "useMainOrgFilter": "Lọc theo các tổ chức đã chọn trên thanh điều hướng",
       "quickSelect": "Chọn nhanh",
       "allVtubers": "Tất cả VTuber",
       "selectedOrgCount": "{count} tổ chức",

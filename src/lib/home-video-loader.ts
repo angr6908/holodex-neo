@@ -149,12 +149,21 @@ function createCacheEntry(sources: PageFetch[], archive: boolean): CacheEntry {
   };
 }
 
+// The v3 videos index is not currently kept in sync with newly-ingested past
+// streams. Use the v2 endpoint here, which has the complete current archive,
+// and adapt its offset pagination to the cache's cursor interface.
 const fetchVideoPage =
   (query: Record<string, any>): PageFetch =>
-  (cursor, limit) =>
-    api
-      .videosV3({ ...query, limit, ...(cursor ? { nextPage: cursor } : {}) })
-      .then((res: any) => ({ items: extractItems(res.data), nextPage: res.data?.nextPage }));
+  (cursor, limit) => {
+    const offset = cursor ? Number(cursor) : 0;
+    return api.videos({ ...query, paginated: false, limit, offset }).then((res: any) => {
+      const items = extractItems(res.data);
+      const total = Number(res.data?.total);
+      const hasMore =
+        items.length >= limit && (!Number.isFinite(total) || offset + items.length < total);
+      return { items, nextPage: hasMore ? String(offset + items.length) : undefined };
+    });
+  };
 
 export function ensureHomeMultiOrgVideoFetch(
   key: string,

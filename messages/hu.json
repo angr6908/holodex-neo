@@ -116,6 +116,8 @@
       "toggleSearch": "Keresés váltása",
       "organizations": "Szervezetek",
       "searchOrganizations": "Szervezetek keresése",
+      "searchTopics": "Témák keresése",
+      "useMainOrgFilter": "Szűrés a navigációs sávban kiválasztott szervezetek szerint",
       "quickSelect": "Gyors választás",
       "allVtubers": "Összes VTuber",
       "selectedOrgCount": "{count} szervezet",

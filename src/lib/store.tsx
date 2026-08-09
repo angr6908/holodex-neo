@@ -110,6 +110,7 @@ type State = {
   reportVideo: any;
   uploadPanel: boolean;
   visibilityState: string;
+  searchUseMainOrgFilter: boolean;
   reloadTrigger: {
     source?: string;
     consumed?: boolean;
@@ -218,6 +219,7 @@ const defaultState: State = {
   reportVideo: null,
   uploadPanel: false,
   visibilityState: "visible",
+  searchUseMainOrgFilter: false,
   reloadTrigger: null,
   homeNav: null,
 };
@@ -240,6 +242,7 @@ const appPersist = (s: State) => ({
   selectedHomeOrgs: s.selectedHomeOrgs,
   orgFavorites: s.orgFavorites,
   currentGridSize: s.currentGridSize,
+  searchUseMainOrgFilter: s.searchUseMainOrgFilter,
 });
 
 const normSelectedOrgs = (orgs: string[]) => [
@@ -338,6 +341,10 @@ function loadPersisted(base: State): State {
     windowWidth: window.innerWidth,
     visibilityState: document.visibilityState,
     currentGridSize: app.currentGridSize ?? defaultState.currentGridSize,
+    searchUseMainOrgFilter:
+      typeof app.searchUseMainOrgFilter === "boolean"
+        ? app.searchUseMainOrgFilter
+        : defaultState.searchUseMainOrgFilter,
     currentOrg: app.currentOrg || base.currentOrg,
     selectedHomeOrgs,
     orgFavorites: app.orgFavorites || base.orgFavorites,
@@ -456,6 +463,7 @@ export function AppStateProvider({
     state.selectedHomeOrgs,
     state.orgFavorites,
     state.currentGridSize,
+    state.searchUseMainOrgFilter,
     state.userdata,
   ]);
   useEffect(() => {
@@ -705,6 +713,13 @@ export function AppStateProvider({
     favoriteChannelIDs,
     blockedChannelIDs,
     ignoredTopicsSet,
+    setSearchUseMainOrgFilter: (value: boolean) =>
+      setState((s) => {
+        if (s.searchUseMainOrgFilter === value) return s;
+        const next = { ...s, searchUseMainOrgFilter: value };
+        if (next.hydrated) writeJSON(KEYS.APP, appPersist(next));
+        return next;
+      }),
     homeNav,
     setHomeNav: (patch: HomeUiState) =>
       setState((s) => {
