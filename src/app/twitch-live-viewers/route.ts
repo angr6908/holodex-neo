@@ -1,7 +1,5 @@
 import { getTwitchViewers } from "@/lib/server/live-viewers";
 
-export const runtime = "nodejs";
-
 // Watch-page counterpart of /youtube-live-viewers: concurrent viewers straight from Twitch's
 // public GQL, via the shared getTwitchViewers cache + in-flight de-dupe. Response is keyed by
 // (lowercased) login, mirroring the YouTube route's shape: { login: { live_viewers, isLive } }.

@@ -1,7 +1,5 @@
 import { getYoutubeViewers } from "@/lib/server/live-viewers";
 
-export const runtime = "nodejs";
-
 // Standalone endpoint the client still polls to keep live counts fresh between list
 // refreshes. Shares getYoutubeViewers' cache + in-flight de-dupe with the API-proxy
 // injector, so a stream is fetched from YouTube at most once per window across both.

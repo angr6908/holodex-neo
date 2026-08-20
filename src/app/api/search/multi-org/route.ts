@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 const SEARCH_URL = "https://holodex.net/api/v2/search/videoSearch";
 const MAX_ORGANIZATIONS = 32;
 

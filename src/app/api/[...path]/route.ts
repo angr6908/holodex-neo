@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { injectLiveViewerCounts } from "@/lib/server/live-viewers";
-export const runtime = "nodejs";
+
 const API_BASE_URL = "https://holodex.net";
 
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {

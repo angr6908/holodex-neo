@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-export const runtime = "nodejs";
+
 const API_BASE_URL = "https://holodex.net";
 export async function GET(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;
