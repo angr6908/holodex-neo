@@ -7,6 +7,10 @@ User-agent: Applebot
 Disallow: /watch/
 Disallow: /search
 Disallow: /edit/video/
+Disallow: /api/v2/videos/
+Disallow: /youtube-live-viewers
+Disallow: /twitch-live-viewers
+Disallow: /twitch-stream-info
 
 User-agent: Reflectionbot
 Disallow: /

@@ -3,7 +3,7 @@
   "bunVersion": "1.4.x",
   "routes": [
     {
-      "src": "^/(watch|search|edit/video)(/.*)?$",
+      "src": "^/(watch|search|edit/video|api/v2/videos/[^/]+|youtube-live-viewers|twitch-live-viewers|twitch-stream-info)(/.*)?$",
       "has": [{ "type": "header", "key": "user-agent", "value": { "re": "Applebot" } }],
       "mitigate": { "action": "deny" }
     },
