@@ -3,6 +3,14 @@ Disallow: /watch/
 Disallow: /search
 Disallow: /edit/video/
 
+User-agent: Applebot
+Disallow: /watch/
+Disallow: /search
+Disallow: /edit/video/
+
+User-agent: Reflectionbot
+Disallow: /
+
 User-agent: *
 Disallow: /edit/video/
 
