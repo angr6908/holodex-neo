@@ -127,6 +127,344 @@ function getEmptySong(video: any) {
   };
 }
 
+// The video's song entries, sorted by start time.
+function useVideoSongList(channelId: string, videoId: string) {
+  const [songList, setSongList] = useState<any[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .songListByVideo(channelId, videoId, false)
+      .then(({ data }: any) => {
+        if (!cancelled) setSongList(sortSongs(data));
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [channelId, videoId]);
+  async function refreshSongList() {
+    setSongList(sortSongs((await api.songListByVideo(channelId, videoId, false)).data));
+  }
+  return { songList, refreshSongList };
+}
+
+function mountTwitter() {
+  const s = document.createElement("script");
+  s.src = "https://platform.twitter.com/widgets.js";
+  s.async = true;
+  document.head.appendChild(s);
+}
+
+// "Add song" heading with a help button that opens the announcement tweet.
+function AddSongHeader() {
+  const t = useTranslations();
+  const [helpOpen, setHelpOpen] = useState(false);
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Separator className="flex-1" />
+        <span className="text-sm text-muted-foreground">{t("editor.music.titles.addSong")}</span>
+        <Separator className="flex-1" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setHelpOpen(true);
+            mountTwitter();
+          }}
+        >
+          <icons.CircleHelp className="h-4 w-4" />
+          <span>{t("editor.music.titles.help")}</span>
+        </Button>
+      </div>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent>
+          <DialogTitle className="sr-only">{t("editor.music.titles.help")}</DialogTitle>
+          <blockquote className="twitter-tweet">
+            <p lang="en" dir="ltr">
+              Easily create Music entries on Holodex, coming soon! 🎵🎶{" "}
+              <a href="https://t.co/1KJXYDcJjo">pic.twitter.com/1KJXYDcJjo</a>
+            </p>
+            &mdash; Holodex (@holodex){" "}
+            <a href="https://twitter.com/holodex/status/1371290072058785797?ref_src=twsrc%5Etfw">
+              March 15, 2021
+            </a>
+          </blockquote>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function CurrentTimeButton({
+  currentTime,
+  disabled,
+  onClick,
+}: {
+  currentTime: number;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={disabled}
+      title={t("editor.music.setToCurrentTime", { arg0: secondsToHuman(currentTime) })}
+      onClick={onClick}
+    >
+      <Gauge className="h-4 w-4 rotate-90" />
+      {formatDuration(currentTime * 1000)}
+    </Button>
+  );
+}
+
+type SongFieldProps = {
+  current: any;
+  currentTime: number;
+  onTimeJump?: VideoEditSongsProps["onTimeJump"];
+};
+
+function StartTimeField({
+  current,
+  currentTime,
+  onTimeJump,
+  startInput,
+  onStartInput,
+  onStart,
+}: SongFieldProps & {
+  startInput: string;
+  onStartInput: (value: string) => void;
+  onStart: (start: number) => void;
+}) {
+  return (
+    <div className="md:col-span-6">
+      <div className="flex items-start gap-2">
+        <CurrentTimeButton
+          currentTime={currentTime}
+          onClick={() => onStartInput(secondsToHuman(currentTime))}
+        />
+        <Input
+          value={startInput}
+          placeholder="12:31"
+          aria-invalid={!startTimeRegex.test(startInput)}
+          onChange={(e) => onStartInput(e.target.value)}
+        />
+      </div>
+      <RelativeTimestampEditor
+        value={Number(current.start)}
+        test={currentTime}
+        onInput={(x) => {
+          onStart(x);
+          onTimeJump?.(x, true);
+        }}
+        onSeekTo={(x) => onTimeJump?.(x, true)}
+      />
+    </div>
+  );
+}
+
+// End as a duration from the start (or an absolute time), with shortcuts for the player's time
+// and the iTunes track length.
+function EndTimeField({
+  current,
+  currentTime,
+  onTimeJump,
+  onEndInput,
+  onEnd,
+}: SongFieldProps & { onEndInput: (value: string) => void; onEnd: (end: number) => void }) {
+  const t = useTranslations();
+  const currentEndTime = `${current.end - current.start}`;
+  const trackSeconds = current.song?.trackTimeMillis ? current.song.trackTimeMillis / 1000 : 0;
+  return (
+    <div className="md:col-span-6">
+      <div className="flex items-start gap-2">
+        <CurrentTimeButton
+          currentTime={currentTime}
+          disabled={currentTime < current.start + 10}
+          onClick={() => {
+            onEndInput(`${currentTime - current.start}`);
+            onTimeJump?.(currentTime - 3, true, false, currentTime);
+          }}
+        />
+        {trackSeconds ? (
+          <Button
+            type="button"
+            variant="secondary"
+            title={t("editor.music.inheritItunesMusic", { arg0: `+${Math.ceil(trackSeconds)}` })}
+            onClick={() => {
+              onEndInput(`+${Math.ceil(trackSeconds)}`);
+              onTimeJump?.(
+                current.start + trackSeconds - 3,
+                true,
+                false,
+                current.start + trackSeconds,
+              );
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            {formatDuration(current.start * 1000 + current.song.trackTimeMillis)}
+          </Button>
+        ) : null}
+        <Input
+          value={currentEndTime}
+          placeholder="312"
+          aria-invalid={!endTimeRegex.test(currentEndTime)}
+          onChange={(e) => onEndInput(e.target.value)}
+        />
+      </div>
+      <RelativeTimestampEditor
+        value={Number(current.end)}
+        test={currentTime}
+        onInput={(x) => {
+          onEnd(x);
+          onTimeJump?.(x - 3, true, false, x);
+        }}
+        onSeekTo={(x) => onTimeJump?.(x, true)}
+      />
+    </div>
+  );
+}
+
+// Add/update, reset and the Apple Music link, plus the permission notice for entries the user
+// may not change.
+function SongActions({
+  current,
+  label,
+  canSave,
+  privilegeSufficient,
+  onSave,
+  onReset,
+}: {
+  current: any;
+  label: string;
+  canSave: boolean;
+  privilegeSufficient: boolean;
+  onSave: () => void;
+  onReset: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <>
+      <div className="md:col-span-8">
+        <Button
+          type="button"
+          className="w-full"
+          disabled={!canSave || !privilegeSufficient}
+          onClick={onSave}
+        >
+          {label}
+        </Button>
+      </div>
+      <div className="md:col-span-1">
+        <Button
+          type="button"
+          variant="destructive"
+          className="w-full"
+          aria-label={t("views.library.selectionReset")}
+          onClick={onReset}
+        >
+          <RotateCcw className="size-5" />
+        </Button>
+      </div>
+      <div className="md:col-span-3">
+        <Button
+          nativeButton={false}
+          render={(props) => (
+            <a {...props} href={current.amUrl || "#"} rel="noopener noreferrer" target="_blank" />
+          )}
+          variant="secondary"
+          disabled={!current.amUrl}
+          className="justify-start whitespace-normal text-left"
+        >
+          <img
+            src="https://apple-resources.s3.amazonaws.com/medusa/production/images/5f600674c4f022000191d6c4/en-us-large@1x.png"
+            className="h-6 w-6 rounded-sm object-cover"
+            alt=""
+          />
+          <span>{t("editor.music.listenOnAppleMusic")}</span>
+        </Button>
+      </div>
+      {!canSave && !privilegeSufficient ? (
+        <Alert variant="destructive" className="md:col-span-12">
+          <AlertDescription
+            dangerouslySetInnerHTML={{ __html: t.raw("editor.music.permission") }}
+          />
+        </Alert>
+      ) : null}
+    </>
+  );
+}
+
+function SongListSection({
+  title,
+  songList,
+  onRemove,
+  onEdit,
+  onPlayNow,
+}: {
+  title: string;
+  songList: any[];
+  onRemove: (song: any) => void;
+  onEdit: (song: any) => void;
+  onPlayNow: (song: any) => void;
+}) {
+  const t = useTranslations();
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Separator className="flex-1" />
+        <span className="text-sm text-muted-foreground">
+          {t("editor.music.titles.songList", { arg0: title })}
+        </span>
+        <Separator className="flex-1" />
+      </div>
+      <ScrollArea className="max-h-[45vh] min-h-[30vh]">
+        <div className="space-y-2">
+          {songList.map((song) => (
+            <SongItem
+              key={song.name}
+              song={song}
+              detailed
+              hoverIcon={icons.Pencil}
+              artworkHoverIcon={icons.Play}
+              onRemove={onRemove}
+              onPlay={onEdit}
+              onPlayNow={onPlayNow}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+    </>
+  );
+}
+
+// An existing entry can only be changed by its creator, an editor or an admin.
+function canEditSong(songList: any[], current: any, user: any) {
+  const isUpdate = songList.find((m) => m.name === current.name);
+  return (
+    !isUpdate ||
+    (isUpdate &&
+      (user?.role === "admin" ||
+        user?.role === "editor" ||
+        (user?.id && +current.creator_id === +user.id)))
+  );
+}
+
+// Song fields from an iTunes search result.
+function itunesFields(item: any) {
+  return {
+    song: item,
+    itunesid: item.trackId,
+    name: item.trackName,
+    original_artist: item.artistName,
+    amUrl: item.trackViewUrl,
+    art: item.artworkUrl100,
+  };
+}
+
 export type VideoEditSongsHandle = {
   setStartTime: (time: number) => void;
   setSongCandidate: (timeframe: any, songdata?: any) => void;
@@ -144,40 +482,16 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
     const t = useTranslations();
     const app = useAppState();
     const [current, setCurrent] = useState<any>(() => getEmptySong(video));
-    const [songList, setSongList] = useState<any[]>([]);
+    const { songList, refreshSongList } = useVideoSongList(video.channel.id, video.id);
     const [currentStartTimeInput, setCurrentStartTimeInput] = useState("");
-    const [helpOpen, setHelpOpen] = useState(false);
-    const priviledgeSufficient = useMemo(() => {
-      const isUpdate = songList.find((m) => m.name === current.name);
-      const user = app.userdata?.user;
-      return (
-        !isUpdate ||
-        (isUpdate &&
-          (user?.role === "admin" ||
-            user?.role === "editor" ||
-            (user?.id && +current.creator_id === +user.id)))
-      );
-    }, [songList, current, app.userdata?.user]);
+    const privilegeSufficient = useMemo(
+      () => canEditSong(songList, current, app.userdata?.user),
+      [songList, current, app.userdata?.user],
+    );
     const canSave = current.end - current.start > 13 && current.name;
     const addOrUpdate = songList.find((m) => m.name === current.name)
       ? t("editor.music.update")
       : t("editor.music.add");
-    const currentStartTime = currentStartTimeInput;
-    const currentEndTime = `${current.end - current.start}`;
-    const channelId = video.channel.id;
-    const videoId = video.id;
-    useEffect(() => {
-      let cancelled = false;
-      api
-        .songListByVideo(channelId, videoId, false)
-        .then(({ data }: any) => {
-          if (!cancelled) setSongList(sortSongs(data));
-        })
-        .catch(console.error);
-      return () => {
-        cancelled = true;
-      };
-    }, [channelId, videoId]);
     function setStartInput(val: string) {
       const masked = maskTimestamp(val);
       setCurrentStartTimeInput(masked);
@@ -198,27 +512,16 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
       if (item)
         setCurrent((c: any) => ({
           ...c,
-          song: item,
-          itunesid: item.trackId,
-          name: item.trackName,
-          original_artist: item.artistName,
+          ...itunesFields(item),
           end:
             !c.end || c.end < 10 || c.end < c.start + 10
               ? c.start + Math.ceil(item.trackTimeMillis / 1000)
               : c.end,
-          amUrl: item.trackViewUrl,
-          art: item.artworkUrl100,
         }));
       else setCurrent((c: any) => ({ ...c, song: null, itunesid: -1, amUrl: null, art: null }));
     }
-    async function refreshSongList() {
-      setSongList(sortSongs((await api.songListByVideo(video.channel.id, video.id, false)).data));
-    }
-    async function saveCurrentSong() {
-      await api.tryCreateSong(current, app.userdata.jwt);
-    }
     async function addSong() {
-      await saveCurrentSong();
+      await api.tryCreateSong(current, app.userdata.jwt);
       setCurrent(getEmptySong(video));
       await refreshSongList();
     }
@@ -229,12 +532,6 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
     async function removeSong(song: any) {
       await api.deleteSong(song, app.userdata.jwt);
       refreshSongList();
-    }
-    function mountTwitter() {
-      const s = document.createElement("script");
-      s.src = "https://platform.twitter.com/widgets.js";
-      s.async = true;
-      document.head.appendChild(s);
     }
 
     useImperativeHandle(ref, () => ({
@@ -247,16 +544,7 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
         if (songdata) processSearch(songdata);
         setCurrent((c: any) => ({
           ...c,
-          ...(songdata
-            ? {
-                song: songdata,
-                itunesid: songdata.trackId,
-                name: songdata.trackName,
-                original_artist: songdata.artistName,
-                amUrl: songdata.trackViewUrl,
-                art: songdata.artworkUrl100,
-              }
-            : {}),
+          ...(songdata ? itunesFields(songdata) : {}),
           start,
           end: end > start ? end : start + 12,
         }));
@@ -266,38 +554,7 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
 
     return (
       <div id={id} className="space-y-5">
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-sm text-muted-foreground">{t("editor.music.titles.addSong")}</span>
-          <Separator className="flex-1" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setHelpOpen(true);
-              mountTwitter();
-            }}
-          >
-            <icons.CircleHelp className="h-4 w-4" />
-            <span>{t("editor.music.titles.help")}</span>
-          </Button>
-        </div>
-        <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
-          <DialogContent>
-            <DialogTitle className="sr-only">{t("editor.music.titles.help")}</DialogTitle>
-            <blockquote className="twitter-tweet">
-              <p lang="en" dir="ltr">
-                Easily create Music entries on Holodex, coming soon! 🎵🎶{" "}
-                <a href="https://t.co/1KJXYDcJjo">pic.twitter.com/1KJXYDcJjo</a>
-              </p>
-              &mdash; Holodex (@holodex){" "}
-              <a href="https://twitter.com/holodex/status/1371290072058785797?ref_src=twsrc%5Etfw">
-                March 15, 2021
-              </a>
-            </blockquote>
-          </DialogContent>
-        </Dialog>
+        <AddSongHeader />
         <div className="grid gap-3 md:grid-cols-12">
           <div className="md:col-span-10">
             <SongSearch value={current.song} onInput={processSearch} />
@@ -322,167 +579,44 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
               placeholder={t("editor.music.originalArtistInput")}
             />
           </div>
-          <div className="md:col-span-6">
-            <div className="flex items-start gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                title={t("editor.music.setToCurrentTime", { arg0: secondsToHuman(currentTime) })}
-                onClick={() => setStartInput(secondsToHuman(currentTime))}
-              >
-                <Gauge className="h-4 w-4 rotate-90" />
-                {formatDuration(currentTime * 1000)}
-              </Button>
-              <Input
-                value={currentStartTime}
-                placeholder="12:31"
-                aria-invalid={!startTimeRegex.test(currentStartTime)}
-                onChange={(e) => setStartInput(e.target.value)}
-              />
-            </div>
-            <RelativeTimestampEditor
-              value={Number(current.start)}
-              test={currentTime}
-              onInput={(x) => {
-                setCurrent((c: any) => ({ ...c, start: x }));
-                setCurrentStartTimeInput(secondsToHuman(x));
-                onTimeJump?.(x, true);
-              }}
-              onSeekTo={(x) => onTimeJump?.(x, true)}
-            />
-          </div>
-          <div className="md:col-span-6">
-            <div className="flex items-start gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={currentTime < current.start + 10}
-                title={t("editor.music.setToCurrentTime", { arg0: secondsToHuman(currentTime) })}
-                onClick={() => {
-                  setEndInput(`${currentTime - current.start}`);
-                  onTimeJump?.(currentTime - 3, true, false, currentTime);
-                }}
-              >
-                <Gauge className="h-4 w-4 rotate-90" />
-                {formatDuration(currentTime * 1000)}
-              </Button>
-              {current.song?.trackTimeMillis ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  title={t("editor.music.inheritItunesMusic", {
-                    arg0: `+${Math.ceil(current.song.trackTimeMillis / 1000)}`,
-                  })}
-                  onClick={() => {
-                    setEndInput(`+${Math.ceil(current.song.trackTimeMillis / 1000)}`);
-                    onTimeJump?.(
-                      current.start + current.song.trackTimeMillis / 1000 - 3,
-                      true,
-                      false,
-                      current.start + current.song.trackTimeMillis / 1000,
-                    );
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  {formatDuration(current.start * 1000 + current.song.trackTimeMillis)}
-                </Button>
-              ) : null}
-              <Input
-                value={currentEndTime}
-                placeholder="312"
-                aria-invalid={!endTimeRegex.test(currentEndTime)}
-                onChange={(e) => setEndInput(e.target.value)}
-              />
-            </div>
-            <RelativeTimestampEditor
-              value={Number(current.end)}
-              test={currentTime}
-              onInput={(x) => {
-                setCurrent((c: any) => ({ ...c, end: x }));
-                onTimeJump?.(x - 3, true, false, x);
-              }}
-              onSeekTo={(x) => onTimeJump?.(x, true)}
-            />
-          </div>
-          <div className="md:col-span-8">
-            <Button
-              type="button"
-              className="w-full"
-              disabled={!canSave || !priviledgeSufficient}
-              onClick={addSong}
-            >
-              {addOrUpdate}
-            </Button>
-          </div>
-          <div className="md:col-span-1">
-            <Button
-              type="button"
-              variant="destructive"
-              className="w-full"
-              aria-label={t("views.library.selectionReset")}
-              onClick={reset}
-            >
-              <RotateCcw className="size-5" />
-            </Button>
-          </div>
-          <div className="md:col-span-3">
-            <Button
-              nativeButton={false}
-              render={(props) => (
-                <a
-                  {...props}
-                  href={current.amUrl || "#"}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                />
-              )}
-              variant="secondary"
-              disabled={!current.amUrl}
-              className="justify-start whitespace-normal text-left"
-            >
-              <img
-                src="https://apple-resources.s3.amazonaws.com/medusa/production/images/5f600674c4f022000191d6c4/en-us-large@1x.png"
-                className="h-6 w-6 rounded-sm object-cover"
-                alt=""
-              />
-              <span>{t("editor.music.listenOnAppleMusic")}</span>
-            </Button>
-          </div>
-          {!canSave && !priviledgeSufficient ? (
-            <Alert variant="destructive" className="md:col-span-12">
-              <AlertDescription
-                dangerouslySetInnerHTML={{ __html: t.raw("editor.music.permission") }}
-              />
-            </Alert>
-          ) : null}
+          <StartTimeField
+            current={current}
+            currentTime={currentTime}
+            onTimeJump={onTimeJump}
+            startInput={currentStartTimeInput}
+            onStartInput={setStartInput}
+            onStart={(x) => {
+              setCurrent((c: any) => ({ ...c, start: x }));
+              setCurrentStartTimeInput(secondsToHuman(x));
+            }}
+          />
+          <EndTimeField
+            current={current}
+            currentTime={currentTime}
+            onTimeJump={onTimeJump}
+            onEndInput={setEndInput}
+            onEnd={(x) => setCurrent((c: any) => ({ ...c, end: x }))}
+          />
+          <SongActions
+            current={current}
+            label={addOrUpdate}
+            canSave={!!canSave}
+            privilegeSufficient={!!privilegeSufficient}
+            onSave={addSong}
+            onReset={reset}
+          />
         </div>
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-sm text-muted-foreground">
-            {t("editor.music.titles.songList", { arg0: video.title })}
-          </span>
-          <Separator className="flex-1" />
-        </div>
-        <ScrollArea className="max-h-[45vh] min-h-[30vh]">
-          <div className="space-y-2">
-            {songList.map((song) => (
-              <SongItem
-                key={song.name}
-                song={song}
-                detailed
-                hoverIcon={icons.Pencil}
-                artworkHoverIcon={icons.Play}
-                onRemove={removeSong}
-                onPlay={(x: any) => {
-                  onTimeJump?.(x.start);
-                  setCurrent(structuredClone(x));
-                  setCurrentStartTimeInput(secondsToHuman(x.start));
-                }}
-                onPlayNow={(x: any) => onTimeJump?.(x.start, true)}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <SongListSection
+          title={video.title}
+          songList={songList}
+          onRemove={removeSong}
+          onEdit={(x: any) => {
+            onTimeJump?.(x.start);
+            setCurrent(structuredClone(x));
+            setCurrentStartTimeInput(secondsToHuman(x.start));
+          }}
+          onPlayNow={(x: any) => onTimeJump?.(x.start, true)}
+        />
       </div>
     );
   },
