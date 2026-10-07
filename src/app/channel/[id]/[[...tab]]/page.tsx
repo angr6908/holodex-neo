@@ -22,23 +22,151 @@ import { useDomElement } from "@/lib/hooks";
 import * as icons from "@/lib/icons";
 import { ArrowDownAZ, ArrowUpAZ, Grid2x2, LayoutDashboard, LayoutGrid } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
-import { cn, getBreakpoint } from "@/lib/utils";
+import { getBreakpoint } from "@/lib/utils";
 import { channelDisplayName, channelGroup, escapePlainText } from "@/lib/video-format";
+
+const ROUTE_TABS = ["clips", "collabs", "about"] as const;
+
+function channelTab(routeTab: string | undefined) {
+  return ROUTE_TABS.find((tab) => tab === routeTab) ?? "videos";
+}
+
+// The banner is a small fixed-size thumbnail now, so always prefer the smallest variants and
+// keep the larger ones only as error fallbacks.
+function useBannerImage(banner: string | undefined) {
+  // Which banner variant to try next, tracked per banner so a new channel starts over.
+  const [bannerFallback, setBannerFallback] = useState({ banner: "", attempt: 0, failed: false });
+  const bannerSources = useMemo(() => {
+    if (!banner) return [];
+    const { mobile, tablet, tv, banner: full } = getBannerImages(banner);
+    return [...new Set([mobile, tablet, full, tv, banner].filter(Boolean))];
+  }, [banner]);
+  const bannerKey = banner || "";
+  const { attempt, failed } =
+    bannerFallback.banner === bannerKey ? bannerFallback : { attempt: 0, failed: false };
+  const image = failed ? "" : bannerSources[attempt] || "";
+  const onError = () =>
+    setBannerFallback(
+      attempt < bannerSources.length - 1
+        ? { banner: bannerKey, attempt: attempt + 1, failed: false }
+        : { banner: bannerKey, attempt, failed: true },
+    );
+  return { image, onError };
+}
+
+// Name (with the graduated badge), then "@handle / Org / Group" and the subscriber count.
+function ChannelIdentity({ channel, id }: { channel: Record<string, any>; id: string }) {
+  const app = useAppState();
+  const t = useTranslations();
+  const channelName = channelDisplayName(channel, app.settings.useEnglishName);
+  const subCount = channel.subscriber_count
+    ? t("component.channelInfo.subscriberCount", {
+        n: formatCount(channel.subscriber_count, app.settings.lang),
+      })
+    : "";
+  const group = channelGroup(channel);
+  const orgQS = new URLSearchParams({ org: channel.org || "" }).toString();
+  return (
+    <>
+      <Link
+        href={`/channel/${id}`}
+        className="block truncate text-base font-semibold text-foreground no-underline sm:text-lg"
+      >
+        {channel.inactive ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-1 inline-flex h-4 w-4 align-baseline"
+            title={t("component.channelInfo.inactiveChannel")}
+          >
+            <icons.GraduationCap className="size-3.5" />
+          </Button>
+        ) : null}
+        {channelName}
+      </Link>
+      <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground sm:text-sm">
+        {channel.yt_handle ? (
+          <a
+            href={`https://youtube.com/${channel.yt_handle[0]}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground no-underline hover:text-foreground"
+          >
+            {channel.yt_handle[0]}
+          </a>
+        ) : null}
+        {channel.yt_handle && channel.org ? <span>/</span> : null}
+        {channel.org ? (
+          <Link
+            href={`/?${orgQS}`}
+            className="text-muted-foreground no-underline hover:text-foreground"
+          >
+            {channel.org + (group ? ` / ${group}` : "")}
+          </Link>
+        ) : null}
+        {subCount ? <span>{subCount}</span> : null}
+      </div>
+      <ChannelSocials channel={channel} showDelete className="mt-1.5 flex sm:hidden" />
+    </>
+  );
+}
+
+function ChannelTabs({ id, channelType }: { id: string; channelType?: string }) {
+  const t = useTranslations();
+  const pathname = usePathname();
+  const isSubber = channelType === "subber";
+  const tabs = [
+    { path: `/channel/${id}/`, name: t("views.channel.video"), exact: true },
+    { path: `/channel/${id}/clips`, name: t("views.channel.clips"), hide: isSubber },
+    {
+      path: `https://music.holodex.net/channel/${id}`,
+      name: t("views.channel.music"),
+      hide: isSubber,
+    },
+    { path: `/channel/${id}/collabs`, name: t("views.channel.collabs"), hide: isSubber },
+    { path: `/channel/${id}/about`, name: t("views.channel.about") },
+  ];
+  const isActiveTab = (i: any) =>
+    i.path.includes("https")
+      ? false
+      : i.exact
+        ? pathname === `/channel/${id}` || pathname === `/channel/${id}/`
+        : pathname.startsWith(i.path);
+  return (
+    <div className="no-scrollbar flex items-center gap-1 overflow-x-auto">
+      {tabs
+        .filter((i) => !i.hide)
+        .map((i) => (
+          <Button
+            nativeButton={false}
+            key={i.path}
+            render={(props) =>
+              i.path.includes("https") ? (
+                <a {...props} href={i.path} target="_blank" rel="noreferrer" />
+              ) : (
+                <Link {...props} href={i.path} />
+              )
+            }
+            variant={isActiveTab(i) ? "secondary" : "ghost"}
+            size="sm"
+            className="h-auto shrink-0 cursor-pointer rounded-lg whitespace-nowrap transition px-2.5 py-1.5 text-xs sm:text-sm"
+          >
+            {i.name}
+          </Button>
+        ))}
+    </div>
+  );
+}
 
 export default function ChannelPage() {
   const params = useParams<{ id: string; tab?: string[] }>();
-  const pathname = usePathname();
   const id = params.id;
-  const routeTab = params.tab?.[0];
-  const tab =
-    routeTab === "clips" || routeTab === "collabs" || routeTab === "about" ? routeTab : "videos";
+  const tab = channelTab(params.tab?.[0]);
   const app = useAppState();
-  const t = useTranslations();
   const [channel, setChannel] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  // Which banner variant to try next, tracked per banner so a new channel starts over.
-  const [bannerFallback, setBannerFallback] = useState({ banner: "", attempt: 0, failed: false });
+  const banner = useBannerImage(channel.banner);
 
   const setPageTitle = useEffectEvent((data: any) => {
     document.title = `${channelDisplayName(data, app.settings.useEnglishName)} - Holodex`;
@@ -63,84 +191,7 @@ export default function ChannelPage() {
   }, [id]);
 
   const bp = getBreakpoint(app.windowWidth);
-  // The banner is a small fixed-size thumbnail now, so always prefer the smallest variants and
-  // keep the larger ones only as error fallbacks.
-  const bannerSources = useMemo(() => {
-    if (!channel.banner) return [];
-    const { mobile, tablet, tv, banner } = getBannerImages(channel.banner);
-    return [...new Set([mobile, tablet, banner, tv, channel.banner].filter(Boolean))];
-  }, [channel.banner]);
-
-  const bannerKey = channel.banner || "";
-  const { attempt: bannerAttempt, failed: bannerFailed } =
-    bannerFallback.banner === bannerKey ? bannerFallback : { attempt: 0, failed: false };
-  const bannerImage = bannerFailed ? "" : bannerSources[bannerAttempt] || "";
-  const onBannerError = () =>
-    setBannerFallback(
-      bannerAttempt < bannerSources.length - 1
-        ? { banner: bannerKey, attempt: bannerAttempt + 1, failed: false }
-        : { banner: bannerKey, attempt: bannerAttempt, failed: true },
-    );
-
   const avatarSize = bp === "xs" || bp === "sm" ? 48 : 56;
-  const channelName = channelDisplayName(channel, app.settings.useEnglishName);
-  const subCount = channel.subscriber_count
-    ? t("component.channelInfo.subscriberCount", {
-        n: formatCount(channel.subscriber_count, app.settings.lang),
-      })
-    : "";
-  const group = channelGroup(channel);
-  const orgQS = new URLSearchParams({ org: channel.org || "" }).toString();
-  const tabs = [
-    { path: `/channel/${id}/`, name: t("views.channel.video"), exact: true },
-    {
-      path: `/channel/${id}/clips`,
-      name: t("views.channel.clips"),
-      hide: channel.type === "subber",
-    },
-    {
-      path: `https://music.holodex.net/channel/${id}`,
-      name: t("views.channel.music"),
-      hide: channel.type === "subber",
-    },
-    {
-      path: `/channel/${id}/collabs`,
-      name: t("views.channel.collabs"),
-      hide: channel.type === "subber",
-    },
-    { path: `/channel/${id}/about`, name: t("views.channel.about") },
-  ];
-  const isActiveTab = (i: any) =>
-    i.path.includes("https")
-      ? false
-      : i.exact
-        ? pathname === `/channel/${id}` || pathname === `/channel/${id}/`
-        : pathname.startsWith(i.path);
-  const visibleTabs = tabs.filter((i) => !i.hide);
-  const renderTabLink = (i: any, compact = false) => {
-    const ext = i.path.includes("https");
-    return (
-      <Button
-        nativeButton={false}
-        key={i.path}
-        render={(props) =>
-          ext ? (
-            <a {...props} href={i.path} target="_blank" rel="noreferrer" />
-          ) : (
-            <Link {...props} href={i.path} />
-          )
-        }
-        variant={isActiveTab(i) ? "secondary" : "ghost"}
-        size="sm"
-        className={cn(
-          "h-auto shrink-0 cursor-pointer rounded-lg whitespace-nowrap transition",
-          compact ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2.5 py-2 text-[0.8rem]",
-        )}
-      >
-        {i.name}
-      </Button>
-    );
-  };
   if (hasError)
     return (
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] items-center justify-center px-5 pb-10 pt-[calc(var(--nav-header-height,56px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">
@@ -160,61 +211,21 @@ export default function ChannelPage() {
                 <Skeleton className="h-4 w-64 max-w-full" />
               </>
             ) : (
-              <>
-                <Link
-                  href={`/channel/${id}`}
-                  className="block truncate text-base font-semibold text-foreground no-underline sm:text-lg"
-                >
-                  {channel.inactive ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="mr-1 inline-flex h-4 w-4 align-baseline"
-                      title={t("component.channelInfo.inactiveChannel")}
-                    >
-                      <icons.GraduationCap className="size-3.5" />
-                    </Button>
-                  ) : null}
-                  {channelName}
-                </Link>
-                <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground sm:text-sm">
-                  {channel.yt_handle ? (
-                    <a
-                      href={`https://youtube.com/${channel.yt_handle[0]}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      {channel.yt_handle[0]}
-                    </a>
-                  ) : null}
-                  {channel.yt_handle && channel.org ? <span>/</span> : null}
-                  {channel.org ? (
-                    <Link
-                      href={`/?${orgQS}`}
-                      className="text-muted-foreground no-underline hover:text-foreground"
-                    >
-                      {channel.org + (group ? ` / ${group}` : "")}
-                    </Link>
-                  ) : null}
-                  {subCount ? <span>{subCount}</span> : null}
-                </div>
-                <ChannelSocials channel={channel} showDelete className="mt-1.5 flex sm:hidden" />
-              </>
+              <ChannelIdentity channel={channel} id={id} />
             )}
           </div>
           <ChannelSocials channel={channel} showDelete className="hidden shrink-0 sm:flex" />
           {/* Reserve the banner slot while the channel loads so the row doesn't reflow when
                 the image arrives; only bannerless channels settle the layout once. */}
-          {isLoading || bannerImage ? (
+          {isLoading || banner.image ? (
             <div className="hidden h-14 w-[280px] shrink-0 overflow-hidden rounded-lg border border-border/60 md:block lg:h-16 lg:w-[320px]">
-              {bannerImage ? (
+              {banner.image ? (
                 <img
-                  key={bannerImage}
-                  src={bannerImage}
+                  key={banner.image}
+                  src={banner.image}
                   className="h-full w-full object-cover"
                   alt=""
-                  onError={onBannerError}
+                  onError={banner.onError}
                 />
               ) : (
                 <Skeleton className="h-full w-full rounded-none" />
@@ -223,9 +234,7 @@ export default function ChannelPage() {
           ) : null}
         </div>
         <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/30 px-2 py-1.5 sm:px-3">
-          <div className="no-scrollbar flex items-center gap-1 overflow-x-auto">
-            {visibleTabs.map((i) => renderTabLink(i, true))}
-          </div>
+          <ChannelTabs id={id} channelType={channel.type} />
           <div id="channelTabControls" className="flex shrink-0 items-center gap-1" />
         </div>
       </div>

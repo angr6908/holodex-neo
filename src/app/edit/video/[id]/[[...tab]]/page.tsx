@@ -57,6 +57,125 @@ export default function EditVideoPage() {
   );
 }
 
+const editVideoId = (id: string | undefined, v: string | null) => id || v || "";
+
+const startOffset = (t: string | null) => Number(t || 0) || 0;
+
+// The selected editor tab, following the tab in the URL (adjusted during render, so the matching
+// tab shows immediately).
+function useRouteTab(routeTab: string | undefined) {
+  const [currentTab, setCurrentTab] = useState<TabKey>(() => tabFromRoute(routeTab));
+  const [syncedRouteTab, setSyncedRouteTab] = useState(routeTab);
+  if (syncedRouteTab !== routeTab) {
+    setSyncedRouteTab(routeTab);
+    setCurrentTab(tabFromRoute(routeTab));
+  }
+  return [currentTab, setCurrentTab] as const;
+}
+
+const videoTitleText = (video: any) => (video?.title && decodeHTMLEntities(video.title)) || "";
+
+function EditStatus({ isLoading, hasError }: { isLoading: boolean; hasError: boolean }) {
+  return (
+    <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5">
+      {isLoading && !hasError ? (
+        <Card className="inline-flex flex-row items-center gap-3 px-4 py-3">
+          <Spinner />
+        </Card>
+      ) : null}
+      {hasError ? <ApiErrorMessage /> : null}
+    </div>
+  );
+}
+
+// TL and YouTube chat toggles for live/upcoming streams.
+function ChatToggles({
+  showTL,
+  onShowTL,
+  showLiveChat,
+  onShowLiveChat,
+}: {
+  showTL: boolean;
+  onShowTL: (value: boolean) => void;
+  showLiveChat: boolean;
+  onShowLiveChat: (value: boolean) => void;
+}) {
+  const t = useTranslations();
+  return (
+    <>
+      <Toggle
+        pressed={showTL}
+        aria-label={showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn")}
+        onPressedChange={onShowTL}
+      >
+        <icons.TlChatIcon className="size-5" />
+      </Toggle>
+      <Toggle
+        pressed={showLiveChat}
+        aria-label={t("views.watch.chat.ytChatLabel")}
+        onPressedChange={onShowLiveChat}
+      >
+        <icons.YtChatIcon className="size-5" />
+      </Toggle>
+    </>
+  );
+}
+
+function TopicEditor({
+  value,
+  onChange,
+  topics,
+  onSave,
+}: {
+  value: string | null;
+  onChange: (value: string | null) => void;
+  topics: { value: string; text: string }[];
+  onSave: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <>
+      <div className="flex items-center gap-2 text-lg font-normal text-foreground">
+        <icons.CirclePlay className="size-5" />
+        <h2>{t("views.editor.changeTopic.title")}</h2>
+      </div>
+      <p className="text-sm text-muted-foreground">{t("views.editor.changeTopic.info")}</p>
+      <div className="space-y-2">
+        <Label htmlFor="edit-topic-select">{t("component.search.type.topic")}</Label>
+        <Select
+          value={value || "__unset__"}
+          onValueChange={(v) => onChange(v === "__unset__" ? null : v)}
+        >
+          <SelectTrigger id="edit-topic-select" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__unset__">{t("component.search.unset")}</SelectItem>
+            {topics.map((topic) => (
+              <SelectItem key={topic.value} value={topic.value}>
+                {topic.text}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button type="button" onClick={onSave}>
+        {t("views.editor.changeTopic.button")}
+      </Button>
+    </>
+  );
+}
+
+// Keep the playing stream's status and start time current from chat updates.
+function mergeVideoUpdate(value: any, update: any) {
+  return {
+    ...value,
+    status: update.status,
+    start_actual:
+      typeof update.start_actual === "string" ? update.start_actual : value.start_actual,
+  };
+}
+
 function EditVideo() {
   const params = useParams<{ id?: string; tab?: string[] }>();
   const search = useSearchParams();
@@ -65,14 +184,7 @@ function EditVideo() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [video, setVideo] = useState<any>(null);
-  const routeTab = params.tab?.[0];
-  const [currentTab, setCurrentTab] = useState<TabKey>(() => tabFromRoute(routeTab));
-  // Follow the tab in the URL (adjusted during render, so the matching tab shows immediately).
-  const [syncedRouteTab, setSyncedRouteTab] = useState(routeTab);
-  if (syncedRouteTab !== routeTab) {
-    setSyncedRouteTab(routeTab);
-    setCurrentTab(tabFromRoute(routeTab));
-  }
+  const [currentTab, setCurrentTab] = useRouteTab(params.tab?.[0]);
   const [newTopic, setNewTopic] = useState<string | null>(null);
   const [topics, setTopics] = useState<{ value: string; text: string }[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -81,12 +193,11 @@ function EditVideo() {
   const player = useRef<YoutubePlayerHandle | null>(null);
   const musicEditor = useRef<VideoEditSongsHandle | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const videoId = params.id || search.get("v") || "";
-  const timeOffset = Number(search.get("t") || 0) || 0;
-  const title = (video?.title && decodeHTMLEntities(video.title)) || "";
+  const videoId = editVideoId(params.id, search.get("v"));
+  const timeOffset = startOffset(search.get("t"));
+  const title = videoTitleText(video);
   const isLive = !!video && ["live", "upcoming"].includes(video.status);
   const isStream = video?.type === "stream";
-  const showChat = isLive && (showTL || showLiveChat);
   const getLang = getYTLangFromState({ settings: { lang: app.settings.lang } });
 
   function seekTo(time: number, playNow?: boolean, updateStartTime?: boolean) {
@@ -169,17 +280,9 @@ function EditVideo() {
   );
 
   if (isLoading || hasError || !video)
-    return (
-      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5">
-        {isLoading && !hasError ? (
-          <Card className="inline-flex flex-row items-center gap-3 px-4 py-3">
-            <Spinner />
-          </Card>
-        ) : null}
-        {hasError ? <ApiErrorMessage /> : null}
-      </div>
-    );
+    return <EditStatus isLoading={isLoading} hasError={hasError} />;
 
+  const hasComments = !!video.comments?.length;
   return (
     <section className="mx-auto min-h-screen w-full max-w-screen-2xl px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5">
       {!app.userdata?.jwt ? (
@@ -207,28 +310,16 @@ function EditVideo() {
 
           <WatchToolbar video={video}>
             {isLive ? (
-              <Toggle
-                pressed={showTL}
-                aria-label={
-                  showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn")
-                }
-                onPressedChange={setShowTL}
-              >
-                <icons.TlChatIcon className="size-5" />
-              </Toggle>
-            ) : null}
-            {isLive ? (
-              <Toggle
-                pressed={showLiveChat}
-                aria-label={t("views.watch.chat.ytChatLabel")}
-                onPressedChange={setShowLiveChat}
-              >
-                <icons.YtChatIcon className="size-5" />
-              </Toggle>
+              <ChatToggles
+                showTL={showTL}
+                onShowTL={setShowTL}
+                showLiveChat={showLiveChat}
+                onShowLiveChat={setShowLiveChat}
+              />
             ) : null}
           </WatchToolbar>
 
-          {showChat ? (
+          {isLive && (showTL || showLiveChat) ? (
             <Card className="h-[480px] overflow-hidden p-0">
               <WatchLiveChat
                 className="h-full"
@@ -237,14 +328,7 @@ function EditVideo() {
                 modelValue={{ showTlChat: showTL, showYtChat: showLiveChat }}
                 onVideoUpdate={(update) => {
                   if (!update?.status || !update?.start_actual) return;
-                  setVideo((value: any) => ({
-                    ...value,
-                    status: update.status,
-                    start_actual:
-                      typeof update.start_actual === "string"
-                        ? update.start_actual
-                        : value.start_actual,
-                  }));
+                  setVideo((value: any) => mergeVideoUpdate(value, update));
                 }}
               />
             </Card>
@@ -272,39 +356,16 @@ function EditVideo() {
               </TabsList>
 
               <TabsContent value={TABS.TOPIC} className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-normal text-foreground">
-                  <icons.CirclePlay className="size-5" />
-                  <h2>{t("views.editor.changeTopic.title")}</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t("views.editor.changeTopic.info")}
-                </p>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-topic-select">{t("component.search.type.topic")}</Label>
-                  <Select
-                    value={newTopic || "__unset__"}
-                    onValueChange={(value) => setNewTopic(value === "__unset__" ? null : value)}
-                  >
-                    <SelectTrigger id="edit-topic-select" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__unset__">{t("component.search.unset")}</SelectItem>
-                      {topics.map((topic) => (
-                        <SelectItem key={topic.value} value={topic.value}>
-                          {topic.text}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button type="button" onClick={saveTopic}>
-                  {t("views.editor.changeTopic.button")}
-                </Button>
+                <TopicEditor
+                  value={newTopic}
+                  onChange={setNewTopic}
+                  topics={topics}
+                  onSave={saveTopic}
+                />
               </TabsContent>
 
               <TabsContent value={TABS.MUSIC} keepMounted className="space-y-4">
-                {video.comments?.length ? (
+                {hasComments ? (
                   <CommentSongParser
                     comments={video.comments}
                     onSongSelected={selectSongCandidate}
@@ -329,7 +390,7 @@ function EditVideo() {
             </Tabs>
           </Card>
 
-          {video.comments?.length ? (
+          {hasComments ? (
             <Card className="mt-4 max-h-[60vh] gap-0 overflow-y-auto overflow-x-hidden p-4">
               <WatchComments
                 hideBuckets
