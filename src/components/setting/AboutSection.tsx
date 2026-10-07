@@ -197,7 +197,7 @@ export function AboutSection() {
       <TwitterFeed />
       <section className="px-5">
         <h3 className="text-lg leading-7 text-foreground">{t("about.credits.title")}</h3>
-        <div className="about-credits mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
+        <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
           <p>
             {t("about.credits.contents.0")}{" "}
             <a

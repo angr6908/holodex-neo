@@ -185,7 +185,7 @@ export default function AddChannelPage() {
     }
   }
   return (
-    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 max-w-5xl">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5 max-w-5xl">
       <div className="mx-auto w-full md:max-w-[83.333%] lg:max-w-[66.666%]">
         <Card className="p-6">
           <div className="text-2xl font-normal">{t("channelRequest.PageTitle")}</div>

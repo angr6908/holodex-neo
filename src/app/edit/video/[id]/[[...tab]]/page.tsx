@@ -170,7 +170,7 @@ function EditVideo() {
 
   if (isLoading || hasError || !video)
     return (
-      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5">
+      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl items-center justify-center px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5">
         {isLoading && !hasError ? (
           <Card className="inline-flex flex-row items-center gap-3 px-4 py-3">
             <Spinner />
@@ -181,7 +181,7 @@ function EditVideo() {
     );
 
   return (
-    <section className="mx-auto min-h-screen w-full max-w-screen-2xl px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5">
+    <section className="mx-auto min-h-screen w-full max-w-screen-2xl px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5">
       {!app.userdata?.jwt ? (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription dangerouslySetInnerHTML={{ __html: t.raw("views.editor.needlogin") }} />

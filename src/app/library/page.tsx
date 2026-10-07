@@ -117,7 +117,7 @@ export default function LibraryPage() {
   );
 
   return (
-    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-4">
+    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5 space-y-4">
       <div>
         <div className="mb-2 text-xl font-normal text-foreground">
           {t("views.library.savedVideosTitle")}

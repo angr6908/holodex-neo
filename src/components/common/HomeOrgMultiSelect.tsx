@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 type HomeOrgMultiSelectProps = {
   hideTrigger?: boolean;
   buttonVariant?: string;
-  buttonClass?: string;
+  buttonPressHighlight?: boolean;
   iconOnly?: boolean;
   emptySelectionLabel?: string;
   clearSelectionLabel?: string;
@@ -58,7 +58,7 @@ const NO_NAMES: string[] = [];
 export function HomeOrgMultiSelect({
   hideTrigger = false,
   buttonVariant = "secondary",
-  buttonClass = "",
+  buttonPressHighlight,
   iconOnly = false,
   emptySelectionLabel = ALL_VTUBERS_ORG,
   clearSelectionLabel = ALL_VTUBERS_ORG,
@@ -177,9 +177,9 @@ export function HomeOrgMultiSelect({
           <Button
             type="button"
             variant={buttonVariant as any}
+            pressHighlight={buttonPressHighlight}
             className={cn(
               "justify-between transition-colors",
-              buttonClass,
               className,
               showSelectedCount && iconOnly && "relative",
               selectedNames.length > 0 && buttonVariant !== "outline" && "bg-muted dark:bg-muted",

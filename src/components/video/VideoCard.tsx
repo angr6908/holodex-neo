@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { Badge } from "@/components/ui/badge";
@@ -44,15 +44,6 @@ function externalHref(link = "") {
   if (!link) return "";
   return /^https?:\/\//i.test(link) ? link : `https://${link.replace(/^\/+/, "")}`;
 }
-
-const twoLineTitleStyle = {
-  display: "-webkit-box",
-  lineHeight: "1.375rem",
-  minHeight: "2.75rem",
-  overflow: "hidden",
-  WebkitBoxOrient: "vertical",
-  WebkitLineClamp: 2,
-} satisfies CSSProperties;
 
 // Renders the live elapsed-duration badge text with its own 1s ticker so the rest
 // of the card never re-renders as the clock advances.
@@ -336,11 +327,11 @@ export function VideoCard({
     "video-card-title select-text text-left font-medium no-underline",
     denseList
       ? "block w-full truncate text-sm leading-[1.3]"
-      : "cursor-pointer break-words leading-5 hyphens-auto",
+      : // Two lines, always reserving the height of both so card rows line up.
+        "line-clamp-2 min-h-11 cursor-pointer break-words hyphens-auto",
     hasWatched && "text-primary/70 opacity-60",
     inMultiViewActiveVideos && "grayscale opacity-30",
   );
-  const titleStyle = denseList ? undefined : twoLineTitleStyle;
   const metaClass = cn(
     "min-h-0",
     denseList ? "m-0 flex flex-1 flex-none flex-row items-center gap-3" : "flex flex-col",
@@ -399,7 +390,7 @@ export function VideoCard({
   const isLive = data.status === "live";
   const durationBadgeClass = cn(
     "m-1 font-ibm font-light",
-    isLive && "bg-red-800/90 text-white dark:bg-red-800/90 dark:text-white",
+    isLive && "bg-live/90 text-white dark:bg-live/90 dark:text-white",
   );
   const avatarButton = (size?: number) => (
     <Button
@@ -428,8 +419,9 @@ export function VideoCard({
               : app.currentGridSize === 1
                 ? "text-[0.9375rem]"
                 : "text-base"),
+          // After the size: cn() drops a line height that precedes a font size.
+          !denseList && "leading-5.5",
         )}
-        style={titleStyle}
         title={title}
         onMouseDown={(e) => {
           if (e.button === 2 || (e.button === 0 && e.ctrlKey))
@@ -628,20 +620,20 @@ export function VideoCard({
                       <div className="flex flex-col items-end">
                         <Badge variant="secondary" className={durationBadgeClass}>
                           {durationText ? (
-                            <span className="inline-block leading-[13px] group-hover:hidden">
+                            <span className="inline-block leading-3.25 group-hover:hidden">
                               {durationNode}
                             </span>
                           ) : null}
                           {data.placeholderType === "scheduled-yt-stream" ? (
-                            <span className="hidden leading-[13px] group-hover:inline-block">
+                            <span className="hidden leading-3.25 group-hover:inline-block">
                               {t("component.videoCard.typeScheduledYT")}
                             </span>
                           ) : data.placeholderType === "external-stream" ? (
-                            <span className="hidden leading-[13px] group-hover:inline-block">
+                            <span className="hidden leading-3.25 group-hover:inline-block">
                               {t("component.videoCard.typeExternalStream")}
                             </span>
                           ) : data.placeholderType === "event" ? (
-                            <span className="hidden leading-[13px] group-hover:inline-block">
+                            <span className="hidden leading-3.25 group-hover:inline-block">
                               {t("component.videoCard.typeEventPlaceholder")}
                             </span>
                           ) : null}

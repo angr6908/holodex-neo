@@ -1009,7 +1009,7 @@ function TLScriptEditor() {
 
         <div className="flex h-full flex-row items-stretch gap-3">
           <Card className="grow overflow-hidden p-0">
-            <Table className="w-full border-collapse text-sm" width="auto">
+            <Table className="w-full border-collapse" width="auto">
               <TableHeader className="[&_tr]:border-b-0" onClick={() => setSelectedEntry(-1)}>
                 <TableRow className="border-b-0 hover:bg-transparent">
                   <TableHead>{t("views.scriptEditor.table.headerStart")}</TableHead>
@@ -1139,12 +1139,12 @@ function TLScriptEditor() {
 
         <div onKeyDown={handleControlKeyDown}>
           <div className="flex items-baseline">
-            <Card className="mb-1 flex flex-col pb-[7px]">
+            <Card className="mb-1 flex flex-col pb-1.75">
               <Card className="relative">
                 <div className="absolute left-[calc(40%_-_2px)] top-0 z-[1] h-full w-1 bg-primary" />
                 <div
                   ref={timelineDiv}
-                  className="flex scroll-auto flex-col overflow-x-hidden border-y-2 border-border pt-[7px]"
+                  className="flex scroll-auto flex-col overflow-x-hidden border-y-2 border-border pt-1.75"
                 >
                   <Card className="w-[18000px]">
                     <canvas

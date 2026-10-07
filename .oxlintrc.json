@@ -1,0 +1,129 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": ["@shadcn/lint"],
+  "rules": {
+    // Design-system rules (https://github.com/shadcn-ui/lint). Layout classes (margin, width,
+    // position, flex/grid placement...) are always allowed on components; anything else a page
+    // sets on a component must be listed in that component's contract below. The contracts record
+    // what the app already relies on: a new kind of override fails lint until it is either turned
+    // into a variant in src/components/ui or added here on purpose.
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": ["layout"],
+        "contracts": [
+          { "pattern": "^Avatar$", "allow": ["layout", "bg-muted"] },
+          { "pattern": "^Spinner$", "allow": ["layout", "text-primary"] },
+          { "pattern": "^(ItemMedia|Skeleton)$", "allow": ["layout", "shape"] },
+          { "pattern": "^(AlertDescription|AlertDialogContent|CardFooter|CardHeader|ComboboxChipsInput|ComboboxEmpty|CommandGroup|DialogContent|DialogFooter|DialogHeader|DropdownMenuItem|EmptyContent|EmptyHeader|FieldGroup|FieldSet|HoverCardContent|InputGroupAddon|ItemContent|ItemGroup|PaginationContent|PopoverContent|ResizablePanelGroup|Tabs|TabsContent|ToggleGroup)$", "allow": ["layout", "spacing"] },
+          { "pattern": "^(EmptyTitle|ItemTitle)$", "allow": ["layout", "typography"] },
+          { "pattern": "^(ComboboxChips|PaginationLink)$", "allow": ["layout", "effects", "spacing"] },
+          { "pattern": "^TableHeader$", "allow": ["layout", "shape", "bg-background"] },
+          { "pattern": "^(Empty|Field|PopoverHeader)$", "allow": ["layout", "shape", "spacing"] },
+          { "pattern": "^(CardContent|ScrollArea|ToggleGroupItem)$", "allow": ["layout", "spacing", "typography"] },
+          { "pattern": "^(AlertDialogTitle|DialogTitle)$", "allow": ["layout", "typography", "text-foreground"] },
+          { "pattern": "^(EmptyDescription|EmptyMedia)$", "allow": ["layout", "typography", "text-muted-foreground"] },
+          { "pattern": "^ButtonGroupText$", "allow": ["layout", "effects", "spacing", "text-muted-foreground"] },
+          { "pattern": "^Toggle$", "allow": ["layout", "effects", "spacing", "typography"] },
+          { "pattern": "^TableRow$", "allow": ["layout", "shape", "bg-accent", "bg-transparent"] },
+          { "pattern": "^AspectRatio$", "allow": ["layout", "shape", "bg-card", "bg-muted"] },
+          { "pattern": "^CollapsibleContent$", "allow": ["layout", "shape", "spacing", "border-border"] },
+          { "pattern": "^SelectTrigger$", "allow": ["layout", "spacing", "bg-muted", "text-foreground"] },
+          { "pattern": "^TableCell$", "allow": ["layout", "spacing", "typography", "text-muted-foreground"] },
+          { "pattern": "^AccordionContent$", "allow": ["layout", "typography", "text-muted-foreground", "text-primary"] },
+          { "pattern": "^Item$", "allow": ["layout", "motion", "shape", "spacing", "bg-muted"] },
+          { "pattern": "^Label$", "allow": ["layout", "shape", "spacing", "typography", "text-muted-foreground"] },
+          { "pattern": "^Input$", "allow": ["layout", "effects", "shape", "spacing", "typography", "bg-transparent", "border-transparent"] },
+          { "pattern": "^CollapsibleTrigger$", "allow": ["layout", "motion", "shape", "spacing", "typography", "bg-muted", "text-foreground"] },
+          { "pattern": "^Badge$", "allow": ["layout", "spacing", "typography", "bg-live", "bg-twitch", "border-transparent", "text-white"] },
+          { "pattern": "^Card$", "allow": ["layout", "effects", "motion", "shape", "spacing", "typography", "bg-card", "bg-muted", "border-border", "border-ring", "ring-ring", "video-card-shell"] },
+          { "pattern": "^Button$", "allow": ["layout", "effects", "motion", "shape", "spacing", "typography", "bg-muted", "bg-transparent", "ring-primary", "text-foreground", "text-muted-foreground", "text-transparent"] }
+        ]
+      }
+    ],
+    "shadcn/no-raw-colors": "error",
+    // Arbitrary values must be theme tokens or scale steps, except layout and the deliberate
+    // values listed here.
+    "shadcn/no-arbitrary-values": [
+      "error",
+      {
+        "allow": [
+          "layout",
+          // Type sizes and tracking tuned per component (badges, labels, chat).
+          "leading-[1.35]",
+          "leading-[1.3]",
+          "text-[0.55rem]",
+          "text-[0.68rem]",
+          "text-[0.6rem]",
+          "text-[0.85em]",
+          "text-[0.8rem]",
+          "text-[0.9375rem]",
+          "text-[10px]",
+          "text-[11px]",
+          "text-[13px]",
+          "text-[15px]",
+          "text-[9px]",
+          "text-[max(1.5vw,16px)]",
+          "text-[max(1vw,20px)]",
+          "tracking-[0.16em]",
+          "tracking-[0.18em]",
+          // Page and panel offsets below the top nav, and the watch page's fluid layout.
+          "gap-[clamp(12px,1.6vw,20px)]",
+          "pb-[clamp(1.5rem,3vw,3rem)]",
+          "pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.6vw,20px)+clamp(12px,1.8vw,24px))]",
+          "pr-[calc(clamp(320px,24vw,360px)+clamp(12px,1.8vw,24px))]",
+          "pt-[calc(var(--nav-header-height,0px)+0.5rem)]",
+          "pt-[calc(var(--nav-header-height,0px)+1.5rem)]",
+          "pt-[calc(var(--nav-header-height,0px)+1rem)]",
+          "pt-[calc(var(--nav-header-height,56px)+0.75rem)]",
+          "pt-[calc(var(--nav-total-height,120px)+0.75rem)]",
+          "px-[clamp(12px,1.8vw,24px)]",
+          // Device safe areas.
+          "pb-[env(safe-area-inset-bottom)]",
+          "pt-[env(safe-area-inset-top)]",
+          // Other one-off values.
+          "backdrop-blur-[1px]",
+          "gap-[0.45rem]",
+          "hover:[box-shadow:0_0_0_1px_color-mix(in_oklch,var(--color-primary)_50%,transparent),0_0_16px_color-mix(in_oklch,var(--color-primary)_15%,transparent)]",
+          "p-[0.35rem_0.35rem_0.4rem]",
+          "rounded-[calc(var(--radius)+4px)]",
+          "rounded-[calc(var(--radius)+6px)]",
+          "rounded-[inherit]",
+          "transition-[transform,translate,box-shadow,border-color]"
+        ]
+      }
+    ],
+    "shadcn/no-inline-styles": "error",
+    "shadcn/no-unknown-classes": [
+      "error",
+      {
+        // Classes without CSS that scripts or third-party code look for.
+        "allow": [
+          "pull-to-refresh-material__control",
+          "tl-message",
+          "toaster",
+          "twitter-tweet",
+          "video-card-item-actions",
+          "video-card-text"
+        ]
+      }
+    ],
+    "shadcn/require-static-classes": "error"
+  },
+  "overrides": [
+    {
+      // The design system itself owns its look.
+      "files": ["src/components/ui/**"],
+      "rules": {
+        "shadcn/no-restyle": "off",
+        "shadcn/no-arbitrary-values": "off",
+        "shadcn/require-static-classes": "off"
+      }
+    },
+    {
+      // Runtime config template: only comments until Docker's entrypoint generates it.
+      "files": ["public/config.js"],
+      "rules": { "unicorn/no-empty-file": "off" }
+    }
+  ]
+}

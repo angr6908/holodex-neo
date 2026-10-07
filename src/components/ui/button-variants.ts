@@ -29,6 +29,15 @@ export const buttonVariants = cva(
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
       },
+      // Toolbar toggles (nav tabs, open panels). Important so the highlight also beats the
+      // outline variant's dark-mode and hover backgrounds.
+      selected: {
+        true: "bg-muted! text-foreground!",
+      },
+      // Show the selected highlight while the button is held down.
+      pressHighlight: {
+        true: "active:bg-muted! active:text-foreground!",
+      },
     },
     defaultVariants: {
       variant: "default",

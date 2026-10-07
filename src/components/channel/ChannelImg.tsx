@@ -49,7 +49,11 @@ export function ChannelImg({
         : { photoKey, sourceIndex, err: true },
     );
   const avatar = (
-    <Avatar title={title} className={cn(channelAvatarSizeClass(size), className)}>
+    <Avatar
+      title={title}
+      // oxlint-disable-next-line shadcn/require-static-classes -- one of the fixed sizes in avatar-size.ts, shared with ChannelChip
+      className={cn(channelAvatarSizeClass(size), className)}
+    >
       {hasImage ? (
         <img
           key={photo}

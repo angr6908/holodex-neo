@@ -3,7 +3,7 @@
 import throttle from "lodash-es/throttle";
 import { FastForward, Gauge, Link, Pause, Play, Rewind, Settings, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { Badge } from "@/components/ui/badge";
@@ -530,8 +530,8 @@ export function MultiviewSyncBar({
               >
                 {hovering && (
                   <div
-                    style={{ left: tooltipX }}
-                    className="pointer-events-none absolute bottom-full z-30 mb-2 -translate-x-1/2 whitespace-pre rounded-md bg-popover px-2 py-1 text-center text-xs text-popover-foreground shadow-md ring-1 ring-foreground/10"
+                    style={{ "--tooltip-x": `${tooltipX}px` } as CSSProperties}
+                    className="pointer-events-none absolute bottom-full left-(--tooltip-x) z-30 mb-2 -translate-x-1/2 whitespace-pre rounded-md bg-popover px-2 py-1 text-center text-xs text-popover-foreground shadow-md ring-1 ring-foreground/10"
                   >
                     {timeTooltipText}
                   </div>

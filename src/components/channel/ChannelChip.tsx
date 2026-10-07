@@ -53,7 +53,8 @@ export function ChannelChip({
           />
         }
       >
-        <Avatar className={channelAvatarSizeClass(size)}>
+        {/* Fills the trigger, which carries the size. */}
+        <Avatar className="size-full">
           <AvatarImage
             src={photo}
             alt={`${channel.name}'s profile picture`}
@@ -68,7 +69,7 @@ export function ChannelChip({
           smaller scale so channel identity reads the same everywhere. */}
       <HoverCardContent align="center" sideOffset={8} className="w-auto min-w-56 max-w-72 p-3">
         <div className="flex items-center gap-3">
-          <Avatar className={cn("shrink-0", channelAvatarSizeClass(40))}>
+          <Avatar className="size-10 shrink-0">
             <AvatarImage src={photo} alt="" width={40} height={40} decoding="async" />
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">

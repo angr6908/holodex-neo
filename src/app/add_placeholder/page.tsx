@@ -219,7 +219,7 @@ function AddPlaceholder() {
     }
   }
   return (
-    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 space-y-6">
+    <section className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5 space-y-6">
       <header className="space-y-2">
         <Badge variant="secondary">{t("component.form.placeholder.editorBadge")}</Badge>
         <h1 className="text-3xl font-semibold tracking-tight">

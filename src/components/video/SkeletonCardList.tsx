@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppState } from "@/lib/store";
@@ -105,12 +105,9 @@ export function SkeletonCardList({
           "grid gap-x-2 gap-y-2.5",
           !autoFitGrid && (GRID_COLUMN_CLASSES[colSize] || "grid-cols-1"),
           isFlat && "overflow-hidden rounded-xl border gap-y-0 empty:border-0",
+          autoFitGrid && "grid-cols-[repeat(auto-fit,minmax(min(var(--grid-min),100%),1fr))]",
         )}
-        style={
-          autoFitGrid
-            ? { gridTemplateColumns: `repeat(auto-fit, minmax(min(${autoFitMin}, 100%), 1fr))` }
-            : undefined
-        }
+        style={autoFitGrid ? ({ "--grid-min": autoFitMin } as CSSProperties) : undefined}
       >
         {Array.from({ length: itemCount }).map((_, index) => (
           <div

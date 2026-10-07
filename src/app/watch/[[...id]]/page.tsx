@@ -290,7 +290,7 @@ function Watch() {
   );
   const screenClass = cn("relative transition-colors", cinema && "-mt-[4px]");
   const playerClass = cn(
-    "video relative aspect-video h-auto w-full overflow-hidden bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full",
+    "relative aspect-video h-auto w-full overflow-hidden bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full",
     cinema && "mx-auto max-w-[calc((100dvh-5rem)*16/9)] shadow-2xl",
   );
   const toolbarShellClass = cn(cinema && "mx-auto w-full max-w-[calc((100dvh-5rem)*16/9)]");

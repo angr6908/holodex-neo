@@ -150,7 +150,7 @@ export function SongItem({
           ) : null}
 
           {detailed ? (
-            <div className="float-right text-caption">
+            <div className="float-right">
               [{secondsToHuman(song.start)} - {secondsToHuman(song.end)}]
             </div>
           ) : null}

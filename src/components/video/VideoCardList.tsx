@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { type CSSProperties, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Comment } from "@/components/video/Comment";
@@ -85,14 +85,12 @@ export function VideoCardList({
           (denseList || horizontal) &&
             list.length > 0 &&
             "overflow-hidden rounded-xl border gap-y-0",
+          autoFitGrid &&
+            (autoFill
+              ? "grid-cols-[repeat(auto-fill,minmax(min(var(--grid-min),100%),1fr))]"
+              : "grid-cols-[repeat(auto-fit,minmax(min(var(--grid-min),100%),1fr))]"),
         )}
-        style={
-          autoFitGrid
-            ? {
-                gridTemplateColumns: `repeat(${autoFill ? "auto-fill" : "auto-fit"}, minmax(min(${autoFitMin}, 100%), 1fr))`,
-              }
-            : undefined
-        }
+        style={autoFitGrid ? ({ "--grid-min": autoFitMin } as CSSProperties) : undefined}
       >
         {list.map((video: any) => (
           <div

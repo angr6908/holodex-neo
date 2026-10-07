@@ -37,7 +37,6 @@ const Tabs = Object.freeze({ VTUBER: 0, SUBBER: 1, FAVORITES: 2, BLOCKED: 3 });
 const DEFAULT_SORT = "subscribers";
 // v3: cardView defaults flipped to grid; older stored states pinned the implicit list default.
 const KEY = "holodex-v3-channels";
-const ACTIVE_NAV_BUTTON = "bg-muted! text-foreground!";
 const NAV_SELECT_TRIGGER_CLASS =
   "active:translate-y-px data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 
@@ -231,7 +230,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
               title={tab.label}
               aria-label={tab.label}
               aria-pressed={category === tab.value}
-              className={category === tab.value ? ACTIVE_NAV_BUTTON : undefined}
+              selected={category === tab.value}
               onClick={() => setCategory(tab.value)}
             >
               <Icon className="size-4" />
@@ -284,7 +283,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
       className={cn(
         "flex min-h-[70vh] flex-col",
         !embedded &&
-          "mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5",
+          "mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5",
       )}
       onTouchStart={swipeTabs.onTouchStart}
       onTouchEnd={swipeTabs.onTouchEnd}

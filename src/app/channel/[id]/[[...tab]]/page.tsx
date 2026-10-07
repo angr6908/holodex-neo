@@ -117,11 +117,6 @@ export default function ChannelPage() {
         ? pathname === `/channel/${id}` || pathname === `/channel/${id}/`
         : pathname.startsWith(i.path);
   const visibleTabs = tabs.filter((i) => !i.hide);
-  const tabBtnClass = (compact = false) =>
-    cn(
-      "h-auto shrink-0 cursor-pointer rounded-lg whitespace-nowrap transition",
-      compact ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2.5 py-2 text-[0.8rem]",
-    );
   const renderTabLink = (i: any, compact = false) => {
     const ext = i.path.includes("https");
     return (
@@ -137,7 +132,10 @@ export default function ChannelPage() {
         }
         variant={isActiveTab(i) ? "secondary" : "ghost"}
         size="sm"
-        className={tabBtnClass(compact)}
+        className={cn(
+          "h-auto shrink-0 cursor-pointer rounded-lg whitespace-nowrap transition",
+          compact ? "px-2.5 py-1.5 text-xs sm:text-sm" : "px-2.5 py-2 text-[0.8rem]",
+        )}
       >
         {i.name}
       </Button>
@@ -231,7 +229,7 @@ export default function ChannelPage() {
           <div id="channelTabControls" className="flex shrink-0 items-center gap-1" />
         </div>
       </div>
-      <div className="channel min-h-[85vh] py-3">
+      <div className="min-h-[85vh] py-3">
         {tab === "about" ? (
           <ChannelAbout channel={channel} />
         ) : (
@@ -364,13 +362,13 @@ function ChannelAbout({ channel }: { channel: any }) {
       <div className="flex flex-wrap gap-6">
         <div className="w-full text-sm text-muted-foreground md:w-[calc(25%-1.5rem)]">
           <strong className="text-foreground">{t("component.channelInfo.stats")}</strong>
-          <Separator className="my-3 bg-border" />
+          <Separator className="my-3" />
           {t("component.channelInfo.videoCount", { arg0: channel.video_count })}
-          <Separator className="my-3 bg-border" />
+          <Separator className="my-3" />
           {channel.clip_count} {t("component.channelInfo.clipCount", { n: channel.clip_count })}
-          <Separator className="my-3 bg-border" />
+          <Separator className="my-3" />
           {channel.view_count} {t("component.channelInfo.totalViews")}
-          <Separator className="my-3 bg-border" />
+          <Separator className="my-3" />
         </div>
         <div className="w-full flex-1 whitespace-pre-wrap text-sm text-muted-foreground">
           <strong className="text-foreground">{t("component.videoDescription.description")}</strong>

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import {
@@ -240,8 +240,8 @@ export function SettingsPage({ className = "" }: { className?: string }) {
 function ThemeSwatch({ color }: { color?: string }) {
   return (
     <span
-      className="size-3 shrink-0 rounded-full border border-border shadow-sm"
-      style={{ backgroundColor: color ?? "var(--primary)" }}
+      className="size-3 shrink-0 rounded-full border border-border bg-(--swatch) shadow-sm"
+      style={{ "--swatch": color ?? "var(--primary)" } as CSSProperties}
     />
   );
 }

@@ -119,7 +119,7 @@ export function WatchInfo({
           <div className="overflow-hidden rounded-xl border border-border/60 bg-card/50">
             {twitchMeta ? (
               <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
-                <Badge className="gap-1 border-transparent bg-[#9146FF] text-white">
+                <Badge className="gap-1 border-transparent bg-twitch text-white">
                   <TwitchIcon />
                   Twitch
                 </Badge>

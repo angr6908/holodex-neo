@@ -12,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { CellControl } from "@/components/multiview/CellControl";
 import { gridAreaClass } from "@/components/multiview/grid-area";
@@ -356,7 +356,7 @@ export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => v
       size="sm"
       role="button"
       tabIndex={0}
-      className="cursor-pointer gap-1 p-1.5 outline-none transition-colors hover:bg-muted focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className="cursor-pointer gap-1 p-1.5 outline-none transition-colors hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       onClick={() => selectPreset(preset)}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -447,12 +447,6 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
     if (dropIdx !== undefined) store.swapGridPosition({ id1: startIdx, id2: dropIdx });
     setDraggingIdx(-1);
   };
-  const tileStyle = (item: any) => ({
-    height: `${(item.h / 24) * 100}%`,
-    left: `${(item.x / 24) * 100}%`,
-    top: `${(item.y / 24) * 100}%`,
-    width: `${(item.w / 24) * 100}%`,
-  });
   const contentIcon = (c: any) => {
     if (!c) return null;
     if (c.type === "chat") return <MessageCircle className="size-6" />;
@@ -470,8 +464,15 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
         {store.layout.map((item: any, idx: number) => (
           <div
             key={item.i}
-            className="absolute p-1"
-            style={tileStyle(item)}
+            className="absolute top-(--tile-y) left-(--tile-x) h-(--tile-h) w-(--tile-w) p-1"
+            style={
+              {
+                "--tile-h": `${(item.h / 24) * 100}%`,
+                "--tile-x": `${(item.x / 24) * 100}%`,
+                "--tile-y": `${(item.y / 24) * 100}%`,
+                "--tile-w": `${(item.w / 24) * 100}%`,
+              } as CSSProperties
+            }
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();

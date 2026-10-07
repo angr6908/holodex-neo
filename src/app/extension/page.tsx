@@ -22,7 +22,7 @@ export default function ExtensionPage() {
   }, [t]);
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-[var(--nav-total-height,120px)] sm:px-5 flex max-w-6xl flex-col gap-6">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] px-3 pb-10 pt-(--nav-total-height,120px) sm:px-5 flex max-w-6xl flex-col gap-6">
       <ExtensionPromoCard
         screenshot={{
           src: "/img/holodex-plus/holodex-plus-screenshot.webp",

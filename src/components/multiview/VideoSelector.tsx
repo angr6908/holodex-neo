@@ -770,10 +770,7 @@ export function VideoSelector({
                   onVideoClicked={handleVideoClick}
                 />
               ) : isLoading && baseFilteredLive.length === 0 ? (
-                <div
-                  className="grid gap-2"
-                  style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(12rem, 100%), 1fr))" }}
-                >
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(12rem,100%),1fr))] gap-2">
                   {[1, 2, 3, 4, 5, 6].map((n) => (
                     <Skeleton key={n} className="h-28 rounded-lg" />
                   ))}

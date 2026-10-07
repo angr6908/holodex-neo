@@ -45,11 +45,11 @@ function RelativeTimestampEditor({
       <div
         ref={tl}
         role="presentation"
-        className="relative cursor-pointer pt-[25px]"
+        className="relative cursor-pointer pt-6.25"
         onClick={tryPlay}
       >
         <Progress
-          className="mx-2 mb-1.5 mt-5 h-2 [&>[data-slot=progress-indicator]]:bg-primary"
+          className="mx-2 mb-1.5 mt-5 h-2"
           value={((Number(test) - min) * 100.0) / (max - min)}
         />
         <div className="pointer-events-none absolute left-1/2 top-1 block h-5 -translate-x-1/2 border-l-2 border-border pl-1 text-[9px] opacity-0 group-hover:opacity-100">

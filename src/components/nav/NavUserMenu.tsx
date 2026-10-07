@@ -20,7 +20,6 @@ import { Check, Copy, DiscordIcon, GoogleIcon, LogIn, LogOut, Pencil, XIcon } fr
 import { useAppState } from "@/lib/store";
 
 const GOOGLE_CLIENT_ID = "275540829388-87s7f9v2ht3ih51ah0tjkqng8pd8bqo2.apps.googleusercontent.com";
-const NAV_ACTIVE_BUTTON_CLASS = "data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
 
 type GoogleSignInButtonHandle = { triggerGoogleLogin: () => boolean };
 
@@ -250,7 +249,7 @@ export function useNavUserMenu() {
                   <GoogleIcon className="size-4" />
                   <span>{t("views.login.with.0")}</span>
                 </Button>
-                <div className="absolute inset-0 cursor-pointer overflow-hidden opacity-[0.01] [&>*]:min-h-full [&>*]:min-w-full">
+                <div className="absolute inset-0 cursor-pointer overflow-hidden opacity-1 [&>*]:min-h-full [&>*]:min-w-full">
                   <GoogleSignInButton onCredentialResponse={loginGoogle} />
                 </div>
               </div>
@@ -421,7 +420,7 @@ export function useNavUserMenu() {
                     <GoogleIcon className="size-3.5" />
                     <span>{t("component.userMenu.linkGoogle")}</span>
                   </Button>
-                  <div className="absolute inset-0 cursor-pointer overflow-hidden opacity-[0.01] [&>*]:min-h-full [&>*]:min-w-full">
+                  <div className="absolute inset-0 cursor-pointer overflow-hidden opacity-1 [&>*]:min-h-full [&>*]:min-w-full">
                     <GoogleSignInButton onCredentialResponse={loginGoogle} />
                   </div>
                 </div>
@@ -515,7 +514,8 @@ export function NavUserMenu() {
           <Button
             variant="outline"
             size="icon-lg"
-            className={`cursor-pointer overflow-hidden p-0 ${NAV_ACTIVE_BUTTON_CLASS}`}
+            className="cursor-pointer overflow-hidden p-0"
+            selected={menu.menuOpen}
             aria-label={menu.triggerLabel}
           />
         }

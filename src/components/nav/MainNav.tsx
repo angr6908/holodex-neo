@@ -83,9 +83,8 @@ import { useAppState } from "@/lib/store";
 import { useTopicsCache } from "@/lib/topics";
 import { cn, getBreakpoint } from "@/lib/utils";
 
-const NAV_ACTIVE_BUTTON_CLASS =
-  "bg-muted! text-foreground! data-[popup-open]:bg-muted! data-[popup-open]:text-foreground!";
-const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px active:bg-muted! active:text-foreground!";
+// Nav buttons dip on press even when they open a popup (the Button base skips aria-haspopup).
+const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px";
 
 const liveCountFrom = (videos: any[] | undefined | null) =>
   (videos || []).filter((v) => v?.status === "live").length;
@@ -232,13 +231,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                 className="h-7 w-7 object-contain"
                 alt=""
               />
-              <span
-                className="hidden text-base font-semibold leading-none tracking-tight text-foreground sm:inline"
-                style={{
-                  fontFamily: '"IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif',
-                  fontWeight: 600,
-                }}
-              >
+              <span className="hidden font-brand text-base font-semibold leading-none tracking-tight text-foreground sm:inline">
                 Holodex
               </span>
             </Link>
@@ -247,21 +240,15 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               <HomeOrgMultiSelect
                 iconOnly
                 buttonVariant="outline"
-                buttonClass={cn(
-                  "size-9 p-0 justify-center dark:data-[popup-open]:bg-muted!",
-                  NAV_BUTTON_PRESS_CLASS,
-                  "active:translate-y-0!",
-                )}
+                className="size-9 p-0 justify-center dark:data-[popup-open]:bg-muted! active:translate-y-0!"
+                buttonPressHighlight
               />
             </div>
             <div className="hidden shrink-0 sm:block">
               <HomeOrgMultiSelect
                 buttonVariant="outline"
-                buttonClass={cn(
-                  "h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted!",
-                  NAV_BUTTON_PRESS_CLASS,
-                  "active:translate-y-0!",
-                )}
+                className="h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted! active:translate-y-0!"
+                buttonPressHighlight
               />
             </div>
 
@@ -325,10 +312,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                     aria-pressed={mobileSearchOpen || undefined}
                     title={t("component.search.toggleSearch")}
                     onClick={() => setMobileSearchOpen((v) => !v)}
-                    className={cn(
-                      NAV_BUTTON_PRESS_CLASS,
-                      mobileSearchOpen && NAV_ACTIVE_BUTTON_CLASS,
-                    )}
+                    className={NAV_BUTTON_PRESS_CLASS}
+                    pressHighlight
+                    selected={mobileSearchOpen}
                   >
                     <Search className="size-4" aria-hidden="true" />
                   </Button>
@@ -348,6 +334,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                     size="lg"
                     title="Musicdex"
                     className={NAV_BUTTON_PRESS_CLASS}
+                    pressHighlight
                   >
                     <Music className="size-4" aria-hidden="true" />
                   </Button>
@@ -359,10 +346,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                   size="lg"
                   aria-pressed={pathname.startsWith("/multiview") || undefined}
                   title={t("component.mainNav.multiview")}
-                  className={cn(
-                    NAV_BUTTON_PRESS_CLASS,
-                    pathname.startsWith("/multiview") && NAV_ACTIVE_BUTTON_CLASS,
-                  )}
+                  className={NAV_BUTTON_PRESS_CLASS}
+                  pressHighlight
+                  selected={pathname.startsWith("/multiview")}
                 >
                   <LayoutDashboard className="size-4" aria-hidden="true" />
                 </Button>
@@ -376,11 +362,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                         size="lg"
                         aria-label={t("component.mainNav.playlist")}
                         title={t("component.mainNav.playlist")}
-                        className={cn(
-                          "relative",
-                          NAV_BUTTON_PRESS_CLASS,
-                          playlistOpen && NAV_ACTIVE_BUTTON_CLASS,
-                        )}
+                        className={cn("relative", NAV_BUTTON_PRESS_CLASS)}
+                        pressHighlight
+                        selected={playlistOpen}
                       />
                     }
                   >
@@ -403,10 +387,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                         size="lg"
                         aria-label={t("component.mainNav.settings")}
                         title={t("component.mainNav.settings")}
-                        className={cn(
-                          NAV_BUTTON_PRESS_CLASS,
-                          settingsOpen && NAV_ACTIVE_BUTTON_CLASS,
-                        )}
+                        className={NAV_BUTTON_PRESS_CLASS}
+                        pressHighlight
+                        selected={settingsOpen}
                       />
                     }
                   >
@@ -451,8 +434,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                           "cursor-pointer overflow-hidden",
                           NAV_BUTTON_PRESS_CLASS,
                           hasUser && "w-9 p-0",
-                          userMenu.menuOpen && NAV_ACTIVE_BUTTON_CLASS,
                         )}
+                        pressHighlight
+                        selected={userMenu.menuOpen}
                         aria-label={userMenu.triggerLabel}
                       />
                     }
@@ -767,7 +751,9 @@ export function VideoListTopControls({
                 type="button"
                 variant="outline"
                 size="lg"
-                className={cn(NAV_BUTTON_PRESS_CLASS, filterOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                className={NAV_BUTTON_PRESS_CLASS}
+                pressHighlight
+                selected={filterOpen}
                 aria-pressed={filterOpen}
                 aria-label={t("views.settings.filters.hideStreams")}
                 title={t("views.settings.filters.hideStreams")}
@@ -795,7 +781,9 @@ export function VideoListTopControls({
                 type="button"
                 variant="outline"
                 size="lg"
-                className={cn(NAV_BUTTON_PRESS_CLASS, clipOpen && NAV_ACTIVE_BUTTON_CLASS)}
+                className={NAV_BUTTON_PRESS_CLASS}
+                pressHighlight
+                selected={clipOpen}
                 aria-pressed={clipOpen}
                 aria-label={t("views.home.controls.clipLanguages")}
                 title={t("views.home.controls.clipLanguages")}
@@ -832,10 +820,9 @@ export function VideoListTopControls({
                 type="button"
                 variant="outline"
                 size="lg"
-                className={cn(
-                  NAV_BUTTON_PRESS_CLASS,
-                  (dateOpen || !!toDate) && NAV_ACTIVE_BUTTON_CLASS,
-                )}
+                className={NAV_BUTTON_PRESS_CLASS}
+                pressHighlight
+                selected={dateOpen || !!toDate}
                 aria-pressed={dateOpen || !!toDate}
                 aria-label={t("views.home.controls.pickDate")}
                 title={t("views.home.controls.pickDate")}
@@ -865,7 +852,9 @@ export function VideoListTopControls({
               type="button"
               variant="outline"
               size="lg"
-              className={cn(NAV_BUTTON_PRESS_CLASS, displayOpen && NAV_ACTIVE_BUTTON_CLASS)}
+              className={NAV_BUTTON_PRESS_CLASS}
+              pressHighlight
+              selected={displayOpen}
               aria-pressed={displayOpen}
               aria-label={t("views.home.controls.displayMode") || "Display mode"}
               title={t("views.home.controls.displayMode") || "Display mode"}
