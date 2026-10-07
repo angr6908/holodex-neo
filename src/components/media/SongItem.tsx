@@ -41,13 +41,72 @@ type SongItemProps = {
   onChannel?: (song: Song) => void;
 };
 
+function canDeleteSong(user: any, song: Song) {
+  return user?.role && user?.id && (user.role !== "user" || +user.id === +song.creator_id);
+}
+
+// Artwork thumbnail. Hovering the row shows `hoverIcon`; hovering the artwork itself turns it
+// into a "play now" button when that action is available.
+function SongArtwork({
+  art,
+  rowHovered,
+  hoverIcon: HoverIcon,
+  artworkHoverIcon: ArtworkHoverIcon,
+  playLabel,
+  onPlayNow,
+}: {
+  art?: string;
+  rowHovered: boolean;
+  hoverIcon: AnyIcon;
+  artworkHoverIcon: AnyIcon;
+  playLabel: string;
+  onPlayNow?: (event: MouseEvent<HTMLButtonElement>) => void;
+}) {
+  const [hoverInner, setHoverInner] = useState(false);
+  return (
+    <ItemMedia
+      className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
+      onMouseEnter={() => setHoverInner(true)}
+      onMouseLeave={() => setHoverInner(false)}
+    >
+      {art ? (
+        <img src={art} className="h-full w-full object-cover" alt="" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-muted">
+          <icons.Music className="size-5 text-muted-foreground" />
+        </div>
+      )}
+
+      {rowHovered && !hoverInner ? (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45"
+          aria-hidden="true"
+        >
+          <HoverIcon className="size-5 text-white drop-shadow-sm" />
+        </div>
+      ) : null}
+
+      {onPlayNow && hoverInner ? (
+        <button
+          type="button"
+          className="absolute inset-0 flex items-center justify-center bg-black/45 text-white outline-none transition-colors hover:bg-black/55 focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={playLabel}
+          onClick={onPlayNow}
+        >
+          <ArtworkHoverIcon className="size-5 drop-shadow-sm" />
+        </button>
+      ) : null}
+    </ItemMedia>
+  );
+}
+
 export function SongItem({
   song,
   detailed = false,
   alwaysShowDeletion = false,
   showTime = false,
-  hoverIcon: HoverIcon = icons.Play,
-  artworkHoverIcon: ArtworkHoverIcon = icons.Play,
+  hoverIcon = icons.Play,
+  artworkHoverIcon = icons.Play,
   color = "",
   onPlay,
   onPlayNow,
@@ -57,10 +116,7 @@ export function SongItem({
   const app = useAppState();
   const t = useTranslations();
   const [hover, setHover] = useState(false);
-  const [hoverInner, setHoverInner] = useState(false);
-  const user = app.userdata?.user;
-  const userCanDelete =
-    user?.role && user?.id && (user.role !== "user" || +user.id === +song.creator_id);
+  const userCanDelete = canDeleteSong(app.userdata?.user, song);
   const formattedTime = formatDistance(song.available_at, app.settings.lang, t);
   const channelName = channelDisplayName(song.channel, app.settings.useEnglishName);
 
@@ -101,39 +157,14 @@ export function SongItem({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <ItemMedia
-        className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
-        onMouseEnter={() => setHoverInner(true)}
-        onMouseLeave={() => setHoverInner(false)}
-      >
-        {song.art ? (
-          <img src={song.art} className="h-full w-full object-cover" alt="" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
-            <icons.Music className="size-5 text-muted-foreground" />
-          </div>
-        )}
-
-        {hover && !hoverInner ? (
-          <div
-            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/45"
-            aria-hidden="true"
-          >
-            <HoverIcon className="size-5 text-white drop-shadow-sm" />
-          </div>
-        ) : null}
-
-        {onPlayNow && hoverInner ? (
-          <button
-            type="button"
-            className="absolute inset-0 flex items-center justify-center bg-black/45 text-white outline-none transition-colors hover:bg-black/55 focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={t("component.common.play")}
-            onClick={handlePlayNow}
-          >
-            <ArtworkHoverIcon className="size-5 drop-shadow-sm" />
-          </button>
-        ) : null}
-      </ItemMedia>
+      <SongArtwork
+        art={song.art}
+        rowHovered={hover}
+        hoverIcon={hoverIcon}
+        artworkHoverIcon={artworkHoverIcon}
+        playLabel={t("component.common.play")}
+        onPlayNow={onPlayNow ? handlePlayNow : undefined}
+      />
 
       <ItemContent className="min-w-0 flex-1 gap-0 py-1 pt-1">
         <div className={cn("text-base leading-7", color)}>

@@ -11,6 +11,93 @@ import { CHAT_EMBED_SANDBOX } from "@/lib/consts";
 import { useIsClient } from "@/lib/hooks";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+// Members-only archives show TLs only once the player has a position (i.e. the viewer has access).
+function canShowArchiveTl(video: Record<string, any> | null | undefined, currentTime: number) {
+  return video?.topic_id !== "membersonly" || currentTime > 0;
+}
+
+// Live/upcoming streams get the live TL feed, archives the timed one, members-only archives a
+// notice until playback starts.
+function TranslationPane({
+  video,
+  currentTime,
+  className,
+  split,
+  stickBottom,
+  useLocalSubtitleToggle,
+  onVideoUpdate,
+  onTimeJump,
+}: {
+  video?: Record<string, any> | null;
+  currentTime: number;
+  className: string;
+  /** Both chat panes are shown, so they split the height. */
+  split: boolean;
+  stickBottom: boolean;
+  useLocalSubtitleToggle: boolean;
+  onVideoUpdate?: (obj: any) => void;
+  onTimeJump?: (time: number, a?: boolean, b?: boolean) => void;
+}) {
+  const t = useTranslations();
+  const isLiveTLVideo = ["live", "upcoming"].includes(video?.status ?? "");
+  if (video && isLiveTLVideo)
+    return (
+      <LiveTranslations
+        video={video}
+        className={className}
+        currentTime={currentTime}
+        useLocalSubtitleToggle={useLocalSubtitleToggle}
+        onVideoUpdate={onVideoUpdate}
+      />
+    );
+  if (video && canShowArchiveTl(video, currentTime))
+    return (
+      <ArchiveTranslations
+        video={video}
+        className={className}
+        currentTime={currentTime}
+        useLocalSubtitleToggle={useLocalSubtitleToggle}
+        onTimeJump={onTimeJump}
+      />
+    );
+  return (
+    <Card
+      className={cn(
+        "box-border flex flex-col p-0 text-sm",
+        split ? "min-h-0 flex-1 basis-0" : "min-h-0 flex-1",
+      )}
+    >
+      <CardContent
+        className={cn(
+          "min-h-0 flex-1 overflow-auto px-0 text-base leading-normal",
+          stickBottom && "order-2",
+        )}
+      >
+        {t("views.watch.chat.membersOnlyTl")}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Archive chat replay needs the Holodex+ extension unless it has overridden the embed.
+function needsChatExtension(isClient: boolean, video?: Record<string, any> | null) {
+  return isClient && !(window as any).ARCHIVE_CHAT_OVERRIDE && video?.status === "past";
+}
+
+function ExtensionNotice() {
+  const t = useTranslations();
+  return (
+    <div className="p-5 text-sm text-muted-foreground">
+      {t("views.watch.chat.archiveNeedExtensionBefore")}{" "}
+      <Link href="/extension" className="text-primary underline underline-offset-4">
+        Holodex+
+      </Link>{" "}
+      {t("views.watch.chat.archiveNeedExtensionAfter")}
+    </div>
+  );
+}
+
 export function WatchLiveChat({
   video,
   currentTime = 0,
@@ -38,11 +125,7 @@ export function WatchLiveChat({
   // Browser-only flags (set by the extension) are read after hydration so the first client
   // render matches the server markup.
   const isClient = useIsClient();
-  const needExtension =
-    isClient && !(window as any).ARCHIVE_CHAT_OVERRIDE && video?.status === "past";
-  const canShowTLChat =
-    (video?.topic_id === "membersonly" && currentTime > 0) || video?.topic_id !== "membersonly";
-  const isLiveTLVideo = ["live", "upcoming"].includes(video?.status ?? "");
+  const needExtension = needsChatExtension(isClient, video);
   const showTlChat = modelValue.showTlChat;
   const showYtChat = modelValue.showYtChat;
   const liveChatUrl = useMemo(() => {
@@ -104,33 +187,17 @@ export function WatchLiveChat({
           {t("views.watch.chat.loading")}
         </span>
       ) : null}
-      {showTlChat && video && isLiveTLVideo ? (
-        <LiveTranslations
+      {showTlChat ? (
+        <TranslationPane
           video={video}
-          className={tlPanelClass}
           currentTime={currentTime}
+          className={tlPanelClass}
+          split={showTlChat && showYtChat}
+          stickBottom={appStore.settings.liveTlStickBottom}
           useLocalSubtitleToggle={useLocalSubtitleToggle}
           onVideoUpdate={onVideoUpdate}
-        />
-      ) : canShowTLChat && showTlChat && video ? (
-        <ArchiveTranslations
-          video={video}
-          className={tlPanelClass}
-          currentTime={currentTime}
-          useLocalSubtitleToggle={useLocalSubtitleToggle}
           onTimeJump={onTimeJump}
         />
-      ) : showTlChat ? (
-        <Card className={cn("box-border flex flex-col p-0 text-sm", paneClass)}>
-          <CardContent
-            className={cn(
-              "min-h-0 flex-1 overflow-auto px-0 text-base leading-normal",
-              appStore.settings.liveTlStickBottom && "order-2",
-            )}
-          >
-            {t("views.watch.chat.membersOnlyTl")}
-          </CardContent>
-        </Card>
       ) : null}
       {showYtChat && !needExtension ? (
         <div className={embeddedChatClass}>
@@ -144,15 +211,7 @@ export function WatchLiveChat({
           />
         </div>
       ) : null}
-      {needExtension ? (
-        <div className="p-5 text-sm text-muted-foreground">
-          {t("views.watch.chat.archiveNeedExtensionBefore")}{" "}
-          <Link href="/extension" className="text-primary underline underline-offset-4">
-            Holodex+
-          </Link>{" "}
-          {t("views.watch.chat.archiveNeedExtensionAfter")}
-        </div>
-      ) : null}
+      {needExtension ? <ExtensionNotice /> : null}
     </div>
   );
 }

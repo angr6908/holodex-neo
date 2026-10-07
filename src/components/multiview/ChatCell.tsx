@@ -19,6 +19,65 @@ import { useMultiviewStore } from "@/lib/multiview-store";
 import { useAppState } from "@/lib/store";
 import { channelDisplayName } from "@/lib/video-format";
 
+function twitchChatUrl(videoId: string | undefined, hostname: string, darkMode: boolean) {
+  if (!videoId) return "";
+  return `https://www.twitch.tv/embed/${videoId}/chat?parent=${hostname || "localhost"}${darkMode ? "&darkpopout" : ""}`;
+}
+
+// Previous / channel picker / next, over the cell's list of active videos.
+function ChatChannelSwitcher({
+  channels,
+  selectedTab,
+  onSelect,
+}: {
+  channels: { text: string; value: number }[];
+  selectedTab: number;
+  onSelect: (index: number) => void;
+}) {
+  const t = useTranslations();
+  return (
+    <div className="flex items-center gap-1 border-b px-1 py-0.5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={t("component.common.previous")}
+        disabled={selectedTab <= 0}
+        onClick={() => onSelect(selectedTab - 1)}
+      >
+        <ChevronLeft />
+      </Button>
+      <Select
+        value={selectedTab >= 0 ? String(selectedTab) : ""}
+        onValueChange={(value) => {
+          if (value) onSelect(Number(value));
+        }}
+      >
+        <SelectTrigger size="sm" className="min-w-0 flex-1" disabled={!channels.length}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {channels.map((channel) => (
+            <SelectItem key={channel.value} value={String(channel.value)}>
+              {channel.text}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label={t("component.common.next")}
+        disabled={selectedTab < 0 || selectedTab >= channels.length - 1}
+        onClick={() => onSelect(selectedTab + 1)}
+      >
+        <ChevronRight />
+      </Button>
+    </div>
+  );
+}
+
 export function ChatCell({
   item,
   cellWidth = 0,
@@ -54,17 +113,11 @@ export function ChatCell({
     text: channelDisplayName(video.channel, app.settings.useEnglishName) || video.id,
     value: index,
   }));
-  const selectValue = selectedTab >= 0 ? String(selectedTab) : "";
-  const twitchChatLink = currentVideo?.id
-    ? `https://www.twitch.tv/embed/${currentVideo.id}/chat?parent=${hostname || "localhost"}${app.settings.darkMode ? "&darkpopout" : ""}`
-    : "";
+  const twitchChatLink = twitchChatUrl(currentVideo?.id, hostname, app.settings.darkMode);
   const chatModes = [showYtChat ? "yt" : "", showTlChat ? "tl" : ""].filter(Boolean);
 
   function setCurrentTab(value: number) {
     store.setLayoutContentWithKey({ id: item.i, key: "currentTab", value });
-  }
-  function selectChannel(value: number) {
-    setCurrentTab(value);
   }
   function setChatModes(values: string[]) {
     if (values.length === 0) return;
@@ -81,45 +134,11 @@ export function ChatCell({
 
   return (
     <div className="flex h-full max-h-full min-h-0 w-full grow basis-full shrink flex-col overflow-hidden">
-      <div className="flex items-center gap-1 border-b px-1 py-0.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={t("component.common.previous")}
-          disabled={selectedTab <= 0}
-          onClick={() => setCurrentTab(selectedTab - 1)}
-        >
-          <ChevronLeft />
-        </Button>
-        <Select
-          value={selectValue}
-          onValueChange={(value) => {
-            if (value) selectChannel(Number(value));
-          }}
-        >
-          <SelectTrigger size="sm" className="min-w-0 flex-1" disabled={!channels.length}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {channels.map((channel) => (
-              <SelectItem key={channel.value} value={String(channel.value)}>
-                {channel.text}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={t("component.common.next")}
-          disabled={selectedTab < 0 || selectedTab >= activeVideos.length - 1}
-          onClick={() => setCurrentTab(selectedTab + 1)}
-        >
-          <ChevronRight />
-        </Button>
-      </div>
+      <ChatChannelSwitcher
+        channels={channels}
+        selectedTab={selectedTab}
+        onSelect={setCurrentTab}
+      />
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {currentVideo ? (
           currentVideo.type === "twitch" ? (

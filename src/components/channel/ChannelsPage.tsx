@@ -61,18 +61,158 @@ function groupByOrg(channels: any[]) {
   return [...map.values()].flat();
 }
 
+// Category tabs, then (except on Blocked) the sort picker and the grid/list toggle.
+function ChannelsControls({
+  category,
+  onCategory,
+  sortValue,
+  sortOptions,
+  ascending,
+  onSort,
+  cardView,
+  onCardView,
+}: {
+  category: number;
+  onCategory: (value: number) => void;
+  sortValue: string;
+  sortOptions: SortOpt[];
+  ascending: boolean;
+  onSort: (value: string) => void;
+  cardView: boolean;
+  onCardView: (value: boolean) => void;
+}) {
+  const t = useTranslations();
+  const tabOpts = useMemo(
+    () => [
+      { value: Tabs.VTUBER, label: t("views.channels.tabs.Vtuber"), icon: Radio },
+      { value: Tabs.SUBBER, label: t("views.channels.tabs.Subber"), icon: Clapperboard },
+      { value: Tabs.FAVORITES, label: t("views.channels.tabs.Favorites"), icon: Heart },
+      { value: Tabs.BLOCKED, label: t("views.channels.tabs.Blocked"), icon: Ban },
+    ],
+    [t],
+  );
+  return (
+    <div className="flex min-w-max shrink-0 flex-nowrap items-center justify-end gap-1.5">
+      <ButtonGroup className="shrink-0">
+        {tabOpts.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <Button
+              key={tab.value}
+              type="button"
+              variant="outline"
+              size="lg"
+              title={tab.label}
+              aria-label={tab.label}
+              aria-pressed={category === tab.value}
+              selected={category === tab.value}
+              onClick={() => onCategory(tab.value)}
+            >
+              <Icon className="size-4" />
+              <span className="sr-only">{tab.label}</span>
+            </Button>
+          );
+        })}
+      </ButtonGroup>
+      {category !== Tabs.BLOCKED ? (
+        <Select value={sortValue} onValueChange={onSort}>
+          <ButtonGroup className="shrink-0">
+            <SelectTrigger buttonLike className={cn("min-w-0", NAV_SELECT_TRIGGER_CLASS)}>
+              <SelectValue />
+            </SelectTrigger>
+            <ButtonGroupText
+              className={cn(
+                "px-2 text-muted-foreground opacity-40",
+                ascending && "[&_svg]:rotate-180",
+              )}
+            >
+              <ArrowDown className="h-4 w-4" />
+            </ButtonGroupText>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              title={t("views.settings.gridSizeLabel")}
+              onClick={() => onCardView(!cardView)}
+            >
+              {cardView ? <LayoutGrid className="size-4" /> : <List className="size-4" />}
+            </Button>
+          </ButtonGroup>
+          <SelectContent>
+            {sortOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.text}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+    </div>
+  );
+}
+
+function ChannelsEmpty({ favorites }: { favorites: boolean }) {
+  const t = useTranslations();
+  return (
+    <Empty className="py-24">
+      <EmptyMedia variant="icon">
+        {favorites ? <Heart className="h-6 w-6" /> : <UserMinus className="h-6 w-6" />}
+      </EmptyMedia>
+      <EmptyHeader>
+        <EmptyDescription>
+          {t(favorites ? "views.channels.favoritesAreEmpty" : "views.channels.blockedAreEmpty")}
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+// Which orgs the list covers: none selected (or the all-vtubers org) means every org.
+function orgScope(selectedHomeOrgs: string[] | undefined, currentOrgName: string) {
+  const selectedOrgs: string[] = selectedHomeOrgs ?? NO_ORGS;
+  const multiOrg = selectedOrgs.length > 1;
+  const allVtubers = currentOrgName === ALL_VTUBERS_ORG || selectedOrgs.length === 0;
+  return { selectedOrgs, multiOrg, allVtubers, singleOrg: !allVtubers && !multiOrg };
+}
+
+// The stored sort when the current tab offers it, else the default, else the first option.
+function pickSort(sortOptions: SortOpt[], sortValue: string) {
+  return (
+    sortOptions.find((o) => o.value === sortValue) ||
+    sortOptions.find((o) => o.value === DEFAULT_SORT) ||
+    sortOptions[0]
+  );
+}
+
+function emptyLocalList(
+  category: number,
+  favorites: any[] | undefined,
+  blocked: any[] | undefined,
+) {
+  if (category === Tabs.FAVORITES && !favorites?.length) return "favorites";
+  if (category === Tabs.BLOCKED && !blocked?.length) return "blocked";
+  return null;
+}
+
+// Favorites and Blocked are listed from local state rather than loaded page by page.
+function localChannels(category: number, favorites: any[], blocked: any[] | undefined) {
+  if (category === Tabs.FAVORITES) return favorites;
+  if (category === Tabs.BLOCKED) return blocked || [];
+  return [];
+}
+
 export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const app = useAppState();
   const t = useTranslations();
   const portal = useDomElement("channels-panel-portal");
   // Persisted tab/sort/view choices (stored values are merged over the defaults).
   const [state, setState] = useStoredState<State>(KEY, DEFAULT_STATE);
-  const selectedOrgs: string[] = app.selectedHomeOrgs ?? NO_ORGS;
+  const { selectedOrgs, multiOrg, allVtubers, singleOrg } = orgScope(
+    app.selectedHomeOrgs,
+    app.currentOrg.name,
+  );
   const orgsKey = JSON.stringify(selectedOrgs);
   const langsKey = app.settings.clipLangs.join(",");
-  const multiOrg = selectedOrgs.length > 1;
-  const allVtubers = app.currentOrg.name === ALL_VTUBERS_ORG || selectedOrgs.length === 0;
-  const singleOrg = !allVtubers && !multiOrg;
   const groupKey = singleOrg ? "group" : "org";
   const category = state.category;
   const sortValue = state.sort[category];
@@ -134,19 +274,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     [t, category, singleOrg, multiOrg, allVtubers],
   );
 
-  const currentSort =
-    sortOptions.find((o) => o.value === sortValue) ||
-    sortOptions.find((o) => o.value === DEFAULT_SORT) ||
-    sortOptions[0];
-  const tabOpts = useMemo(
-    () => [
-      { value: Tabs.VTUBER, label: t("views.channels.tabs.Vtuber"), icon: Radio },
-      { value: Tabs.SUBBER, label: t("views.channels.tabs.Subber"), icon: Clapperboard },
-      { value: Tabs.FAVORITES, label: t("views.channels.tabs.Favorites"), icon: Heart },
-      { value: Tabs.BLOCKED, label: t("views.channels.tabs.Blocked"), icon: Ban },
-    ],
-    [t],
-  );
+  const currentSort = pickSort(sortOptions, sortValue);
 
   const setCategory = useCallback(
     (v: number) => setState((p) => ({ ...p, category: v })),
@@ -208,75 +336,23 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     () => localSortChannels([...(app.favorites || [])], currentSort!.query_value),
     [app.favorites, currentSort],
   );
-  const channelList =
-    category === Tabs.FAVORITES
-      ? sortedFavs
-      : category === Tabs.BLOCKED
-        ? app.settings.blockedChannels || []
-        : [];
+  const channelList = localChannels(category, sortedFavs, app.settings.blockedChannels);
   const grouped = currentSort?.value === "group" || currentSort?.value === "org";
 
   const controls = (
-    <div className="flex min-w-max shrink-0 flex-nowrap items-center justify-end gap-1.5">
-      <ButtonGroup className="shrink-0">
-        {tabOpts.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <Button
-              key={tab.value}
-              type="button"
-              variant="outline"
-              size="lg"
-              title={tab.label}
-              aria-label={tab.label}
-              aria-pressed={category === tab.value}
-              selected={category === tab.value}
-              onClick={() => setCategory(tab.value)}
-            >
-              <Icon className="size-4" />
-              <span className="sr-only">{tab.label}</span>
-            </Button>
-          );
-        })}
-      </ButtonGroup>
-      {category !== Tabs.BLOCKED ? (
-        <Select value={sortValue} onValueChange={setSort}>
-          <ButtonGroup className="shrink-0">
-            <SelectTrigger buttonLike className={cn("min-w-0", NAV_SELECT_TRIGGER_CLASS)}>
-              <SelectValue />
-            </SelectTrigger>
-            <ButtonGroupText
-              className={cn(
-                "px-2 text-muted-foreground opacity-40",
-                currentSort?.query_value.order === "asc" && "[&_svg]:rotate-180",
-              )}
-            >
-              <ArrowDown className="h-4 w-4" />
-            </ButtonGroupText>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              title={t("views.settings.gridSizeLabel")}
-              onClick={() => setCardView(!cardView)}
-            >
-              {cardView ? <LayoutGrid className="size-4" /> : <List className="size-4" />}
-            </Button>
-          </ButtonGroup>
-          <SelectContent>
-            {sortOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.text}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ) : null}
-    </div>
+    <ChannelsControls
+      category={category}
+      onCategory={setCategory}
+      sortValue={sortValue}
+      sortOptions={sortOptions}
+      ascending={currentSort?.query_value.order === "asc"}
+      onSort={setSort}
+      cardView={cardView}
+      onCardView={setCardView}
+    />
   );
 
-  const isFavEmpty = category === Tabs.FAVORITES && !app.favorites?.length;
-  const isBlockedEmpty = category === Tabs.BLOCKED && !app.settings.blockedChannels?.length;
+  const empty = emptyLocalList(category, app.favorites, app.settings.blockedChannels);
 
   return (
     <section
@@ -314,20 +390,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
           </GenericListLoader>
         )}
       </div>
-      {isFavEmpty || isBlockedEmpty ? (
-        <Empty className="py-24">
-          <EmptyMedia variant="icon">
-            {isFavEmpty ? <Heart className="h-6 w-6" /> : <UserMinus className="h-6 w-6" />}
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyDescription>
-              {t(
-                isFavEmpty ? "views.channels.favoritesAreEmpty" : "views.channels.blockedAreEmpty",
-              )}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : null}
+      {empty ? <ChannelsEmpty favorites={empty === "favorites"} /> : null}
     </section>
   );
 }

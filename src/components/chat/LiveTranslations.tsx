@@ -26,6 +26,110 @@ const LIMIT = 20;
 const markBreakpoint = (messages: any[]) =>
   messages.length ? [{ ...messages[0], breakpoint: true }, ...messages.slice(1)] : messages;
 
+// Whether TL subtitles overlay the player. Panels with their own toggle start shown and keep a
+// local choice; otherwise the toggle reads and writes the global setting.
+function useSubtitleToggle(useLocalSubtitleToggle: boolean) {
+  const app = useAppState();
+  const settingShowSub = app.settings.liveTlShowSubtitle;
+  const [showSub, setShowSub] = useState(useLocalSubtitleToggle || settingShowSub);
+  // Follow the global subtitle setting unless this panel has its own toggle (adjusted during
+  // render, so the overlay never shows the stale choice).
+  const subSettingKey = `${useLocalSubtitleToggle}:${settingShowSub}`;
+  const [syncedSubSetting, setSyncedSubSetting] = useState(subSettingKey);
+  if (syncedSubSetting !== subSettingKey) {
+    setSyncedSubSetting(subSettingKey);
+    if (!useLocalSubtitleToggle) setShowSub(settingShowSub);
+  }
+  const toggleSub = () => {
+    const n = !showSub;
+    setShowSub(n);
+    if (!useLocalSubtitleToggle) app.patchSettings({ liveTlShowSubtitle: n } as any);
+  };
+  return [showSub, toggleSub] as const;
+}
+
+function TlStatusOverlay({
+  isLoading,
+  message,
+  onClose,
+}: {
+  isLoading: boolean;
+  message: string;
+  onClose: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background px-4 text-center">
+      {isLoading ? (
+        <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner className="size-4" />
+          {t("views.watch.chat.loading")}
+        </div>
+      ) : (
+        <>
+          <div className="text-sm text-muted-foreground">{message}</div>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              {t("views.app.close_btn")}
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Full-height view of the loaded TL history, with "Load All" until the history is complete.
+function TlExpandedDialog({
+  open,
+  onOpenChange,
+  id,
+  messages,
+  fontSize,
+  blockedCount,
+  canLoadAll,
+  onLoadAll,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  id: string;
+  messages: any[];
+  fontSize: number;
+  blockedCount: number;
+  canLoadAll: boolean;
+  onLoadAll: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl p-0">
+        <Card className="p-0">
+          <div
+            id={id}
+            className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full"
+          >
+            <MessageRenderer tlHistory={messages} fontSize={fontSize}>
+              {blockedCount > 0 ? (
+                <div className="text-xs text-muted-foreground">{blockedCount} Blocked Messages</div>
+              ) : null}
+              {canLoadAll ? (
+                <Button variant="ghost" size="sm" onClick={onLoadAll}>
+                  Load All
+                </Button>
+              ) : null}
+            </MessageRenderer>
+          </div>
+          <CardFooter className="justify-end">
+            <Button variant="destructive" size="sm" onClick={() => onOpenChange(false)}>
+              {t("views.app.close_btn")}
+            </Button>
+          </CardFooter>
+        </Card>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function LiveTranslations({
   video,
   currentTime = 0,
@@ -50,16 +154,7 @@ export function LiveTranslations({
   const [completed, setCompleted] = useState(false);
   // The TL client picks its own language; elsewhere the panel follows the TL language setting.
   const lang = tlLang || app.settings.liveTlLang;
-  const settingShowSub = app.settings.liveTlShowSubtitle;
-  const [showSub, setShowSub] = useState(useLocalSubtitleToggle || settingShowSub);
-  // Follow the global subtitle setting unless this panel has its own toggle (adjusted during
-  // render, so the overlay never shows the stale choice).
-  const subSettingKey = `${useLocalSubtitleToggle}:${settingShowSub}`;
-  const [syncedSubSetting, setSyncedSubSetting] = useState(subSettingKey);
-  if (syncedSubSetting !== subSettingKey) {
-    setSyncedSubSetting(subSettingKey);
-    if (!useLocalSubtitleToggle) setShowSub(settingShowSub);
-  }
+  const [showSub, toggleSub] = useSubtitleToggle(useLocalSubtitleToggle);
   const [overlayMsg, setOverlayMsg] = useState(() => t("views.watch.chat.loading"));
   const [showOverlay, setShowOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,12 +260,6 @@ export function LiveTranslations({
     app.settings.liveTlShowVtuber,
   ]);
 
-  const toggleSub = () => {
-    const n = !showSub;
-    setShowSub(n);
-    if (!useLocalSubtitleToggle) app.patchSettings({ liveTlShowSubtitle: n } as any);
-  };
-
   const blockedCount = history.length - filtered.length;
 
   return (
@@ -181,23 +270,11 @@ export function LiveTranslations({
       )}
     >
       {showOverlay ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background px-4 text-center">
-          {isLoading ? (
-            <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner className="size-4" />
-              {t("views.watch.chat.loading")}
-            </div>
-          ) : (
-            <>
-              <div className="text-sm text-muted-foreground">{overlayMsg}</div>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowOverlay(false)}>
-                  {t("views.app.close_btn")}
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
+        <TlStatusOverlay
+          isLoading={isLoading}
+          message={overlayMsg}
+          onClose={() => setShowOverlay(false)}
+        />
       ) : null}
       <div className="flex items-center justify-between gap-2 border-b px-3 py-1.5">
         <div className="flex items-center gap-1.5 text-xs font-medium">
@@ -227,34 +304,16 @@ export function LiveTranslations({
               <Maximize2 className="size-3.5" />
             </Button>
           ) : null}
-          <Dialog open={expanded} onOpenChange={setExpanded}>
-            <DialogContent className="max-w-4xl p-0">
-              <Card className="p-0">
-                <div
-                  id={expandedId}
-                  className="flex h-[75vh] w-full overscroll-auto [&>div]:h-[75vh] [&>div]:w-full"
-                >
-                  <MessageRenderer tlHistory={filtered} fontSize={app.settings.liveTlFontSize}>
-                    {blockedCount > 0 ? (
-                      <div className="text-xs text-muted-foreground">
-                        {blockedCount} Blocked Messages
-                      </div>
-                    ) : null}
-                    {!completed && !historyLoading ? (
-                      <Button variant="ghost" size="sm" onClick={() => loadMessages(false, true)}>
-                        Load All
-                      </Button>
-                    ) : null}
-                  </MessageRenderer>
-                </div>
-                <CardFooter className="justify-end">
-                  <Button variant="destructive" size="sm" onClick={() => setExpanded(false)}>
-                    {t("views.app.close_btn")}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </DialogContent>
-          </Dialog>
+          <TlExpandedDialog
+            open={expanded}
+            onOpenChange={setExpanded}
+            id={expandedId}
+            messages={filtered}
+            fontSize={app.settings.liveTlFontSize}
+            blockedCount={blockedCount}
+            canLoadAll={!completed && !historyLoading}
+            onLoadAll={() => loadMessages(false, true)}
+          />
           <LiveTranslationsSetting />
         </div>
       </div>

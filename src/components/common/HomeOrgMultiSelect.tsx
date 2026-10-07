@@ -55,6 +55,43 @@ const preferredOrgNames = [
 
 const NO_NAMES: string[] = [];
 
+// Icon-only triggers show just a count badge (past two orgs); full triggers add the label.
+function OrgTriggerContent({
+  iconOnly,
+  count,
+  label,
+}: {
+  iconOnly: boolean;
+  count: number;
+  label: string;
+}) {
+  const showCount = count > 2;
+  if (iconOnly)
+    return (
+      <>
+        <Building className="size-4" />
+        {showCount ? (
+          <Badge variant="outline" className="absolute -right-1 -top-1">
+            {count}
+          </Badge>
+        ) : null}
+      </>
+    );
+  return (
+    <>
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <Building className="size-4 shrink-0" />
+        {showCount ? (
+          <Badge variant="outline">{count}</Badge>
+        ) : (
+          <span className="truncate">{label}</span>
+        )}
+      </span>
+      <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
+    </>
+  );
+}
+
 export function HomeOrgMultiSelect({
   hideTrigger = false,
   buttonVariant = "secondary",
@@ -187,28 +224,11 @@ export function HomeOrgMultiSelect({
           />
         }
       >
-        {iconOnly ? (
-          <>
-            <Building className="size-4" />
-            {showSelectedCount ? (
-              <Badge variant="outline" className="absolute -right-1 -top-1">
-                {selectedNames.length}
-              </Badge>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <span className="flex min-w-0 flex-1 items-center gap-2">
-              <Building className="size-4 shrink-0" />
-              {showSelectedCount ? (
-                <Badge variant="outline">{selectedNames.length}</Badge>
-              ) : (
-                <span className="truncate">{triggerLabel}</span>
-              )}
-            </span>
-            <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" />
-          </>
-        )}
+        <OrgTriggerContent
+          iconOnly={iconOnly}
+          count={selectedNames.length}
+          label={triggerLabel}
+        />
       </PopoverTrigger>
       <PopoverContent
         align="start"

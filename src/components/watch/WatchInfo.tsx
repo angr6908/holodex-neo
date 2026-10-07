@@ -22,6 +22,110 @@ type WatchInfoProps = {
   onTimeJump?: (time: number) => void;
 };
 
+// The JP title is preferred unless the English-name setting is on (falling back either way).
+function videoTitle(video: Record<string, any>, useEnglishName: boolean) {
+  if (!video.jp_name) return video.title;
+  return useEnglishName ? video.title || video.jp_name : video.jp_name || video.title;
+}
+
+function WatchChannelMeta({
+  orgText,
+  orgUrl,
+  subCountText,
+  subscriberCount,
+}: {
+  orgText: string | null;
+  orgUrl: string | null;
+  subCountText: string | null;
+  subscriberCount?: number;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+      {orgText && orgUrl ? (
+        <Link href={orgUrl} className="no-underline hover:underline">
+          {orgText}
+        </Link>
+      ) : null}
+      {orgText && subCountText ? <span>·</span> : null}
+      {subCountText ? (
+        <Tooltip>
+          <TooltipTrigger>
+            <span className="cursor-default">{subCountText}</span>
+          </TooltipTrigger>
+          <TooltipContent>{subscriberCount?.toLocaleString()}</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </div>
+  );
+}
+
+// Twitch stream meta and the description, whose timestamp links seek the player.
+function WatchDescriptionCard({
+  videoId,
+  description,
+  twitchMeta,
+  onTimeJump,
+}: {
+  videoId: string;
+  description?: string;
+  twitchMeta?: { category?: string };
+  onTimeJump?: (time: number) => void;
+}) {
+  const app = useAppState();
+  const t = useTranslations();
+  const redirectMode = app.settings.redirectMode;
+  const processedMessage = useMemo(
+    () => linkifyVideoTimestamps(description, videoId, redirectMode),
+    [description, videoId, redirectMode],
+  );
+
+  function handleClick(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (target.matches(".comment-chip")) {
+      onTimeJump?.(Number(target.getAttribute("data-time") || 0));
+      e.preventDefault();
+    }
+  }
+
+  if (!twitchMeta && !description) return null;
+  return (
+    <div className="px-4 pb-4">
+      <div className="overflow-hidden rounded-xl border border-border/60 bg-card/50">
+        {twitchMeta ? (
+          <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
+            <Badge className="gap-1 border-transparent bg-twitch text-white">
+              <TwitchIcon />
+              Twitch
+            </Badge>
+            {twitchMeta.category ? (
+              <Badge variant="outline" className="gap-1">
+                <Gamepad2 />
+                {twitchMeta.category}
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
+        {description ? (
+          // Delegates clicks from the timestamp links in the description (see WatchComments).
+          <div
+            role="presentation"
+            className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground"
+            onClick={handleClick}
+          >
+            <TruncatedText
+              html={processedMessage}
+              lines={4}
+              renderButton={(expanded) =>
+                expanded ? t("component.description.showLess") : t("component.description.showMore")
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function WatchInfo({
   video,
   onTimeJump,
@@ -43,27 +147,8 @@ export function WatchInfo({
     !noSubCount && ch.subscriber_count
       ? t("component.channelInfo.subscriberCount", { n: formatCount(ch.subscriber_count, lang) })
       : null;
-  const title = decodeHTMLEntities(
-    video.jp_name
-      ? app.settings.useEnglishName
-        ? video.title || video.jp_name
-        : video.jp_name || video.title
-      : video.title,
-  );
-
+  const title = decodeHTMLEntities(videoTitle(video, app.settings.useEnglishName));
   const desc = description ?? video.description;
-  const processedMessage = useMemo(
-    () => linkifyVideoTimestamps(desc, video.id, app.settings.redirectMode),
-    [desc, video.id, app.settings.redirectMode],
-  );
-
-  function handleClick(e: MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (target.matches(".comment-chip")) {
-      onTimeJump?.(Number(target.getAttribute("data-time") || 0));
-      e.preventDefault();
-    }
-  }
 
   return (
     <>
@@ -82,22 +167,12 @@ export function WatchInfo({
               >
                 {chName}
               </Link>
-              <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
-                {orgText && orgUrl ? (
-                  <Link href={orgUrl} className="no-underline hover:underline">
-                    {orgText}
-                  </Link>
-                ) : null}
-                {orgText && subCountText ? <span>·</span> : null}
-                {subCountText ? (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="cursor-default">{subCountText}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>{ch.subscriber_count?.toLocaleString()}</TooltipContent>
-                  </Tooltip>
-                ) : null}
-              </div>
+              <WatchChannelMeta
+                orgText={orgText}
+                orgUrl={orgUrl}
+                subCountText={subCountText}
+                subscriberCount={ch.subscriber_count}
+              />
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
@@ -114,44 +189,12 @@ export function WatchInfo({
           <div className="pb-4" />
         )}
       </section>
-      {twitchMeta || desc ? (
-        <div className="px-4 pb-4">
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-card/50">
-            {twitchMeta ? (
-              <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
-                <Badge className="gap-1 border-transparent bg-twitch text-white">
-                  <TwitchIcon />
-                  Twitch
-                </Badge>
-                {twitchMeta.category ? (
-                  <Badge variant="outline" className="gap-1">
-                    <Gamepad2 />
-                    {twitchMeta.category}
-                  </Badge>
-                ) : null}
-              </div>
-            ) : null}
-            {desc ? (
-              // Delegates clicks from the timestamp links in the description (see WatchComments).
-              <div
-                role="presentation"
-                className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground"
-                onClick={handleClick}
-              >
-                <TruncatedText
-                  html={processedMessage}
-                  lines={4}
-                  renderButton={(expanded) =>
-                    expanded
-                      ? t("component.description.showLess")
-                      : t("component.description.showMore")
-                  }
-                />
-              </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      <WatchDescriptionCard
+        videoId={video.id}
+        description={desc}
+        twitchMeta={twitchMeta}
+        onTimeJump={onTimeJump}
+      />
     </>
   );
 }

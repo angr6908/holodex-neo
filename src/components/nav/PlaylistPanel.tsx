@@ -32,6 +32,411 @@ import { useAppState } from "@/lib/store";
 import { dayjs } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
+function playlistDisplayName(active: any, unnamed: string) {
+  if (!active?.id && active?.name === "Unnamed Playlist") return unnamed;
+  return active?.name || unnamed;
+}
+
+function formatPlaylistDate(ts: string) {
+  try {
+    return dayjs(ts).format("l");
+  } catch {
+    return "";
+  }
+}
+
+// Where a dragged item lands, given the hovered item and which half of it the pointer is in.
+function dropIndex(pos: "above" | "below", fromIdx: number, overIdx: number) {
+  if (pos === "above") return fromIdx > overIdx ? overIdx : overIdx - 1;
+  return fromIdx > overIdx ? overIdx + 1 : overIdx;
+}
+
+function PlaylistName({
+  editing,
+  name,
+  value,
+  onChange,
+  onCommit,
+  onEdit,
+}: {
+  editing: boolean;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  onCommit: () => void;
+  onEdit: () => void;
+}) {
+  const t = useTranslations();
+  if (editing)
+    return (
+      <Input
+        value={value}
+        autoFocus
+        className="max-w-[10rem]"
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => onCommit()}
+        onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing) return;
+          if (e.key === "Enter" || e.key === "Escape") (e.target as HTMLElement).blur();
+        }}
+      />
+    );
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="xs"
+      tabIndex={-1}
+      className="group/name justify-start text-left"
+      title={t("component.playlist.menu.rename-playlist")}
+      onClick={onEdit}
+    >
+      <span className="max-w-[10rem] truncate text-sm font-normal text-foreground">{name}</span>
+      <Pencil className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/name:opacity-100" />
+    </Button>
+  );
+}
+
+function PlaylistActions({
+  saved,
+  activeId,
+  count,
+  onSave,
+  onCreate,
+  onReset,
+  onExportYoutube,
+  onExportCsv,
+  onDelete,
+}: {
+  saved: boolean;
+  activeId?: string;
+  count: number;
+  onSave: () => void;
+  onCreate: () => void;
+  onReset: () => void;
+  onExportYoutube: () => void;
+  onExportCsv: () => void;
+  onDelete: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <div className="ml-auto flex shrink-0 items-center gap-1">
+      {!saved ? (
+        <Button
+          type="button"
+          size="icon-sm"
+          title={t("views.scriptEditor.menu.save")}
+          onClick={onSave}
+        >
+          <Save className="size-4" />
+        </Button>
+      ) : null}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        title={t("component.playlist.menu.new-playlist")}
+        onClick={onCreate}
+      >
+        <ListPlus className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        title={t("component.playlist.menu.reset-unsaved")}
+        disabled={saved || !activeId}
+        onClick={onReset}
+      >
+        <RefreshCw className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        title={t("views.library.exportYtPlaylist")}
+        disabled={!count}
+        onClick={onExportYoutube}
+      >
+        <icons.YoutubeIcon className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        title={t("views.library.exportCsv")}
+        disabled={!count}
+        onClick={onExportCsv}
+      >
+        <FileSpreadsheet className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        title={
+          activeId
+            ? t("component.playlist.menu.delete-playlist")
+            : t("component.playlist.menu.clear-playlist")
+        }
+        onClick={onDelete}
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+// The active playlist's videos; drag a row (pointer, not HTML5 drag) to reorder.
+function PlaylistItems({ onNavigate }: { onNavigate: () => void }) {
+  const app = useAppState();
+  const t = useTranslations();
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const [dragPos, setDragPos] = useState<"above" | "below">("below");
+  const playlistId = app.playlistActive?.id || "local";
+
+  function pointerDown(idx: number, e: React.PointerEvent<HTMLElement>) {
+    if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
+    const container = (e.currentTarget as HTMLElement).parentElement;
+    if (!container) return;
+    const startY = e.clientY;
+    const prevSelect = document.body.style.userSelect;
+    let dragging = false,
+      fromIdx: number | null = null,
+      overIdx: number | null = null,
+      pos: "above" | "below" = "below";
+
+    const setOver = (i: number | null, p: "above" | "below" = "below") => {
+      overIdx = i;
+      pos = p;
+      setDragOver(i);
+      if (i !== null) setDragPos(p);
+    };
+
+    const move = (me: PointerEvent) => {
+      if (!dragging) {
+        if (Math.abs(me.clientY - startY) < 6) return;
+        dragging = true;
+        fromIdx = idx;
+        setDragFrom(idx);
+        document.body.style.userSelect = "none";
+      }
+      me.preventDefault();
+      const items = [...container.querySelectorAll<HTMLElement>("[data-drag-item]")];
+      const hit = items.findIndex((el) => {
+        const r = el.getBoundingClientRect();
+        return me.clientY >= r.top && me.clientY <= r.bottom;
+      });
+      if (hit >= 0) {
+        if (hit === fromIdx) setOver(null);
+        else {
+          const r = items[hit].getBoundingClientRect();
+          setOver(hit, me.clientY < r.top + r.height / 2 ? "above" : "below");
+        }
+        return;
+      }
+      if (!items.length) return;
+      const first = items[0].getBoundingClientRect(),
+        last = items[items.length - 1].getBoundingClientRect();
+      if (me.clientY < first.top + first.height / 2) setOver(0, "above");
+      else if (me.clientY > last.top + last.height / 2) setOver(items.length - 1, "below");
+    };
+
+    const up = () => {
+      if (dragging && fromIdx !== null && overIdx !== null) {
+        const to = dropIndex(pos, fromIdx, overIdx);
+        if (to >= 0 && to < app.playlist.length && to !== fromIdx)
+          app.reorderPlaylist({ from: fromIdx, to });
+        const end = Date.now();
+        document.addEventListener(
+          "click",
+          (ce) => {
+            if (Date.now() - end < 150) {
+              ce.stopPropagation();
+              ce.preventDefault();
+            }
+          },
+          { capture: true, once: true },
+        );
+        document.body.style.userSelect = prevSelect;
+      }
+      setDragFrom(null);
+      setDragOver(null);
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+    };
+
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex flex-col gap-0.5 p-1.5">
+        {app.playlist.map((v: any, idx: number) => (
+          <div
+            key={v.id}
+            data-drag-item
+            className={cn(
+              "group relative flex items-center gap-2.5 rounded-md p-1.5 transition-colors select-none hover:bg-muted",
+              dragFrom === idx && "opacity-30",
+              dragFrom !== null ? "cursor-grabbing" : "cursor-grab",
+            )}
+            onPointerDown={(e) => pointerDown(idx, e)}
+            onDragStart={(e) => e.preventDefault()}
+          >
+            {dragOver === idx && dragFrom !== null && dragFrom !== idx ? (
+              <div
+                className={cn(
+                  "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-primary",
+                  dragPos === "above" ? "-top-px" : "-bottom-px",
+                )}
+              />
+            ) : null}
+            <Link
+              href={`/watch/${v.id}?playlist=${playlistId}`}
+              className="relative shrink-0 overflow-hidden rounded-md"
+              onClick={onNavigate}
+            >
+              <img
+                src={getVideoThumbnails(v.id, false).default}
+                alt={v.title || v.id}
+                className="h-[3.2rem] w-[5.7rem] object-cover"
+                loading="lazy"
+              />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <Link
+                href={`/watch/${v.id}?playlist=${playlistId}`}
+                className="line-clamp-2 text-xs font-medium leading-snug text-foreground hover:underline"
+                onClick={onNavigate}
+              >
+                {v.title || v.id}
+              </Link>
+              {v.channel?.name ? (
+                <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                  {v.channel.english_name || v.channel.name}
+                </span>
+              ) : null}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="self-center opacity-0 group-hover:opacity-100"
+              title={t("component.videoCard.removeFromPlaylist")}
+              onClick={(e) => {
+                e.stopPropagation();
+                app.removeFromPlaylistByIndex(idx);
+              }}
+            >
+              <XIcon className="size-3.5" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// The signed-in user's saved playlists; picking one makes it active.
+function ServerPlaylists({
+  playlists,
+  onSwitch,
+}: {
+  playlists: any[];
+  onSwitch: (playlist: any) => void;
+}) {
+  const app = useAppState();
+  const t = useTranslations();
+  const activeId = app.playlistActive?.id;
+  return (
+    <>
+      <Separator />
+      <div className="px-3 pb-1 pt-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+        {t("views.playlist.page-heading")}
+      </div>
+      <ScrollArea className="max-h-[160px]">
+        <ToggleGroup
+          value={activeId ? [activeId] : []}
+          onValueChange={(v) => {
+            const pl = playlists.find((p) => p.id === v[0]);
+            if (pl) onSwitch(pl);
+          }}
+          className="flex w-full flex-col items-stretch px-1 pb-1"
+        >
+          {playlists.map((pl) => (
+            <ToggleGroupItem
+              key={pl.id}
+              value={pl.id}
+              size="sm"
+              className="h-auto w-full justify-start gap-2 px-2.5 py-2 text-left"
+            >
+              {pl.id === activeId ? (
+                <Check className="h-4 w-4 shrink-0" />
+              ) : (
+                <span className="h-4 w-4 shrink-0" />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-[13px]">{pl.name}</span>
+                  {pl.id === activeId && !app.playlistIsSaved ? (
+                    <Badge variant="secondary">{t("views.playlist.playlist-is-modified")}</Badge>
+                  ) : null}
+                </div>
+                <span className="block text-[10px] text-muted-foreground">
+                  {t("component.playlist.video-count", {
+                    count: (pl.video_ids || pl.videos || []).length,
+                  })}
+                  {pl.updated_at ? ` · ${formatPlaylistDate(pl.updated_at)}` : ""}
+                </span>
+              </div>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </ScrollArea>
+    </>
+  );
+}
+
+function YoutubeExportDialog({
+  open,
+  onOpenChange,
+  count,
+  onExport,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  count: number;
+  onExport: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[90%] md:max-w-[60vw]">
+        <DialogTitle>{t("views.library.exportYTHeading")}</DialogTitle>
+        <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
+          <div className="text-sm text-muted-foreground">
+            <p dangerouslySetInnerHTML={{ __html: t.raw("views.library.exportYTExplanation") }} />
+            <br />
+            <p dangerouslySetInnerHTML={{ __html: t.raw("views.library.exportYTInstructions") }} />
+            <DialogFooter className="mt-4 flex-row flex-wrap justify-start gap-2 sm:justify-start">
+              <Button type="button" onClick={onExport}>
+                {t("views.library.createYtPlaylistButton", { arg0: count })}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                {t("views.library.deleteConfirmationCancel")}
+              </Button>
+            </DialogFooter>
+          </div>
+          <img src="/img/playlist-instruction.jpg" alt="" className="max-w-full" />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function PlaylistPanel({
   open,
   onOpenChange,
@@ -48,10 +453,7 @@ export function PlaylistPanel({
   // Guards against overlapping list requests; only read by handlers.
   const serverLoading = useRef(false);
   const unnamed = t("component.playlist.unnamed-playlist");
-  const activeName =
-    !app.playlistActive?.id && app.playlistActive?.name === "Unnamed Playlist"
-      ? unnamed
-      : app.playlistActive?.name || unnamed;
+  const activeName = playlistDisplayName(app.playlistActive, unnamed);
   const [nameInput, setNameInput] = useState(activeName);
   // Reset the name field when the active playlist's name changes, and the transient UI each
   // time the panel opens (adjusted during render rather than in effects).
@@ -68,9 +470,6 @@ export function PlaylistPanel({
       setLoginWarn(false);
     }
   }
-  const [dragFrom, setDragFrom] = useState<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
-  const [dragPos, setDragPos] = useState<"above" | "below">("below");
   const count = app.playlist.length;
 
   const refreshServerPlaylists = useEffectEvent(() => {
@@ -153,96 +552,6 @@ export function PlaylistPanel({
     setYtDialog(false);
   }
 
-  const fmtTime = (ts: string) => {
-    try {
-      return dayjs(ts).format("l");
-    } catch {
-      return "";
-    }
-  };
-
-  function pointerDown(idx: number, e: React.PointerEvent<HTMLElement>) {
-    if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
-    const container = (e.currentTarget as HTMLElement).parentElement;
-    if (!container) return;
-    const startY = e.clientY;
-    const prevSelect = document.body.style.userSelect;
-    let dragging = false,
-      fromIdx: number | null = null,
-      overIdx: number | null = null,
-      pos: "above" | "below" = "below";
-
-    const setOver = (i: number | null, p: "above" | "below" = "below") => {
-      overIdx = i;
-      pos = p;
-      setDragOver(i);
-      if (i !== null) setDragPos(p);
-    };
-
-    const move = (me: PointerEvent) => {
-      if (!dragging) {
-        if (Math.abs(me.clientY - startY) < 6) return;
-        dragging = true;
-        fromIdx = idx;
-        setDragFrom(idx);
-        document.body.style.userSelect = "none";
-      }
-      me.preventDefault();
-      const items = [...container.querySelectorAll<HTMLElement>("[data-drag-item]")];
-      const hit = items.findIndex((el) => {
-        const r = el.getBoundingClientRect();
-        return me.clientY >= r.top && me.clientY <= r.bottom;
-      });
-      if (hit >= 0) {
-        if (hit === fromIdx) setOver(null);
-        else {
-          const r = items[hit].getBoundingClientRect();
-          setOver(hit, me.clientY < r.top + r.height / 2 ? "above" : "below");
-        }
-        return;
-      }
-      if (!items.length) return;
-      const first = items[0].getBoundingClientRect(),
-        last = items[items.length - 1].getBoundingClientRect();
-      if (me.clientY < first.top + first.height / 2) setOver(0, "above");
-      else if (me.clientY > last.top + last.height / 2) setOver(items.length - 1, "below");
-    };
-
-    const up = () => {
-      if (dragging && fromIdx !== null && overIdx !== null) {
-        const to =
-          pos === "above"
-            ? fromIdx > overIdx
-              ? overIdx
-              : overIdx - 1
-            : fromIdx > overIdx
-              ? overIdx + 1
-              : overIdx;
-        if (to >= 0 && to < app.playlist.length && to !== fromIdx)
-          app.reorderPlaylist({ from: fromIdx, to });
-        const end = Date.now();
-        document.addEventListener(
-          "click",
-          (ce) => {
-            if (Date.now() - end < 150) {
-              ce.stopPropagation();
-              ce.preventDefault();
-            }
-          },
-          { capture: true, once: true },
-        );
-        document.body.style.userSelect = prevSelect;
-      }
-      setDragFrom(null);
-      setDragOver(null);
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerup", up);
-    };
-
-    document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up);
-  }
-
   return (
     <>
       <PopoverContent
@@ -255,34 +564,14 @@ export function PlaylistPanel({
       >
         <div className="flex items-center gap-2 px-3 py-2.5">
           <div className="flex min-w-0 shrink flex-col gap-1.5">
-            {editName ? (
-              <Input
-                value={nameInput}
-                autoFocus
-                className="max-w-[10rem]"
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={() => commitName()}
-                onKeyDown={(e) => {
-                  if (e.nativeEvent.isComposing) return;
-                  if (e.key === "Enter" || e.key === "Escape") (e.target as HTMLElement).blur();
-                }}
-              />
-            ) : (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                tabIndex={-1}
-                className="group/name justify-start text-left"
-                title={t("component.playlist.menu.rename-playlist")}
-                onClick={() => setEditName(true)}
-              >
-                <span className="max-w-[10rem] truncate text-sm font-normal text-foreground">
-                  {activeName}
-                </span>
-                <Pencil className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/name:opacity-100" />
-              </Button>
-            )}
+            <PlaylistName
+              editing={editName}
+              name={activeName}
+              value={nameInput}
+              onChange={setNameInput}
+              onCommit={() => commitName()}
+              onEdit={() => setEditName(true)}
+            />
             <div className="flex items-center gap-1.5 px-1 text-xs leading-none text-muted-foreground">
               {!app.playlistIsSaved ? (
                 <Badge variant="secondary">{t("views.playlist.playlist-is-modified")}</Badge>
@@ -292,75 +581,22 @@ export function PlaylistPanel({
               </span>
             </div>
           </div>
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            {!app.playlistIsSaved ? (
-              <Button
-                type="button"
-                size="icon-sm"
-                title={t("views.scriptEditor.menu.save")}
-                onClick={saveActive}
-              >
-                <Save className="size-4" />
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={t("component.playlist.menu.new-playlist")}
-              onClick={createNew}
-            >
-              <ListPlus className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={t("component.playlist.menu.reset-unsaved")}
-              disabled={app.playlistIsSaved || !app.playlistActive?.id}
-              onClick={() =>
-                app.playlistActive?.id && app.setActivePlaylistByID(app.playlistActive.id)
-              }
-            >
-              <RefreshCw className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={t("views.library.exportYtPlaylist")}
-              disabled={!count}
-              onClick={() => {
-                setYtDialog(true);
-                closePanel();
-              }}
-            >
-              <icons.YoutubeIcon className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={t("views.library.exportCsv")}
-              disabled={!count}
-              onClick={() => void downloadCSV()}
-            >
-              <FileSpreadsheet className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              title={
-                app.playlistActive?.id
-                  ? t("component.playlist.menu.delete-playlist")
-                  : t("component.playlist.menu.clear-playlist")
-              }
-              onClick={() => void deleteActive()}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
+          <PlaylistActions
+            saved={app.playlistIsSaved}
+            activeId={app.playlistActive?.id}
+            count={count}
+            onSave={saveActive}
+            onCreate={createNew}
+            onReset={() =>
+              app.playlistActive?.id && app.setActivePlaylistByID(app.playlistActive.id)
+            }
+            onExportYoutube={() => {
+              setYtDialog(true);
+              closePanel();
+            }}
+            onExportCsv={() => void downloadCSV()}
+            onDelete={() => void deleteActive()}
+          />
         </div>
         <Separator />
         {loginWarn ? (
@@ -381,149 +617,22 @@ export function PlaylistPanel({
           </Alert>
         ) : null}
         {count ? (
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="flex flex-col gap-0.5 p-1.5">
-              {app.playlist.map((v: any, idx: number) => (
-                <div
-                  key={v.id}
-                  data-drag-item
-                  className={cn(
-                    "group relative flex items-center gap-2.5 rounded-md p-1.5 transition-colors select-none hover:bg-muted",
-                    dragFrom === idx && "opacity-30",
-                    dragFrom !== null ? "cursor-grabbing" : "cursor-grab",
-                  )}
-                  onPointerDown={(e) => pointerDown(idx, e)}
-                  onDragStart={(e) => e.preventDefault()}
-                >
-                  {dragOver === idx && dragFrom !== null && dragFrom !== idx ? (
-                    <div
-                      className={cn(
-                        "pointer-events-none absolute left-2 right-2 h-0.5 rounded-full bg-primary",
-                        dragPos === "above" ? "-top-px" : "-bottom-px",
-                      )}
-                    />
-                  ) : null}
-                  <Link
-                    href={`/watch/${v.id}?playlist=${app.playlistActive?.id || "local"}`}
-                    className="relative shrink-0 overflow-hidden rounded-md"
-                    onClick={closePanel}
-                  >
-                    <img
-                      src={getVideoThumbnails(v.id, false).default}
-                      alt={v.title || v.id}
-                      className="h-[3.2rem] w-[5.7rem] object-cover"
-                      loading="lazy"
-                    />
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/watch/${v.id}?playlist=${app.playlistActive?.id || "local"}`}
-                      className="line-clamp-2 text-xs font-medium leading-snug text-foreground hover:underline"
-                      onClick={closePanel}
-                    >
-                      {v.title || v.id}
-                    </Link>
-                    {v.channel?.name ? (
-                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                        {v.channel.english_name || v.channel.name}
-                      </span>
-                    ) : null}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    className="self-center opacity-0 group-hover:opacity-100"
-                    title={t("component.videoCard.removeFromPlaylist")}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      app.removeFromPlaylistByIndex(idx);
-                    }}
-                  >
-                    <XIcon className="size-3.5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PlaylistItems onNavigate={closePanel} />
         ) : (
           <Empty className="flex-none px-3 py-8">
             <EmptyDescription>{t("views.playlist.page-instruction")}</EmptyDescription>
           </Empty>
         )}
         {serverPls.length > 0 ? (
-          <>
-            <Separator />
-            <div className="px-3 pb-1 pt-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-              {t("views.playlist.page-heading")}
-            </div>
-            <ScrollArea className="max-h-[160px]">
-              <ToggleGroup
-                value={app.playlistActive?.id ? [app.playlistActive.id] : []}
-                onValueChange={(v) => {
-                  const pl = serverPls.find((p) => p.id === v[0]);
-                  if (pl) void switchPl(pl);
-                }}
-                className="flex w-full flex-col items-stretch px-1 pb-1"
-              >
-                {serverPls.map((pl) => (
-                  <ToggleGroupItem
-                    key={pl.id}
-                    value={pl.id}
-                    size="sm"
-                    className="h-auto w-full justify-start gap-2 px-2.5 py-2 text-left"
-                  >
-                    {pl.id === app.playlistActive?.id ? (
-                      <Check className="h-4 w-4 shrink-0" />
-                    ) : (
-                      <span className="h-4 w-4 shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate text-[13px]">{pl.name}</span>
-                        {pl.id === app.playlistActive?.id && !app.playlistIsSaved ? (
-                          <Badge variant="secondary">
-                            {t("views.playlist.playlist-is-modified")}
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {t("component.playlist.video-count", {
-                          count: (pl.video_ids || pl.videos || []).length,
-                        })}
-                        {pl.updated_at ? ` · ${fmtTime(pl.updated_at)}` : ""}
-                      </span>
-                    </div>
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </ScrollArea>
-          </>
+          <ServerPlaylists playlists={serverPls} onSwitch={(pl) => void switchPl(pl)} />
         ) : null}
       </PopoverContent>
-      <Dialog open={ytDialog} onOpenChange={setYtDialog}>
-        <DialogContent className="max-w-[90%] md:max-w-[60vw]">
-          <DialogTitle>{t("views.library.exportYTHeading")}</DialogTitle>
-          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto]">
-            <div className="text-sm text-muted-foreground">
-              <p dangerouslySetInnerHTML={{ __html: t.raw("views.library.exportYTExplanation") }} />
-              <br />
-              <p
-                dangerouslySetInnerHTML={{ __html: t.raw("views.library.exportYTInstructions") }}
-              />
-              <DialogFooter className="mt-4 flex-row flex-wrap justify-start gap-2 sm:justify-start">
-                <Button type="button" onClick={exportYT}>
-                  {t("views.library.createYtPlaylistButton", { arg0: count })}
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => setYtDialog(false)}>
-                  {t("views.library.deleteConfirmationCancel")}
-                </Button>
-              </DialogFooter>
-            </div>
-            <img src="/img/playlist-instruction.jpg" alt="" className="max-w-full" />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <YoutubeExportDialog
+        open={ytDialog}
+        onOpenChange={setYtDialog}
+        count={count}
+        onExport={exportYT}
+      />
     </>
   );
 }
