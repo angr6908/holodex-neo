@@ -162,7 +162,6 @@ function TwitterFeed() {
         <Button
           nativeButton={false}
           render={
-            // biome-ignore lint/security/noScriptUrl: bookmarklet the user drags to their bookmarks bar, so the javascript: URL is the feature, not a navigation target.
             <a href="javascript:(function(){var v=new%20URLSearchParams(window.location.search).get('v');v&&(window.location.href='https://holodex.net/watch/'+v)})()" />
           }
           variant="outline"
