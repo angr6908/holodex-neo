@@ -10,6 +10,7 @@ import {
   dayjs,
   formatDuration,
   getDayjsLocale,
+  relativeTimeFormatter,
   TIMESTAMP_REGEX,
   timestampToSeconds,
   titleTimeString,
@@ -238,17 +239,24 @@ export function compactVideoTime(
     "en";
   if (absMs < 60_000) return diffMs > 0 ? "soon" : "just now";
   if (absMs < 86_400_000) {
-    const rtf = new Intl.RelativeTimeFormat(loc, { numeric: "auto" });
+    const rtf = relativeTimeFormatter(loc);
     return absMs < 3_600_000
       ? rtf.format(Math.round(diffMs / 60_000), "minute")
       : rtf.format(Math.round(diffMs / 3_600_000), "hour");
   }
-  return new Intl.DateTimeFormat(loc, {
+  return pastDateFormatter(loc).format(target.valueOf());
+}
+
+const pastDateFormatters: Record<string, Intl.DateTimeFormat> = {};
+
+function pastDateFormatter(locale: string) {
+  pastDateFormatters[locale] ||= new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(target.valueOf());
+  });
+  return pastDateFormatters[locale];
 }
 
 function isSameDay(a: any, b: any) {

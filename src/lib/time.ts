@@ -44,13 +44,20 @@ export const timestampToSeconds = (
   seconds?: string | number | null,
 ) => Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0);
 
+const relativeTimeFormatters: Record<string, Intl.RelativeTimeFormat> = {};
+
+export function relativeTimeFormatter(locale: string) {
+  relativeTimeFormatters[locale] ||= new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  return relativeTimeFormatters[locale];
+}
+
 export function formatRelativeTime(target: ReturnType<typeof dayjs>, lang?: string, now = dayjs()) {
   const diff = target.valueOf() - now.valueOf();
   const abs = Math.abs(diff);
   const supported = Intl.RelativeTimeFormat.supportedLocalesOf(
     [lang || "", getDayjsLocale(lang)].filter(Boolean),
   );
-  const fmt = new Intl.RelativeTimeFormat(supported[0] || "en", { numeric: "auto" });
+  const fmt = relativeTimeFormatter(supported[0] || "en");
   const [unit, div]: [Intl.RelativeTimeFormatUnit, number] =
     abs < 45_000
       ? ["second", 1000]

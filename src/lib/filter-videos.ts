@@ -45,7 +45,11 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
 
   const blockedChannels: Set<string> = app.blockedChannelIDs || new Set();
   const favoriteChannels: Set<string> = app.favoriteChannelIDs || new Set();
-  const hiddenGroups: Record<string, string[]> = app.settings.hiddenGroups || {};
+  const hiddenGroups = new Map<string, Set<string>>(
+    Object.entries((app.settings.hiddenGroups || {}) as Record<string, string[]>).map(
+      ([org, groups]) => [org, new Set(groups)],
+    ),
+  );
   const noTargetOrgs = !forOrgs?.length && !forOrg;
   const targetOrgs = new Set(
     (forOrgs?.length ? forOrgs : Array.isArray(forOrg) ? forOrg : [forOrg]).filter(Boolean),
@@ -68,7 +72,7 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
     if (hideLive && v.status === "live") return false;
 
     const channelOrg: string = channel.org || channelOrgById[channelId] || "";
-    if (hideGroups && hiddenGroups[channelOrg]?.includes(channelGroupKey(channel))) return false;
+    if (hideGroups && hiddenGroups.get(channelOrg)?.has(channelGroupKey(channel))) return false;
     if (noTargetOrgs) return true;
 
     if (matchesTargetOrg(channelOrg) || favoriteChannels.has(channelId)) return true;
@@ -76,8 +80,7 @@ export function makeVideoFilter(app: any, options: FilterOptions = {}) {
     if (hideCollabs) return false;
     return !!v.mentions?.some(({ id, org, suborg }) => {
       if (blockedChannels.has(id)) return false;
-      if (hideGroups && hiddenGroups[org ?? ""]?.includes(channelGroupKey({ suborg })))
-        return false;
+      if (hideGroups && hiddenGroups.get(org ?? "")?.has(channelGroupKey({ suborg }))) return false;
       return matchesTargetOrg(org || channelOrgById[id]) || favoriteChannels.has(id);
     });
   };

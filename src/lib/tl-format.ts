@@ -1,9 +1,12 @@
 export function downloadTextFile(filename: string, contents: string) {
+  const url = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
+  a.href = url;
   a.download = filename;
   a.click();
   a.remove();
+  // Give the browser a moment to start the download before freeing the Blob.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -107,14 +110,18 @@ function parseAssEntries(lines: string[], profiles: Profile[], opts: AssOpts): E
     styleI = fmt.indexOf("Style"),
     textI = fmt.indexOf("Text");
   if (startI === -1 || endI === -1 || styleI === -1 || textI === -1) return null;
+  const profileIndexByName = new Map<string, number>();
+  profiles.forEach((p, index) => {
+    if (!profileIndexByName.has(p.Name)) profileIndexByName.set(p.Name, index);
+  });
   const entries: Entry[] = [];
   for (let i = eIdx + 2; i < lines.length && /^Dialogue/i.test(lines[i]); i++) {
     const v = lines[i].split("Dialogue:")[1]?.split(",");
     if (!v) return null;
     if (v.length < fmt.length) break;
     const name = opts.trimDialogueStyle ? v[styleI].trim() : v[styleI];
-    const profileIndex = profiles.findIndex((p) => p.Name === name);
-    if (profileIndex === -1) continue;
+    const profileIndex = profileIndexByName.get(name);
+    if (profileIndex === undefined) continue;
     const startTime = parseAssTimestamp(v[startI].trim(), opts);
     const endTime = parseAssTimestamp(v[endI].trim(), opts);
     if (startTime === null || endTime === null) return null;

@@ -100,11 +100,14 @@ export const setCookieJWT = (jwt: string | null) => {
     const { hostname } = window.location;
     const domain =
       hostname === "localhost" || hostname === "127.0.0.1" ? "" : ";domain=.holodex.net";
+    // Shared with other holodex.net services that read it client-side, so it cannot be
+    // HttpOnly; at least never send it over plain HTTP.
+    const secure = window.location.protocol === "https:" ? ";secure" : "";
     if (jwt) {
       const { exp } = jwtDecode<{ exp: number }>(jwt);
-      document.cookie = `HOLODEX_JWT=${jwt};expires=${new Date(exp * 1000).toUTCString()}${domain};path=/`;
+      document.cookie = `HOLODEX_JWT=${jwt};expires=${new Date(exp * 1000).toUTCString()}${domain};path=/${secure}`;
     } else {
-      document.cookie = `HOLODEX_JWT=;max-age=-1${domain};path=/`;
+      document.cookie = `HOLODEX_JWT=;max-age=-1${domain};path=/${secure}`;
     }
   } catch {}
 };

@@ -128,7 +128,11 @@ export function jsonpItunes(
 }
 
 export const api = {
-  orgs: () => fetch(`/statics/orgs.json`).then((r) => r.json()),
+  orgs: () =>
+    fetch(`/statics/orgs.json`).then((r) => {
+      if (!r.ok) throw new Error(`Failed to load orgs: HTTP ${r.status}`);
+      return r.json();
+    }),
   stats: () => axios.get(`/statics/stats.json`),
   channels: (q: Record<string, any> = {}) => dedupGet(`/channels?${qs(q)}`),
   videos: (q: Record<string, any> = {}) => dedupGet(`/videos?${qs(q)}`),

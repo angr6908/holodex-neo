@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { readJSON, writeJSON } from "@/lib/browser";
 
@@ -18,22 +18,27 @@ export async function fetchTopicOptions() {
 }
 
 // localStorage-backed cache of the /topics list, shared by the nav filters and the search dropdown.
+// The list is only shown once a topic picker opens (which calls fetchTopics), so the cache is
+// read lazily there instead of in a mount effect: cached topics show immediately, then refresh.
 export function useTopicsCache() {
   const [topics, setTopics] = useState<TopicOption[]>([]);
   const [topicsLoading, setTopicsLoading] = useState(false);
-
-  useEffect(() => {
-    setTopics(readJSON(TOPICS_STORAGE_KEY, []));
-  }, []);
+  const requested = useRef(false);
 
   async function fetchTopics() {
-    if (topics.length || topicsLoading) return;
-    setTopicsLoading(true);
+    if (requested.current) return;
+    requested.current = true;
+    const cached = readJSON<TopicOption[]>(TOPICS_STORAGE_KEY, []);
+    if (cached.length) setTopics(cached);
+    else setTopicsLoading(true);
     try {
       const { data }: any = await api.topics();
       const next = (data || []).map(({ id, count }: any) => ({ value: id, count }));
       setTopics(next);
       writeJSON(TOPICS_STORAGE_KEY, next);
+    } catch (e) {
+      requested.current = false;
+      throw e;
     } finally {
       setTopicsLoading(false);
     }

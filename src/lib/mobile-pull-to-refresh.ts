@@ -48,7 +48,7 @@ function onTouchPan({
     if (p) onpanend?.(p);
   };
 
-  element.addEventListener("touchstart", start);
+  element.addEventListener("touchstart", start, { passive: true });
   if (onpanmove) element.addEventListener("touchmove", move as EventListener, { passive: false });
   if (onpanend) element.addEventListener("touchend", end as EventListener);
 
