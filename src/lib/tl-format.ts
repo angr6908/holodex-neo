@@ -9,6 +9,16 @@ export function downloadTextFile(filename: string, contents: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// TL profiles can share names and be reordered, so lists key them by a client-side id (also
+// kept in the tlclient's localStorage copy; exports only read the named fields).
+let profileIdSeq = 0;
+export const newTlProfileId = () =>
+  `profile-${Date.now().toString(36)}-${(profileIdSeq++).toString(36)}`;
+export const withTlProfileIds = <T extends Record<string, any>>(profiles: T[]): T[] =>
+  profiles.every((profile) => profile?.id)
+    ? profiles
+    : profiles.map((profile) => (profile?.id ? profile : { ...profile, id: newTlProfileId() }));
+
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const splitHMS = (ms: number) => [
   Math.floor(ms / 3600000),

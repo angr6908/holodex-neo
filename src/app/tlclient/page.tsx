@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LiveTranslations } from "@/components/chat/LiveTranslations";
 import { VideoSelector } from "@/components/multiview/VideoSelector";
@@ -11,6 +11,7 @@ import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { YoutubePlayer } from "@/components/player/YoutubePlayer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TlProfileLegend } from "@/components/tl/TlProfileLegend";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -25,14 +26,18 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { openUserMenu, readJSON, writeJSON } from "@/lib/browser";
-import { TL_LANGS, VIDEO_URL_REGEX } from "@/lib/consts";
+import { CHAT_EMBED_SANDBOX, TL_LANGS, VIDEO_URL_REGEX } from "@/lib/consts";
 import { getVideoIDFromUrl } from "@/lib/functions";
+import { useHostname } from "@/lib/hooks";
 import { CirclePlus, CircleX, Home, MinusCircle, Settings, XIcon } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
+import { useStoredState } from "@/lib/stored-state";
+import { newTlProfileId, withTlProfileIds } from "@/lib/tl-format";
 import { cn } from "@/lib/utils";
 
 const defaultProfile = [
   {
+    id: "default",
     Name: "Default",
     Prefix: "",
     Suffix: "",
@@ -45,15 +50,32 @@ const defaultProfile = [
 const playerEmbedClass =
   "h-full w-full [&>div]:h-full [&>div]:w-full [&>div>iframe]:h-full [&>div>iframe]:w-full [&>iframe]:h-full [&>iframe]:w-full";
 
+let collabLinkSeq = 0;
+const newCollabLink = () => ({ id: collabLinkSeq++, link: "" });
+
 export default function TLClientPage() {
+  return (
+    <Suspense fallback={null}>
+      <TLClient />
+    </Suspense>
+  );
+}
+
+function TLClient() {
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const appStore = useAppState();
-  const [profile, setProfile] = useState<any[]>(defaultProfile);
-  const [mainStreamLink, setMainStreamLink] = useState("");
+  const hostname = useHostname();
+  const [profile, setProfile] = useStoredState<any[]>(
+    "tldex-profiles",
+    defaultProfile,
+    withTlProfileIds,
+  );
+  const [mainStreamLink, setMainStreamLink] = useStoredState("tldex-lastlink", "");
   const [TLSetting, setTLSetting] = useState(true);
-  const [firstLoad, setFirstLoad] = useState(true);
+  // Only read by the settings OK handler, so it doesn't need to re-render.
+  const firstLoad = useRef(true);
   const [profileIdx, setProfileIdx] = useState(0);
   const [profileDisplay, setProfileDisplay] = useState(false);
   const profileDisplayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,7 +85,7 @@ export default function TLClientPage() {
   const [modalMode, setModalMode] = useState(3);
   const [addProfileNameString, setAddProfileNameString] = useState("");
   const [TLLang, setTLLang] = useState<any>(TL_LANGS[0]);
-  const [collabLinks, setCollabLinks] = useState<string[]>([""]);
+  const [collabLinks, setCollabLinks] = useState(() => [newCollabLink()]);
   const [videoSelectDialog, setVideoSelectDialog] = useState(false);
   const [activeChat, setActiveChat] = useState<
     Array<{ text: string; IFrameEle?: HTMLIFrameElement | null }>
@@ -81,36 +103,26 @@ export default function TLClientPage() {
   const liveTlStickBottom = appStore.settings.liveTlStickBottom;
   const userdata = appStore.userdata;
 
+  const reset = useEffectEvent(() => init());
   useEffect(() => {
     document.title = "TLClient - Holodex";
-    setProfile(readJSON("tldex-profiles", defaultProfile));
-    setMainStreamLink(readJSON("tldex-lastlink", ""));
-    init();
+    reset();
     const saved = readJSON("Holodex-TLClient", {} as Record<string, number>);
     if (saved.tlChatPanelSize) setTlChatPanelSize(saved.tlChatPanelSize);
     if (saved.videoPanelWidth1) setVideoPanelWidth1(saved.videoPanelWidth1);
     if (saved.videoPanelWidth2) setVideoPanelWidth2(saved.videoPanelWidth2);
   }, []);
 
-  useEffect(() => {
-    writeJSON("tldex-profiles", profile);
-  }, [profile]);
-  useEffect(() => {
-    writeJSON("tldex-lastlink", mainStreamLink);
-  }, [mainStreamLink]);
-
+  // `?video=` opens the client on that stream; the param is then dropped from the URL.
+  const openQueryVideo = useEffectEvent((queryVideo: string) => {
+    setMainStreamLink(queryVideo);
+    init();
+    router.replace("/tlclient");
+  });
   useEffect(() => {
     const queryVideo = searchParams.get("video");
-    if (queryVideo) {
-      setMainStreamLink(queryVideo);
-      init();
-    }
+    if (queryVideo) openQueryVideo(queryVideo);
   }, [searchParams]);
-
-  useEffect(() => {
-    const queryVideo = searchParams.get("video");
-    if (queryVideo && mainStreamLink !== queryVideo) router.replace("/tlclient");
-  }, [mainStreamLink, searchParams, router]);
 
   useEffect(
     () => () => {
@@ -120,10 +132,10 @@ export default function TLClientPage() {
   );
 
   function init() {
-    setFirstLoad(true);
+    firstLoad.current = true;
     setModalNexus(true);
     setModalMode(3);
-    setCollabLinks([]);
+    setCollabLinks([newCollabLink()]);
     unloadVideo();
     unloadAll();
     checkLoginValidity();
@@ -187,7 +199,7 @@ export default function TLClientPage() {
           if (withToast) toast.error(String(err));
         });
     post(video?.id, video?.id ? undefined : mainStreamLink);
-    collabLinks.forEach((link) => {
+    collabLinks.forEach(({ link }) => {
       if (!link) return;
       const ytId = link.match(VIDEO_URL_REGEX)?.groups?.id;
       post(ytId || "", ytId ? undefined : link, true);
@@ -195,8 +207,8 @@ export default function TLClientPage() {
     setInputString("");
   }
 
-  const deleteAuxLink = (i: number) => {
-    if (collabLinks.length !== 1) setCollabLinks((p) => p.filter((_, x) => x !== i));
+  const deleteAuxLink = (id: number) => {
+    if (collabLinks.length !== 1) setCollabLinks((p) => p.filter((item) => item.id !== id));
   };
   const modalOutsideClick = () => {
     if (modalMode !== 3) setModalNexus(false);
@@ -218,11 +230,11 @@ export default function TLClientPage() {
     }
     setLocalPrefix(`[${TLLang.value}] `);
     setModalNexus(false);
-    if (firstLoad) {
+    if (firstLoad.current) {
       loadChat(mainStreamLink);
       setVidPlayer(true);
-      collabLinks.forEach(loadChat);
-      setFirstLoad(false);
+      collabLinks.forEach(({ link }) => loadChat(link));
+      firstLoad.current = false;
     }
   }
 
@@ -258,6 +270,7 @@ export default function TLClientPage() {
     setProfile((p) => [
       ...p,
       {
+        id: newTlProfileId(),
         Name: name,
         Prefix: "",
         Suffix: "",
@@ -294,7 +307,7 @@ export default function TLClientPage() {
 
   function URLExtender(s: string) {
     const id = s.slice(3),
-      host = window.location.hostname;
+      host = hostname;
     if (s.startsWith("YT_"))
       return `https://www.youtube.com/live_chat?v=${id}&embed_domain=${host}`;
     if (s.startsWith("TW_")) return `https://www.twitch.tv/embed/${id}/chat?parent=${host}`;
@@ -356,6 +369,8 @@ export default function TLClientPage() {
     setProfile((p) => p.map((item, i) => (i === profileIdx ? { ...item, [field]: value } : item)));
 
   function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // Enter while an IME is composing confirms the candidate, not the TL.
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "Enter") return addEntry();
     if (e.ctrlKey && /^[0-9]$/.test(e.key)) {
       e.preventDefault();
@@ -496,17 +511,7 @@ export default function TLClientPage() {
             ) : null}
             {profileDisplay && activeChat.length > 1 ? (
               <Card className="absolute bottom-1 right-1 flex flex-col gap-1 p-3 text-xs">
-                {profile.map((prf, index) => (
-                  <span
-                    key={`profilecard${index}`}
-                    className={index === profileIdx ? "font-medium text-primary" : ""}
-                  >
-                    {index === profileIdx ? <span>&gt; </span> : null}
-                    {index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}
-                    {index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}
-                    {` ${prf.Name}`}
-                  </span>
-                ))}
+                <TlProfileLegend profiles={profile} activeIndex={profileIdx} />
               </Card>
             ) : null}
           </Card>
@@ -535,6 +540,7 @@ export default function TLClientPage() {
                       type="button"
                       variant="ghost"
                       size="icon-xs"
+                      aria-label={t("component.common.close")}
                       onClick={() => closeChat(index)}
                     >
                       <CircleX className="size-4" />
@@ -543,6 +549,8 @@ export default function TLClientPage() {
                   <iframe
                     className="h-full min-h-0 w-full flex-1"
                     src={URLExtender(ChatURL.text)}
+                    title={ChatURL.text}
+                    sandbox={CHAT_EMBED_SANDBOX}
                     frameBorder={0}
                     onLoad={(event) => IFrameLoaded(event, ChatURL.text)}
                   />
@@ -550,20 +558,7 @@ export default function TLClientPage() {
               ))}
               {profileDisplay && activeChat.length < 2 ? (
                 <Card className="absolute bottom-1 right-1 flex flex-col gap-1 p-3 text-xs">
-                  {profile.map((prf, index) => (
-                    <span
-                      key={`profilecard${index}`}
-                      className={index === profileIdx ? "font-medium text-primary" : ""}
-                    >
-                      {index === profileIdx ? <span>&gt; </span> : null}
-                      {index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}
-                      {index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}
-                      {index === Math.max(1, (profileIdx + 1) % profile.length) ? (
-                        <Kbd className="ml-1">Tab↹</Kbd>
-                      ) : null}
-                      {` ${prf.Name}`}
-                    </span>
-                  ))}
+                  <TlProfileLegend profiles={profile} activeIndex={profileIdx} showNextTab />
                 </Card>
               ) : null}
             </Card>
@@ -629,6 +624,7 @@ export default function TLClientPage() {
                 type="button"
                 variant="ghost"
                 size="icon-xs"
+                aria-label={t("component.common.close")}
                 onClick={() => setTLSetting(false)}
               >
                 <XIcon className="size-4" />
@@ -797,24 +793,32 @@ export default function TLClientPage() {
               </div>
               <Field className="gap-3">
                 <FieldLabel>{t("views.tlClient.settingPanel.collabLink")}</FieldLabel>
-                {collabLinks.map((AuxLink, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => deleteAuxLink(index)}>
+                {collabLinks.map((auxLink) => (
+                  <div key={auxLink.id} className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label={t("component.common.remove")}
+                      onClick={() => deleteAuxLink(auxLink.id)}
+                    >
                       <MinusCircle className="size-4" />
                     </Button>
                     <Input
-                      value={AuxLink}
+                      value={auxLink.link}
                       className="flex-1"
                       onChange={(event) =>
                         setCollabLinks((prev) =>
-                          prev.map((item, idx) => (idx === index ? event.target.value : item)),
+                          prev.map((item) =>
+                            item.id === auxLink.id ? { ...item, link: event.target.value } : item,
+                          ),
                         )
                       }
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setCollabLinks((prev) => [...prev, ""])}
+                      aria-label={t("views.multiview.video.addUrlShort")}
+                      onClick={() => setCollabLinks((prev) => [...prev, newCollabLink()])}
                     >
                       <CirclePlus className="size-4" />
                     </Button>

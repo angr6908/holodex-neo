@@ -2,7 +2,6 @@
 
 import throttle from "lodash-es/throttle";
 import { FastForward, Gauge, Link, Pause, Play, Rewind, Settings, Trash2 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -31,13 +30,18 @@ const availablePlaybackRates = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 export function MultiviewSyncBar({
   className = "",
+  routeTime,
+  routeOffsets: routeOffsetsParam,
   onClose,
 }: {
   className?: string;
+  /** `t` query param: the shared sync timestamp. */
+  routeTime?: string | null;
+  /** `offsets` query param: comma-separated per-video offsets. */
+  routeOffsets?: string | null;
   onClose?: () => void;
 }) {
   const t = useTranslations();
-  const searchParams = useSearchParams();
   const store = useMultiviewStore();
   const cells = useOrderedMultiviewVideoCells(store.layout);
   const [paused, setPausedState] = useState(true);
@@ -57,8 +61,8 @@ export function MultiviewSyncBar({
   const prevPausedRef = useRef(true);
   const syncRef = useRef<(() => void) | null>(null);
 
-  const routeCurrentTs = searchParams.get("t") || undefined;
-  const routeOffsets = searchParams.get("offsets")?.split(",");
+  const routeCurrentTs = routeTime || undefined;
+  const routeOffsets = useMemo(() => routeOffsetsParam?.split(","), [routeOffsetsParam]);
   const pastVideos = useMemo(
     () => store.activeVideos.filter((v: any) => v.status === "past"),
     [store.activeVideos],

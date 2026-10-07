@@ -14,7 +14,14 @@ import {
 } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  Suspense,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import { ChatCell } from "@/components/multiview/ChatCell";
 import { MediaControls } from "@/components/multiview/MediaControls";
 import { MultiviewSyncBar } from "@/components/multiview/MultiviewSyncBar";
@@ -221,15 +228,26 @@ type Interaction = {
   startPixel: { left: number; top: number; width: number; height: number };
 };
 
+function decodeLayoutParam(parts?: string[]) {
+  if (!Array.isArray(parts)) return "";
+  const raw = parts.join("/");
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    // A malformed escape (e.g. a lone "%") is still worth trying as a raw layout string.
+    return raw;
+  }
+}
+
 export default function MultiViewPage() {
   const params = useParams<{ layout?: string[] }>();
-  const layoutParam = Array.isArray(params.layout)
-    ? decodeURIComponent(params.layout.join("/"))
-    : "";
+  const layoutParam = decodeLayoutParam(params.layout);
   return (
     <MultiviewProvider>
       <MultiviewVideoCellsProvider>
-        <Content routeLayout={layoutParam} />
+        <Suspense fallback={null}>
+          <Content routeLayout={layoutParam} />
+        </Suspense>
       </MultiviewVideoCellsProvider>
     </MultiviewProvider>
   );
@@ -276,7 +294,8 @@ function Content({ routeLayout }: { routeLayout: string }) {
     document.title = `${t("component.mainNav.multiview")} - Holodex`;
   }, [t]);
 
-  useEffect(() => {
+  // Applies the layout from the URL (or refreshes stored videos) once, on mount.
+  const applyRouteLayout = useEffectEvent(() => {
     if (routeLayout) {
       try {
         const parsed = decodeLayout(routeLayout);
@@ -291,6 +310,9 @@ function Content({ routeLayout }: { routeLayout: string }) {
       }
       if (sp.get("t") || sp.get("offsets")) setShowSyncBar(true);
     } else store.fetchVideoData({ refreshLive: true });
+  });
+  useEffect(() => {
+    applyRouteLayout();
   }, []);
 
   useEffect(() => {
@@ -509,14 +531,15 @@ function Content({ routeLayout }: { routeLayout: string }) {
       ? document.exitFullscreen?.()
       : document.documentElement.requestFullscreen();
 
+  const onInteractionMove = useEffectEvent((e: PointerEvent) => {
+    const i = intRef.current;
+    if (!i) return;
+    e.preventDefault();
+    applyItem(intItem(i, e.clientX, e.clientY), i.type);
+  });
   useEffect(() => {
     if (!activeInt) return;
-    const onMove = (e: PointerEvent) => {
-      const i = intRef.current;
-      if (!i) return;
-      e.preventDefault();
-      applyItem(intItem(i, e.clientX, e.clientY), i.type);
-    };
+    const onMove = (e: PointerEvent) => onInteractionMove(e);
     const onUp = () => {
       if (intRef.current) {
         intRef.current = null;
@@ -531,7 +554,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-  }, [activeInt, cw, rh, store]);
+  }, [activeInt]);
 
   const buttons = Object.freeze([
     {
@@ -765,7 +788,13 @@ function Content({ routeLayout }: { routeLayout: string }) {
         />
       ) : (
         <div className="absolute right-0 top-0 z-10 m-1.5">
-          <Button type="button" variant="ghost" size="icon" onClick={() => setCollapsed(false)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.multiview.expandToolbar")}
+            onClick={() => setCollapsed(false)}
+          >
             <ChevronDown />
           </Button>
         </div>
@@ -866,7 +895,12 @@ function Content({ routeLayout }: { routeLayout: string }) {
         layoutPreview={overwritePreview}
       />
       {showSyncBar ? (
-        <MultiviewSyncBar className="mt-auto" onClose={() => setShowSyncBar(false)} />
+        <MultiviewSyncBar
+          className="mt-auto"
+          routeTime={sp.get("t")}
+          routeOffsets={sp.get("offsets")}
+          onClose={() => setShowSyncBar(false)}
+        />
       ) : null}
     </div>
   );

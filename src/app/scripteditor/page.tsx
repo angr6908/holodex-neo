@@ -2,9 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { ImportFile } from "@/components/tl/ScriptEditorImportFile";
 import { ScriptEditorExportToFile, TlEntryRow } from "@/components/tl/ScriptEditorParts";
+import { TlProfileLegend } from "@/components/tl/TlProfileLegend";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -33,10 +34,16 @@ import { videoCodeParser } from "@/lib/functions";
 import * as icons from "@/lib/icons";
 import { Keyboard, Play, Settings, Square } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
-import { formatTlRulerTimestamp, formatTlTimestamp } from "@/lib/tl-format";
+import {
+  formatTlRulerTimestamp,
+  formatTlTimestamp,
+  newTlProfileId,
+  withTlProfileIds,
+} from "@/lib/tl-format";
 
 const defaultProfile = [
   {
+    id: "default",
     Name: "Default",
     Prefix: "",
     Suffix: "",
@@ -57,7 +64,9 @@ function EnhancedEntry({
   onMouseDown?: React.MouseEventHandler<HTMLSpanElement>;
 }) {
   return (
+    // Pointer-only drag handle; entries are edited from the table for keyboard users.
     <span
+      role="presentation"
       className={`mx-1 my-0.5 break-words text-center font-normal ${className}`.trim()}
       onMouseDown={onMouseDown}
     >
@@ -70,14 +79,69 @@ const secToPx = 100;
 const secPerBar = 60;
 const barHeight = 25;
 
+// Draws one minute-long ruler bar; `idx` is the bar's position after the first visible one.
+function renderTimelineCanvas(canvas: HTMLCanvasElement | null, idx: number, barCount: number) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  canvas.width = secToPx * secPerBar;
+  canvas.height = barHeight;
+  if (!ctx) return;
+  ctx.save();
+  ctx.strokeStyle = "white";
+  ctx.fillStyle = "white";
+  ctx.font = "14px Ubuntu";
+  ctx.lineWidth = 0.35;
+  const step = secToPx <= 60 ? 10 : secToPx <= 100 ? 2 : 1;
+  for (let x = 0; x / 10 < secPerBar; x += step) {
+    if (secToPx <= 60 || x % 10 === 0) {
+      ctx.beginPath();
+      ctx.moveTo((x * secToPx) / 10, 0);
+      ctx.lineTo((x * secToPx) / 10, barHeight);
+      ctx.stroke();
+      ctx.fillText(
+        formatTlRulerTimestamp(x / 10 + idx * secPerBar + barCount * secPerBar),
+        (x * secToPx) / 10 + 5,
+        barHeight,
+      );
+    } else {
+      ctx.beginPath();
+      ctx.moveTo((x * secToPx) / 10, 0);
+      ctx.lineTo((x * secToPx) / 10, (barHeight * 2.0) / 5.0);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// Index of the first visible ruler bar for the timer position. It only jumps when the timer
+// moves far, and otherwise steps one bar at a time so the timeline scrolls smoothly.
+function nextBarCount(currentBarCount: number, timerTime: number) {
+  const deltaBar = timerTime / 1000 / secPerBar - currentBarCount;
+  if (deltaBar > 3 || deltaBar < 0) {
+    const jumped = Math.floor(timerTime / 1000 / secPerBar);
+    return jumped > 0 ? jumped - 1 : 0;
+  }
+  if (deltaBar > 2) return currentBarCount + 1;
+  if (deltaBar < 1 && currentBarCount > 0) return currentBarCount - 1;
+  return currentBarCount;
+}
+
 export default function TLScriptEditorPage() {
+  return (
+    <Suspense fallback={null}>
+      <TLScriptEditor />
+    </Suspense>
+  );
+}
+
+function TLScriptEditor() {
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const appStore = useAppState();
   const profileDisplayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const player = useRef<any>(null);
-  const manualTimerTick = useRef(Date.now());
+  const manualTimerTick = useRef(0);
   const transactionLog = useRef<any[]>([]);
   const entriesRef = useRef<any[]>([]);
   const videoDataRef = useRef<any>(undefined);
@@ -89,17 +153,11 @@ export default function TLScriptEditorPage() {
   const timeCanvas0 = useRef<HTMLCanvasElement | null>(null);
   const timeCanvas1 = useRef<HTMLCanvasElement | null>(null);
   const timeCanvas2 = useRef<HTMLCanvasElement | null>(null);
-  const renderAllCanvases = () => {
-    [timeCanvas0.current, timeCanvas1.current, timeCanvas2.current].forEach((c, i) => {
-      renderTimelineCanvas(c, i);
-    });
-  };
   const timelineActive = useRef(false);
   const resizeMode = useRef(0);
   const xPos = useRef(0);
   const [modalNexus, setModalNexus] = useState(true);
   const [modalMode, setModalMode] = useState(5);
-  const [activeURLInput, setActiveURLInput] = useState("");
   const [activeURLStream, setActiveURLStream] = useState("");
   const [TLLang, setTLLang] = useState<any>(TL_LANGS[0]);
   const [videoData, setVideoData] = useState<any>(undefined);
@@ -119,6 +177,14 @@ export default function TLScriptEditorPage() {
   const [addProfileNameString, setAddProfileNameString] = useState("");
   const [offsetInput, setOffsetInput] = useState<number | string>(0);
   const [linkInput, setLinkInput] = useState("");
+  // Follow the timer with the visible ruler bars, adjusted during render so the bars and the
+  // entries shown on them update in the same commit.
+  const [barTimerTime, setBarTimerTime] = useState(timerTime);
+  if (barTimerTime !== timerTime) {
+    setBarTimerTime(timerTime);
+    const next = nextBarCount(barCount, timerTime);
+    if (next !== barCount) setBarCount(next);
+  }
 
   const openModal = (mode: number) => {
     setModalMode(mode);
@@ -150,7 +216,7 @@ export default function TLScriptEditorPage() {
     return visible;
   }, [entries, barCount]);
 
-  function loadVideo(link = activeURLInput) {
+  function loadVideo(link: string) {
     setActiveURLStream(link);
     setVidPlayer(true);
     const checker = window.setInterval(() => {
@@ -289,16 +355,14 @@ export default function TLScriptEditorPage() {
       .postTLLog(postTLOption)
       .then(({ status, data }: any) => {
         if (status === 200 && Array.isArray(data)) {
-          setEntries((prev) => {
-            const next = prev.map((entry) => {
-              const addResult = data.find(
-                (res: any) => res.type === "Add" && res.tempid === entry.id,
-              );
-              return addResult ? { ...entry, id: addResult.res.id } : entry;
-            });
-            entriesRef.current = next;
-            return next;
+          const next = entriesRef.current.map((entry) => {
+            const addResult = data.find(
+              (res: any) => res.type === "Add" && res.tempid === entry.id,
+            );
+            return addResult ? { ...entry, id: addResult.res.id } : entry;
           });
+          entriesRef.current = next;
+          setEntries(next);
           data.forEach((res: any) => {
             if (res.type === "Add")
               transactionLog.current.forEach((e) => {
@@ -316,19 +380,18 @@ export default function TLScriptEditorPage() {
   function continuousTime() {
     setDisplayEntry(-1);
     setSelectedEntry(-1);
-    setEntries((prev) => {
-      const next = prev.map((entry, index) => {
-        if (index === prev.length - 1) return entry;
-        if (entry.Time + entry.Duration < prev[index + 1].Time) {
-          logChange(entry.id);
-          return { ...entry, Duration: prev[index + 1].Time - entry.Time };
-        }
-        return entry;
-      });
-      entriesRef.current = next;
-      processLog(false, next);
-      return next;
+    const prev = entriesRef.current;
+    const next = prev.map((entry, index) => {
+      if (index === prev.length - 1) return entry;
+      if (entry.Time + entry.Duration < prev[index + 1].Time) {
+        logChange(entry.id);
+        return { ...entry, Duration: prev[index + 1].Time - entry.Time };
+      }
+      return entry;
     });
+    entriesRef.current = next;
+    setEntries(next);
+    processLog(false, next);
   }
 
   function addEntry() {
@@ -472,6 +535,7 @@ export default function TLScriptEditorPage() {
     setProfile((prev) => [
       ...prev,
       {
+        id: newTlProfileId(),
         Name: nextName,
         Prefix: "",
         Suffix: "",
@@ -488,13 +552,11 @@ export default function TLScriptEditorPage() {
   function deleteProfile() {
     if (profileIdx !== 0) {
       const deletedIdx = profileIdx;
-      setEntries((prev) => {
-        const next = prev.map((entry) =>
-          entry.Profile === deletedIdx ? { ...entry, Profile: 0 } : entry,
-        );
-        entriesRef.current = next;
-        return next;
-      });
+      const next = entriesRef.current.map((entry) =>
+        entry.Profile === deletedIdx ? { ...entry, Profile: 0 } : entry,
+      );
+      entriesRef.current = next;
+      setEntries(next);
       setProfile((prev) => prev.filter((_, idx) => idx !== deletedIdx));
       setProfileIdx((idx) => Math.max(0, idx - 1));
     }
@@ -511,7 +573,6 @@ export default function TLScriptEditorPage() {
   }
   async function settingOKClick() {
     if (!activeURLStream) return;
-    setActiveURLInput(activeURLStream);
     let vidData: any = {
       id: "custom",
       custom_video_id: activeURLStream,
@@ -585,7 +646,7 @@ export default function TLScriptEditorPage() {
       next.push(dt);
       transactionLog.current.push({ type: "Add", id: dt.id });
     });
-    setProfile(nextProfile);
+    setProfile(withTlProfileIds(nextProfile));
     setProfileIdx(0);
     entriesRef.current = next;
     setEntries(next);
@@ -646,39 +707,6 @@ export default function TLScriptEditorPage() {
     vidPlayer && player.current?.playVideo
       ? player.current.playVideo()
       : !timerActive && setTimerActive(true);
-
-  function renderTimelineCanvas(canvas: HTMLCanvasElement | null, idx: number) {
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    canvas.width = secToPx * secPerBar;
-    canvas.height = barHeight;
-    if (!ctx) return;
-    ctx.save();
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "white";
-    ctx.font = "14px Ubuntu";
-    ctx.lineWidth = 0.35;
-    const step = secToPx <= 60 ? 10 : secToPx <= 100 ? 2 : 1;
-    for (let x = 0; x / 10 < secPerBar; x += step) {
-      if (secToPx <= 60 || x % 10 === 0) {
-        ctx.beginPath();
-        ctx.moveTo((x * secToPx) / 10, 0);
-        ctx.lineTo((x * secToPx) / 10, barHeight);
-        ctx.stroke();
-        ctx.fillText(
-          formatTlRulerTimestamp(x / 10 + idx * secPerBar + barCount * secPerBar),
-          (x * secToPx) / 10 + 5,
-          barHeight,
-        );
-      } else {
-        ctx.beginPath();
-        ctx.moveTo((x * secToPx) / 10, 0);
-        ctx.lineTo((x * secToPx) / 10, (barHeight * 2.0) / 5.0);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
 
   function stopTimelineDrag() {
     if (timelineActive.current) {
@@ -827,13 +855,14 @@ export default function TLScriptEditorPage() {
     }
   }
 
-  useEffect(() => {
+  const openFromRoute = useEffectEvent((video: string) => {
     document.title = "TLScriptEditor - Holodex";
     appStore.loginVerify({ bounceToLogin: true });
-    renderAllCanvases();
-    const video = searchParams.get("video") || "";
     if (video) setActiveURLStream(videoCodeParser(video));
     openModal(5);
+  });
+  useEffect(() => {
+    openFromRoute(searchParams.get("video") || "");
   }, [searchParams]);
 
   useEffect(() => {
@@ -884,21 +913,10 @@ export default function TLScriptEditorPage() {
   }, [timerTime, entries, timelineEntries, displayEntry]);
 
   useEffect(() => {
-    renderAllCanvases();
-  }, [barCount]);
-
-  useEffect(() => {
-    setBarCount((currentBarCount) => {
-      const deltaBar = timerTime / 1000 / secPerBar - currentBarCount;
-      if (deltaBar > 3 || deltaBar < 0) {
-        const nextBarCount = Math.floor(timerTime / 1000 / secPerBar);
-        return nextBarCount > 0 ? nextBarCount - 1 : 0;
-      }
-      if (deltaBar > 2) return currentBarCount + 1;
-      if (deltaBar < 1 && currentBarCount > 0) return currentBarCount - 1;
-      return currentBarCount;
+    [timeCanvas0.current, timeCanvas1.current, timeCanvas2.current].forEach((canvas, idx) => {
+      renderTimelineCanvas(canvas, idx, barCount);
     });
-  }, [timerTime]);
+  }, [barCount]);
 
   useEffect(() => {
     if (timelineDiv.current)
@@ -1019,7 +1037,7 @@ export default function TLScriptEditorPage() {
                 {entries.map((entry, index) =>
                   selectedEntry !== index ? (
                     <TlEntryRow
-                      key={`entry-${index}`}
+                      key={`entry-${entry.id}`}
                       variant="editor"
                       time={entry.Time}
                       duration={entry.Duration}
@@ -1032,7 +1050,7 @@ export default function TLScriptEditorPage() {
                       onClick={() => setSelectedEntry(index)}
                     />
                   ) : (
-                    <Fragment key={`editing-${index}`}>
+                    <Fragment key={`editing-${entry.id}`}>
                       <TableRow>
                         <TableCell>{timeStampStart}</TableCell>
                         <TableCell>{timeStampEnd}</TableCell>
@@ -1091,17 +1109,7 @@ export default function TLScriptEditorPage() {
             </Table>
             {profileDisplay ? (
               <Card className="absolute bottom-[5px] right-[5px] flex flex-col">
-                {profile.map((prf, index) => (
-                  <span
-                    key={`profilecard${index}`}
-                    className={index === profileIdx ? "font-medium text-primary" : ""}
-                  >
-                    {index === profileIdx ? "> " : ""}
-                    {index > 0 ? <Kbd>Ctrl-{index}</Kbd> : null}
-                    {index === 0 ? <Kbd>Ctrl-{index} | Shift⇧-Tab↹</Kbd> : null}
-                    {` ${prf.Name}`}
-                  </span>
-                ))}
+                <TlProfileLegend profiles={profile} activeIndex={profileIdx} />
               </Card>
             ) : null}
           </Card>
@@ -1158,19 +1166,22 @@ export default function TLScriptEditorPage() {
                       className="mr-auto h-[25px] w-[6000px]"
                     />
                   </Card>
+                  {/* Mouse-only timeline dragging; the handlers catch events from the entries. */}
                   <div
+                    role="presentation"
                     className="ml-[40%] flex w-[18000px] flex-row gap-1"
                     onMouseLeave={stopTimelineDrag}
                     onMouseUp={stopTimelineDrag}
                     onMouseMove={rulerMouseMove}
                   >
-                    {timelineEntries.map(({ entry, idx }, index) => {
+                    {timelineEntries.map(({ entry, idx }) => {
                       return (
                         <Card
                           key={`timecard-${entry.id || idx}`}
                           className="flex min-w-32 flex-row items-center rounded-lg border border-border p-0 text-[15px] shadow-md"
                         >
                           <div
+                            role="presentation"
                             className="h-full w-[3px] cursor-ew-resize bg-transparent"
                             onMouseDown={(event) => rulerMouseDown(event, idx, 0)}
                           />
@@ -1180,6 +1191,7 @@ export default function TLScriptEditorPage() {
                             onMouseDown={(event) => rulerMouseDown(event, idx, 1)}
                           />
                           <div
+                            role="presentation"
                             className="h-full w-[3px] cursor-ew-resize bg-transparent"
                             onMouseDown={(event) => rulerMouseDown(event, idx, 2)}
                           />
@@ -1200,7 +1212,7 @@ export default function TLScriptEditorPage() {
                 placeholder={t("views.tlClient.tlControl.inputPlaceholder")}
                 onChange={(event) => setInputString(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") addEntry();
+                  if (event.key === "Enter" && !event.nativeEvent.isComposing) addEntry();
                 }}
               />
               <span className="mt-1 opacity-80">{profile[profileIdx]?.Suffix}</span>
@@ -1232,7 +1244,12 @@ export default function TLScriptEditorPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Keyboard className="size-4" />
-                  <Button variant="ghost" size="icon-sm" onClick={() => setTLSetting(false)}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("component.common.close")}
+                    onClick={() => setTLSetting(false)}
+                  >
                     <icons.XIcon className="size-4" />
                   </Button>
                 </div>
