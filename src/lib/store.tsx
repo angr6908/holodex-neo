@@ -408,44 +408,353 @@ const primeLiveViewerCounts = (videos: any[]) => {
   primeTwitchViewerCounts(twitch);
 };
 
-export function AppStateProvider({
-  children,
-  initialBootState,
-  initialHomeState,
-}: {
-  children: React.ReactNode;
-  initialBootState?: AppBootState | null;
-  initialHomeState?: HomeUiState | null;
-}) {
-  const [state, setState] = useState<State>(() =>
-    buildBootState(initialBootState, initialHomeState),
-  );
-  const stateRef = useRef(state);
-  const homeInflight = useRef<Promise<void> | null>(null);
-  const favsInflight = useRef<Promise<void> | null>(null);
-  const favTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const homeSeq = useRef(0);
-  const orgsInflight = useRef<Promise<any[]> | null>(null);
-  const livePollFocus = useRef<"home" | "favorites" | null>(null);
+type SetState = React.Dispatch<React.SetStateAction<State>>;
+type StateRef = React.RefObject<State>;
 
-  useLayoutEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-  useEffect(
-    () => () => {
-      if (favTimer.current) clearTimeout(favTimer.current);
+// Home navigation, settings, display, org selection and dialog updates. Persistence
+// (localStorage + boot cookie) happens in usePersistAppState, keeping these updaters pure.
+function uiActions(setState: SetState) {
+  return {
+    setSearchUseMainOrgFilter: (value: boolean) =>
+      setState((s) =>
+        s.searchUseMainOrgFilter === value ? s : { ...s, searchUseMainOrgFilter: value },
+      ),
+    setHomeNav: (patch: HomeUiState) =>
+      setState((s) => {
+        const cur = resolveHomeNav(s.homeNav, s.settings.defaultOpen);
+        const next = { ...cur, ...sanitizeHomeNav(patch) };
+        if (
+          s.homeNav &&
+          next.viewMode === cur.viewMode &&
+          next.isFavPage === cur.isFavPage &&
+          next.tab === cur.tab
+        )
+          return s;
+        return { ...s, homeNav: next };
+      }),
+    patchSettings: (patch: Partial<Settings>) =>
+      setState((s) => ({ ...s, settings: normalizeSettings({ ...s.settings, ...patch }) })),
+    setIsMobile: (v: boolean) => setState((s) => (s.isMobile === v ? s : { ...s, isMobile: v })),
+    setWindowWidth: (v: number) =>
+      setState((s) => (s.windowWidth === v ? s : { ...s, windowWidth: v })),
+    setCurrentGridSize: (v: number) => setState((s) => ({ ...s, currentGridSize: v })),
+    setCurrentOrg: (org: Org) =>
+      setState((s) => orgUpdate(s, { currentOrg: org, selectedHomeOrgs: selectedOrgsFor(s, org) })),
+    setSelectedHomeOrgs: (orgs: string[]) =>
+      setState((s) => {
+        const selectedHomeOrgs = normSelectedOrgs(orgs);
+        if (
+          selectedHomeOrgs.length === s.selectedHomeOrgs.length &&
+          selectedHomeOrgs.every((org, index) => org === s.selectedHomeOrgs[index])
+        )
+          return s;
+        return orgUpdate(s, { selectedHomeOrgs });
+      }),
+    toggleSelectedHomeOrg: (org: string) =>
+      setState((s) => {
+        const selectedHomeOrgs =
+          !org || org === ALL_VTUBERS_ORG
+            ? []
+            : s.selectedHomeOrgs.includes(org)
+              ? s.selectedHomeOrgs.filter((x) => x !== org)
+              : [...s.selectedHomeOrgs, org];
+        return orgUpdate(s, { selectedHomeOrgs });
+      }),
+    setReportVideo: (v: any) => setState((s) => ({ ...s, reportVideo: v })),
+    setUploadPanel: (v: boolean) => setState((s) => ({ ...s, uploadPanel: v })),
+    setVisibilityState: (v: string) => setState((s) => ({ ...s, visibilityState: v })),
+    reloadCurrentPage: async (consumed: any = {}) => {
+      setState((s) => ({ ...s, reloadTrigger: { ...consumed, timestamp: Date.now() } }));
+      return consumed;
     },
-    [],
-  );
+  };
+}
 
-  useLayoutEffect(() => {
-    if (stateRef.current.hydrated) return;
-    const next = loadPersisted(stateRef.current);
-    stateRef.current = next;
-    writeBootCookie(next);
-    setState(next);
-  }, []);
+// Loads the org list (concurrent calls share one request). With orgs already loaded it returns
+// them at once and refreshes them in the background.
+function fetchOrgsAction(
+  setState: SetState,
+  stateRef: StateRef,
+  orgsInflight: React.RefObject<Promise<any[]> | null>,
+) {
+  return async () => {
+    const current = stateRef.current.orgs || [];
+    const loadFresh = () => {
+      orgsInflight.current ??= api
+        .orgs()
+        .then((fresh: any) => {
+          const arr = Array.isArray(fresh) ? fresh : (Object.values(fresh || {}) as any[]);
+          const sorted = [...arr].sort(
+            (a, b) => a.name.toLowerCase().charCodeAt(0) - b.name.toLowerCase().charCodeAt(0),
+          );
+          return [{ name: ALL_VTUBERS_ORG, short: "Vtuber", name_jp: null }, ...sorted];
+        })
+        .finally(() => {
+          orgsInflight.current = null;
+        });
+      return orgsInflight.current;
+    };
+    if (current.length > 0) {
+      loadFresh()
+        .then((withAll) => {
+          if (
+            JSON.stringify(withAll.map((o: any) => o.name)) !==
+            JSON.stringify(stateRef.current.orgs.map((o: any) => o.name))
+          ) {
+            setState((s) => ({ ...s, orgs: withAll }));
+          }
+        })
+        .catch(() => {});
+      return current;
+    }
+    try {
+      const withAll = await loadFresh();
+      setState((s) => ({ ...s, orgs: withAll }));
+      stateRef.current = { ...stateRef.current, orgs: withAll };
+      return withAll;
+    } catch {
+      return [];
+    }
+  };
+}
 
+// Favorites: loading them, resetting them on login/logout, and staged (debounced) toggles.
+function favoriteActions(
+  setState: SetState,
+  stateRef: StateRef,
+  favTimer: React.RefObject<ReturnType<typeof setTimeout> | null>,
+  fetchFavoritesLive: (opts?: { force?: boolean; minutes?: number }) => Promise<void> | null,
+) {
+  return {
+    fetchFavorites: () => {
+      const { jwt } = stateRef.current.userdata;
+      if (!jwt) return null;
+      return api
+        .favorites(jwt)
+        .then((res: any) => setState((s) => ({ ...s, favorites: res.data || [] })))
+        .catch(console.error);
+    },
+    resetFavorites: async () => {
+      setState((s) => ({
+        ...s,
+        favoritesLive: [],
+        favoritesLoading: true,
+        favoritesError: false,
+        favoritesLastLiveUpdate: 0,
+        stagedFavorites: {},
+      }));
+      const jwt = stateRef.current.userdata.jwt;
+      if (!jwt) {
+        setState((s) => ({
+          ...s,
+          favorites: [],
+          favoritesLive: [],
+          favoritesLastLiveUpdate: 0,
+          favoritesLoading: false,
+        }));
+        sendTokenToExtension(null);
+        return;
+      }
+      sendTokenToExtension(jwt);
+      try {
+        const [fav, live] = await Promise.all([
+          api.favorites(jwt),
+          api.favoritesLive({ includePlaceholder: true }, jwt),
+        ]);
+        setState((s) => ({ ...s, favorites: fav.data || [] }));
+        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+        const merged = [...live];
+        merged.sort(videoTemporalComparator);
+        setState((s) => ({
+          ...s,
+          favoritesLive: merged,
+          favoritesLastLiveUpdate: Date.now(),
+          favoritesLoading: false,
+          favoritesError: false,
+        }));
+      } catch (e) {
+        console.error(e);
+        setState((s) => ({ ...s, favoritesLoading: false, favoritesError: true }));
+      }
+    },
+
+    toggleFavorite: (id: string) => {
+      setState((s) => {
+        const staged = { ...s.stagedFavorites };
+        if (staged[id]) delete staged[id];
+        else if (s.favorites.some((f) => f.id === id)) staged[id] = "remove";
+        else staged[id] = "add";
+        return { ...s, stagedFavorites: staged };
+      });
+      if (favTimer.current) clearTimeout(favTimer.current);
+      favTimer.current = setTimeout(() => {
+        favTimer.current = null;
+        const cur = stateRef.current;
+        const ops = Object.entries(cur.stagedFavorites || {}).map(([channel_id, op]) => ({
+          op,
+          channel_id,
+        }));
+        if (!ops.length || !cur.userdata.jwt) return;
+        api
+          .patchFavorites(cur.userdata.jwt, ops)
+          .catch((e: any) => {
+            console.error(e);
+            return e?.response || false;
+          })
+          .then((res: any) => {
+            if (res?.status === 200) {
+              setState((s) => ({ ...s, favorites: res.data, stagedFavorites: {} }));
+              fetchFavoritesLive({ force: true });
+              sendFavoritesToExtension(res.data);
+            } else if (res) throw new Error("Error while adding favorite");
+          })
+          .finally(() => setState((s) => ({ ...s, stagedFavorites: {} })));
+      }, 2000);
+    },
+  };
+}
+
+// Saved videos and the active playlist.
+function libraryActions(setState: SetState, stateRef: StateRef) {
+  const setPlaylist = (updater: (videos: any[], s: State) => any[], markUnsaved = true) =>
+    setState((s) => {
+      const videos = updater(s.playlist, s);
+      return {
+        ...s,
+        playlist: videos,
+        playlistActive: { ...s.playlistActive, videos },
+        ...(markUnsaved && { playlistIsSaved: false }),
+      };
+    });
+
+  return {
+    addSavedVideo: (video: any) =>
+      video?.id &&
+      setState((s) => ({
+        ...s,
+        savedVideos: {
+          ...s.savedVideos,
+          [video.id]: { ...video, added_at: video.added_at || new Date().toISOString() },
+        },
+      })),
+    removeSavedVideo: (id: string) =>
+      setState((s) => {
+        const n = { ...s.savedVideos };
+        delete n[id];
+        return { ...s, savedVideos: n };
+      }),
+
+    addToPlaylist: (v: any) =>
+      v?.id && setPlaylist((p) => (p.some((x) => x.id === v.id) ? p : [...p, v])),
+    removeFromPlaylist: (id: string) => setPlaylist((p) => p.filter((v) => v.id !== id)),
+    removeFromPlaylistByIndex: (i: number) =>
+      setPlaylist((p) => p.filter((_, idx) => idx !== i), false),
+    reorderPlaylist: ({ from, to }: { from: number; to: number }) =>
+      setPlaylist((p) => {
+        if (from === to || from < 0 || to < 0 || from >= p.length || to >= p.length) return p;
+        const n = [...p];
+        const [moved] = n.splice(from, 1);
+        n.splice(to, 0, moved);
+        return n;
+      }),
+    clearPlaylist: () => setPlaylist(() => []),
+    setActivePlaylist: (pl: any, saved = false) =>
+      setState((s) => {
+        const active = { ...emptyPlaylist(), ...pl, videos: pl?.videos || [] };
+        return { ...s, playlist: active.videos, playlistActive: active, playlistIsSaved: saved };
+      }),
+    setPlaylistName: (name: string) =>
+      name &&
+      setState((s) => ({
+        ...s,
+        playlistActive: { ...s.playlistActive, name },
+        playlistIsSaved: false,
+      })),
+    resetPlaylist: () => setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() })),
+    markPlaylistModified: () => setState((s) => ({ ...s, playlistIsSaved: false })),
+    saveActivePlaylist: async () => {
+      const current = stateRef.current;
+      const { jwt, user } = current.userdata;
+      if (!jwt || !user) return;
+      const pl = { ...current.playlistActive, videos: current.playlist };
+      if (!pl.user_id || !pl.id) pl.user_id = user.id;
+      else if (`${pl.user_id}` !== `${user.id}`) {
+        delete pl.id;
+        pl.user_id = user.id;
+      }
+      setState((s) => ({ ...s, playlistActive: pl, playlistIsSaved: false }));
+      const res = await api.savePlaylist(
+        { ...pl, videos: [], video_ids: pl.videos.map((x: any) => x.id) },
+        jwt,
+      );
+      if (res.data)
+        setState((s) => ({
+          ...s,
+          playlistActive: { ...pl, id: pl.id || res.data },
+          playlistIsSaved: true,
+        }));
+    },
+    setActivePlaylistByID: async (id: number | string) => {
+      const res = await api.getPlaylist(id);
+      const active = { ...emptyPlaylist(), ...res.data, videos: res.data?.videos || [] };
+      setState((s) => ({
+        ...s,
+        playlist: active.videos,
+        playlistActive: active,
+        playlistIsSaved: true,
+      }));
+    },
+    deleteActivePlaylist: async () => {
+      const { userdata, playlistActive: a } = stateRef.current;
+      const { jwt, user } = userdata;
+      if (a?.id && jwt && `${a.user_id}` === `${user?.id}`) await api.deletePlaylist(a.id, jwt);
+      setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() }));
+    },
+  };
+}
+
+// Login checks and the signed-in user.
+function accountActions(setState: SetState, stateRef: StateRef, logout: () => void) {
+  return {
+    loginCheck: async () => {
+      const jwt = stateRef.current.userdata.jwt;
+      if (!jwt) return null;
+      const { exp } = jwtDecode<{ exp: number }>(jwt);
+      if (exp - Date.now() / 1000 < 0) logout();
+      else {
+        sendTokenToExtension(jwt);
+        setCookieJWT(jwt);
+      }
+    },
+    loginVerify: async (opts?: { bounceToLogin?: boolean }) => {
+      const jwt = stateRef.current.userdata.jwt;
+      if (!jwt) return;
+      const v: any = await api.loginIsValid(jwt);
+      if (v?.status === 200) {
+        setCookieJWT(v.data.jwt);
+        setState((s) => ({ ...s, userdata: { user: v.data.user, jwt: v.data.jwt } }));
+      } else if (v?.status === 401) {
+        logout();
+        if (opts?.bounceToLogin) {
+          openUserMenu();
+          window.location.href = "/";
+        }
+      } else
+        console.error(
+          "Login credentials did not respond with a good message? Maybe server is down.",
+        );
+    },
+    setUser: (data: { user: any; jwt: string | null }) => {
+      setCookieJWT(data.jwt);
+      const userdata = { user: data.user, jwt: data.jwt };
+      stateRef.current = { ...stateRef.current, userdata };
+      setState((s) => ({ ...s, userdata }));
+    },
+  };
+}
+
+// Writes each persisted slice to localStorage (and refreshes the boot cookie) once hydrated.
+function usePersistAppState(state: State) {
   const {
     hydrated,
     settings,
@@ -540,20 +849,161 @@ export function AppStateProvider({
         isSaved: state.playlistIsSaved,
       });
   }, [hydrated, state.playlist, state.playlistActive, state.playlistIsSaved]);
+}
 
-  const setPlaylist = useCallback(
-    (updater: (videos: any[], s: State) => any[], markUnsaved = true) =>
-      setState((s) => {
-        const videos = updater(s.playlist, s);
-        return {
-          ...s,
-          playlist: videos,
-          playlistActive: { ...s.playlistActive, videos },
-          ...(markUnsaved && { playlistIsSaved: false }),
-        };
-      }),
+// The home and favorites live-list fetches. Each list has one request in flight at a time; a
+// home fetch for a different org selection supersedes the previous one.
+function useLiveFetchers(stateRef: StateRef, setState: SetState) {
+  const homeInflight = useRef<Promise<void> | null>(null);
+  const favsInflight = useRef<Promise<void> | null>(null);
+  const homeSeq = useRef(0);
+
+  const fetchFavoritesLive = useCallback(
+    (opts: { force?: boolean; minutes?: number } = {}) => {
+      const current = stateRef.current;
+      const { jwt } = current.userdata;
+      if (!jwt || (pageHidden() && !opts.force)) return null;
+      if (favsInflight.current) return favsInflight.current;
+      const { force = false, minutes = 2 } = opts;
+      if (
+        !current.favoritesError &&
+        !force &&
+        current.favoritesLastLiveUpdate &&
+        Date.now() - current.favoritesLastLiveUpdate <= minutes * 60_000
+      ) {
+        setState((s) => ({ ...s, favoritesError: false, favoritesLoading: false }));
+        return null;
+      }
+      setState((s) => ({
+        ...s,
+        favoritesLoading: s.favoritesLive.length === 0,
+        favoritesError: false,
+      }));
+      const p = api
+        .favoritesLive({ includePlaceholder: true }, jwt)
+        .then((res: any[]) => {
+          // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+          const merged = [...res];
+          merged.sort(videoTemporalComparator);
+          primeLiveViewerCounts(merged);
+          setState((s) => ({
+            ...s,
+            favoritesLive:
+              liveFingerprint(merged) !== liveFingerprint(s.favoritesLive)
+                ? merged
+                : s.favoritesLive,
+            favoritesLastLiveUpdate: Date.now(),
+            favoritesLoading: false,
+            favoritesError: false,
+          }));
+        })
+        .catch((e) => {
+          console.error(e);
+          setState((s) => ({ ...s, favoritesError: true, favoritesLoading: false }));
+        })
+        .finally(() => {
+          favsInflight.current = null;
+        });
+      favsInflight.current = p;
+      return p;
+    },
+    [stateRef, setState],
+  );
+
+  const fetchHomeLive = useCallback(
+    (opts: { force?: boolean; minutes?: number } = {}) => {
+      const current = stateRef.current;
+      if (pageHidden() && !opts.force) return null;
+      const { force = false, minutes = 5 } = opts;
+      const orgTargets = current.selectedHomeOrgs.length
+        ? current.selectedHomeOrgs
+        : [ALL_VTUBERS_ORG];
+      const nextKey = liveCacheKey(orgTargets);
+      const cacheChanged = current.homeLiveCacheKey !== nextKey;
+      if (homeInflight.current && !cacheChanged) return homeInflight.current;
+      const lastUpdate = cacheChanged ? 0 : current.homeLastLiveUpdate;
+      if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !current.homeError)
+        return null;
+      setState((s) => ({
+        ...s,
+        homeLive: cacheChanged ? [] : s.homeLive,
+        homeLastLiveUpdate: cacheChanged ? 0 : s.homeLastLiveUpdate,
+        homeLiveCacheKey: nextKey,
+        homeLoading: cacheChanged || s.homeLive.length === 0,
+        homeError: false,
+      }));
+      const seq = ++homeSeq.current;
+      const isCurrent = () => seq === homeSeq.current;
+      const p = api
+        .allLive(orgTargets, { type: "placeholder,stream", include: "mentions" }, { force })
+        .then((res: any[]) => {
+          if (!isCurrent()) return;
+          // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
+          const merged = dedupeVideos(res);
+          merged.sort(videoTemporalComparator);
+          primeLiveViewerCounts(merged);
+          if (!isCurrent()) return;
+          setState((s) => ({
+            ...s,
+            homeLive: liveFingerprint(merged) !== liveFingerprint(s.homeLive) ? merged : s.homeLive,
+            homeLastLiveUpdate: Date.now(),
+            homeLoading: false,
+            homeError: false,
+          }));
+        })
+        .catch((e) => {
+          if (!isCurrent()) return;
+          console.error(e);
+          setState((s) => ({ ...s, homeError: true, homeLoading: false }));
+        })
+        .finally(() => {
+          if (isCurrent()) homeInflight.current = null;
+        });
+      homeInflight.current = p;
+      return p;
+    },
+    [stateRef, setState],
+  );
+
+  return { fetchHomeLive, fetchFavoritesLive };
+}
+
+export function AppStateProvider({
+  children,
+  initialBootState,
+  initialHomeState,
+}: {
+  children: React.ReactNode;
+  initialBootState?: AppBootState | null;
+  initialHomeState?: HomeUiState | null;
+}) {
+  const [state, setState] = useState<State>(() =>
+    buildBootState(initialBootState, initialHomeState),
+  );
+  const stateRef = useRef(state);
+  const favTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const orgsInflight = useRef<Promise<any[]> | null>(null);
+  const livePollFocus = useRef<"home" | "favorites" | null>(null);
+
+  useLayoutEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+  useEffect(
+    () => () => {
+      if (favTimer.current) clearTimeout(favTimer.current);
+    },
     [],
   );
+
+  useLayoutEffect(() => {
+    if (stateRef.current.hydrated) return;
+    const next = loadPersisted(stateRef.current);
+    stateRef.current = next;
+    writeBootCookie(next);
+    setState(next);
+  }, []);
+
+  usePersistAppState(state);
 
   const logout = useCallback(() => {
     setCookieJWT(null);
@@ -568,108 +1018,12 @@ export function AppStateProvider({
     setState((s) => ({ ...s, ...reset }));
   }, []);
 
-  const fetchFavoritesLive = useCallback((opts: { force?: boolean; minutes?: number } = {}) => {
-    const current = stateRef.current;
-    const { jwt } = current.userdata;
-    if (!jwt || (pageHidden() && !opts.force)) return null;
-    if (favsInflight.current) return favsInflight.current;
-    const { force = false, minutes = 2 } = opts;
-    if (
-      !current.favoritesError &&
-      !force &&
-      current.favoritesLastLiveUpdate &&
-      Date.now() - current.favoritesLastLiveUpdate <= minutes * 60_000
-    ) {
-      setState((s) => ({ ...s, favoritesError: false, favoritesLoading: false }));
-      return null;
-    }
-    setState((s) => ({
-      ...s,
-      favoritesLoading: s.favoritesLive.length === 0,
-      favoritesError: false,
-    }));
-    const p = api
-      .favoritesLive({ includePlaceholder: true }, jwt)
-      .then((res: any[]) => {
-        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
-        const merged = [...res];
-        merged.sort(videoTemporalComparator);
-        primeLiveViewerCounts(merged);
-        setState((s) => ({
-          ...s,
-          favoritesLive:
-            liveFingerprint(merged) !== liveFingerprint(s.favoritesLive) ? merged : s.favoritesLive,
-          favoritesLastLiveUpdate: Date.now(),
-          favoritesLoading: false,
-          favoritesError: false,
-        }));
-      })
-      .catch((e) => {
-        console.error(e);
-        setState((s) => ({ ...s, favoritesError: true, favoritesLoading: false }));
-      })
-      .finally(() => {
-        favsInflight.current = null;
-      });
-    favsInflight.current = p;
-    return p;
-  }, []);
-
-  const fetchHomeLive = useCallback((opts: { force?: boolean; minutes?: number } = {}) => {
-    const current = stateRef.current;
-    if (pageHidden() && !opts.force) return null;
-    const { force = false, minutes = 5 } = opts;
-    const orgTargets = current.selectedHomeOrgs.length
-      ? current.selectedHomeOrgs
-      : [ALL_VTUBERS_ORG];
-    const nextKey = liveCacheKey(orgTargets);
-    const cacheChanged = current.homeLiveCacheKey !== nextKey;
-    if (homeInflight.current && !cacheChanged) return homeInflight.current;
-    const lastUpdate = cacheChanged ? 0 : current.homeLastLiveUpdate;
-    if (!force && lastUpdate && Date.now() - lastUpdate < minutes * 60_000 && !current.homeError)
-      return null;
-    setState((s) => ({
-      ...s,
-      homeLive: cacheChanged ? [] : s.homeLive,
-      homeLastLiveUpdate: cacheChanged ? 0 : s.homeLastLiveUpdate,
-      homeLiveCacheKey: nextKey,
-      homeLoading: cacheChanged || s.homeLive.length === 0,
-      homeError: false,
-    }));
-    const seq = ++homeSeq.current;
-    const isCurrent = () => seq === homeSeq.current;
-    const p = api
-      .allLive(orgTargets, { type: "placeholder,stream", include: "mentions" }, { force })
-      .then((res: any[]) => {
-        if (!isCurrent()) return;
-        // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
-        const merged = dedupeVideos(res);
-        merged.sort(videoTemporalComparator);
-        primeLiveViewerCounts(merged);
-        if (!isCurrent()) return;
-        setState((s) => ({
-          ...s,
-          homeLive: liveFingerprint(merged) !== liveFingerprint(s.homeLive) ? merged : s.homeLive,
-          homeLastLiveUpdate: Date.now(),
-          homeLoading: false,
-          homeError: false,
-        }));
-      })
-      .catch((e) => {
-        if (!isCurrent()) return;
-        console.error(e);
-        setState((s) => ({ ...s, homeError: true, homeLoading: false }));
-      })
-      .finally(() => {
-        if (isCurrent()) homeInflight.current = null;
-      });
-    homeInflight.current = p;
-    return p;
-  }, []);
+  const { fetchHomeLive, fetchFavoritesLive } = useLiveFetchers(stateRef, setState);
 
   // Single owner of the live-list poll cadence. The focused list is fully refreshed every
   // 60s; its injected counts also prime the shared watch/card CCV cache, avoiding a second
   // platform-count request. Background lists retain the lighter 5m cadence.
+  const { hydrated } = state;
   useEffect(() => {
     if (!hydrated) return;
     const tick = () => {
@@ -742,318 +1096,17 @@ export function AppStateProvider({
   // eagerly by setUser/logout), so they are created once and are safe effect dependencies.
   const actions = useMemo(
     () => ({
-      setSearchUseMainOrgFilter: (value: boolean) =>
-        setState((s) =>
-          s.searchUseMainOrgFilter === value ? s : { ...s, searchUseMainOrgFilter: value },
-        ),
-      setHomeNav: (patch: HomeUiState) =>
-        setState((s) => {
-          const cur = resolveHomeNav(s.homeNav, s.settings.defaultOpen);
-          const next = { ...cur, ...sanitizeHomeNav(patch) };
-          if (
-            s.homeNav &&
-            next.viewMode === cur.viewMode &&
-            next.isFavPage === cur.isFavPage &&
-            next.tab === cur.tab
-          )
-            return s;
-          return { ...s, homeNav: next };
-        }),
+      ...uiActions(setState),
       setLivePollFocus,
-
-      // Persistence (localStorage + boot cookie) happens in the effects above, keeping these
-      // updaters pure.
-      patchSettings: (patch: Partial<Settings>) =>
-        setState((s) => ({ ...s, settings: normalizeSettings({ ...s.settings, ...patch }) })),
-      setIsMobile: (v: boolean) => setState((s) => (s.isMobile === v ? s : { ...s, isMobile: v })),
-      setWindowWidth: (v: number) =>
-        setState((s) => (s.windowWidth === v ? s : { ...s, windowWidth: v })),
-      setCurrentGridSize: (v: number) => setState((s) => ({ ...s, currentGridSize: v })),
-      setCurrentOrg: (org: Org) =>
-        setState((s) =>
-          orgUpdate(s, { currentOrg: org, selectedHomeOrgs: selectedOrgsFor(s, org) }),
-        ),
-      setSelectedHomeOrgs: (orgs: string[]) =>
-        setState((s) => {
-          const selectedHomeOrgs = normSelectedOrgs(orgs);
-          if (
-            selectedHomeOrgs.length === s.selectedHomeOrgs.length &&
-            selectedHomeOrgs.every((org, index) => org === s.selectedHomeOrgs[index])
-          )
-            return s;
-          return orgUpdate(s, { selectedHomeOrgs });
-        }),
-      toggleSelectedHomeOrg: (org: string) =>
-        setState((s) => {
-          const selectedHomeOrgs =
-            !org || org === ALL_VTUBERS_ORG
-              ? []
-              : s.selectedHomeOrgs.includes(org)
-                ? s.selectedHomeOrgs.filter((x) => x !== org)
-                : [...s.selectedHomeOrgs, org];
-          return orgUpdate(s, { selectedHomeOrgs });
-        }),
-
-      fetchOrgs: async () => {
-        const current = stateRef.current.orgs || [];
-        const loadFresh = () => {
-          orgsInflight.current ??= api
-            .orgs()
-            .then((fresh: any) => {
-              const arr = Array.isArray(fresh) ? fresh : (Object.values(fresh || {}) as any[]);
-              const sorted = [...arr].sort(
-                (a, b) => a.name.toLowerCase().charCodeAt(0) - b.name.toLowerCase().charCodeAt(0),
-              );
-              return [{ name: ALL_VTUBERS_ORG, short: "Vtuber", name_jp: null }, ...sorted];
-            })
-            .finally(() => {
-              orgsInflight.current = null;
-            });
-          return orgsInflight.current;
-        };
-        if (current.length > 0) {
-          loadFresh()
-            .then((withAll) => {
-              if (
-                JSON.stringify(withAll.map((o: any) => o.name)) !==
-                JSON.stringify(stateRef.current.orgs.map((o: any) => o.name))
-              ) {
-                setState((s) => ({ ...s, orgs: withAll }));
-              }
-            })
-            .catch(() => {});
-          return current;
-        }
-        try {
-          const withAll = await loadFresh();
-          setState((s) => ({ ...s, orgs: withAll }));
-          stateRef.current = { ...stateRef.current, orgs: withAll };
-          return withAll;
-        } catch {
-          return [];
-        }
-      },
-
+      fetchOrgs: fetchOrgsAction(setState, stateRef, orgsInflight),
       fetchHomeLive,
-
-      fetchFavorites: () => {
-        const { jwt } = stateRef.current.userdata;
-        if (!jwt) return null;
-        return api
-          .favorites(jwt)
-          .then((res: any) => setState((s) => ({ ...s, favorites: res.data || [] })))
-          .catch(console.error);
-      },
-
       fetchFavoritesLive,
-
-      resetFavorites: async () => {
-        setState((s) => ({
-          ...s,
-          favoritesLive: [],
-          favoritesLoading: true,
-          favoritesError: false,
-          favoritesLastLiveUpdate: 0,
-          stagedFavorites: {},
-        }));
-        const jwt = stateRef.current.userdata.jwt;
-        if (!jwt) {
-          setState((s) => ({
-            ...s,
-            favorites: [],
-            favoritesLive: [],
-            favoritesLastLiveUpdate: 0,
-            favoritesLoading: false,
-          }));
-          sendTokenToExtension(null);
-          return;
-        }
-        sendTokenToExtension(jwt);
-        try {
-          const [fav, live] = await Promise.all([
-            api.favorites(jwt),
-            api.favoritesLive({ includePlaceholder: true }, jwt),
-          ]);
-          setState((s) => ({ ...s, favorites: fav.data || [] }));
-          // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.
-          const merged = [...live];
-          merged.sort(videoTemporalComparator);
-          setState((s) => ({
-            ...s,
-            favoritesLive: merged,
-            favoritesLastLiveUpdate: Date.now(),
-            favoritesLoading: false,
-            favoritesError: false,
-          }));
-        } catch (e) {
-          console.error(e);
-          setState((s) => ({ ...s, favoritesLoading: false, favoritesError: true }));
-        }
-      },
-
-      toggleFavorite: (id: string) => {
-        setState((s) => {
-          const staged = { ...s.stagedFavorites };
-          if (staged[id]) delete staged[id];
-          else if (s.favorites.some((f) => f.id === id)) staged[id] = "remove";
-          else staged[id] = "add";
-          return { ...s, stagedFavorites: staged };
-        });
-        if (favTimer.current) clearTimeout(favTimer.current);
-        favTimer.current = setTimeout(() => {
-          favTimer.current = null;
-          const cur = stateRef.current;
-          const ops = Object.entries(cur.stagedFavorites || {}).map(([channel_id, op]) => ({
-            op,
-            channel_id,
-          }));
-          if (!ops.length || !cur.userdata.jwt) return;
-          api
-            .patchFavorites(cur.userdata.jwt, ops)
-            .catch((e: any) => {
-              console.error(e);
-              return e?.response || false;
-            })
-            .then((res: any) => {
-              if (res?.status === 200) {
-                setState((s) => ({ ...s, favorites: res.data, stagedFavorites: {} }));
-                fetchFavoritesLive({ force: true });
-                sendFavoritesToExtension(res.data);
-              } else if (res) throw new Error("Error while adding favorite");
-            })
-            .finally(() => setState((s) => ({ ...s, stagedFavorites: {} })));
-        }, 2000);
-      },
-
-      addSavedVideo: (video: any) =>
-        video?.id &&
-        setState((s) => ({
-          ...s,
-          savedVideos: {
-            ...s.savedVideos,
-            [video.id]: { ...video, added_at: video.added_at || new Date().toISOString() },
-          },
-        })),
-      removeSavedVideo: (id: string) =>
-        setState((s) => {
-          const n = { ...s.savedVideos };
-          delete n[id];
-          return { ...s, savedVideos: n };
-        }),
-
-      addToPlaylist: (v: any) =>
-        v?.id && setPlaylist((p) => (p.some((x) => x.id === v.id) ? p : [...p, v])),
-      removeFromPlaylist: (id: string) => setPlaylist((p) => p.filter((v) => v.id !== id)),
-      removeFromPlaylistByIndex: (i: number) =>
-        setPlaylist((p) => p.filter((_, idx) => idx !== i), false),
-      reorderPlaylist: ({ from, to }: { from: number; to: number }) =>
-        setPlaylist((p) => {
-          if (from === to || from < 0 || to < 0 || from >= p.length || to >= p.length) return p;
-          const n = [...p];
-          const [moved] = n.splice(from, 1);
-          n.splice(to, 0, moved);
-          return n;
-        }),
-      clearPlaylist: () => setPlaylist(() => []),
-      setActivePlaylist: (pl: any, saved = false) =>
-        setState((s) => {
-          const active = { ...emptyPlaylist(), ...pl, videos: pl?.videos || [] };
-          return { ...s, playlist: active.videos, playlistActive: active, playlistIsSaved: saved };
-        }),
-      setPlaylistName: (name: string) =>
-        name &&
-        setState((s) => ({
-          ...s,
-          playlistActive: { ...s.playlistActive, name },
-          playlistIsSaved: false,
-        })),
-      resetPlaylist: () =>
-        setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() })),
-      markPlaylistModified: () => setState((s) => ({ ...s, playlistIsSaved: false })),
-      saveActivePlaylist: async () => {
-        const current = stateRef.current;
-        const { jwt, user } = current.userdata;
-        if (!jwt || !user) return;
-        const pl = { ...current.playlistActive, videos: current.playlist };
-        if (!pl.user_id || !pl.id) pl.user_id = user.id;
-        else if (`${pl.user_id}` !== `${user.id}`) {
-          delete pl.id;
-          pl.user_id = user.id;
-        }
-        setState((s) => ({ ...s, playlistActive: pl, playlistIsSaved: false }));
-        const res = await api.savePlaylist(
-          { ...pl, videos: [], video_ids: pl.videos.map((x: any) => x.id) },
-          jwt,
-        );
-        if (res.data)
-          setState((s) => ({
-            ...s,
-            playlistActive: { ...pl, id: pl.id || res.data },
-            playlistIsSaved: true,
-          }));
-      },
-      setActivePlaylistByID: async (id: number | string) => {
-        const res = await api.getPlaylist(id);
-        const active = { ...emptyPlaylist(), ...res.data, videos: res.data?.videos || [] };
-        setState((s) => ({
-          ...s,
-          playlist: active.videos,
-          playlistActive: active,
-          playlistIsSaved: true,
-        }));
-      },
-      deleteActivePlaylist: async () => {
-        const { userdata, playlistActive: a } = stateRef.current;
-        const { jwt, user } = userdata;
-        if (a?.id && jwt && `${a.user_id}` === `${user?.id}`) await api.deletePlaylist(a.id, jwt);
-        setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() }));
-      },
-
-      setReportVideo: (v: any) => setState((s) => ({ ...s, reportVideo: v })),
-      setUploadPanel: (v: boolean) => setState((s) => ({ ...s, uploadPanel: v })),
-
-      loginCheck: async () => {
-        const jwt = stateRef.current.userdata.jwt;
-        if (!jwt) return null;
-        const { exp } = jwtDecode<{ exp: number }>(jwt);
-        if (exp - Date.now() / 1000 < 0) logout();
-        else {
-          sendTokenToExtension(jwt);
-          setCookieJWT(jwt);
-        }
-      },
-      loginVerify: async (opts?: { bounceToLogin?: boolean }) => {
-        const jwt = stateRef.current.userdata.jwt;
-        if (!jwt) return;
-        const v: any = await api.loginIsValid(jwt);
-        if (v?.status === 200) {
-          setCookieJWT(v.data.jwt);
-          setState((s) => ({ ...s, userdata: { user: v.data.user, jwt: v.data.jwt } }));
-        } else if (v?.status === 401) {
-          logout();
-          if (opts?.bounceToLogin) {
-            openUserMenu();
-            window.location.href = "/";
-          }
-        } else
-          console.error(
-            "Login credentials did not respond with a good message? Maybe server is down.",
-          );
-      },
+      ...favoriteActions(setState, stateRef, favTimer, fetchFavoritesLive),
+      ...libraryActions(setState, stateRef),
+      ...accountActions(setState, stateRef, logout),
       logout,
-      setUser: (data: { user: any; jwt: string | null }) => {
-        setCookieJWT(data.jwt);
-        const userdata = { user: data.user, jwt: data.jwt };
-        stateRef.current = { ...stateRef.current, userdata };
-        setState((s) => ({ ...s, userdata }));
-      },
-      setVisibilityState: (v: string) => setState((s) => ({ ...s, visibilityState: v })),
-      reloadCurrentPage: async (consumed: any = {}) => {
-        setState((s) => ({ ...s, reloadTrigger: { ...consumed, timestamp: Date.now() } }));
-        return consumed;
-      },
     }),
-    [setPlaylist, logout, fetchHomeLive, fetchFavoritesLive, setLivePollFocus],
+    [logout, fetchHomeLive, fetchFavoritesLive, setLivePollFocus],
   );
 
   const store = useMemo(
