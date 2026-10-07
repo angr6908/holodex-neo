@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { readJSON, writeJSON } from "@/lib/browser";
 
@@ -25,7 +25,7 @@ export function useTopicsCache() {
   const [topicsLoading, setTopicsLoading] = useState(false);
   const requested = useRef(false);
 
-  async function fetchTopics() {
+  const fetchTopics = useCallback(async () => {
     if (requested.current) return;
     requested.current = true;
     const cached = readJSON<TopicOption[]>(TOPICS_STORAGE_KEY, []);
@@ -42,7 +42,7 @@ export function useTopicsCache() {
     } finally {
       setTopicsLoading(false);
     }
-  }
+  }, []);
 
   return { topics, topicsLoading, fetchTopics };
 }

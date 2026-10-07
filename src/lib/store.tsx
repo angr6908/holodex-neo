@@ -716,6 +716,11 @@ export function AppStateProvider({
     };
   }, [hydrated]);
 
+  // The on-screen live list registers itself so the central poll refreshes its CCV batch.
+  const setLivePollFocus = useCallback((target: "home" | "favorites" | null) => {
+    livePollFocus.current = target;
+  }, []);
+
   const homeNav = useMemo(
     () => resolveHomeNav(state.homeNav, state.settings.defaultOpen),
     [state.homeNav, state.settings.defaultOpen],
@@ -759,10 +764,7 @@ export function AppStateProvider({
             return s;
           return { ...s, homeNav: next };
         }),
-      // The on-screen live list registers itself so the central poll refreshes its CCV batch.
-      setLivePollFocus: (target: "home" | "favorites" | null) => {
-        livePollFocus.current = target;
-      },
+      setLivePollFocus,
       isFavorited: (id: string) =>
         state.stagedFavorites[id] === "add" ||
         (favoriteChannelIDs.has(id) && state.stagedFavorites[id] !== "remove"),
@@ -1067,6 +1069,7 @@ export function AppStateProvider({
       logout,
       fetchHomeLive,
       fetchFavoritesLive,
+      setLivePollFocus,
     ],
   );
 

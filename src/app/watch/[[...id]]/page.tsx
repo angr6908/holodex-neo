@@ -506,7 +506,11 @@ function Watch() {
       {!app.isMobile ? chatPanel : null}
       <Dialog open={app.uploadPanel} onOpenChange={app.setUploadPanel}>
         <DialogContent className="max-h-[500px] max-w-[80%] p-0">
-          <UploadScript videoData={video} onClose={() => app.setUploadPanel(false)} />
+          <UploadScript
+            key={video.id}
+            videoData={video}
+            onClose={() => app.setUploadPanel(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

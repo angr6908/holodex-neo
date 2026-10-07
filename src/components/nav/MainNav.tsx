@@ -4,7 +4,15 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
 import {
@@ -172,10 +180,6 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
   useEffect(() => {
     setMobileSearchOpen(false);
   }, [pathname, searchParams]);
-  useEffect(() => {
-    if (!app.orgs.length) app.fetchOrgs();
-    app.loginCheck();
-  }, []);
 
   function goHomeFromLogo(e: React.MouseEvent) {
     e.preventDefault();
@@ -218,7 +222,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
       <div ref={navRoot} className="fixed inset-x-0 top-0 z-40 bg-background pb-1">
         <header className="relative z-10 bg-background">
           <div className="mx-auto flex max-w-[1600px] items-center gap-2 px-5 py-2 sm:gap-3 sm:px-8 lg:px-10 xl:px-12">
-            <a
+            <Link
               href="/"
               onClick={goHomeFromLogo}
               className="flex shrink-0 items-center gap-2 pr-1 text-left no-underline select-none"
@@ -237,7 +241,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               >
                 Holodex
               </span>
-            </a>
+            </Link>
 
             <div className="shrink-0 sm:hidden">
               <HomeOrgMultiSelect
@@ -511,7 +515,7 @@ export function VideoListFilters({
 
   useEffect(() => {
     if (topicFilter) void fetchTopics();
-  }, [topicFilter]);
+  }, [topicFilter, fetchTopics]);
 
   const ignoredTopics = app.settings.ignoredTopics || [];
   const topicValues = useMemo(() => topics.map((topic) => topic.value), [topics]);
@@ -902,6 +906,20 @@ export function VideoListTopControls({
   );
 }
 
+const NO_LANGS: string[] = [];
+const NO_VIDEOS: any[] = [];
+
+// Loads more of a cached video list until it holds `count` items or runs out. Each page needs
+// the previous page's cursor, so pages are fetched one after another.
+async function fetchCacheUntil(
+  cached: { getCurrentItems: () => any[]; isExhausted: () => boolean; fetchMore: () => any },
+  count: number,
+): Promise<void> {
+  if (count <= cached.getCurrentItems().length || cached.isExhausted()) return;
+  await cached.fetchMore();
+  return fetchCacheUntil(cached, count);
+}
+
 export function ConnectedVideoList({
   liveContent = null,
   isFavPage = false,
@@ -922,9 +940,6 @@ export function ConnectedVideoList({
   [key: string]: any;
 }) {
   const app = useAppState();
-  const router = useRouter();
-  const pathname = usePathname();
-  const sp = useSearchParams();
   const t = useTranslations();
   const [toDate, setToDate] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("viewers");
@@ -933,10 +948,9 @@ export function ConnectedVideoList({
   const [liveLimit, setLiveLimit] = useState(60);
   const liveSentinel = useRef<HTMLDivElement | null>(null);
 
-  const clipLangs = app.settings.clipLangs || [];
+  const clipLangs: string[] = app.settings.clipLangs ?? NO_LANGS;
   const viewMode = app.settings.homeViewMode || "grid";
   const scrollMode = app.settings.scrollMode;
-  const prevScroll = useRef(scrollMode);
   const gs = app.currentGridSize;
   const cols = useMemo(
     () => ({ xs: 1 + gs, sm: 2 + gs, md: 3 + gs, lg: 4 + gs, xl: 5 + gs }),
@@ -956,32 +970,32 @@ export function ConnectedVideoList({
   const activeOrgs = isFavPage ? [] : app.selectedHomeOrgs || [];
   const activeOrgsKey = activeOrgs.join("\0");
 
-  const keyFor = (tv: number, fav = isFavPage) =>
-    [
-      "vlx",
-      fav ? "fav" : "home",
-      tv,
-      scrollMode ? "scroll" : "page",
-      gs,
-      fav ? "" : orgsKey,
-      fav ? "" : overrideKey,
-      toDate || "",
-      langsKey,
-    ].join("-");
+  const keyFor = useCallback(
+    (tv: number, fav = isFavPage) =>
+      [
+        "vlx",
+        fav ? "fav" : "home",
+        tv,
+        scrollMode ? "scroll" : "page",
+        gs,
+        fav ? "" : orgsKey,
+        fav ? "" : overrideKey,
+        toDate || "",
+        langsKey,
+      ].join("-"),
+    [isFavPage, scrollMode, gs, orgsKey, overrideKey, toDate, langsKey],
+  );
   const cacheKey = keyFor(tab);
   const hideCollabs =
     tab !== HOME_TABS.CLIPS &&
     app.settings.hideCollabStreams &&
     (isFavPage || activeOrgs.length > 0);
-  const targets = useMemo(
-    () =>
-      orgTargetsOverride?.length
-        ? orgTargetsOverride
-        : activeOrgs.length
-          ? activeOrgs
-          : [ALL_VTUBERS_ORG],
-    [overrideKey, activeOrgsKey],
-  );
+  // Rebuilt from the keys so it only changes when the org selection does.
+  const targets = useMemo(() => {
+    const override: any[] = JSON.parse(overrideKey);
+    if (override.length) return override;
+    return activeOrgsKey ? activeOrgsKey.split("\0") : [ALL_VTUBERS_ORG];
+  }, [overrideKey, activeOrgsKey]);
   const filterOrg = isFavPage
     ? "none"
     : targets.length > 1
@@ -1012,7 +1026,7 @@ export function ConnectedVideoList({
 
   const hasLiveContentOverride = liveContent !== null;
   const liveSource: any[] = hasLiveContentOverride
-    ? liveContent || []
+    ? (liveContent ?? NO_VIDEOS)
     : isFavPage
       ? app.favoritesLive
       : app.homeLive;
@@ -1070,41 +1084,41 @@ export function ConnectedVideoList({
     }
   }
 
-  const buildQuery = (tv: number) => buildHomeTabQuery({ tab: tv, clipLangs, toDate });
-
-  useEffect(() => {
-    if (!isActive) {
-      prevScroll.current = scrollMode;
-      return;
-    }
-    const prev = prevScroll.current;
-    prevScroll.current = scrollMode;
-    if (prev === scrollMode || !scrollMode || !sp.get("page")) return;
-    const params = new URLSearchParams(sp.toString());
-    params.delete("page");
-    const q = params.toString();
-    router.replace(
-      `${pathname}${q ? `?${q}` : ""}${typeof window !== "undefined" ? window.location.hash : ""}`,
-    );
-  }, [scrollMode, isActive, sp, pathname, router]);
+  const buildQuery = useCallback(
+    (tv: number) => buildHomeTabQuery({ tab: tv, clipLangs, toDate }),
+    [clipLangs, toDate],
+  );
 
   // Register this list as the poll focus: the store's central poll refreshes the complete
   // on-screen live list every 60s. Overridden lists (multiview) run their own refresh.
+  const { setLivePollFocus } = app;
   useEffect(() => {
     if (!isActive || tab !== HOME_TABS.LIVE_UPCOMING || hasLiveContentOverride) return;
-    app.setLivePollFocus(isFavPage ? "favorites" : "home");
-    return () => app.setLivePollFocus(null);
-  }, [isActive, tab, hasLiveContentOverride, isFavPage]);
+    setLivePollFocus(isFavPage ? "favorites" : "home");
+    return () => setLivePollFocus(null);
+  }, [isActive, tab, hasLiveContentOverride, isFavPage, setLivePollFocus]);
 
-  useEffect(() => {
-    if (!app.hydrated) return;
+  // Store reads and actions for the effects below; they should not re-run the effects.
+  const refreshLive = useEffectEvent((force: boolean) => init(force));
+  const startTracking = useEffectEvent(() => {
     init(true);
     prevOrgsKey.current = orgsKey;
     prevTab.current = tab;
+  });
+  const isHydrated = useEffectEvent(() => app.hydrated);
+  const refreshTabCache = useEffectEvent(() => {
+    // Freshen the newly shown tab's warmed cache if it has gone stale — replaces the old
+    // rolling 60s background re-fetch of every off-screen tab.
+    const entry = getHomeMultiOrgVideoCache(keyFor(tab));
+    if (entry?.isReady() && entry.isStale(60_000)) void entry.refresh();
+  });
+
+  useEffect(() => {
+    if (app.hydrated) startTracking();
   }, [app.hydrated]);
 
   useEffect(() => {
-    if (!app.hydrated) return;
+    if (!isHydrated()) return;
     if (prevOrgsKey.current === null) {
       prevOrgsKey.current = orgsKey;
       return;
@@ -1116,7 +1130,7 @@ export function ConnectedVideoList({
     // list's bottom can make the new sentinel immediately pull in several pages.
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     clearHomeMultiOrgVideoCache();
-    if (tab === HOME_TABS.LIVE_UPCOMING) init(false);
+    if (tab === HOME_TABS.LIVE_UPCOMING) refreshLive(false);
   }, [orgsKey, isActive, isFavPage, tab]);
 
   useEffect(() => {
@@ -1127,23 +1141,19 @@ export function ConnectedVideoList({
     const old = prevTab.current;
     prevTab.current = tab;
     if (!isActive || tab === old) return;
-    if (tab === HOME_TABS.LIVE_UPCOMING) {
-      init(false);
-      return;
-    }
-    // Freshen the newly shown tab's warmed cache if it has gone stale — replaces the old
-    // rolling 60s background re-fetch of every off-screen tab.
-    const entry = getHomeMultiOrgVideoCache(keyFor(tab));
-    if (entry?.isReady() && entry.isStale(60_000)) void entry.refresh();
+    if (tab === HOME_TABS.LIVE_UPCOMING) refreshLive(false);
+    else refreshTabCache();
   }, [tab, isActive]);
 
   // Reset the live/upcoming window when the list identity changes (tab/org/fav switch), then grow on scroll.
   // The initial window must extend past the observer's lookahead margin below the first viewport;
   // otherwise the sentinel is immediately "near" and the list grows in several quick steps right
-  // after the switch, making the page height (and scrollbar) visibly jump.
-  useEffect(() => {
+  // after the switch, making the page height (and scrollbar) visibly jump. (Adjusted during render.)
+  const [liveLimitKey, setLiveLimitKey] = useState(cacheKey);
+  if (liveLimitKey !== cacheKey) {
+    setLiveLimitKey(cacheKey);
     setLiveLimit(Math.max(perRow * 10, 60));
-  }, [cacheKey]);
+  }
   useEffect(() => {
     if (tab !== HOME_TABS.LIVE_UPCOMING || liveLimit >= luTotal) return;
     const el = liveSentinel.current;
@@ -1161,11 +1171,11 @@ export function ConnectedVideoList({
   // Warm the other tabs' caches once so switching to them is instant. Each cache is then
   // freshened on activation (tab-change effect above) instead of on a rolling 60s timer,
   // and the live lists are owned by the store's central poll.
+  const jwt: string | null = app.userdata.jwt;
+  const warmFavorites = !!jwt && app.isLoggedIn && app.favoriteChannelIDs.size > 0;
   useEffect(() => {
     if (!isActive || !app.hydrated) return;
-    const jwt = app.userdata.jwt;
-    const loggedInFav = !!jwt && app.isLoggedIn && app.favoriteChannelIDs.size > 0;
-    const contexts = loggedInFav && !isFavPage ? [false, true] : [isFavPage];
+    const contexts = warmFavorites && !isFavPage ? [false, true] : [isFavPage];
     contexts.forEach((fav) => {
       [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((tv) => {
         if (fav === isFavPage && tv === tab) return;
@@ -1175,22 +1185,7 @@ export function ConnectedVideoList({
         else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
       });
     });
-  }, [
-    isActive,
-    isFavPage,
-    app.hydrated,
-    app.isLoggedIn,
-    app.userdata.jwt,
-    app.favoriteChannelIDs.size,
-    tab,
-    targets.join("\0"),
-    scrollMode,
-    gs,
-    orgsKey,
-    overrideKey,
-    langsKey,
-    toDate,
-  ]);
+  }, [isActive, isFavPage, app.hydrated, warmFavorites, jwt, tab, keyFor, buildQuery, targets]);
 
   const toggleClipLang = (value: string, checked: boolean) => {
     const next = new Set(clipLangs);
@@ -1211,15 +1206,15 @@ export function ConnectedVideoList({
     app.setCurrentGridSize(0);
   }
 
-  function getLoadFn() {
+  // The list loader reads from the warmed multi-org/favorites cache for this list identity.
+  const loaderLoadFn = useMemo(() => {
     const query: Record<string, any> = buildQuery(tab);
     query.paginated = !scrollMode;
     const readCache = (key: string) => {
       const cached = getHomeMultiOrgVideoCache(key)!;
       return async (offset: number, limit: number) => {
         await cached.page1;
-        while (offset + limit > cached.getCurrentItems().length && !cached.isExhausted())
-          await cached.fetchMore();
+        await fetchCacheUntil(cached, offset + limit);
         const snap = cached.getCurrentItems();
         const slice = snap.slice(offset, offset + limit);
         if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
@@ -1229,7 +1224,6 @@ export function ConnectedVideoList({
       };
     };
     if (isFavPage) {
-      const jwt = app.userdata.jwt;
       if (!jwt) return async () => [];
       ensureFavoritesVideoFetch(cacheKey, query, jwt, tab);
       [HOME_TABS.ARCHIVE, HOME_TABS.CLIPS].forEach((otherTab) => {
@@ -1248,9 +1242,7 @@ export function ConnectedVideoList({
         ensureHomeMultiOrgVideoFetch(key, buildQuery(otherTab), targets, otherTab);
     });
     return readCache(cacheKey);
-  }
-
-  const loaderLoadFn = useMemo(() => getLoadFn(), [cacheKey, app.userdata.jwt]);
+  }, [buildQuery, tab, scrollMode, isFavPage, jwt, cacheKey, keyFor, targets]);
 
   const renderSkeletons = (opts: { denseList?: boolean; horizontal?: boolean } = {}) => (
     <SkeletonCardList

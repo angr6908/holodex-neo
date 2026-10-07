@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { TlEntryRow } from "@/components/tl/ScriptEditorParts";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -35,7 +35,6 @@ export function UploadScript({
 }) {
   const t = useTranslations();
   const app = useAppState();
-  const fileInput = useRef<HTMLInputElement | null>(null);
   const [parsed, setParsed] = useState(false);
   const [entries, setEntries] = useState<any[]>([]);
   const [notif, setNotif] = useState("");
@@ -48,15 +47,11 @@ export function UploadScript({
     return videoData.start_actual;
   }, [videoData]);
 
-  useEffect(() => {
-    if (fileInput.current) fileInput.current.value = "";
-    setParsed(false);
-    setNotif("");
-    setEntries([]);
-  }, [videoData]);
-
+  // (Callers key this component by video, so switching videos starts with a fresh form.)
+  // Each parsed entry keeps its file position as `tempid`, which the upload sends as well.
   const toEntries = (arr: any[], textKey: string) =>
-    arr.map((e: any) => ({
+    arr.map((e: any, i: number) => ({
+      tempid: `I${i}`,
       message: e[textKey],
       timestamp: e.startTime,
       duration: e.duration,
@@ -91,7 +86,8 @@ export function UploadScript({
       handle((data) => {
         const lines = data.split("\n");
         if (isSrtTimestampRange(lines[lines.length - 1])) return;
-        const next = parseSrtCues(data).map((c) => ({
+        const next = parseSrtCues(data).map((c, i) => ({
+          tempid: `I${i}`,
           message: c.text,
           timestamp: c.startTime,
           duration: c.duration,
@@ -126,11 +122,11 @@ export function UploadScript({
       type: "Delete",
       data: { id: e.id },
     }));
-    entries.forEach((e, i) => {
+    entries.forEach((e) => {
       processes.push({
         type: "Add",
         data: {
-          tempid: `I${i}`,
+          tempid: e.tempid,
           name: user.user.username,
           timestamp: Math.floor(startTime + e.timestamp),
           message: e.message,
@@ -167,7 +163,6 @@ export function UploadScript({
         <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
           <FileText className="size-4 text-muted-foreground" />
           <Input
-            ref={fileInput}
             accept=".ass,.TTML,.srt,.ttml"
             type="file"
             className="h-auto border-0 bg-transparent p-0 text-sm shadow-none focus-visible:border-transparent focus-visible:ring-0"
@@ -205,9 +200,9 @@ export function UploadScript({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {entries.map((e, i) => (
+              {entries.map((e) => (
                 <TlEntryRow
-                  key={i}
+                  key={e.tempid}
                   time={e.timestamp}
                   duration={e.duration}
                   stext={e.message}

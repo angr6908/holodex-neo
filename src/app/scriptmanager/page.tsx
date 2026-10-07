@@ -229,7 +229,14 @@ export default function TLScriptManagerPage() {
   }
 
   const renderDialog = () => {
-    if (mode === 0) return <UploadScript videoData={videoData} onClose={closeUpload} />;
+    if (mode === 0)
+      return (
+        <UploadScript
+          key={videoData?.custom_video_id || videoData?.id}
+          videoData={videoData}
+          onClose={closeUpload}
+        />
+      );
     if (mode === 1) return <ExportToFile videoData={videoData} />;
     if (mode === 3) return <ImportMchad onClose={closeUpload} />;
     if (mode === 2)

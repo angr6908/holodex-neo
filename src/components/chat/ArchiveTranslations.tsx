@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
@@ -12,10 +12,25 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { useDomElement } from "@/lib/hooks";
 import { Captions, ChevronLeft, ChevronRight, Maximize2 } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { dayjs } from "@/lib/time";
 import { cn } from "@/lib/utils";
+// The message being spoken at `msTime`: the one before the first message that starts at or after
+// it (messages are in time order), or the last message once all have started.
+function currentMessageIndex(messages: Array<{ relativeMs: number }>, msTime: number) {
+  const last = messages.length - 1;
+  let lo = 0;
+  let hi = last;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (messages[mid].relativeMs >= msTime) hi = mid;
+    else lo = mid + 1;
+  }
+  return lo >= last ? Math.max(last, 0) : Math.max(lo - 1, 0);
+}
+
 export function ArchiveTranslations({
   video,
   currentTime = 0,
@@ -35,12 +50,20 @@ export function ArchiveTranslations({
   const [expanded, setExpanded] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [timeOffsetSeconds, setTimeOffsetSeconds] = useState(0);
-  const [liveTlLang, setLiveTlLang] = useState(app.settings.liveTlLang);
+  const liveTlLang = app.settings.liveTlLang;
+  const settingShowSubtitle = app.settings.liveTlShowSubtitle;
   const [showSubtitle, setShowSubtitle] = useState(
-    useLocalSubtitleToggle ? true : app.settings.liveTlShowSubtitle,
+    useLocalSubtitleToggle ? true : settingShowSubtitle,
   );
-  const [curIndex, setCurIndex] = useState(0);
-  const [subtitleTarget, setSubtitleTarget] = useState<HTMLElement | null>(null);
+  // Follow the global subtitle setting unless this panel has its own toggle (adjusted during
+  // render, so the overlay never shows the stale choice).
+  const subtitleSettingKey = `${useLocalSubtitleToggle}:${settingShowSubtitle}`;
+  const [syncedSubtitleSetting, setSyncedSubtitleSetting] = useState(subtitleSettingKey);
+  if (syncedSubtitleSetting !== subtitleSettingKey) {
+    setSyncedSubtitleSetting(subtitleSettingKey);
+    if (!useLocalSubtitleToggle) setShowSubtitle(settingShowSubtitle);
+  }
+  const subtitleTarget = useDomElement(video?.id ? `overlay-${video.id}` : "");
   const expandedMsgId = `tl-expanded-${useId().replace(/:/g, "")}`;
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const startTimeMillis = video?.available_at ? Number(dayjs(video.available_at)) : null;
@@ -61,39 +84,28 @@ export function ArchiveTranslations({
     }
     return next;
   }
-  function loadMessages() {
-    if (!video?.id) return;
+  const videoId = video?.id;
+  const { liveTlShowVerified, liveTlShowModerator, liveTlShowVtuber } = app.settings;
+  const parseHistory = useEffectEvent((data: any[]) => (data || []).map(parseMessage));
+  useEffect(() => {
+    if (!videoId) return;
+    let cancelled = false;
     api
-      .chatHistory(video.id, {
+      .chatHistory(videoId, {
         lang: liveTlLang,
-        verified: app.settings.liveTlShowVerified,
-        moderator: app.settings.liveTlShowModerator,
-        vtuber: app.settings.liveTlShowVtuber,
+        verified: liveTlShowVerified,
+        moderator: liveTlShowModerator,
+        vtuber: liveTlShowVtuber,
         limit: 100000,
       })
-      .then(({ data }: any) => setTlHistory((data || []).map(parseMessage)))
+      .then(({ data }: any) => {
+        if (!cancelled) setTlHistory(parseHistory(data));
+      })
       .catch(console.error);
-  }
-
-  useEffect(() => {
-    setLiveTlLang(app.settings.liveTlLang);
-  }, [app.settings.liveTlLang]);
-  useEffect(() => {
-    if (!useLocalSubtitleToggle) setShowSubtitle(app.settings.liveTlShowSubtitle);
-  }, [app.settings.liveTlShowSubtitle, useLocalSubtitleToggle]);
-  useEffect(() => {
-    loadMessages();
-  }, [
-    video?.id,
-    liveTlLang,
-    app.settings.liveTlShowVerified,
-    app.settings.liveTlShowModerator,
-    app.settings.liveTlShowVtuber,
-  ]);
-  useEffect(() => {
-    if (!video?.id) setSubtitleTarget(null);
-    else setSubtitleTarget(document.getElementById(`overlay-${video.id}`));
-  }, [video?.id, showSubtitle]);
+    return () => {
+      cancelled = true;
+    };
+  }, [videoId, liveTlLang, liveTlShowVerified, liveTlShowModerator, liveTlShowVtuber]);
 
   const dividedTLs = useMemo(() => {
     const filtered = tlHistory.filter((m: any) => !blockedNames.has(m.name));
@@ -109,6 +121,11 @@ export function ArchiveTranslations({
     });
   }, [tlHistory, blockedNames, timeOffsetSeconds]);
 
+  const curIndex = useMemo(
+    () => currentMessageIndex(dividedTLs, currentTime * 1000),
+    [dividedTLs, currentTime],
+  );
+
   const toDisplay = useMemo(() => {
     if (!dividedTLs.length || !showSubtitle) return [];
     const startIdx = Math.max(curIndex - 1, 0);
@@ -118,23 +135,6 @@ export function ArchiveTranslations({
       return currentTime * 1000 >= m.relativeMs && currentTime * 1000 < m.relativeMs + displayTime;
     });
   }, [dividedTLs, showSubtitle, curIndex, currentTime]);
-
-  useEffect(() => {
-    if (!dividedTLs.length) return;
-    const msTime = currentTime * 1000;
-    const cur = dividedTLs[curIndex]?.relativeMs ?? 0;
-    const startIndex = currentTime < cur ? 0 : curIndex;
-    for (let i = startIndex; i < dividedTLs.length; i += 1) {
-      if (i === dividedTLs.length - 1) {
-        setCurIndex(dividedTLs.length - 1);
-        return;
-      }
-      if (msTime <= dividedTLs[i].relativeMs) {
-        setCurIndex(Math.max(i - 1, 0));
-        return;
-      }
-    }
-  }, [currentTime, dividedTLs.length, timeOffsetSeconds]);
 
   useEffect(() => {
     const el = bodyRef.current;
@@ -161,9 +161,12 @@ export function ArchiveTranslations({
     }
   }
 
+  // Clicks on a message (delegated from here) jump to its time; the player has its own
+  // keyboard seeking.
   const body = (
     <div
       ref={bodyRef}
+      role="presentation"
       className={cn(
         "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-1 py-0 leading-[1.35] lg:px-3",
         liveTlFontSizeClass(app.settings.liveTlFontSize),

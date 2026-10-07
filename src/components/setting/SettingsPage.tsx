@@ -58,7 +58,11 @@ export function SettingsPage({ className = "" }: { className?: string }) {
     const hash = window.location.hash;
     if (!hash) return;
     requestAnimationFrame(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      try {
+        document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch {
+        // Not a valid selector (e.g. "#1"): nothing to scroll to.
+      }
     });
   }, []);
   useEffect(() => {
@@ -71,6 +75,16 @@ export function SettingsPage({ className = "" }: { className?: string }) {
       }
     } catch {}
   }, [themeId, themeOptions]);
+
+  function setScrollMode(enabled: boolean) {
+    app.patchSettings({ scrollMode: enabled });
+    // Infinite scroll has no pages, so drop a stale ?page= from the home list's URL.
+    if (!enabled || pathname !== "/" || !searchParams.has("page")) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    const query = params.toString();
+    router.replace(`${pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+  }
 
   function clearOverrideLanguage() {
     const params = new URLSearchParams(searchParams.toString());
@@ -207,9 +221,7 @@ export function SettingsPage({ className = "" }: { className?: string }) {
               app.settings.followSystemTheme,
               app.settings.followSystemTheme && !app.settings.darkMode,
             )}
-            {checkChip(t("views.settings.scrollModeLabel"), app.settings.scrollMode, (v) =>
-              app.patchSettings({ scrollMode: v }),
-            )}
+            {checkChip(t("views.settings.scrollModeLabel"), app.settings.scrollMode, setScrollMode)}
             {checkChip(
               t("views.settings.followSystemThemeLabel"),
               app.settings.followSystemTheme,

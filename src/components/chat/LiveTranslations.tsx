@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
 import {
@@ -14,12 +14,17 @@ import { Card, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { api } from "@/lib/api";
+import { useDomElement } from "@/lib/hooks";
 import { Captions, Maximize2 } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { dayjs } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 const LIMIT = 20;
+
+// The oldest loaded message starts a new author run in the list.
+const markBreakpoint = (messages: any[]) =>
+  messages.length ? [{ ...messages[0], breakpoint: true }, ...messages.slice(1)] : messages;
 
 export function LiveTranslations({
   video,
@@ -28,7 +33,6 @@ export function LiveTranslations({
   tlLang = "",
   tlClient = false,
   className = "",
-  onVideoUpdate,
 }: {
   video: Record<string, any>;
   currentTime?: number;
@@ -44,9 +48,19 @@ export function LiveTranslations({
   const [expanded, setExpanded] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [lang, setLang] = useState(tlLang || app.settings.liveTlLang);
-  const [showSub, setShowSub] = useState(useLocalSubtitleToggle || app.settings.liveTlShowSubtitle);
-  const [overlayMsg, setOverlayMsg] = useState(t("views.watch.chat.loading"));
+  // The TL client picks its own language; elsewhere the panel follows the TL language setting.
+  const lang = tlLang || app.settings.liveTlLang;
+  const settingShowSub = app.settings.liveTlShowSubtitle;
+  const [showSub, setShowSub] = useState(useLocalSubtitleToggle || settingShowSub);
+  // Follow the global subtitle setting unless this panel has its own toggle (adjusted during
+  // render, so the overlay never shows the stale choice).
+  const subSettingKey = `${useLocalSubtitleToggle}:${settingShowSub}`;
+  const [syncedSubSetting, setSyncedSubSetting] = useState(subSettingKey);
+  if (syncedSubSetting !== subSettingKey) {
+    setSyncedSubSetting(subSettingKey);
+    if (!useLocalSubtitleToggle) setShowSub(settingShowSub);
+  }
+  const [overlayMsg, setOverlayMsg] = useState(() => t("views.watch.chat.loading"));
   const [showOverlay, setShowOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const body = useRef<MessageRendererHandle | null>(null);
@@ -61,7 +75,7 @@ export function LiveTranslations({
     () => history.filter((m: any) => !blocked.has(m.name)),
     [history, blocked],
   );
-  const [subTarget, setSubTarget] = useState<HTMLElement | null>(null);
+  const subTarget = useDomElement(video?.id ? `overlay-${video.id}` : "");
   const toDisplay = useMemo(() => {
     if (!filtered.length || !showSub || tlClient) return [];
     const buf = filtered.slice(-2);
@@ -74,19 +88,6 @@ export function LiveTranslations({
     });
   }, [filtered, showSub, tlClient, currentTime, startMs]);
 
-  useEffect(() => {
-    if (tlLang) setLang(tlLang);
-  }, [tlLang]);
-  useEffect(() => {
-    if (typeof document === "undefined" || !video?.id) {
-      setSubTarget(null);
-      return;
-    }
-    setSubTarget(document.getElementById(`overlay-${video.id}`));
-  }, [video?.id, expanded, showSub]);
-  useEffect(() => {
-    if (!useLocalSubtitleToggle) setShowSub(app.settings.liveTlShowSubtitle);
-  }, [app.settings.liveTlShowSubtitle, useLocalSubtitleToggle]);
   useEffect(() => {
     body.current?.scrollToBottom();
   }, [history]);
@@ -125,11 +126,7 @@ export function LiveTranslations({
       .then(({ data }: { data: any[] }) => {
         setCompleted(data.length !== LIMIT || loadAll);
         const parsed = data.map(parseMessage);
-        setHistory((prev) => {
-          const next = firstLoad ? parsed : [...parsed, ...prev];
-          if (next.length) next[0] = { ...next[0], breakpoint: true };
-          return next;
-        });
+        setHistory((prev) => markBreakpoint(firstLoad ? parsed : [...parsed, ...prev]));
       })
       .catch(console.error)
       .finally(() => {
@@ -159,11 +156,13 @@ export function LiveTranslations({
     refresh();
   }
 
+  const join = useEffectEvent(() => tlJoin());
+  const poll = useEffectEvent(() => refresh());
   useEffect(() => {
     setIsLoading(true);
     setHistory([]);
-    tlJoin();
-    const id = setInterval(refresh, 15000);
+    join();
+    const id = setInterval(() => poll(), 15000);
     return () => clearInterval(id);
   }, [
     video?.id,

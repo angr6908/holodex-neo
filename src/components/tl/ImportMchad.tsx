@@ -41,7 +41,10 @@ export function ImportMchad({ onClose }: { onClose?: (payload: { upload?: boolea
       setWorking(true);
       if (!(room && pass)) throw new Error(t("views.tlManager.importMchad.missingCredentials"));
       const { data } = await api.checkMchadMigrate(room, pass);
-      setArchiveData(data.archives);
+      // The list is read-only, so each archive is identified by its place in the response.
+      setArchiveData(
+        (data.archives || []).map((archive: any, position: number) => ({ ...archive, position })),
+      );
       setLoginText(t("views.tlManager.importMchad.foundId", { id: data.mchad_user_id }));
     } catch (e: any) {
       setClaimErrorMsg(e.message);
@@ -97,9 +100,9 @@ export function ImportMchad({ onClose }: { onClose?: (payload: { upload?: boolea
             </TableRow>
           </TableHeader>
           <TableBody>
-            {archiveData.map((dt, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
+            {archiveData.map((dt) => (
+              <TableRow key={dt.position}>
+                <TableCell>{dt.position + 1}</TableCell>
                 <TableCell>{dt.video_id}</TableCell>
                 <TableCell>{dt.count}</TableCell>
               </TableRow>

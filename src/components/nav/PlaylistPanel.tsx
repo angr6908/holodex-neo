@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,39 +45,51 @@ export function PlaylistPanel({
   const [loginWarn, setLoginWarn] = useState(false);
   const [ytDialog, setYtDialog] = useState(false);
   const [serverPls, setServerPls] = useState<any[]>([]);
-  const [serverLoading, setServerLoading] = useState(false);
+  // Guards against overlapping list requests; only read by handlers.
+  const serverLoading = useRef(false);
   const unnamed = t("component.playlist.unnamed-playlist");
   const activeName =
     !app.playlistActive?.id && app.playlistActive?.name === "Unnamed Playlist"
       ? unnamed
       : app.playlistActive?.name || unnamed;
   const [nameInput, setNameInput] = useState(activeName);
+  // Reset the name field when the active playlist's name changes, and the transient UI each
+  // time the panel opens (adjusted during render rather than in effects).
+  const [syncedName, setSyncedName] = useState(activeName);
+  if (syncedName !== activeName) {
+    setSyncedName(activeName);
+    setNameInput(activeName);
+  }
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setEditName(false);
+      setLoginWarn(false);
+    }
+  }
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<"above" | "below">("below");
   const count = app.playlist.length;
 
+  const refreshServerPlaylists = useEffectEvent(() => {
+    void fetchServer();
+  });
   useEffect(() => {
-    setNameInput(activeName);
-  }, [activeName]);
-  useEffect(() => {
-    if (open) {
-      setEditName(false);
-      setLoginWarn(false);
-      void fetchServer();
-    }
+    if (open) refreshServerPlaylists();
   }, [open]);
 
   async function fetchServer() {
-    if (!app.userdata?.jwt || serverLoading) return;
-    setServerLoading(true);
+    if (!app.userdata?.jwt || serverLoading.current) return;
+    serverLoading.current = true;
     try {
       const { data } = await api.getPlaylistList(app.userdata.jwt);
       setServerPls(data || []);
     } catch {
       setServerPls([]);
     } finally {
-      setServerLoading(false);
+      serverLoading.current = false;
     }
   }
 
@@ -251,6 +263,7 @@ export function PlaylistPanel({
                 onChange={(e) => setNameInput(e.target.value)}
                 onBlur={() => commitName()}
                 onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing) return;
                   if (e.key === "Enter" || e.key === "Escape") (e.target as HTMLElement).blur();
                 }}
               />
@@ -372,7 +385,7 @@ export function PlaylistPanel({
             <div className="flex flex-col gap-0.5 p-1.5">
               {app.playlist.map((v: any, idx: number) => (
                 <div
-                  key={`${v.id || "video"}-${idx}`}
+                  key={v.id}
                   data-drag-item
                   className={cn(
                     "group relative flex items-center gap-2.5 rounded-md p-1.5 transition-colors select-none hover:bg-muted",

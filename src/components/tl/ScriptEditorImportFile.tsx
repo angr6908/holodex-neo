@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { TlEntryRow } from "@/components/tl/ScriptEditorParts";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +20,11 @@ import { parseSrtCues, parseTlAssImport, parseTlTtmlImport } from "@/lib/tl-form
 function mapProfiles(profiles: any[]) {
   return profiles.map(({ Name, CC, OC }) => ({ Name, useCC: true, CC, useOC: true, OC }));
 }
+// Imported entries are identified by their position in the file.
 function mapEntries(entries: any[]) {
   return entries.map(
-    ({ text: SText, startTime: Time, duration: Duration, profileIndex: Profile }) => ({
+    ({ text: SText, startTime: Time, duration: Duration, profileIndex: Profile }, i) => ({
+      id: `I${i}`,
       SText,
       Time,
       Duration,
@@ -31,6 +33,8 @@ function mapEntries(entries: any[]) {
   );
 }
 
+type ImportPayload = { entriesData: any[]; profileData: any[] };
+
 export function ImportFile({
   show,
   onOpenChange,
@@ -38,26 +42,38 @@ export function ImportFile({
 }: {
   show: boolean;
   onOpenChange: (value: boolean) => void;
-  onBounceDataBack: (payload: { entriesData: any[]; profileData: any[] }) => void;
+  onBounceDataBack: (payload: ImportPayload) => void;
+}) {
+  return (
+    <Dialog open={show} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[500px] max-w-[80%]">
+        <ImportFileForm
+          onCancel={() => onOpenChange(false)}
+          onImport={(payload) => {
+            onBounceDataBack(payload);
+            onOpenChange(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Rendered inside the dialog content, which unmounts when the dialog closes, so every opening
+// starts with an empty form.
+function ImportFileForm({
+  onCancel,
+  onImport,
+}: {
+  onCancel: () => void;
+  onImport: (payload: ImportPayload) => void;
 }) {
   const t = useTranslations();
-  const fileInput = useRef<HTMLInputElement | null>(null);
   const [parsed, setParsed] = useState(false);
   const [entries, setEntries] = useState<any[]>([]);
   const [profile, setProfile] = useState<any[]>([]);
   const [notifText, setNotifText] = useState("");
   const [selectedFileName, setSelectedFileName] = useState("");
-
-  useEffect(() => {
-    if (!show) {
-      if (fileInput.current) fileInput.current.value = "";
-      setParsed(false);
-      setNotifText("");
-      setEntries([]);
-      setProfile([]);
-      setSelectedFileName("");
-    }
-  }, [show]);
 
   function handleFileInput(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event?.target?.files?.[0];
@@ -126,7 +142,8 @@ export function ImportFile({
       },
     ];
     const nextEntries = parseSrtCues(dataFeed).map(
-      ({ text: SText, startTime: Time, duration: Duration }) => ({
+      ({ text: SText, startTime: Time, duration: Duration }, i) => ({
+        id: `I${i}`,
         SText,
         Time,
         Duration,
@@ -139,70 +156,59 @@ export function ImportFile({
     setParsed(true);
   }
   function clickOk() {
-    onBounceDataBack({ entriesData: entries, profileData: profile });
-    onOpenChange(false);
+    onImport({ entriesData: entries, profileData: profile });
   }
 
   return (
-    <Dialog open={show} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[500px] max-w-[80%]">
-        <div className="space-y-4">
-          <DialogHeader className="items-center text-center sm:text-center">
-            <DialogTitle>{t("views.scriptEditor.menu.importFile")}</DialogTitle>
-          </DialogHeader>
-          <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm leading-5 font-normal text-muted-foreground">
-            <FileText className="h-5 w-5" />
-            <span className="truncate">{selectedFileName || ".ass, .ttml, .srt"}</span>
-            <Input
-              ref={fileInput}
-              accept=".ass,.TTML,.srt"
-              type="file"
-              className="hidden"
-              onChange={handleFileInput}
-            />
-          </Label>
-          <p className="text-sm text-muted-foreground">{notifText}</p>
-          {entries.length > 0 ? (
-            <div className="max-h-[40vh] overflow-auto rounded-xl border">
-              <Table>
-                <TableHeader className="sticky top-0 bg-background">
-                  <TableRow>
-                    <TableHead>{t("views.watch.uploadPanel.headerStart")}</TableHead>
-                    <TableHead>{t("views.watch.uploadPanel.headerEnd")}</TableHead>
-                    <TableHead>{t("views.watch.uploadPanel.headerText")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {entries.map((entry, index) => (
-                    <TlEntryRow
-                      key={index}
-                      time={entry.Time}
-                      duration={entry.Duration}
-                      stext={entry.SText}
-                      cc={profile[entry.Profile].useCC ? profile[entry.Profile].CC : ""}
-                      oc={profile[entry.Profile].useOC ? profile[entry.Profile].OC : ""}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : null}
-          <DialogFooter className="flex-row items-center justify-start gap-3 sm:justify-start">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              {t("views.tlClient.cancelBtn")}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="ml-auto"
-              disabled={!parsed}
-              onClick={clickOk}
-            >
-              {t("views.scriptEditor.importFile.overwriteBtn")}
-            </Button>
-          </DialogFooter>
+    <div className="space-y-4">
+      <DialogHeader className="items-center text-center sm:text-center">
+        <DialogTitle>{t("views.scriptEditor.menu.importFile")}</DialogTitle>
+      </DialogHeader>
+      <Label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-sm leading-5 font-normal text-muted-foreground">
+        <FileText className="h-5 w-5" />
+        <span className="truncate">{selectedFileName || ".ass, .ttml, .srt"}</span>
+        <Input accept=".ass,.TTML,.srt" type="file" className="hidden" onChange={handleFileInput} />
+      </Label>
+      <p className="text-sm text-muted-foreground">{notifText}</p>
+      {entries.length > 0 ? (
+        <div className="max-h-[40vh] overflow-auto rounded-xl border">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background">
+              <TableRow>
+                <TableHead>{t("views.watch.uploadPanel.headerStart")}</TableHead>
+                <TableHead>{t("views.watch.uploadPanel.headerEnd")}</TableHead>
+                <TableHead>{t("views.watch.uploadPanel.headerText")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {entries.map((entry) => (
+                <TlEntryRow
+                  key={entry.id}
+                  time={entry.Time}
+                  duration={entry.Duration}
+                  stext={entry.SText}
+                  cc={profile[entry.Profile].useCC ? profile[entry.Profile].CC : ""}
+                  oc={profile[entry.Profile].useOC ? profile[entry.Profile].OC : ""}
+                />
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      </DialogContent>
-    </Dialog>
+      ) : null}
+      <DialogFooter className="flex-row items-center justify-start gap-3 sm:justify-start">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          {t("views.tlClient.cancelBtn")}
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          className="ml-auto"
+          disabled={!parsed}
+          onClick={clickOk}
+        >
+          {t("views.scriptEditor.importFile.overwriteBtn")}
+        </Button>
+      </DialogFooter>
+    </div>
   );
 }
