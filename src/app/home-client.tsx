@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useEffectEvent, useRef } from "react";
 import { ChannelsPage } from "@/components/channel/ChannelsPage";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
-import { ConnectedVideoList } from "@/components/nav/MainNav";
+import { ConnectedVideoList } from "@/components/video/ConnectedVideoList";
 import { Button } from "@/components/ui/button";
 import {
   Empty,

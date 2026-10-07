@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChannelChip } from "@/components/channel/ChannelChip";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
-import { VideoListFilters } from "@/components/nav/MainNav";
+import { VideoListFilters } from "@/components/video/VideoListFilters";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
-import { ConnectedVideoList } from "@/components/nav/MainNav";
+import { ConnectedVideoList } from "@/components/video/ConnectedVideoList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
