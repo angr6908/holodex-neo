@@ -196,7 +196,6 @@ export default function LibraryPage() {
               videos={data}
               horizontal
               includeChannel
-              dense
               renderAction={(video: any) => (
                 <Checkbox
                   checked={selected.includes(video.id)}

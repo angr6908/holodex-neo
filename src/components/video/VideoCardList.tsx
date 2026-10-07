@@ -27,13 +27,11 @@ export function VideoCardList({
   className = "",
   cols = DEFAULT_COLS,
   activeId = "",
-  dense = false,
   disableDefaultClick = false,
   filterConfig = NO_FILTER,
   sortFn,
   showComments = false,
   inMultiViewSelector = false,
-  fadeUnderNavExt = false,
   onVideoClicked,
   renderAction,
 }: any) {

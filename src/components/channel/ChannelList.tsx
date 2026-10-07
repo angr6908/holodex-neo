@@ -83,7 +83,7 @@ export function ChannelList({
 
   function toggleGroup(g: any) {
     const name = `${g.title}`.toLowerCase();
-    const hg = { ...(app.settings.hiddenGroups || {}) };
+    const hg = { ...app.settings.hiddenGroups };
     hg[g.org] = [...(hg[g.org] || [])];
     const i = hg[g.org].findIndex((x: string) => x.toLowerCase() === name);
     if (i >= 0) hg[g.org].splice(i, 1);

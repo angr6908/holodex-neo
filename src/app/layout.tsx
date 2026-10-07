@@ -167,7 +167,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     requestHeaders.get("user-agent") || "",
   );
   const initialBootState = {
-    ...(cookieBootState || {}),
+    ...cookieBootState,
     isMobile: cookieBootState?.isMobile ?? requestIsMobile,
     windowWidth: cookieBootState?.windowWidth ?? (requestIsMobile ? 390 : 1440),
   };

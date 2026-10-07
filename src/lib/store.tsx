@@ -299,7 +299,7 @@ function buildBootState(boot?: AppBootState | null, homeBoot?: HomeUiState | nul
     homeNav: sanitizeHomeNav(homeBoot),
     isMobile: boot?.isMobile ?? defaultState.isMobile,
     windowWidth: boot?.windowWidth ?? defaultState.windowWidth,
-    settings: normalizeSettings({ ...defaultState.settings, ...(boot?.settings || {}) }),
+    settings: normalizeSettings({ ...defaultState.settings, ...boot?.settings }),
     currentGridSize: boot?.currentGridSize ?? defaultState.currentGridSize,
     currentOrg: boot?.currentOrg?.name
       ? { ...boot.currentOrg, short: boot.currentOrg.short || boot.currentOrg.name }
@@ -328,7 +328,7 @@ function loadPersisted(base: State): State {
   const pl = readJSON(KEYS.PLAYLIST, { active: emptyPlaylist(), isSaved: false });
   const playlistActive = {
     ...emptyPlaylist(),
-    ...(pl.active || {}),
+    ...pl.active,
     videos: pl.active?.videos || [],
   };
   const selectedHomeOrgs = Array.isArray(app.selectedHomeOrgs)
@@ -749,7 +749,7 @@ export function AppStateProvider({
       setHomeNav: (patch: HomeUiState) =>
         setState((s) => {
           const cur = resolveHomeNav(s.homeNav, s.settings.defaultOpen);
-          const next = { ...cur, ...(sanitizeHomeNav(patch) || {}) };
+          const next = { ...cur, ...sanitizeHomeNav(patch) };
           if (
             s.homeNav &&
             next.viewMode === cur.viewMode &&
@@ -1049,7 +1049,7 @@ export function AppStateProvider({
       },
       setVisibilityState: (v: string) => setState((s) => ({ ...s, visibilityState: v })),
       reloadCurrentPage: async (consumed: any = {}) => {
-        setState((s) => ({ ...s, reloadTrigger: { ...(consumed || {}), timestamp: Date.now() } }));
+        setState((s) => ({ ...s, reloadTrigger: { ...consumed, timestamp: Date.now() } }));
         return consumed;
       },
     }),

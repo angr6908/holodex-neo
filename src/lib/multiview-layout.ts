@@ -106,7 +106,7 @@ export function setMultiview(
       .map((o) => s.activeVideos[o.currentTab ?? 0]?.id);
     let ci = 0;
     const max = hintAdd ? vi + 1 : vi;
-    const free = new Set([...Array(max).keys()]);
+    const free = new Set(Array(max).keys());
 
     cl.filter((i) => cc[i.i]?.type === "chat").forEach((i) => {
       if (ci >= chats.length) {

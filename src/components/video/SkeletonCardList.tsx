@@ -21,7 +21,6 @@ export function SkeletonCardList({
   count?: number;
   expectedSize?: number | string;
   cols?: { xs: number; sm: number; md: number; lg: number; xl: number };
-  dense?: boolean;
   denseList?: boolean;
   horizontal?: boolean;
   autoFit?: boolean;

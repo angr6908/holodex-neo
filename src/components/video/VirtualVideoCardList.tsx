@@ -12,7 +12,6 @@ export function VirtualVideoCardList({
   hideThumbnail = false,
   horizontal = true,
   activeId = null,
-  dense,
   disableDefaultClick,
   activePlaylistItem,
   activeIndex = -1,
@@ -27,7 +26,6 @@ export function VirtualVideoCardList({
   keeps?: number;
   pageMode?: boolean;
   activeId?: string | null;
-  dense?: boolean;
   disableDefaultClick?: boolean;
   activePlaylistItem?: boolean;
   activeIndex?: number;
@@ -66,7 +64,6 @@ export function VirtualVideoCardList({
             horizontal={horizontal}
             active={activePlaylistItem ? index === activeIndex : video.id === activeId}
             activePlaylistItem={activePlaylistItem}
-            dense={dense}
             disableDefaultClick={disableDefaultClick}
             parentPlaylistId={playlist?.id || "local"}
             {...rest}

@@ -340,11 +340,10 @@ function ChannelVideos({
               videos={data}
               includeChannel={hasCh}
               cols={cols}
-              dense
               className={isLoading && data.length === 0 ? "hidden" : undefined}
             />
             {isLoading && data.length === 0 ? (
-              <SkeletonCardList cols={cols} includeChannel={hasCh} includeAvatar={false} dense />
+              <SkeletonCardList cols={cols} includeChannel={hasCh} includeAvatar={false} />
             ) : null}
           </div>
         )}

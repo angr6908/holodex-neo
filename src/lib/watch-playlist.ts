@@ -16,7 +16,7 @@ export function useWatchPlaylist(playlistId: string | null, currentVideoId?: str
       : app.playlistActive?.name || t("component.playlist.unnamed-playlist");
   const activePlaylist = useMemo(
     () => ({
-      ...(app.playlistActive || {}),
+      ...app.playlistActive,
       id: app.playlistActive?.id || "local",
       name: activePlaylistName,
       videos: app.playlist,

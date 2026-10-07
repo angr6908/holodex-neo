@@ -80,7 +80,7 @@ export function consumeOpenUserMenuRequest() {
 
 function sendToExt(payload: Record<string, unknown>) {
   try {
-    (window as any).chrome && chrome.runtime?.sendMessage?.(companionExtensionId, payload);
+    if ((window as any).chrome) chrome.runtime?.sendMessage?.(companionExtensionId, payload);
   } catch {}
 }
 

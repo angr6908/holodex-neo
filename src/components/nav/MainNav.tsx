@@ -1189,7 +1189,8 @@ export function ConnectedVideoList({
 
   const toggleClipLang = (value: string, checked: boolean) => {
     const next = new Set(clipLangs);
-    checked ? next.add(value) : next.delete(value);
+    if (checked) next.add(value);
+    else next.delete(value);
     app.patchSettings({ clipLangs: [...next].sort() });
   };
 
@@ -1247,7 +1248,6 @@ export function ConnectedVideoList({
   const renderSkeletons = (opts: { denseList?: boolean; horizontal?: boolean } = {}) => (
     <SkeletonCardList
       cols={cols}
-      dense={gs > 0}
       denseList={opts.denseList ?? viewMode === "denseList"}
       horizontal={opts.horizontal ?? viewMode === "list"}
       includeChannel
@@ -1265,12 +1265,10 @@ export function ConnectedVideoList({
       includeChannel
       includeAvatar={includeAvatar}
       cols={cols}
-      dense={gs > 0}
       filterConfig={filterConfig}
       denseList={opts.denseList ?? viewMode === "denseList"}
       horizontal={opts.horizontal ?? viewMode === "list"}
       inMultiViewSelector={inMultiViewSelector}
-      fadeUnderNavExt={false}
     />
   );
 

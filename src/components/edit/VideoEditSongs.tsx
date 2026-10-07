@@ -22,13 +22,11 @@ import { formatDuration, secondsToHuman } from "@/lib/time";
 function RelativeTimestampEditor({
   value,
   test,
-  upTo = false,
   onInput,
   onSeekTo,
 }: {
   value: number;
   test: number;
-  upTo?: boolean;
   onInput?: (value: number) => void;
   onSeekTo?: (value: number) => void;
 }) {
@@ -398,7 +396,6 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
             </div>
             <RelativeTimestampEditor
               value={Number(current.end)}
-              upTo
               test={currentTime}
               onInput={(x) => {
                 setCurrent((c: any) => ({ ...c, end: x }));

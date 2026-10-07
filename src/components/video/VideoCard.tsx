@@ -573,7 +573,8 @@ export function VideoCard({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data);
+                          if (hasSaved) app.removeFromPlaylist(data.id);
+                          else app.addToPlaylist(data);
                         }}
                       >
                         {hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}

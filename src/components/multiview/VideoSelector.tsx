@@ -466,7 +466,7 @@ export function VideoSelector({
   // The poll restarts whenever the selection or login changes, so a reload never lands right
   // after a fresh load.
   useEffect(() => {
-    refreshTimer.current && clearInterval(refreshTimer.current);
+    if (refreshTimer.current) clearInterval(refreshTimer.current);
     refreshTimer.current = setInterval(() => reloadSelection(), 2 * 60 * 1000);
     return () => {
       if (refreshTimer.current) clearInterval(refreshTimer.current);
@@ -765,7 +765,6 @@ export function VideoSelector({
                   videos={savedVideosList}
                   includeChannel
                   horizontal
-                  dense
                   disableDefaultClick
                   inMultiViewSelector
                   onVideoClicked={handleVideoClick}
@@ -787,7 +786,6 @@ export function VideoSelector({
                   liveContent={baseFilteredLive}
                   orgTargetsOverride={connectedListOrgTargets}
                   disableDefaultClick
-                  dense
                   datePortalName="date-selector-multiview"
                   inMultiViewSelector
                   autoFit={embedded}

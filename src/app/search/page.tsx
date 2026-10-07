@@ -343,7 +343,6 @@ function SearchResults() {
               <VideoCardList
                 videos={data}
                 includeChannel
-                dense
                 displayStartTime
                 cols={{ xs: 1, sm: 3, md: 4, lg: 5, xl: 6 }}
                 className={isLoading && data.length === 0 ? "hidden" : undefined}

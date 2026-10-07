@@ -70,7 +70,7 @@ export function UploadScript({
       reader.readAsText(f);
     };
 
-    if (/\.ass$/.test(ext))
+    if (ext.endsWith(".ass"))
       handle((data) => {
         const r = parseTlAssImport(data, {
           trimDialogueStyle: true,
@@ -82,7 +82,7 @@ export function UploadScript({
         setNotif(`Parsed ASS file, ${r.profiles.length} profiles, ${next.length} Entries.`);
         setParsed(true);
       });
-    else if (/\.srt$/.test(ext))
+    else if (ext.endsWith(".srt"))
       handle((data) => {
         const lines = data.split("\n");
         if (isSrtTimestampRange(lines[lines.length - 1])) return;
@@ -96,7 +96,7 @@ export function UploadScript({
         setNotif(`Parsed SRT file, ${next.length} Entries.`);
         setParsed(true);
       });
-    else if (/\.ttml$/.test(ext))
+    else if (ext.endsWith(".ttml"))
       handle((data) => {
         const r = parseTlTtmlImport(data, { continueAfterUnknownProfile: true });
         if (!r) return setNotif(t("views.watch.uploadPanel.notifTextErr"));
