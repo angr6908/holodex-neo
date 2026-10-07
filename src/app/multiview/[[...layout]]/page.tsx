@@ -36,6 +36,10 @@ import {
   ReorderLayout,
 } from "@/components/multiview/page-parts";
 import { VideoCell } from "@/components/multiview/VideoCell";
+import {
+  type Interaction,
+  useLayoutInteraction,
+} from "@/components/multiview/use-layout-interaction";
 import { VideoSelector } from "@/components/multiview/VideoSelector";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,16 +71,6 @@ import {
 } from "@/lib/mv-utils";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import {
-  calcGridPosition,
-  calcGridWH,
-  calcGridXY,
-  cloneLayoutItem,
-  compact,
-  getAllCollisions,
-  getLayoutItem,
-  moveElement,
-} from "@/lib/vue-grid-layout-utils";
 
 type ResizeHandleConfig = {
   direction: string;
@@ -143,6 +137,18 @@ function CornerGrip({ direction }: { direction: string }) {
   );
 }
 
+// Pointer hit areas: small squares in the corners, thin strips along the edges between them.
+const RESIZE_HIT_CLASSES: Record<string, string> = {
+  nw: "left-0 top-0 h-4 w-4 cursor-nw-resize",
+  ne: "right-0 top-0 h-4 w-4 cursor-ne-resize",
+  sw: "left-0 bottom-0 h-4 w-4 cursor-sw-resize",
+  se: "right-0 bottom-0 h-4 w-4 cursor-se-resize",
+  w: "left-0 bottom-2.5 top-2.5 h-auto w-2.5 cursor-w-resize",
+  e: "right-0 bottom-2.5 top-2.5 h-auto w-2.5 cursor-e-resize",
+  n: "top-0 left-2.5 right-2.5 h-2.5 w-auto cursor-n-resize",
+  s: "bottom-0 left-2.5 right-2.5 h-2.5 w-auto cursor-s-resize",
+};
+
 function FrameResizeHandle({
   active,
   direction,
@@ -157,44 +163,11 @@ function FrameResizeHandle({
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
 }) {
   const corner = direction.length > 1;
-  const hitClassName = corner
-    ? direction === "nw"
-      ? "left-0 top-0 h-4 w-4 cursor-nw-resize"
-      : direction === "ne"
-        ? "right-0 top-0 h-4 w-4 cursor-ne-resize"
-        : direction === "sw"
-          ? "left-0 bottom-0 h-4 w-4 cursor-sw-resize"
-          : "right-0 bottom-0 h-4 w-4 cursor-se-resize"
-    : direction === "w"
-      ? "left-0 bottom-2.5 top-2.5 h-auto w-2.5 cursor-w-resize"
-      : direction === "e"
-        ? "right-0 bottom-2.5 top-2.5 h-auto w-2.5 cursor-e-resize"
-        : direction === "n"
-          ? "top-0 left-2.5 right-2.5 h-2.5 w-auto cursor-n-resize"
-          : "bottom-0 left-2.5 right-2.5 h-2.5 w-auto cursor-s-resize";
+  const hitClassName = RESIZE_HIT_CLASSES[direction] ?? RESIZE_HIT_CLASSES[corner ? "se" : "s"];
   const visible = cn(
     "pointer-events-none opacity-0 transition-opacity peer-hover/resize:opacity-100 peer-focus-visible/resize:opacity-100",
     active && "opacity-100",
   );
-  if (corner) {
-    return (
-      <>
-        <div
-          data-resize-handle="true"
-          className={cn("peer/resize absolute z-40 bg-transparent", hitClassName)}
-          onPointerDown={onPointerDown}
-        />
-        <div
-          aria-hidden
-          className={cn("pointer-events-none absolute z-40 bg-transparent", className)}
-        >
-          <div className={visible}>
-            <CornerGrip direction={direction} />
-          </div>
-        </div>
-      </>
-    );
-  }
   return (
     <>
       <div
@@ -206,27 +179,23 @@ function FrameResizeHandle({
         aria-hidden
         className={cn("pointer-events-none absolute z-40 bg-transparent", className)}
       >
-        <span
-          className={cn(
-            "absolute rounded-full bg-muted-foreground/70 shadow-sm",
-            visible,
-            visualClassName,
-          )}
-        />
+        {corner ? (
+          <div className={visible}>
+            <CornerGrip direction={direction} />
+          </div>
+        ) : (
+          <span
+            className={cn(
+              "absolute rounded-full bg-muted-foreground/70 shadow-sm",
+              visible,
+              visualClassName,
+            )}
+          />
+        )}
       </div>
     </>
   );
 }
-
-type Interaction = {
-  type: "drag" | "resize";
-  id: string;
-  direction?: string;
-  startClientX: number;
-  startClientY: number;
-  startItem: any;
-  startPixel: { left: number; top: number; width: number; height: number };
-};
 
 function decodeLayoutParam(parts?: string[]) {
   if (!Array.isArray(parts)) return "";
@@ -253,6 +222,298 @@ export default function MultiViewPage() {
   );
 }
 
+// A toolbar icon button opening a popover (its PopoverContent is `children`), with a tooltip.
+function ToolbarPopover({
+  open,
+  onOpenChange,
+  label,
+  icon,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              render={<Button type="button" variant="ghost" size="icon" aria-label={label} />}
+            />
+          }
+        >
+          {icon}
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+      {children}
+    </Popover>
+  );
+}
+
+type PanelState = { open: boolean; setOpen: (open: boolean) => void };
+
+// Media controls, layout presets, reorder and the preset editor.
+function MultiviewExtraButtons({
+  media,
+  presets,
+  reorder,
+  presetEditor,
+  onPreset,
+}: {
+  media: PanelState;
+  presets: PanelState;
+  reorder: PanelState;
+  presetEditor: PanelState;
+  onPreset: (preset: any) => void;
+}) {
+  const t = useTranslations();
+  const store = useMultiviewStore();
+  const mediaLbl = t("views.multiview.mediaControls");
+  const presetLbl = t("views.multiview.changeLayout");
+  const reorderLbl = t("views.multiview.reorderLayout");
+  return (
+    <TooltipProvider>
+      <ToolbarPopover
+        open={media.open}
+        onOpenChange={media.setOpen}
+        label={mediaLbl}
+        icon={<SlidersVertical />}
+      >
+        <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,26rem)] gap-0 p-0">
+          <PopoverHeader className="border-b px-3 py-2.5">
+            <PopoverTitle>{mediaLbl}</PopoverTitle>
+          </PopoverHeader>
+          <div className="p-3">
+            <MediaControls open={media.open} />
+          </div>
+        </PopoverContent>
+      </ToolbarPopover>
+      <ToolbarPopover
+        open={presets.open}
+        onOpenChange={presets.setOpen}
+        label={presetLbl}
+        icon={<Grid2x2 />}
+      >
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          className="w-[min(92vw,20rem)] gap-0 overflow-hidden p-0"
+        >
+          <PopoverHeader className="border-b px-3 py-2">
+            <PopoverTitle>{presetLbl}</PopoverTitle>
+          </PopoverHeader>
+          <PresetSelector onSelected={onPreset} />
+        </PopoverContent>
+      </ToolbarPopover>
+      <ToolbarPopover
+        open={reorder.open}
+        onOpenChange={reorder.setOpen}
+        label={reorderLbl}
+        icon={<ArrowDownUp />}
+      >
+        <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,28rem)] gap-0 p-0">
+          <PopoverHeader className="border-b px-3 py-2.5">
+            <PopoverTitle>{reorderLbl}</PopoverTitle>
+            <PopoverDescription>{t("views.multiview.reorderLayoutDetail")}</PopoverDescription>
+          </PopoverHeader>
+          <ReorderLayout isActive={reorder.open} />
+        </PopoverContent>
+      </ToolbarPopover>
+      <ToolbarPopover
+        open={presetEditor.open}
+        onOpenChange={presetEditor.setOpen}
+        label={t("views.multiview.presetEditor.title")}
+        icon={<Save />}
+      >
+        <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,22rem)] p-4">
+          <PresetEditor
+            layout={store.layout}
+            content={store.layoutContent}
+            onClose={() => presetEditor.setOpen(false)}
+          />
+        </PopoverContent>
+      </ToolbarPopover>
+    </TooltipProvider>
+  );
+}
+
+// The 24x24 grid of cells, each draggable and (unless static) resizable from its edges, plus a
+// placeholder showing where the cell being moved will land.
+function LayoutGrid({
+  activeInt,
+  startInt,
+  cw,
+  reordering,
+  streamSelector,
+  onDelete,
+}: {
+  activeInt: Interaction | null;
+  startInt: (e: ReactPointerEvent, item: any, type: "drag" | "resize", direction?: string) => void;
+  cw: number;
+  reordering: boolean;
+  streamSelector: (id: string | number) => React.ReactNode;
+  onDelete: (id: string) => void;
+}) {
+  const store = useMultiviewStore();
+  return (
+    <div className="absolute inset-0 grid h-full w-full grid-cols-[repeat(24,minmax(0,1fr))] grid-rows-[repeat(24,minmax(0,1fr))] transition-none">
+      {store.layout.map((item) => {
+        const c = store.layoutContent[item.i];
+        const drag = activeInt?.type === "drag" && activeInt.id === String(item.i);
+        const resize = activeInt?.type === "resize" && activeInt.id === String(item.i);
+        return (
+          <div
+            key={`mvgrid${item.i}`}
+            className={cn(
+              "relative h-full min-h-0 w-full min-w-0 overflow-visible transition-transform duration-200",
+              gridAreaClass(item),
+              drag && "z-30 cursor-none select-none transition-none",
+              resize && "z-30 transition-none",
+              reordering && "pointer-events-none",
+            )}
+            onPointerDown={(e) => startInt(e, item, "drag")}
+          >
+            <CellContainer
+              item={item}
+              editMode={c?.type === "chat" ? true : undefined}
+              disablePointerEvents={drag || resize}
+            >
+              {c?.type === "chat" ? (
+                <ChatCell item={item} tl={c.initAsTL} cellWidth={cw * item.w} onDelete={onDelete} />
+              ) : c?.type === "video" ? (
+                <VideoCell item={item} onDelete={onDelete} />
+              ) : (
+                <EmptyCell
+                  item={item}
+                  streamSelector={streamSelector(item.i)}
+                  onDelete={onDelete}
+                />
+              )}
+            </CellContainer>
+            {item.isResizable !== false && !item.static
+              ? RESIZE_HANDLES.map(({ direction, className, visualClassName }) => (
+                  <FrameResizeHandle
+                    key={`handle${direction}`}
+                    active={resize && activeInt?.direction === direction}
+                    direction={direction}
+                    className={className}
+                    visualClassName={visualClassName}
+                    onPointerDown={(e) => startInt(e, item, "resize", direction)}
+                  />
+                ))
+              : null}
+          </div>
+        );
+      })}
+      {store.layout
+        .filter((i) => activeInt && String(i.i) === activeInt.id)
+        .map((p) => (
+          <div
+            key="placeholder"
+            className={cn(
+              "z-20 select-none bg-destructive/20 transition-transform duration-100",
+              gridAreaClass(p),
+            )}
+          />
+        ))}
+    </div>
+  );
+}
+
+// Applying a layout over a non-empty one asks first (overwrite or merge content); the dialog's
+// buttons resolve the pending change.
+function useLayoutChangePrompt() {
+  const store = useMultiviewStore();
+  const [open, setOpen] = useState(false);
+  const [defaultMerge, setDefaultMerge] = useState(false);
+  const [preview, setPreview] = useState<any>({ layout: [], content: {} });
+  const confirm = useRef<((m: boolean) => void) | null>(null);
+  const cancel = useRef<((m: boolean) => void) | null>(null);
+
+  function prompt(lc: any, confirmFn?: (() => void) | null, cancelFn?: (() => void) | null) {
+    if (open) return;
+    if (!store.layout?.length) {
+      setMultiview(store, lc);
+      return;
+    }
+    setPreview(lc);
+    confirm.current = (m: boolean) => {
+      setOpen(false);
+      setMultiview(store, { ...lc, mergeContent: m });
+      confirmFn?.();
+    };
+    cancel.current = () => {
+      setOpen(false);
+      cancelFn?.();
+    };
+    setOpen(true);
+  }
+
+  const dialog = (
+    <LayoutChangePrompt
+      open={open}
+      onOpenChange={setOpen}
+      cancelFn={(m) => cancel.current?.(m)}
+      confirmFn={(m) => confirm.current?.(m)}
+      defaultOverwrite={defaultMerge}
+      layoutPreview={preview}
+    />
+  );
+  return { prompt, setDefaultMerge, dialog };
+}
+
+// The stream picker in a popover: an icon button in the toolbar, a labeled button in empty cells.
+function StreamSelectorPopover({
+  open,
+  onOpenChange,
+  label,
+  compact = false,
+  onVideoClicked,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  label: string;
+  compact?: boolean;
+  onVideoClicked: (video: any) => void;
+}) {
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant={compact ? "ghost" : "outline"}
+            size={compact ? "icon" : "lg"}
+            aria-label={label}
+          />
+        }
+      >
+        <Video />
+        {compact ? null : label}
+      </PopoverTrigger>
+      <PopoverContent align="start" sideOffset={8} className={STREAM_SELECTOR_POPOVER_CLASS}>
+        <VideoSelector embedded isActive={open} onVideoClicked={onVideoClicked} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+const EMPTY_STAGE_ITEM = {
+  x: 0,
+  y: 0,
+  w: 24,
+  h: 24,
+  i: EMPTY_STAGE_ID,
+  isResizable: true,
+  isDraggable: true,
+  moved: false,
+};
+
 function Content({ routeLayout }: { routeLayout: string }) {
   const t = useTranslations();
   const sp = useSearchParams();
@@ -261,11 +522,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
   const [showSelectorForId, setShowSelectorForId] = useState<string | number>(-1);
   const [showSyncBar, setShowSyncBar] = useState(false);
   const [showReorder, setShowReorder] = useState(false);
-  const [overwriteDialog, setOverwriteDialog] = useState(false);
-  const [overwriteMerge, setOverwriteMerge] = useState(false);
-  const [overwritePreview, setOverwritePreview] = useState<any>({ layout: [], content: {} });
-  const overwriteConfirm = useRef<((m: boolean) => void) | null>(null);
-  const overwriteCancel = useRef<((m: boolean) => void) | null>(null);
+  const layoutPrompt = useLayoutChangePrompt();
   const [collapsed, setCollapsed] = useState(false);
   const [stageW, setStageW] = useState(1440);
   const [stageH, setStageH] = useState(900);
@@ -273,9 +530,6 @@ function Content({ routeLayout }: { routeLayout: string }) {
   const [showPresetEditor, setShowPresetEditor] = useState(false);
   const [showMedia, setShowMedia] = useState(false);
   const stage = useRef<HTMLDivElement | null>(null);
-  const layoutRef = useRef(store.layout);
-  const intRef = useRef<Interaction | null>(null);
-  const [activeInt, setActiveInt] = useState<Interaction | null>(null);
 
   const vw = app.windowWidth || (typeof window !== "undefined" ? window.innerWidth : 1440);
   const vh = typeof window !== "undefined" ? window.innerHeight : 900;
@@ -286,10 +540,14 @@ function Content({ routeLayout }: { routeLayout: string }) {
     grh = Math.max(rh, 1);
   const cw = (stageW || vw) / 24;
   const showToolbarSelector = showSelectorForId === -2;
+  const { activeInt, startInt } = useLayoutInteraction({
+    layout: store.layout,
+    setLayout: store.setLayout,
+    stage,
+    cw,
+    grh,
+  });
 
-  useEffect(() => {
-    layoutRef.current = store.layout;
-  }, [store.layout]);
   useEffect(() => {
     document.title = `${t("component.mainNav.multiview")} - Holodex`;
   }, [t]);
@@ -303,7 +561,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
           try {
             api.trackMultiviewLink(routeLayout).catch(console.error);
           } catch {}
-          promptLayoutChange(parsed, null, () => history.pushState({}, "", "/multiview"));
+          layoutPrompt.prompt(parsed, null, () => history.pushState({}, "", "/multiview"));
         }
       } catch (e) {
         console.error(e);
@@ -328,174 +586,14 @@ function Content({ routeLayout }: { routeLayout: string }) {
     return () => obs.disconnect();
   }, [vw, vh, collapsed]);
 
-  function pixelRect(el: HTMLElement, item: any) {
-    const parent = el.offsetParent instanceof HTMLElement ? el.offsetParent : stage.current;
-    if (parent) {
-      const r = el.getBoundingClientRect(),
-        pr = parent.getBoundingClientRect();
-      return {
-        left: r.left - pr.left + parent.scrollLeft,
-        top: r.top - pr.top + parent.scrollTop,
-        width: r.width,
-        height: r.height,
-      };
-    }
-    const p = calcGridPosition(item.x, item.y, item.w, item.h, cw, grh);
-    return { left: cw * item.x, top: p.top, width: cw * item.w, height: p.height };
-  }
-
-  function nextLayout(next: any, mode: "drag" | "resize") {
-    const src = layoutRef.current.map(cloneLayoutItem);
-    const item = getLayoutItem(src, next.i);
-    if (!item) return null;
-    if (mode === "resize") {
-      const cs = getAllCollisions(src, { ...item, ...next }).filter(
-        (x) => String(x.i) !== String(item.i),
-      );
-      if (cs.length) {
-        let lx = Infinity,
-          ly = Infinity;
-        cs.forEach((c) => {
-          if (c.x > next.x) lx = Math.min(lx, c.x);
-          if (c.y > next.y) ly = Math.min(ly, c.y);
-        });
-        if (Number.isFinite(lx)) item.w = Math.max(Number(item.minW ?? 1), lx - item.x);
-        if (Number.isFinite(ly)) item.h = Math.max(Number(item.minH ?? 1), ly - item.y);
-      } else Object.assign(item, { w: next.w, h: next.h, x: next.x, y: next.y });
-    } else moveElement(src, item, next.x, next.y, true, true);
-    return compact(src, false).map((i) => ({ ...i, i: String(i.i) }));
-  }
-
-  function applyItem(next: any, mode: "drag" | "resize") {
-    const nl = nextLayout(next, mode);
-    if (!nl) return;
-    layoutRef.current = nl;
-    store.setLayout(nl);
-  }
-
-  const ignoreDrag = (t: EventTarget | null) =>
-    t instanceof Element &&
-    !!t.closest("a,button,input,textarea,select,option,[data-resize-handle],iframe");
-
-  function startInt(e: React.PointerEvent, item: any, type: "drag" | "resize", direction?: string) {
-    if (e.button !== 0 || item.static) return;
-    if (type === "drag" && (item.isDraggable === false || ignoreDrag(e.target))) return;
-    if (type === "resize" && item.isResizable === false) return;
-    e.preventDefault();
-    if (type === "resize") e.stopPropagation();
-    const target = (
-      type === "drag" ? e.currentTarget : e.currentTarget.parentElement
-    ) as HTMLElement;
-    const i: Interaction = {
-      type,
-      id: String(item.i),
-      direction,
-      startClientX: e.clientX,
-      startClientY: e.clientY,
-      startItem: { ...item },
-      startPixel: pixelRect(target, item),
-    };
-    intRef.current = i;
-    setActiveInt(i);
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  }
-
-  function clamp(item: any) {
-    const minW = Number(item.minW ?? 1),
-      minH = Number(item.minH ?? 1);
-    const maxW = Number.isFinite(item.maxW) ? Number(item.maxW) : 24;
-    const maxH = Number.isFinite(item.maxH) ? Number(item.maxH) : Infinity;
-    const n = { ...item };
-    n.w = Math.max(minW, Math.min(maxW, n.w));
-    n.h = Math.max(minH, Math.min(maxH, n.h));
-    n.x = Math.max(0, Math.min(24 - n.w, n.x));
-    n.y = Math.max(0, n.y);
-    return n;
-  }
-
-  function intItem(i: Interaction, cx: number, cy: number) {
-    const dx = cx - i.startClientX,
-      dy = cy - i.startClientY;
-    const s = i.startItem;
-    if (i.type === "drag") {
-      const np = { ...i.startPixel, left: i.startPixel.left + dx, top: i.startPixel.top + dy };
-      const p = calcGridXY(np.top, np.left, s.w, s.h, Math.max(cw, 1), Math.max(grh, 1), 24);
-      return clamp({ ...s, x: p.x, y: p.y });
-    }
-    const dir = i.direction || "";
-    const minW = Number(s.minW ?? 1),
-      minH = Number(s.minH ?? 1);
-    const maxW = Number.isFinite(s.maxW) ? Number(s.maxW) : 24;
-    const maxH = Number.isFinite(s.maxH) ? Number(s.maxH) : Infinity;
-    const minP = calcGridPosition(0, 0, minW, minH, Math.max(cw, 1), Math.max(grh, 1));
-    const maxP = calcGridPosition(0, 0, maxW, maxH, Math.max(cw, 1), Math.max(grh, 1));
-    const np = { ...i.startPixel };
-    if (dir.includes("e")) np.width = i.startPixel.width + dx;
-    if (dir.includes("s")) np.height = i.startPixel.height + dy;
-    if (dir.includes("w")) {
-      np.left = i.startPixel.left + dx;
-      np.width = i.startPixel.width - dx;
-    }
-    if (dir.includes("n")) {
-      np.top = i.startPixel.top + dy;
-      np.height = i.startPixel.height - dy;
-    }
-    if (np.width < minP.width) {
-      if (dir.includes("w")) np.left += np.width - minP.width;
-      np.width = minP.width;
-    }
-    if (np.width > maxP.width) {
-      if (dir.includes("w")) np.left += np.width - maxP.width;
-      np.width = maxP.width;
-    }
-    if (np.height < minP.height) {
-      if (dir.includes("n")) np.top += np.height - minP.height;
-      np.height = minP.height;
-    }
-    if (np.height > maxP.height) {
-      if (dir.includes("n")) np.top += np.height - maxP.height;
-      np.height = maxP.height;
-    }
-    const wh = calcGridWH(np.height, np.width, s.x, s.y, Math.max(cw, 1), Math.max(grh, 1), 24);
-    return clamp({
-      ...s,
-      ...calcGridXY(np.top, np.left, wh.w, wh.h, Math.max(cw, 1), Math.max(grh, 1), 24),
-      w: wh.w,
-      h: wh.h,
-    });
-  }
-
-  function promptLayoutChange(
-    lc: any,
-    confirmFn?: (() => void) | null,
-    cancelFn?: (() => void) | null,
-  ) {
-    if (overwriteDialog) return;
-    if (!store.layout?.length) {
-      setMultiview(store, lc);
-      return;
-    }
-    setOverwritePreview(lc);
-    overwriteConfirm.current = (m: boolean) => {
-      setOverwriteDialog(false);
-      setMultiview(store, { ...lc, mergeContent: m });
-      confirmFn?.();
-    };
-    overwriteCancel.current = () => {
-      setOverwriteDialog(false);
-      cancelFn?.();
-    };
-    setOverwriteDialog(true);
-  }
-
   function toolbarClick(v: any) {
     const video = asTwitchVideo(v);
     if (!video) return;
     if (findEmptyCell(store)) tryFillVideo(store, video);
     else
       addVideoAutoLayout(store, video, app.isMobile, (l) => {
-        setOverwriteMerge(true);
-        promptLayoutChange(l);
+        layoutPrompt.setDefaultMerge(true);
+        layoutPrompt.prompt(l);
       });
   }
 
@@ -531,31 +629,6 @@ function Content({ routeLayout }: { routeLayout: string }) {
       ? document.exitFullscreen?.()
       : document.documentElement.requestFullscreen();
 
-  const onInteractionMove = useEffectEvent((e: PointerEvent) => {
-    const i = intRef.current;
-    if (!i) return;
-    e.preventDefault();
-    applyItem(intItem(i, e.clientX, e.clientY), i.type);
-  });
-  useEffect(() => {
-    if (!activeInt) return;
-    const onMove = (e: PointerEvent) => onInteractionMove(e);
-    const onUp = () => {
-      if (intRef.current) {
-        intRef.current = null;
-        setActiveInt(null);
-      }
-    };
-    window.addEventListener("pointermove", onMove, { passive: false });
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, [activeInt]);
-
   const buttons = Object.freeze([
     {
       icon: Grid2x2Plus,
@@ -585,54 +658,14 @@ function Content({ routeLayout }: { routeLayout: string }) {
       collapse: isMd,
     },
   ]);
-  const mediaLbl = t("views.multiview.mediaControls"),
-    presetLbl = t("views.multiview.changeLayout");
-  const reorderLbl = t("views.multiview.reorderLayout"),
-    editorLbl = t("views.multiview.presetEditor.title");
-  const selectLiveLbl = t("views.multiview.video.selectLive");
-  const streamLbl = "Stream";
-  const renderStreamSelectorContent = (open: boolean, onVideoClicked: (video: any) => void) => (
-    <PopoverContent align="start" sideOffset={8} className={STREAM_SELECTOR_POPOVER_CLASS}>
-      <VideoSelector embedded isActive={open} onVideoClicked={onVideoClicked} />
-    </PopoverContent>
+  const renderCellStreamSelector = (id: string | number) => (
+    <StreamSelectorPopover
+      open={String(showSelectorForId) === String(id)}
+      onOpenChange={(nextOpen) => setShowSelectorForId(nextOpen ? id : -1)}
+      label="Stream"
+      onVideoClicked={(video) => cellDropdownClick(id, video)}
+    />
   );
-  const selectLiveButton = (
-    <Popover
-      open={showToolbarSelector}
-      onOpenChange={(open) => setShowSelectorForId(open ? -2 : -1)}
-    >
-      <PopoverTrigger
-        render={<Button type="button" variant="ghost" size="icon" aria-label={selectLiveLbl} />}
-      >
-        <Video />
-      </PopoverTrigger>
-      {renderStreamSelectorContent(showToolbarSelector, toolbarDropdownClick)}
-    </Popover>
-  );
-  const renderCellStreamSelector = (id: string | number) => {
-    const open = String(showSelectorForId) === String(id);
-    return (
-      <Popover open={open} onOpenChange={(nextOpen) => setShowSelectorForId(nextOpen ? id : -1)}>
-        <PopoverTrigger
-          render={<Button type="button" variant="outline" size="lg" aria-label={streamLbl} />}
-        >
-          <Video />
-          {streamLbl}
-        </PopoverTrigger>
-        {renderStreamSelectorContent(open, (video) => cellDropdownClick(id, video))}
-      </Popover>
-    );
-  };
-  const emptyStageItem = {
-    x: 0,
-    y: 0,
-    w: 24,
-    h: 24,
-    i: EMPTY_STAGE_ID,
-    isResizable: true,
-    isDraggable: true,
-    moved: false,
-  };
 
   return (
     <div
@@ -648,7 +681,13 @@ function Content({ routeLayout }: { routeLayout: string }) {
           onCollapse={() => setCollapsed(true)}
           left={
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              {selectLiveButton}
+              <StreamSelectorPopover
+                compact
+                open={showToolbarSelector}
+                onOpenChange={(open) => setShowSelectorForId(open ? -2 : -1)}
+                label={t("views.multiview.video.selectLive")}
+                onVideoClicked={toolbarDropdownClick}
+              />
               <VideoSelector
                 horizontal
                 compact={isXs}
@@ -661,129 +700,13 @@ function Content({ routeLayout }: { routeLayout: string }) {
             </div>
           }
           extraButtons={
-            <TooltipProvider>
-              <Popover open={showMedia} onOpenChange={setShowMedia}>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <PopoverTrigger
-                        render={
-                          <Button type="button" variant="ghost" size="icon" aria-label={mediaLbl} />
-                        }
-                      />
-                    }
-                  >
-                    <SlidersVertical />
-                  </TooltipTrigger>
-                  <TooltipContent>{mediaLbl}</TooltipContent>
-                </Tooltip>
-                <PopoverContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-[min(92vw,26rem)] gap-0 p-0"
-                >
-                  <PopoverHeader className="border-b px-3 py-2.5">
-                    <PopoverTitle>{mediaLbl}</PopoverTitle>
-                  </PopoverHeader>
-                  <div className="p-3">
-                    <MediaControls open={showMedia} />
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <Popover open={showPresetMenu} onOpenChange={setShowPresetMenu}>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <PopoverTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={presetLbl}
-                          />
-                        }
-                      />
-                    }
-                  >
-                    <Grid2x2 />
-                  </TooltipTrigger>
-                  <TooltipContent>{presetLbl}</TooltipContent>
-                </Tooltip>
-                <PopoverContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-[min(92vw,20rem)] gap-0 overflow-hidden p-0"
-                >
-                  <PopoverHeader className="border-b px-3 py-2">
-                    <PopoverTitle>{presetLbl}</PopoverTitle>
-                  </PopoverHeader>
-                  <PresetSelector onSelected={presetClick} />
-                </PopoverContent>
-              </Popover>
-              <Popover open={showReorder} onOpenChange={setShowReorder}>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <PopoverTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={reorderLbl}
-                          />
-                        }
-                      />
-                    }
-                  >
-                    <ArrowDownUp />
-                  </TooltipTrigger>
-                  <TooltipContent>{reorderLbl}</TooltipContent>
-                </Tooltip>
-                <PopoverContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-[min(92vw,28rem)] gap-0 p-0"
-                >
-                  <PopoverHeader className="border-b px-3 py-2.5">
-                    <PopoverTitle>{reorderLbl}</PopoverTitle>
-                    <PopoverDescription>
-                      {t("views.multiview.reorderLayoutDetail")}
-                    </PopoverDescription>
-                  </PopoverHeader>
-                  <ReorderLayout isActive={showReorder} />
-                </PopoverContent>
-              </Popover>
-              <Popover open={showPresetEditor} onOpenChange={setShowPresetEditor}>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <PopoverTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={editorLbl}
-                          />
-                        }
-                      />
-                    }
-                  >
-                    <Save />
-                  </TooltipTrigger>
-                  <TooltipContent>{editorLbl}</TooltipContent>
-                </Tooltip>
-                <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,22rem)] p-4">
-                  <PresetEditor
-                    layout={store.layout}
-                    content={store.layoutContent}
-                    onClose={() => setShowPresetEditor(false)}
-                  />
-                </PopoverContent>
-              </Popover>
-            </TooltipProvider>
+            <MultiviewExtraButtons
+              media={{ open: showMedia, setOpen: setShowMedia }}
+              presets={{ open: showPresetMenu, setOpen: setShowPresetMenu }}
+              reorder={{ open: showReorder, setOpen: setShowReorder }}
+              presetEditor={{ open: showPresetEditor, setOpen: setShowPresetEditor }}
+              onPreset={presetClick}
+            />
           }
         />
       ) : (
@@ -802,81 +725,23 @@ function Content({ routeLayout }: { routeLayout: string }) {
 
       <div ref={stage} className="relative min-h-0 w-full flex-1 overflow-hidden">
         <div className="relative h-full min-h-full min-w-full">
-          <div className="absolute inset-0 grid h-full w-full grid-cols-[repeat(24,minmax(0,1fr))] grid-rows-[repeat(24,minmax(0,1fr))] transition-none">
-            {store.layout.map((item) => {
-              const c = store.layoutContent[item.i];
-              const drag = activeInt?.type === "drag" && activeInt.id === String(item.i);
-              const resize = activeInt?.type === "resize" && activeInt.id === String(item.i);
-              return (
-                <div
-                  key={`mvgrid${item.i}`}
-                  className={cn(
-                    "relative h-full min-h-0 w-full min-w-0 overflow-visible transition-transform duration-200",
-                    gridAreaClass(item),
-                    drag && "z-30 cursor-none select-none transition-none",
-                    resize && "z-30 transition-none",
-                    showReorder && "pointer-events-none",
-                  )}
-                  onPointerDown={(e) => startInt(e, item, "drag")}
-                >
-                  <CellContainer
-                    item={item}
-                    editMode={c?.type === "chat" ? true : undefined}
-                    disablePointerEvents={drag || resize}
-                  >
-                    {c?.type === "chat" ? (
-                      <ChatCell
-                        item={item}
-                        tl={c.initAsTL}
-                        cellWidth={cw * item.w}
-                        onDelete={onDelete}
-                      />
-                    ) : c?.type === "video" ? (
-                      <VideoCell item={item} onDelete={onDelete} />
-                    ) : (
-                      <EmptyCell
-                        item={item}
-                        streamSelector={renderCellStreamSelector(item.i)}
-                        onDelete={onDelete}
-                      />
-                    )}
-                  </CellContainer>
-                  {item.isResizable !== false && !item.static
-                    ? RESIZE_HANDLES.map(({ direction, className, visualClassName }) => (
-                        <FrameResizeHandle
-                          key={`handle${direction}`}
-                          active={resize && activeInt?.direction === direction}
-                          direction={direction}
-                          className={className}
-                          visualClassName={visualClassName}
-                          onPointerDown={(e) => startInt(e, item, "resize", direction)}
-                        />
-                      ))
-                    : null}
-                </div>
-              );
-            })}
-            {store.layout
-              .filter((i) => activeInt && String(i.i) === activeInt.id)
-              .map((p) => (
-                <div
-                  key="placeholder"
-                  className={cn(
-                    "z-20 select-none bg-destructive/20 transition-transform duration-100",
-                    gridAreaClass(p),
-                  )}
-                />
-              ))}
-          </div>
+          <LayoutGrid
+            activeInt={activeInt}
+            startInt={startInt}
+            cw={cw}
+            reordering={showReorder}
+            streamSelector={renderCellStreamSelector}
+            onDelete={onDelete}
+          />
           {!store.layout.length ? (
             <div className="absolute inset-0 z-10">
               <CellContainer
-                item={emptyStageItem}
+                item={EMPTY_STAGE_ITEM}
                 editMode
                 onSetContent={(_, content) => createInitialCell(content)}
               >
                 <EmptyCell
-                  item={emptyStageItem}
+                  item={EMPTY_STAGE_ITEM}
                   streamSelector={renderCellStreamSelector(EMPTY_STAGE_ID)}
                   onSetChat={(_, initAsTL) => createInitialCell({ type: "chat", initAsTL })}
                   showDeleteControl={false}
@@ -886,14 +751,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
           ) : null}
         </div>
       </div>
-      <LayoutChangePrompt
-        open={overwriteDialog}
-        onOpenChange={setOverwriteDialog}
-        cancelFn={(m) => overwriteCancel.current?.(m)}
-        confirmFn={(m) => overwriteConfirm.current?.(m)}
-        defaultOverwrite={overwriteMerge}
-        layoutPreview={overwritePreview}
-      />
+      {layoutPrompt.dialog}
       {showSyncBar ? (
         <MultiviewSyncBar
           className="mt-auto"

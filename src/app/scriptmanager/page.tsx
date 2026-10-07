@@ -61,6 +61,199 @@ type Row = {
 };
 type VideoExport = { custom_video_id?: string; id: string; start_actual?: number; title: string };
 
+function DeleteScriptDialog({
+  lang,
+  onLang,
+  text,
+  onCancel,
+  onDelete,
+}: {
+  lang: Lang;
+  onLang: (value: string) => void;
+  text: string;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <div className="space-y-5 p-6">
+      <DialogHeader className="text-left">
+        <DialogTitle>{t("views.tlManager.deleteTitle")}</DialogTitle>
+      </DialogHeader>
+      <Field className="gap-2">
+        <FieldLabel>{t("views.tlManager.langPick")}</FieldLabel>
+        <Select value={lang.value} onValueChange={onLang}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TL_LANGS.map((i) => (
+              <SelectItem key={i.value} value={i.value}>
+                {`${i.text} (${i.value})`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <DialogDescription>{text}</DialogDescription>
+      <DialogFooter className="flex-row items-center gap-3 sm:justify-start">
+        <Button variant="ghost" onClick={onCancel}>
+          {t("views.tlClient.cancelBtn")}
+        </Button>
+        <Button variant="destructive" className="ml-auto" onClick={onDelete}>
+          {t("views.tlManager.delete")}
+        </Button>
+      </DialogFooter>
+    </div>
+  );
+}
+
+function ChangeLinkDialog({
+  value,
+  onChange,
+  onCancel,
+  onConfirm,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <div className="space-y-5 p-6">
+      <DialogHeader className="text-left">
+        <DialogTitle>{t("views.tlManager.changeStreamLink")}</DialogTitle>
+      </DialogHeader>
+      <Field className="gap-2">
+        <FieldLabel htmlFor="new-link">{t("views.tlManager.newLink")}</FieldLabel>
+        <Input id="new-link" value={value} onChange={(e) => onChange(e.target.value)} />
+      </Field>
+      <DialogFooter className="flex-row items-center gap-3 sm:justify-start">
+        <Button variant="ghost" onClick={onCancel}>
+          {t("views.tlClient.cancelBtn")}
+        </Button>
+        <Button className="ml-auto" onClick={onConfirm}>
+          {t("views.tlClient.okBtn")}
+        </Button>
+      </DialogFooter>
+    </div>
+  );
+}
+
+type RowActions = {
+  onEdit: (row: Row) => void;
+  onUpload: (row: Row) => void;
+  onDownload: (row: Row) => void;
+  onDelete: (row: Row) => void;
+  onChangeLink: (row: Row) => void;
+};
+
+// One script: its video (or custom link), title, language, entry count and actions.
+function ScriptRow({ s, actions }: { s: Row; actions: RowActions }) {
+  const t = useTranslations();
+  const href = s.video_id ? `/watch/${s.video_id}` : s.custom_video_id || "#";
+  return (
+    <TableRow>
+      <TableCell>
+        <Link className="text-primary hover:underline" href={href}>
+          {s.video_id || s.custom_video_id}
+        </Link>
+      </TableCell>
+      <TableCell className="max-w-0">
+        <div className="truncate">
+          {s.title || s.custom_video_id || t("views.tlManager.noTitle")}
+        </div>
+      </TableCell>
+      <TableCell>{s.lang}</TableCell>
+      <TableCell>{t("views.tlManager.entriesCount", { count: s.entry_count || 0 })}</TableCell>
+      <TableCell>
+        <div className="flex justify-end gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            title={t("component.videoCard.openScriptEditor")}
+            onClick={() => actions.onEdit(s)}
+          >
+            <Pencil className="size-4" />
+          </Button>
+          {s.video_id ? (
+            <Button
+              size="icon"
+              variant="ghost"
+              title={t("component.videoCard.uploadScript")}
+              onClick={() => actions.onUpload(s)}
+            >
+              <ClipboardCopy className="size-4" />
+            </Button>
+          ) : null}
+          <Button
+            size="icon"
+            variant="ghost"
+            title={t("views.tlManager.download")}
+            onClick={() => actions.onDownload(s)}
+          >
+            <Download className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            title={t("views.tlManager.delete")}
+            onClick={() => actions.onDelete(s)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+          {s.custom_video_id ? (
+            <Button
+              size="icon"
+              variant="ghost"
+              title={t("views.tlManager.changeCustomLink")}
+              onClick={() => actions.onChangeLink(s)}
+            >
+              <Edit3 className="size-4" />
+            </Button>
+          ) : null}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function ScriptTable({ rows, actions }: { rows: Row[]; actions: RowActions }) {
+  const t = useTranslations();
+  return (
+    <div className="mt-5 max-h-[70vh] overflow-auto rounded-[calc(var(--radius)+6px)] border">
+      <Table>
+        <TableHeader className="sticky top-0 bg-background">
+          <TableRow>
+            <TableHead>{t("views.tlManager.headerID")}</TableHead>
+            <TableHead>{t("views.tlManager.videoTitle")}</TableHead>
+            <TableHead>{t("component.common.language")}</TableHead>
+            <TableHead>{t("views.tlManager.headerEntries")}</TableHead>
+            <TableHead className="text-right">{t("component.common.actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((s) => (
+            <ScriptRow
+              key={`${s.video_id || s.custom_video_id || ""}:${s.lang}`}
+              s={s}
+              actions={actions}
+            />
+          ))}
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                {t("views.tlManager.noScriptsFound")}
+              </TableCell>
+            </TableRow>
+          ) : null}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export default function TLScriptManagerPage() {
   const t = useTranslations();
   const router = useRouter();
@@ -241,60 +434,24 @@ export default function TLScriptManagerPage() {
     if (mode === 3) return <ImportMchad onClose={closeUpload} />;
     if (mode === 2)
       return (
-        <div className="space-y-5 p-6">
-          <DialogHeader className="text-left">
-            <DialogTitle>{t("views.tlManager.deleteTitle")}</DialogTitle>
-          </DialogHeader>
-          <Field className="gap-2">
-            <FieldLabel>{t("views.tlManager.langPick")}</FieldLabel>
-            <Select value={lang.value} onValueChange={changeDeleteLang}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TL_LANGS.map((i) => (
-                  <SelectItem key={i.value} value={i.value}>
-                    {`${i.text} (${i.value})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <DialogDescription>{modalText}</DialogDescription>
-          <DialogFooter className="flex-row items-center gap-3 sm:justify-start">
-            <Button variant="ghost" onClick={() => setModal(false)}>
-              {t("views.tlClient.cancelBtn")}
-            </Button>
-            <Button variant="destructive" className="ml-auto" onClick={clearAll}>
-              {t("views.tlManager.delete")}
-            </Button>
-          </DialogFooter>
-        </div>
+        <DeleteScriptDialog
+          lang={lang}
+          onLang={changeDeleteLang}
+          text={modalText}
+          onCancel={() => setModal(false)}
+          onDelete={clearAll}
+        />
       );
     return (
-      <div className="space-y-5 p-6">
-        <DialogHeader className="text-left">
-          <DialogTitle>{t("views.tlManager.changeStreamLink")}</DialogTitle>
-        </DialogHeader>
-        <Field className="gap-2">
-          <FieldLabel htmlFor="new-link">{t("views.tlManager.newLink")}</FieldLabel>
-          <Input id="new-link" value={newLink} onChange={(e) => setNewLink(e.target.value)} />
-        </Field>
-        <DialogFooter className="flex-row items-center gap-3 sm:justify-start">
-          <Button variant="ghost" onClick={() => setModal(false)}>
-            {t("views.tlClient.cancelBtn")}
-          </Button>
-          <Button
-            className="ml-auto"
-            onClick={() => {
-              setModal(false);
-              void changeLink();
-            }}
-          >
-            {t("views.tlClient.okBtn")}
-          </Button>
-        </DialogFooter>
-      </div>
+      <ChangeLinkDialog
+        value={newLink}
+        onChange={setNewLink}
+        onCancel={() => setModal(false)}
+        onConfirm={() => {
+          setModal(false);
+          void changeLink();
+        }}
+      />
     );
   };
 
@@ -332,98 +489,16 @@ export default function TLScriptManagerPage() {
           </div>
         </div>
 
-        <div className="mt-5 max-h-[70vh] overflow-auto rounded-[calc(var(--radius)+6px)] border">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background">
-              <TableRow>
-                <TableHead>{t("views.tlManager.headerID")}</TableHead>
-                <TableHead>{t("views.tlManager.videoTitle")}</TableHead>
-                <TableHead>{t("component.common.language")}</TableHead>
-                <TableHead>{t("views.tlManager.headerEntries")}</TableHead>
-                <TableHead className="text-right">{t("component.common.actions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tlData.map((s) => {
-                const sid = s.video_id || s.custom_video_id || "";
-                const href = s.video_id ? `/watch/${s.video_id}` : s.custom_video_id || "#";
-                return (
-                  <TableRow key={`${sid}:${s.lang}`}>
-                    <TableCell>
-                      <Link className="text-primary hover:underline" href={href}>
-                        {s.video_id || s.custom_video_id}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="max-w-0">
-                      <div className="truncate">
-                        {s.title || s.custom_video_id || t("views.tlManager.noTitle")}
-                      </div>
-                    </TableCell>
-                    <TableCell>{s.lang}</TableCell>
-                    <TableCell>
-                      {t("views.tlManager.entriesCount", { count: s.entry_count || 0 })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title={t("component.videoCard.openScriptEditor")}
-                          onClick={() => openTlClient(s.video_id, s.custom_video_id)}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        {s.video_id ? (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title={t("component.videoCard.uploadScript")}
-                            onClick={() => uploadClick(s.video_id)}
-                          >
-                            <ClipboardCopy className="size-4" />
-                          </Button>
-                        ) : null}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title={t("views.tlManager.download")}
-                          onClick={() => void downloadClick(s.video_id, s.custom_video_id)}
-                        >
-                          <Download className="size-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title={t("views.tlManager.delete")}
-                          onClick={() => deleteClick(s.video_id, s.custom_video_id)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                        {s.custom_video_id ? (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title={t("views.tlManager.changeCustomLink")}
-                            onClick={() => openChangeLink(s)}
-                          >
-                            <Edit3 className="size-4" />
-                          </Button>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {tlData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                    {t("views.tlManager.noScriptsFound")}
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </div>
+        <ScriptTable
+          rows={tlData}
+          actions={{
+            onEdit: (s) => openTlClient(s.video_id, s.custom_video_id),
+            onUpload: (s) => uploadClick(s.video_id),
+            onDownload: (s) => void downloadClick(s.video_id, s.custom_video_id),
+            onDelete: (s) => deleteClick(s.video_id, s.custom_video_id),
+            onChangeLink: openChangeLink,
+          }}
+        />
       </Card>
 
       <Dialog

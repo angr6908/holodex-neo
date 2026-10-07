@@ -38,6 +38,15 @@ export function useHostname() {
   );
 }
 
+// The page origin, e.g. "https://holodex.net" ("" on the server and while hydrating).
+export function useOrigin() {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => window.location.origin,
+    () => "",
+  );
+}
+
 // Whether a media query matches; false on the server and while hydrating.
 export function useMediaQuery(query: string) {
   const subscribe = useCallback(
