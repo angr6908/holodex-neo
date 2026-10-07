@@ -19,10 +19,10 @@ import { ChatCell } from "@/components/multiview/ChatCell";
 import { MediaControls } from "@/components/multiview/MediaControls";
 import { MultiviewSyncBar } from "@/components/multiview/MultiviewSyncBar";
 import { MultiviewToolbar } from "@/components/multiview/MultiviewToolbar";
+import { gridAreaClass } from "@/components/multiview/grid-area";
 import {
   CellContainer,
   EmptyCell,
-  gridAreaClass,
   LayoutChangePrompt,
   PresetEditor,
   PresetSelector,

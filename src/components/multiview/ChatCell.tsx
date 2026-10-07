@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { WatchLiveChat } from "@/components/watch/WatchLiveChat";
+import { CHAT_EMBED_SANDBOX } from "@/lib/consts";
+import { useHostname } from "@/lib/hooks";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { useAppState } from "@/lib/store";
 import { channelDisplayName } from "@/lib/video-format";
@@ -31,6 +33,7 @@ export function ChatCell({
   const app = useAppState();
   const t = useTranslations();
   const store = useMultiviewStore();
+  const hostname = useHostname();
   const content = store.layoutContent[item.i];
   const [showTlChat, setShowTlChat] = useState(tl);
   const [showYtChat, setShowYtChat] = useState(!tl);
@@ -53,7 +56,7 @@ export function ChatCell({
   }));
   const selectValue = selectedTab >= 0 ? String(selectedTab) : "";
   const twitchChatLink = currentVideo?.id
-    ? `https://www.twitch.tv/embed/${currentVideo.id}/chat?parent=${typeof window !== "undefined" ? window.location.hostname : "localhost"}${app.settings.darkMode ? "&darkpopout" : ""}`
+    ? `https://www.twitch.tv/embed/${currentVideo.id}/chat?parent=${hostname || "localhost"}${app.settings.darkMode ? "&darkpopout" : ""}`
     : "";
   const chatModes = [showYtChat ? "yt" : "", showTlChat ? "tl" : ""].filter(Boolean);
 
@@ -83,6 +86,7 @@ export function ChatCell({
           type="button"
           variant="ghost"
           size="icon"
+          aria-label={t("component.common.previous")}
           disabled={selectedTab <= 0}
           onClick={() => setCurrentTab(selectedTab - 1)}
         >
@@ -109,6 +113,7 @@ export function ChatCell({
           type="button"
           variant="ghost"
           size="icon"
+          aria-label={t("component.common.next")}
           disabled={selectedTab < 0 || selectedTab >= activeVideos.length - 1}
           onClick={() => setCurrentTab(selectedTab + 1)}
         >
@@ -118,7 +123,13 @@ export function ChatCell({
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {currentVideo ? (
           currentVideo.type === "twitch" ? (
-            <iframe src={twitchChatLink} className="h-full w-full" frameBorder={0} />
+            <iframe
+              src={twitchChatLink}
+              title={t("component.common.chat")}
+              sandbox={CHAT_EMBED_SANDBOX}
+              className="h-full w-full"
+              frameBorder={0}
+            />
           ) : (
             <WatchLiveChat
               key={`wlc${currentVideo.id}`}

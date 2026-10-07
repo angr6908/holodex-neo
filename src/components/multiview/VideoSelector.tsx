@@ -2,7 +2,7 @@
 
 import { Check, ChevronLeft, CircleUser, Heart, Link, ListPlus, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { HomeOrgMultiSelect } from "@/components/common/HomeOrgMultiSelect";
 import { ConnectedVideoList } from "@/components/nav/MainNav";
@@ -60,10 +60,9 @@ function MvUrlInput({
   const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
-    if (hasError) setHasError(false);
-  }, [url]);
-  useEffect(() => {
-    if (expanded) setTimeout(() => inputRef.current?.focus(), 0);
+    if (!expanded) return;
+    const timer = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(timer);
   }, [expanded]);
   const collapse = () => {
     setExpanded(false);
@@ -114,7 +113,10 @@ function MvUrlInput({
               placeholder={t("views.multiview.video.urlPlaceholder")}
               className="text-sm"
               aria-invalid={hasError}
-              onChange={(event) => setUrl(event.target.value)}
+              onChange={(event) => {
+                setUrl(event.target.value);
+                setHasError(false);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Escape") collapse();
               }}
@@ -162,10 +164,6 @@ function CustomUrlField({
   useEffect(() => {
     if (!store) setLocalHistory(readJSON(localKey, [] as string[]));
   }, [store, localKey]);
-  useEffect(() => {
-    setUrl("");
-    setError(false);
-  }, [twitch]);
   function addHistory(value: string) {
     if (store) {
       store.addUrlHistory({ twitch, url: value });
@@ -218,7 +216,12 @@ function CustomUrlField({
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
-      <Button type="submit" variant="ghost" size="icon">
+      <Button
+        type="submit"
+        variant="ghost"
+        size="icon"
+        aria-label={t("views.multiview.video.addUrlShort")}
+      >
         <Check />
       </Button>
     </form>
@@ -233,12 +236,64 @@ function makeMultiOrgLabel(names: string[], selectedCountLabel: (count: number) 
   return `${formatOrgDisplayName(names[0])} + ${tail}`;
 }
 
+const NO_ORGS: string[] = [];
+
+function isUrlSelection(panel: any) {
+  return ["YouTubeURL", "TwitchURL"].includes(panel?.name);
+}
+
+function isRealOrgSelection(panel: any) {
+  return (
+    !!panel?.name &&
+    !["Favorites", "Playlist", "YouTubeURL", "TwitchURL", "MultiOrg", ALL_VTUBERS_ORG].includes(
+      panel.name,
+    )
+  );
+}
+
+function orgNamesForSelection(panel: any, selectedHomeOrgs: string[], currentOrgName?: string) {
+  if (panel?.name === ALL_VTUBERS_ORG) return [];
+  if (panel?.name === "MultiOrg")
+    return panel.orgNames?.length
+      ? panel.orgNames
+      : selectedHomeOrgs.length
+        ? selectedHomeOrgs
+        : [currentOrgName || DEFAULT_ORG];
+  if (isRealOrgSelection(panel)) return [panel.name];
+  return [];
+}
+
 function makeMultiOrgTab(names: string[], selectedCountLabel: (count: number) => string) {
   return {
     name: "MultiOrg",
     text: makeMultiOrgLabel(names, selectedCountLabel),
     orgNames: [...names],
   };
+}
+
+// The tab that reflects the home org selection, or `current` when it already does.
+function syncWithHomeOrgs(
+  current: any,
+  homeOrgs: string[],
+  orgs: any[],
+  selectedCountLabel: (count: number) => string,
+  allVtubersTab: any,
+) {
+  if (homeOrgs.length > 1) {
+    return current?.name !== "MultiOrg" ||
+      current.text !== makeMultiOrgLabel(homeOrgs, selectedCountLabel)
+      ? makeMultiOrgTab(homeOrgs, selectedCountLabel)
+      : current;
+  }
+  if (homeOrgs.length === 0) return current?.name !== ALL_VTUBERS_ORG ? allVtubersTab : current;
+  if (current?.name !== "MultiOrg") return current;
+  const selectedName = homeOrgs[0];
+  return selectedName
+    ? orgs.find((o: any) => o.name === selectedName) || {
+        name: selectedName,
+        short: selectedName.slice(0, 4),
+      }
+    : orgs.find((o: any) => o.name === DEFAULT_ORG) || { name: DEFAULT_ORG, short: "Holo" };
 }
 
 export function VideoSelector({
@@ -292,7 +347,8 @@ export function VideoSelector({
     return allVtubersTab;
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // Only read by handlers (to retry a failed load), so it doesn't need to re-render.
+  const hasError = useRef(false);
   const [tab, setTab] = useState(0);
   const [inlineUrl, setInlineUrl] = useState("");
   const [inlineUrlError, setInlineUrlError] = useState(false);
@@ -304,13 +360,30 @@ export function VideoSelector({
   const videosBar = useRef<HTMLDivElement | null>(null);
 
   const activeVideos = activeVideosOverride || multiview?.activeVideos || [];
-  const selectedHomeOrgs = app.selectedHomeOrgs || [];
+  const selectedHomeOrgs: string[] = app.selectedHomeOrgs || NO_ORGS;
   const selectedHomeOrgsKey = selectedHomeOrgs.join("|");
+  const currentOrgName: string | undefined = app.currentOrg?.name;
   const isLoggedIn = app.isLoggedIn;
   const isMultiOrg = selectedOrg?.name === "MultiOrg";
   const isAllVtubers = selectedOrg?.name === ALL_VTUBERS_ORG;
   const isRealOrg = isRealOrgSelection(selectedOrg);
   const isUrl = isUrlSelection(selectedOrg);
+
+  // Follow changes to the home org selection (made here or elsewhere). This is adjusted during
+  // render, keyed on the selection itself, so picking Favorites/Playlist/URL tabs isn't undone.
+  const homeOrgsSyncKey = `${selectedHomeOrgsKey}|${app.orgs.length}|${selectedCountLabel(2)}`;
+  const [syncedHomeOrgsKey, setSyncedHomeOrgsKey] = useState(homeOrgsSyncKey);
+  if (syncedHomeOrgsKey !== homeOrgsSyncKey) {
+    setSyncedHomeOrgsKey(homeOrgsSyncKey);
+    const next = syncWithHomeOrgs(
+      selectedOrg,
+      selectedHomeOrgs,
+      app.orgs || [],
+      selectedCountLabel,
+      allVtubersTab,
+    );
+    if (next !== selectedOrg) setSelectedOrg(next);
+  }
 
   function leaveMultiviewForHome(options?: { openLogin?: boolean }) {
     if (options?.openLogin) openUserMenu();
@@ -323,11 +396,11 @@ export function VideoSelector({
       return selectedOrg.orgNames?.length ? selectedOrg.orgNames : selectedHomeOrgs;
     if (isRealOrg) return [selectedOrg.name];
     return selectedHomeOrgs;
-  }, [selectedOrg, selectedHomeOrgsKey, isAllVtubers, isRealOrg]);
+  }, [selectedOrg, selectedHomeOrgs, isAllVtubers, isRealOrg]);
 
   const selectedOrgNames = useMemo(
-    () => orgNamesForSelection(selectedOrg),
-    [selectedOrg, selectedHomeOrgsKey, app.currentOrg?.name],
+    () => orgNamesForSelection(selectedOrg, selectedHomeOrgs, currentOrgName),
+    [selectedOrg, selectedHomeOrgs, currentOrgName],
   );
 
   const shouldHideCollabs =
@@ -386,87 +459,33 @@ export function VideoSelector({
   }, [baseFilteredLive, activeVideos, tick]);
 
   useEffect(() => {
-    if (inlineUrlError) setInlineUrlError(false);
-  }, [inlineUrl]);
-  useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), 60000);
     return () => clearInterval(id);
   }, []);
+  const reloadSelection = useEffectEvent(() => loadSelection());
+  // The poll restarts whenever the selection or login changes, so a reload never lands right
+  // after a fresh load.
   useEffect(() => {
     refreshTimer.current && clearInterval(refreshTimer.current);
-    refreshTimer.current = setInterval(() => loadSelection(), 2 * 60 * 1000);
+    refreshTimer.current = setInterval(() => reloadSelection(), 2 * 60 * 1000);
     return () => {
       if (refreshTimer.current) clearInterval(refreshTimer.current);
     };
   }, [isActive, selectedOrg?.name, selectedHomeOrgsKey, app.userdata.jwt]);
   useEffect(() => {
-    if (isActive && selectedOrg?.name && selectedOrg.name !== "MultiOrg") loadSelection();
+    if (isActive && selectedOrg?.name && selectedOrg.name !== "MultiOrg") reloadSelection();
   }, [isActive, selectedOrg?.name]);
   useEffect(() => {
-    if (isActive && selectedOrg?.name === "MultiOrg") loadSelection();
+    if (isActive && selectedOrg?.name === "MultiOrg") reloadSelection();
   }, [isActive, selectedOrg?.name, selectedHomeOrgsKey]);
   useEffect(() => {
-    if (app.visibilityState === "visible") loadSelection();
+    if (app.visibilityState === "visible") reloadSelection();
   }, [app.visibilityState]);
-  useEffect(() => {
-    if (selectedHomeOrgs.length > 1) {
-      if (
-        selectedOrg?.name !== "MultiOrg" ||
-        selectedOrg.text !== makeMultiOrgLabel(selectedHomeOrgs, selectedCountLabel)
-      )
-        setSelectedOrg(makeMultiOrgTab(selectedHomeOrgs, selectedCountLabel));
-    } else if (selectedHomeOrgs.length === 0) {
-      if (selectedOrg?.name !== ALL_VTUBERS_ORG) setSelectedOrg(allVtubersTab);
-    } else if (selectedOrg?.name === "MultiOrg") {
-      const selectedName = selectedHomeOrgs[0];
-      const org = selectedName
-        ? (app.orgs || []).find((o: any) => o.name === selectedName) || {
-            name: selectedName,
-            short: selectedName.slice(0, 4),
-          }
-        : (app.orgs || []).find((o: any) => o.name === DEFAULT_ORG) || {
-            name: DEFAULT_ORG,
-            short: "Holo",
-          };
-      setSelectedOrg(org);
-    }
-  }, [
-    selectedHomeOrgsKey,
-    app.orgs.length,
-    selectedCountLabel,
-    allVtubersTab,
-    selectedOrg?.name,
-    selectedOrg?.text,
-  ]);
-  function isUrlSelection(panel: any) {
-    return ["YouTubeURL", "TwitchURL"].includes(panel?.name);
-  }
-
-  function isRealOrgSelection(panel: any) {
-    return (
-      !!panel?.name &&
-      !["Favorites", "Playlist", "YouTubeURL", "TwitchURL", "MultiOrg", ALL_VTUBERS_ORG].includes(
-        panel.name,
-      )
-    );
-  }
-
-  function orgNamesForSelection(panel: any) {
-    if (panel?.name === ALL_VTUBERS_ORG) return [];
-    if (panel?.name === "MultiOrg")
-      return panel.orgNames?.length
-        ? panel.orgNames
-        : selectedHomeOrgs.length
-          ? selectedHomeOrgs
-          : [app.currentOrg?.name || DEFAULT_ORG];
-    if (isRealOrgSelection(panel)) return [panel.name];
-    return [];
-  }
 
   function loadSelection(panel = selectedOrg) {
     if (!isActive) return;
     const requestId = ++loadRequestId.current;
-    setHasError(false);
+    hasError.current = false;
     if (isUrlSelection(panel)) {
       setIsLoading(false);
       return;
@@ -487,7 +506,7 @@ export function VideoSelector({
         .catch((error) => {
           if (requestId !== loadRequestId.current) return;
           console.error(error);
-          setHasError(true);
+          hasError.current = true;
         })
         .finally(() => {
           if (requestId === loadRequestId.current) setIsLoading(false);
@@ -500,7 +519,7 @@ export function VideoSelector({
       return;
     }
     setIsLoading(true);
-    const names = orgNamesForSelection(panel);
+    const names = orgNamesForSelection(panel, selectedHomeOrgs, currentOrgName);
     const targets =
       panel?.name === "MultiOrg"
         ? names
@@ -525,7 +544,7 @@ export function VideoSelector({
       .catch((error) => {
         if (requestId !== loadRequestId.current) return;
         console.error(error);
-        setHasError(true);
+        hasError.current = true;
       })
       .finally(() => {
         if (requestId === loadRequestId.current) setIsLoading(false);
@@ -553,7 +572,7 @@ export function VideoSelector({
   function handlePicker(panel: any) {
     const currentName = selectedOrg?.name;
     setSelectedOrg(panel);
-    if (panel?.name && currentName === panel.name && (live.length === 0 || hasError))
+    if (panel?.name && currentName === panel.name && (live.length === 0 || hasError.current))
       loadSelection(panel);
     if (container.current) container.current.scrollTop = 0;
   }
@@ -665,7 +684,10 @@ export function VideoSelector({
               placeholder={t("views.multiview.video.urlPlaceholderShort")}
               aria-invalid={inlineUrlError}
               className="w-full text-sm"
-              onChange={(event) => setInlineUrl(event.target.value)}
+              onChange={(event) => {
+                setInlineUrl(event.target.value);
+                setInlineUrlError(false);
+              }}
             />
             {inlineUrl ? (
               <Button
@@ -697,6 +719,8 @@ export function VideoSelector({
                 {t("views.multiview.video.addCustomVideo")}
               </div>
               <CustomUrlField
+                // Remount when switching YouTube/Twitch so the typed URL and error reset.
+                key={selectedOrg?.name}
                 twitch={selectedOrg?.name === "TwitchURL"}
                 onSuccess={handleVideoClick}
               />
@@ -885,9 +909,9 @@ export function VideoSelector({
                     compact ? "gap-1.5" : "gap-2",
                   )}
                 >
-                  {topFilteredLive.map((video, index) => (
+                  {topFilteredLive.map((video) => (
                     <div
-                      key={`${video.id || video.link || "video"}-${index}`}
+                      key={video.id || video.link}
                       className="group relative flex shrink-0 items-center"
                       title={video.title}
                       draggable

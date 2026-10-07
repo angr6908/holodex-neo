@@ -31,18 +31,36 @@ export function CellControl({
       >
         {onBack ? (
           <div className="mr-auto">
-            <Button type="button" variant="ghost" size="icon" onClick={onBack}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={t("component.common.back")}
+              onClick={onBack}
+            >
               <CircleArrowLeft />
             </Button>
           </div>
         ) : null}
         {onPlaypause && PlayIcon ? (
-          <Button type="button" variant="ghost" size="icon" onClick={onPlaypause}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("component.common.play")}
+            onClick={onPlaypause}
+          >
             <PlayIcon />
           </Button>
         ) : null}
         {onReset ? (
-          <Button type="button" variant="ghost" size="icon" onClick={onReset}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.watch.reloadVideoFrame")}
+            onClick={onReset}
+          >
             <RefreshCw />
           </Button>
         ) : null}

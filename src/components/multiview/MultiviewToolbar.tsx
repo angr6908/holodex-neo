@@ -104,9 +104,9 @@ export function MultiviewToolbar({
           {extraButtons}
           {buttons
             .filter((button) => !button.collapse)
-            .map((button, index) => (
+            .map((button) => (
               <Button
-                key={`mv-button-${index}`}
+                key={button.tooltip}
                 type="button"
                 variant="ghost"
                 size="icon"
@@ -138,6 +138,7 @@ export function MultiviewToolbar({
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label={t("component.common.copyToClipboard")}
                       onClick={() => startCopyToClipboard(exportURL)}
                     >
                       {doneCopy ? <ClipboardCheck /> : <ClipboardPlus />}
@@ -162,9 +163,9 @@ export function MultiviewToolbar({
                 <MoreVertical />
               </PopoverTrigger>
               <PopoverContent align="end" sideOffset={8} className="w-auto min-w-[15rem] p-2">
-                {collapseButtons.map((button, index) => (
+                {collapseButtons.map((button) => (
                   <Button
-                    key={`mv-collapsed-${index}`}
+                    key={button.tooltip}
                     type="button"
                     variant="ghost"
                     onClick={() => handleCollapsedButton(button)}

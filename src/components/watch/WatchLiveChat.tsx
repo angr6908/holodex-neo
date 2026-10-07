@@ -7,6 +7,8 @@ import { ArchiveTranslations } from "@/components/chat/ArchiveTranslations";
 import { LiveTranslations } from "@/components/chat/LiveTranslations";
 import { Card, CardContent } from "@/components/ui/card";
 import { replayTimedContinuation } from "@/lib/chat";
+import { CHAT_EMBED_SANDBOX } from "@/lib/consts";
+import { useIsClient } from "@/lib/hooks";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
 export function WatchLiveChat({
@@ -33,17 +35,18 @@ export function WatchLiveChat({
   const t = useTranslations();
   const ytChat = useRef<HTMLIFrameElement | null>(null);
   const [chatLoaded, setChatLoaded] = useState(false);
+  // Browser-only flags (set by the extension) are read after hydration so the first client
+  // render matches the server markup.
+  const isClient = useIsClient();
   const needExtension =
-    typeof window !== "undefined" &&
-    !(window as any).ARCHIVE_CHAT_OVERRIDE &&
-    video?.status === "past";
+    isClient && !(window as any).ARCHIVE_CHAT_OVERRIDE && video?.status === "past";
   const canShowTLChat =
     (video?.topic_id === "membersonly" && currentTime > 0) || video?.topic_id !== "membersonly";
   const isLiveTLVideo = ["live", "upcoming"].includes(video?.status ?? "");
   const showTlChat = modelValue.showTlChat;
   const showYtChat = modelValue.showYtChat;
   const liveChatUrl = useMemo(() => {
-    if (!video || typeof window === "undefined") return null;
+    if (!video || !isClient) return null;
     const query: Record<string, string> = {
       v: video.id,
       embed_domain: window.location.hostname,
@@ -62,7 +65,7 @@ export function WatchLiveChat({
       return `https://www.youtube.com/redirect_replay_chat?${q}`;
     }
     return `https://www.youtube.com/live_chat?${q}`;
-  }, [video, appStore.settings.darkMode]);
+  }, [video, appStore.settings.darkMode, isClient]);
   const paneClass = showTlChat && showYtChat ? "min-h-0 flex-1 basis-0" : "min-h-0 flex-1";
   const tlPanelClass = cn(
     paneClass,
@@ -131,7 +134,14 @@ export function WatchLiveChat({
       ) : null}
       {showYtChat && !needExtension ? (
         <div className={embeddedChatClass}>
-          <iframe ref={ytChat} src={liveChatUrl || ""} frameBorder={0} onLoad={handleChatLoad} />
+          <iframe
+            ref={ytChat}
+            src={liveChatUrl || ""}
+            title={t("views.watch.chat.ytChatLabel")}
+            sandbox={CHAT_EMBED_SANDBOX}
+            frameBorder={0}
+            onLoad={handleChatLoad}
+          />
         </div>
       ) : null}
       {needExtension ? (

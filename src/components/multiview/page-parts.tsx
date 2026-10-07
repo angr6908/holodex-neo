@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { CellControl } from "@/components/multiview/CellControl";
+import { gridAreaClass } from "@/components/multiview/grid-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -28,128 +29,10 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toggle } from "@/components/ui/toggle";
 import { getVideoIDFromUrl } from "@/lib/functions";
+import { useMediaQuery } from "@/lib/hooks";
 import { useMultiviewStore, useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { asTwitchVideo, encodeLayout } from "@/lib/mv-utils";
 import { cn } from "@/lib/utils";
-
-// Tailwind v4 scans source for arbitrary-value class strings; arrays must stay literal.
-const colStartClasses = [
-  "",
-  "col-start-[1]",
-  "col-start-[2]",
-  "col-start-[3]",
-  "col-start-[4]",
-  "col-start-[5]",
-  "col-start-[6]",
-  "col-start-[7]",
-  "col-start-[8]",
-  "col-start-[9]",
-  "col-start-[10]",
-  "col-start-[11]",
-  "col-start-[12]",
-  "col-start-[13]",
-  "col-start-[14]",
-  "col-start-[15]",
-  "col-start-[16]",
-  "col-start-[17]",
-  "col-start-[18]",
-  "col-start-[19]",
-  "col-start-[20]",
-  "col-start-[21]",
-  "col-start-[22]",
-  "col-start-[23]",
-  "col-start-[24]",
-];
-const rowStartClasses = [
-  "",
-  "row-start-[1]",
-  "row-start-[2]",
-  "row-start-[3]",
-  "row-start-[4]",
-  "row-start-[5]",
-  "row-start-[6]",
-  "row-start-[7]",
-  "row-start-[8]",
-  "row-start-[9]",
-  "row-start-[10]",
-  "row-start-[11]",
-  "row-start-[12]",
-  "row-start-[13]",
-  "row-start-[14]",
-  "row-start-[15]",
-  "row-start-[16]",
-  "row-start-[17]",
-  "row-start-[18]",
-  "row-start-[19]",
-  "row-start-[20]",
-  "row-start-[21]",
-  "row-start-[22]",
-  "row-start-[23]",
-  "row-start-[24]",
-];
-const colSpanClasses = [
-  "",
-  "col-span-[1]",
-  "col-span-[2]",
-  "col-span-[3]",
-  "col-span-[4]",
-  "col-span-[5]",
-  "col-span-[6]",
-  "col-span-[7]",
-  "col-span-[8]",
-  "col-span-[9]",
-  "col-span-[10]",
-  "col-span-[11]",
-  "col-span-[12]",
-  "col-span-[13]",
-  "col-span-[14]",
-  "col-span-[15]",
-  "col-span-[16]",
-  "col-span-[17]",
-  "col-span-[18]",
-  "col-span-[19]",
-  "col-span-[20]",
-  "col-span-[21]",
-  "col-span-[22]",
-  "col-span-[23]",
-  "col-span-[24]",
-];
-const rowSpanClasses = [
-  "",
-  "row-span-[1]",
-  "row-span-[2]",
-  "row-span-[3]",
-  "row-span-[4]",
-  "row-span-[5]",
-  "row-span-[6]",
-  "row-span-[7]",
-  "row-span-[8]",
-  "row-span-[9]",
-  "row-span-[10]",
-  "row-span-[11]",
-  "row-span-[12]",
-  "row-span-[13]",
-  "row-span-[14]",
-  "row-span-[15]",
-  "row-span-[16]",
-  "row-span-[17]",
-  "row-span-[18]",
-  "row-span-[19]",
-  "row-span-[20]",
-  "row-span-[21]",
-  "row-span-[22]",
-  "row-span-[23]",
-  "row-span-[24]",
-];
-
-const clamp = (v: number) => Math.max(1, Math.min(24, v));
-export const gridAreaClass = (i: any) =>
-  cn(
-    colStartClasses[clamp(Number(i.x) + 1)],
-    rowStartClasses[clamp(Number(i.y) + 1)],
-    colSpanClasses[clamp(Number(i.w))],
-    rowSpanClasses[clamp(Number(i.h))],
-  );
 
 function previewSizeClass(mobile: boolean, scale: number) {
   if (scale <= 0.3) return mobile ? "h-12 w-7" : "h-7 w-12";
@@ -272,7 +155,7 @@ export function CellContainer({
 }) {
   const store = useOptionalMultiviewStore();
   const [showDropOverlay, setShowDropOverlay] = useState(false);
-  const [enterTarget, setEnterTarget] = useState<EventTarget | null>(null);
+  const enterTarget = useRef<EventTarget | null>(null);
   const editMode = editModeProp ?? true;
 
   useEffect(() => {
@@ -319,10 +202,10 @@ export function CellContainer({
       onDrop={drop}
       onDragOver={(ev) => ev.preventDefault()}
       onDragLeave={(ev) => {
-        if (enterTarget === ev.target) setShowDropOverlay(false);
+        if (enterTarget.current === ev.target) setShowDropOverlay(false);
       }}
       onDragEnter={(ev) => {
-        setEnterTarget(ev.target);
+        enterTarget.current = ev.target;
         setShowDropOverlay(true);
       }}
     >
@@ -516,7 +399,8 @@ export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => v
       <div className="space-y-3 p-2.5">
         {store.desktopGroups.map((g: any[], i: number) =>
           g?.length ? (
-            <FieldSet key={`group-${i}`} className="gap-0">
+            // Groups are indexed by their video cell count, so the index is the group's identity.
+            <FieldSet key={`group-${g[0].videoCellCount}`} className="gap-0">
               <div className="px-1.5 text-xs font-medium text-muted-foreground">
                 {t("component.channelInfo.videoCount", { arg0: i })}
               </div>
@@ -542,7 +426,7 @@ export function ReorderLayout({ isActive = false }: { isActive?: boolean }) {
   const store = useMultiviewStore();
   const [draggingIdx, setDraggingIdx] = useState(-1);
   const container = useRef<HTMLDivElement | null>(null);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const isMobile = useMediaQuery("(max-width: 639px)");
   if (!isActive) return null;
   const relativePoint = (t: React.Touch) => {
     const br = container.current!.getBoundingClientRect();

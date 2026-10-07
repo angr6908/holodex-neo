@@ -47,7 +47,7 @@ export function MultiviewSyncBar({
   const [currentProgressByVideo, setCurrentProgressByVideo] = useState<Record<string, number>>({});
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [timeTooltipText, setTimeTooltipText] = useState("");
-  const lastSyncTimeMillis = useRef(Date.now());
+  const lastSyncTimeMillis = useRef(0);
   const currentTsRef = useRef(0);
   const pausedRef = useRef(true);
   const playbackRateRef = useRef(1);
@@ -90,9 +90,14 @@ export function MultiviewSyncBar({
   const hasVideosToSync = overlapVideos.length >= 1;
   const minTs = hasVideosToSync ? Math.min(...overlapVideos.map((v: any) => v.startTs)) : 0;
   const maxTs = hasVideosToSync ? Math.max(...overlapVideos.map((v: any) => v.endTs)) : 0;
-  const splitProgressBarData = useMemo(
-    () => overlapVideos.map((v: any) => ({ id: v.id, channel: v.channel })),
+  // The same archive can sit in two cells; list each video once in the settings popover.
+  const uniqueOverlapVideos = useMemo(
+    () => [...new Map(overlapVideos.map((v: any) => [v.id, v])).values()],
     [overlapVideos],
+  );
+  const splitProgressBarData = useMemo(
+    () => uniqueOverlapVideos.map((v: any) => ({ id: v.id, channel: v.channel })),
+    [uniqueOverlapVideos],
   );
   const currentProgress = getPercentForTime(currentTs);
   const currentDuration = minTs ? formatDuration(Math.round(currentTs - minTs) * 1000) : "0:00";
@@ -185,7 +190,7 @@ export function MultiviewSyncBar({
         cell.seekTo(nextTime);
       });
     },
-    [cells, maxTs, minTs, overlapVideos],
+    [cells, overlapVideos],
   );
 
   const sync = useCallback(() => {
@@ -237,6 +242,7 @@ export function MultiviewSyncBar({
     syncRef.current = sync;
   }, [sync]);
   useEffect(() => {
+    lastSyncTimeMillis.current = Date.now();
     const timer = setInterval(() => syncRef.current?.(), 500);
     return () => clearInterval(timer);
   }, []);
@@ -331,6 +337,7 @@ export function MultiviewSyncBar({
           type="button"
           variant="ghost"
           size="icon-sm"
+          aria-label={t("component.common.rewind10")}
           disabled={syncDisabled}
           onClick={() => setTime(currentTsRef.current - 10)}
         >
@@ -340,6 +347,7 @@ export function MultiviewSyncBar({
           type="button"
           variant="ghost"
           size="icon-sm"
+          aria-label={t(paused ? "component.common.play" : "component.common.pause")}
           disabled={syncDisabled}
           onClick={() => setPaused(!paused)}
         >
@@ -349,6 +357,7 @@ export function MultiviewSyncBar({
           type="button"
           variant="ghost"
           size="icon-sm"
+          aria-label={t("component.common.forward10")}
           disabled={syncDisabled}
           onClick={() => setTime(currentTsRef.current + 10)}
         >
@@ -381,8 +390,8 @@ export function MultiviewSyncBar({
             {splitProgressBarData.length > 0 && (
               <div className="space-y-1.5 rounded-lg border p-3">
                 <p className="text-xs font-medium text-muted-foreground">Playback progress</p>
-                {splitProgressBarData.map((video: any, index: number) => (
-                  <div key={`progress-${video.id || index}`} className="flex items-center gap-2">
+                {splitProgressBarData.map((video: any) => (
+                  <div key={`progress-${video.id}`} className="flex items-center gap-2">
                     <ChannelImg channel={video.channel} size={16} noLink />
                     <Progress
                       value={currentProgressByVideo[video.id] || 0}
@@ -397,9 +406,9 @@ export function MultiviewSyncBar({
             )}
 
             <div className="space-y-2">
-              {overlapVideos.map((video: any, index: number) => (
+              {uniqueOverlapVideos.map((video: any) => (
                 <div
-                  key={`${video.id || "video"}-${index}`}
+                  key={video.id}
                   className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -447,6 +456,7 @@ export function MultiviewSyncBar({
           type="button"
           variant="ghost"
           size="icon-sm"
+          aria-label={t("views.multiview.shareLayout")}
           disabled={!store.layout.length}
           onClick={onShareClick}
         >

@@ -33,6 +33,18 @@ export const CACHE_TTL_MS = 60_000;
 // 60s freshness that decides a network refetch. Lets the first paint show the last-known
 // count/order from cache instead of starting blank and popping in.
 export const VIEWER_DISPLAY_TTL_MS = 10 * 60_000;
+// Sandbox for the cross-origin YouTube/Twitch chat embeds. They keep their own origin (needed for
+// login and sending messages) and may open popups, but cannot navigate this tab without a click.
+export const CHAT_EMBED_SANDBOX = [
+  "allow-scripts",
+  "allow-same-origin",
+  "allow-forms",
+  "allow-modals",
+  "allow-popups",
+  "allow-popups-to-escape-sandbox",
+  "allow-storage-access-by-user-activation",
+  "allow-top-navigation-by-user-activation",
+].join(" ");
 export const ALL_VTUBERS_ORG = "All Vtubers";
 export const DEFAULT_ORG = "Hololive";
 

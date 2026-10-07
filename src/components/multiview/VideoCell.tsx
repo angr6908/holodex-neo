@@ -75,7 +75,7 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
       if (typeof v === "number" && Number.isFinite(v) && Math.abs(v - timeRef.current) >= 0.25) {
         lastExtTime.current = v;
         timeRef.current = v;
-        store.setLayoutContentWithKey({ id: item.i, key: "currentTime", value: v });
+        storeRef.current.setLayoutContentWithKey({ id: item.i, key: "currentTime", value: v });
       }
     }, 500);
     return () => clearInterval(timer);
@@ -84,77 +84,95 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
   useEffect(() => {
     if (!c) return;
     setUid((v) => v + 1);
-    store.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true });
-  }, [c?.id]);
+    storeRef.current.setLayoutContentWithKey({ id: item.i, key: "editMode", value: true });
+  }, [c?.id, item.i]);
 
-  const setKey = (key: string, value: any) =>
-    storeRef.current.setLayoutContentWithKey({ id: item.i, key, value });
-  const handleVolume = (v: number) => {
-    volumeRef.current = v;
-    store.setLayoutContentWithKey({ id: item.i, key: "volume", value: v });
-  };
-  const handleRate = (v: number) => {
-    rateRef.current = v;
-    store.setLayoutContentWithKey({ id: item.i, key: "playbackRate", value: v });
-  };
-  const resetCell = () => storeRef.current.deleteLayoutContent(item.i);
-  const deleteCell = () => onDeleteRef.current?.(item.i);
-  const refresh = () => {
-    setUid((v) => v + 1);
-    setKey("editMode", true);
-  };
-  const setEditMode = (v: boolean) => setKey("editMode", v);
-  const setMuted = (v: boolean) => {
-    if (v === mutedRef.current) return;
-    if (!v) storeRef.current.muteOthersAction(item.i);
-    setKey("muted", v);
-  };
-  const setVolume = (v: number) => {
-    player.current?.setVolume?.(v);
-    volumeRef.current = v;
-    setKey("volume", v);
-  };
-  const setPlaybackRate = (v: number) => {
-    if (isTwRef.current) return;
-    (player.current as YoutubePlayerHandle | null)?.setPlaybackRate?.(v);
-    rateRef.current = v;
-    setKey("playbackRate", v);
-  };
-  const togglePlaybackRate = () => {
-    if (!isTwRef.current) setPlaybackRate(rateRef.current !== 1 ? 1 : 2);
-  };
-  const setPlaying = (v: boolean) => {
-    if (editModeRef.current === v) player.current?.setPlaying?.(editModeRef.current);
-  };
-  const manualRefresh = () => player.current?.updateListeners?.();
-  const manualCheckMuted = async () => {
-    const v = await player.current?.isMuted?.();
-    if (typeof v === "boolean") setMuted(v);
-  };
-  const seekTo = (t: number) => player.current?.seekTo?.(t);
-
-  function updatePaused(paused = false) {
-    if (editModeRef.current === paused) return;
-    setEditMode(paused);
-    if (firstPlay.current && !paused) {
-      storeRef.current.muteOthersAction(item.i);
-      firstPlay.current = false;
-    }
-  }
-
-  function onPlayPause(paused = false) {
-    const p = player.current as YoutubePlayerHandle | null;
-    const vd = p?.getVideoData?.();
-    if (!isTwRef.current && p && (!vd?.isLive || vd?.allowLiveDvr)) {
-      setTimeout(async () => updatePaused((await p.getPlayerState?.()) === 2), 200);
-    } else updatePaused(paused);
-  }
-
-  const onReady = (p: PH) => {
-    player.current = p;
-    p.setMute?.(mutedRef.current);
-    p.setPlaying?.(!editModeRef.current);
-  };
+  // Every action reads the latest values through refs, so they are built once per cell and
+  // stay stable for the players' callbacks and the exposed cell handle.
+  const actions = useMemo(() => {
+    const id = item.i;
+    const setKey = (key: string, value: any) =>
+      storeRef.current.setLayoutContentWithKey({ id, key, value });
+    const setEditMode = (v: boolean) => setKey("editMode", v);
+    const setMuted = (v: boolean) => {
+      if (v === mutedRef.current) return;
+      if (!v) storeRef.current.muteOthersAction(id);
+      setKey("muted", v);
+    };
+    const setPlaybackRate = (v: number) => {
+      if (isTwRef.current) return;
+      (player.current as YoutubePlayerHandle | null)?.setPlaybackRate?.(v);
+      rateRef.current = v;
+      setKey("playbackRate", v);
+    };
+    const updatePaused = (paused = false) => {
+      if (editModeRef.current === paused) return;
+      setEditMode(paused);
+      if (firstPlay.current && !paused) {
+        storeRef.current.muteOthersAction(id);
+        firstPlay.current = false;
+      }
+    };
+    return {
+      setEditMode,
+      setMuted,
+      setPlaybackRate,
+      handleVolume: (v: number) => {
+        volumeRef.current = v;
+        setKey("volume", v);
+      },
+      handleRate: (v: number) => {
+        rateRef.current = v;
+        setKey("playbackRate", v);
+      },
+      resetCell: () => storeRef.current.deleteLayoutContent(id),
+      deleteCell: () => onDeleteRef.current?.(id),
+      refresh: () => {
+        setUid((v) => v + 1);
+        setKey("editMode", true);
+      },
+      setVolume: (v: number) => {
+        player.current?.setVolume?.(v);
+        volumeRef.current = v;
+        setKey("volume", v);
+      },
+      togglePlaybackRate: () => {
+        if (!isTwRef.current) setPlaybackRate(rateRef.current !== 1 ? 1 : 2);
+      },
+      setPlaying: (v: boolean) => {
+        if (editModeRef.current === v) player.current?.setPlaying?.(editModeRef.current);
+      },
+      manualRefresh: () => player.current?.updateListeners?.(),
+      manualCheckMuted: async () => {
+        const v = await player.current?.isMuted?.();
+        if (typeof v === "boolean") setMuted(v);
+      },
+      seekTo: (t: number) => player.current?.seekTo?.(t),
+      onPlayPause: (paused = false) => {
+        const p = player.current as YoutubePlayerHandle | null;
+        const vd = p?.getVideoData?.();
+        if (!isTwRef.current && p && (!vd?.isLive || vd?.allowLiveDvr)) {
+          setTimeout(async () => updatePaused((await p.getPlayerState?.()) === 2), 200);
+        } else updatePaused(paused);
+      },
+      onReady: (p: PH) => {
+        player.current = p;
+        p.setMute?.(mutedRef.current);
+        p.setPlaying?.(!editModeRef.current);
+      },
+    };
+  }, [item.i]);
+  const {
+    setEditMode,
+    setMuted,
+    handleVolume,
+    handleRate,
+    resetCell,
+    deleteCell,
+    refresh,
+    onPlayPause,
+    onReady,
+  } = actions;
 
   const exposed = useMemo<MultiviewVideoCellHandle>(
     () => ({
@@ -182,18 +200,18 @@ export function VideoCell({ item, onDelete }: { item: any; onDelete?: (id: strin
       get currentTime() {
         return timeRef.current;
       },
-      refresh,
-      setPlaying,
-      setMuted,
-      setVolume,
-      togglePlaybackRate,
-      setPlaybackRate,
-      manualRefresh,
-      manualCheckMuted,
-      seekTo,
-      deleteCell,
+      refresh: actions.refresh,
+      setPlaying: actions.setPlaying,
+      setMuted: actions.setMuted,
+      setVolume: actions.setVolume,
+      togglePlaybackRate: actions.togglePlaybackRate,
+      setPlaybackRate: actions.setPlaybackRate,
+      manualRefresh: actions.manualRefresh,
+      manualCheckMuted: actions.manualCheckMuted,
+      seekTo: actions.seekTo,
+      deleteCell: actions.deleteCell,
     }),
-    [item.i],
+    [item.i, actions],
   );
 
   useRegisterMultiviewVideoCell(String(item.i), c && video ? exposed : null);

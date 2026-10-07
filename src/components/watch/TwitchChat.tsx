@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { CHAT_EMBED_SANDBOX } from "@/lib/consts";
+import { useHostname } from "@/lib/hooks";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils";
 // host, read at runtime.
 export function TwitchChat({ channel, className = "" }: { channel: string; className?: string }) {
   const app = useAppState();
-  const [parent] = useState(() => (typeof window !== "undefined" ? window.location.hostname : ""));
+  const parent = useHostname();
   if (!parent || !channel) return null;
 
   const src = `https://www.twitch.tv/embed/${channel}/chat?parent=${parent}${app.settings.darkMode ? "&darkpopout" : ""}`;
@@ -21,7 +22,7 @@ export function TwitchChat({ channel, className = "" }: { channel: string; class
       )}
     >
       <div className="relative min-h-0 w-full flex-1 [&>iframe]:absolute [&>iframe]:z-[3] [&>iframe]:h-full [&>iframe]:w-full">
-        <iframe src={src} title="Twitch chat" frameBorder={0} />
+        <iframe src={src} title="Twitch chat" sandbox={CHAT_EMBED_SANDBOX} frameBorder={0} />
       </div>
     </div>
   );

@@ -108,7 +108,13 @@ export function MediaControls({ open }: { open?: boolean }) {
     <FieldGroup className="gap-3">
       <Field orientation="horizontal" className="items-center">
         <ButtonGroup>
-          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("play")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.multiview.playAll")}
+            onClick={() => allCellAction("play")}
+          >
             <Play />
           </Button>
           <Button
@@ -116,26 +122,46 @@ export function MediaControls({ open }: { open?: boolean }) {
             variant="ghost"
             size="icon"
             title={t("views.multiview.syncLabel")}
+            aria-label={t("views.multiview.syncLabel")}
             onClick={() => allCellAction("sync")}
           >
             <FastForward />
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("pause")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.multiview.pauseAll")}
+            onClick={() => allCellAction("pause")}
+          >
             <Pause />
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="icon"
+            aria-label={t("views.multiview.refreshAll")}
             onClick={() => allCellAction("refresh")}
           >
             <RefreshCw />
           </Button>
           <ButtonGroupSeparator />
-          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("unmute")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.multiview.unmuteAll")}
+            onClick={() => allCellAction("unmute")}
+          >
             <Volume2 />
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={() => allCellAction("mute")}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("views.multiview.muteAll")}
+            onClick={() => allCellAction("mute")}
+          >
             <VolumeX />
           </Button>
         </ButtonGroup>
@@ -152,7 +178,13 @@ export function MediaControls({ open }: { open?: boolean }) {
         {cells.length ? (
           <ItemGroup data-size="sm" className="pr-3">
             {cells.map((cell) => (
-              <Item key={cell.id} variant="outline" size="sm" className="items-start">
+              <Item
+                key={cell.id}
+                render={<li />}
+                variant="outline"
+                size="sm"
+                className="items-start"
+              >
                 <ItemMedia>{renderAvatar(cell)}</ItemMedia>
                 <ItemContent className="min-w-0 gap-2">
                   <ItemTitle className="max-w-full truncate">
@@ -164,6 +196,9 @@ export function MediaControls({ open }: { open?: boolean }) {
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label={t(
+                          cell.editMode ? "component.common.play" : "component.common.pause",
+                        )}
                         onClick={() => cell.setPlaying(cell.editMode)}
                       >
                         {cell.editMode ? <Play /> : <Pause />}
@@ -173,6 +208,7 @@ export function MediaControls({ open }: { open?: boolean }) {
                           type="button"
                           variant="ghost"
                           size="icon"
+                          aria-label={t("component.common.playbackSpeed")}
                           onClick={() => cell.togglePlaybackRate()}
                         >
                           <FastForward />
@@ -182,6 +218,7 @@ export function MediaControls({ open }: { open?: boolean }) {
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label={t("views.watch.reloadVideoFrame")}
                         onClick={() => cell.refresh()}
                       >
                         <RefreshCw />
@@ -190,6 +227,7 @@ export function MediaControls({ open }: { open?: boolean }) {
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label={t("views.multiview.deleteCell")}
                         onClick={() => cell.deleteCell()}
                       >
                         <Trash2 />
@@ -198,6 +236,9 @@ export function MediaControls({ open }: { open?: boolean }) {
                         type="button"
                         variant="ghost"
                         size="icon"
+                        aria-label={t(
+                          cell.muted ? "component.common.unmute" : "component.common.mute",
+                        )}
                         onClick={() => cell.setMuted(!cell.muted)}
                       >
                         {cell.muted ? <VolumeX /> : <Volume2 />}

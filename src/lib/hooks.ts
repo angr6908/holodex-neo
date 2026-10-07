@@ -1,6 +1,14 @@
 "use client";
 
-import { type TouchEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  type TouchEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 // `useLayoutEffect` is a no-op during SSR, so fall back to `useEffect` there to
 // silence the React warning. Client-side it runs synchronously after DOM
@@ -8,6 +16,44 @@ import { type TouchEvent, useEffect, useLayoutEffect, useRef, useState } from "r
 // browser shows the page (no "segments appear one frame later" flicker).
 export const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+const subscribeNever = () => () => {};
+
+// true in the browser, false on the server *and* while hydrating, so a branch on it renders the
+// same markup as the server first and switches right after hydration.
+export function useIsClient() {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
+}
+
+// The page hostname ("" on the server and while hydrating), e.g. for Twitch embeds' `parent`.
+export function useHostname() {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => window.location.hostname,
+    () => "",
+  );
+}
+
+// Whether a media query matches; false on the server and while hydrating.
+export function useMediaQuery(query: string) {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
 
 export function useDomElement<T extends HTMLElement = HTMLElement>(id: string) {
   const [element, setElement] = useState<T | null>(null);
