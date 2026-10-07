@@ -23,7 +23,7 @@ import * as icons from "@/lib/icons";
 import { ArrowDownAZ, ArrowUpAZ, Grid2x2, LayoutDashboard, LayoutGrid } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { cn, getBreakpoint } from "@/lib/utils";
-import { channelDisplayName, channelGroup } from "@/lib/video-format";
+import { channelDisplayName, channelGroup, escapePlainText } from "@/lib/video-format";
 
 export default function ChannelPage() {
   const params = useParams<{ id: string; tab?: string[] }>();
@@ -376,7 +376,10 @@ function ChannelAbout({ channel }: { channel: any }) {
         <div className="w-full flex-1 whitespace-pre-wrap text-sm text-muted-foreground">
           <strong className="text-foreground">{t("component.videoDescription.description")}</strong>
           <br />
-          <div dangerouslySetInnerHTML={{ __html: linkifyHtml(channel.description || "") }} />
+          {/* The description is plain text: escape it so only linkify's links become markup. */}
+          <div
+            dangerouslySetInnerHTML={{ __html: linkifyHtml(escapePlainText(channel.description)) }}
+          />
         </div>
       </div>
     </div>

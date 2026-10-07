@@ -3,7 +3,7 @@
 import debounce from "lodash-es/debounce";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChannelChip } from "@/components/channel/ChannelChip";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
@@ -51,7 +51,8 @@ export function ReportDialog() {
   const [sugTopic, setSugTopic] = useState<string | false>(false);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
-  const [origMentions, setOrigMentions] = useState<any[]>([]);
+  // The mentions as loaded, only read when sending the report.
+  const origMentions = useRef<any[]>([]);
   const [sugMentions, setSugMentions] = useState<any[] | null>(null);
   const [delSet, setDelSet] = useState<Set<string>>(new Set());
   const isHome = pathname === "/";
@@ -100,6 +101,7 @@ export function ReportDialog() {
     ];
   }, [video?.type, app.currentOrg.name, t]);
 
+  const selectedReasons = new Set(reasons);
   const filteredReasons = reasonList.filter((r) => {
     if (!video) return false;
     if (
@@ -173,7 +175,7 @@ export function ReportDialog() {
     api
       .getMentions(video.id)
       .then(({ data }: any) => {
-        setOrigMentions(data);
+        origMentions.current = data;
         setSugMentions(data);
       })
       .catch(console.error);
@@ -207,9 +209,9 @@ export function ReportDialog() {
     );
 
   function applyDelete() {
-    const ids = [...delSet];
-    if (!ids.length) return;
-    setSugMentions((p) => (p || []).filter((m) => !ids.includes(m.id)));
+    const ids = delSet;
+    if (!ids.size) return;
+    setSugMentions((p) => (p || []).filter((m) => !ids.has(m.id)));
     setDelSet(new Set());
     setResults([]);
     setSearch("");
@@ -230,9 +232,11 @@ export function ReportDialog() {
     if (sugMentions !== null || r.includes("mentions")) {
       body.push({
         name: "Original Mentions",
-        value: origMentions.length ? origMentions.map((m) => `\`${m.id}\``).join("\n") : "None",
+        value: origMentions.current.length
+          ? origMentions.current.map((m) => `\`${m.id}\``).join("\n")
+          : "None",
       });
-      if (sugMentions !== null && sugMentions !== origMentions)
+      if (sugMentions !== null && sugMentions !== origMentions.current)
         body.push({
           name: "Suggested Mentions",
           value: sugMentions.length ? sugMentions.map((m) => `\`${m.id}\``).join("\n") : "None",
@@ -312,7 +316,7 @@ export function ReportDialog() {
                 {filteredReasons.map((r) => (
                   <Label key={r.value} className="items-start rounded-md border p-3 text-sm">
                     <Checkbox
-                      checked={reasons.includes(r.value)}
+                      checked={selectedReasons.has(r.value)}
                       onCheckedChange={(c) => toggleReason(r.value, c === true)}
                     />
                     <span>{r.text}</span>
@@ -417,6 +421,7 @@ export function ReportDialog() {
                           type="button"
                           variant="ghost"
                           size="icon-xs"
+                          aria-label={t("component.common.remove")}
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteMention(s);

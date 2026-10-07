@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { channelAvatarSizeClass } from "@/components/channel/ChannelImg";
+import { channelAvatarSizeClass } from "@/components/channel/avatar-size";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -41,7 +41,10 @@ export function ChannelChip({
         delay={200}
         closeDelay={closeDelay}
         render={
+          // Tapping toggles the card on touch screens. Callers may render buttons inside the
+          // chip, so it can't be a button itself; the avatar's alt text names the channel.
           <div
+            role="presentation"
             className={cn(
               "relative mr-1 overflow-hidden rounded-full",
               channelAvatarSizeClass(size),

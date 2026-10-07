@@ -5,7 +5,8 @@ import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "rea
 import { createPortal } from "react-dom";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { LiveTranslationsSetting } from "@/components/chat/LiveTranslationsSetting";
-import { liveTlFontSizeClass, WatchSubtitleOverlay } from "@/components/chat/MessageRenderer";
+import { WatchSubtitleOverlay } from "@/components/chat/MessageRenderer";
+import { liveTlFontSizeClass } from "@/components/chat/tl-font-size";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -77,11 +78,6 @@ export function ArchiveTranslations({
     next.timestamp = +next.timestamp;
     next.relativeMs = startTimeMillis ? next.timestamp - startTimeMillis : 0;
     next.key = next.name + next.timestamp + next.message;
-    if (next.message?.includes?.("https://") && !next.parsed) {
-      const regex =
-        /(\S+)(https:\/\/(yt\d+\.ggpht\.com\/[a-zA-Z0-9_\-=/]+-c-k-nd|www\.youtube\.com\/[a-zA-Z0-9_\-=/]+\.svg))/gi;
-      next.parsed = next.message.replace(/<([^>]*)>/g, "($1)").replace(regex, '<img src="$2" />');
-    }
     return next;
   }
   const videoId = video?.id;

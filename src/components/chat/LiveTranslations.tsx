@@ -96,14 +96,6 @@ export function LiveTranslations({
     const next = { ...msg, timestamp: +msg.timestamp };
     next.relativeMs = startMs ? next.timestamp - startMs : 0;
     next.key = next.name + next.timestamp + next.message;
-    if (next.message?.includes?.("https://") && !next.parsed) {
-      next.parsed = next.message
-        .replace(/<([^>]*)>/g, "($1)")
-        .replace(
-          /(\S+)(https:\/\/(yt\d+\.ggpht\.com\/[a-zA-Z0-9_\-=/]+-c-k-nd|www\.youtube\.com\/[a-zA-Z0-9_\-=/]+\.svg))/gi,
-          '<img src="$2" />',
-        );
-    }
     return next;
   };
 

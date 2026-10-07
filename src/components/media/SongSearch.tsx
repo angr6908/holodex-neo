@@ -15,6 +15,8 @@ import { formatDuration } from "@/lib/time";
 type SongSearchItem = ItunesTrack & {
   index?: string;
   src?: string;
+  /** Unique within one result list. */
+  resultKey?: string;
 };
 
 type SongSearchProps = {
@@ -24,27 +26,22 @@ type SongSearchProps = {
   onInput?: (value: SongSearchItem | null) => void;
 };
 
+// The selected song is controlled by the parent through `value` / `onInput`.
 export function SongSearch({ value, autofocus = false, onInput }: SongSearchProps) {
   const t = useTranslations();
-  const [query, setQuery] = useState<SongSearchItem | null>(value || null);
+  const query = value || null;
   const [search, setSearch] = useState("");
   const [fromApi, setFromApi] = useState<SongSearchItem[]>([]);
   const [openMenu, setOpenMenu] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
 
-  const results = fromApi.concat(query ? [query] : []);
-  useEffect(() => {
-    setQuery(value || null);
-  }, [value]);
+  const results = fromApi.concat(query ? [{ ...query, resultKey: "selected" }] : []);
   useEffect(() => {
     if (isComposing) return;
     const val = search;
     const timer = setTimeout(() => void performSearch(val), 500);
     return () => clearTimeout(timer);
   }, [search, isComposing]);
-  useEffect(() => {
-    if (query) onInput?.(query);
-  }, [query]);
 
   async function performSearch(val: string) {
     if (!val) return;
@@ -54,7 +51,7 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
 
     const [md, res] = await Promise.all([searchMusicdex(val), searchRegionsAlternative(val, "JP")]);
 
-    setFromApi([
+    const tracks: SongSearchItem[] = [
       ...md.slice(0, 3),
       ...(res || []).map((track) => ({
         trackId: track.trackId,
@@ -68,7 +65,8 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
         src: "iTunes",
         index: `iTunes${track.trackId}`,
       })),
-    ]);
+    ];
+    setFromApi(tracks.map((track, position) => ({ ...track, resultKey: `${position}` })));
   }
 
   async function searchRegionsAlternative(
@@ -110,11 +108,10 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
   }
 
   function clearSelection() {
-    setQuery(null);
     onInput?.(null);
   }
-  function selectItem(item: SongSearchItem) {
-    setQuery(item);
+  function selectItem({ resultKey: _resultKey, ...item }: SongSearchItem) {
+    onInput?.(item);
     setSearch("");
     setFromApi([]);
     setOpenMenu(false);
@@ -151,7 +148,13 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
         {query ? (
           <div className="mb-2 flex items-center gap-3 rounded-xl border px-3 py-2">
             {renderSongSummary(query)}
-            <Button type="button" variant="ghost" size="icon-xs" onClick={clearSelection}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              aria-label={t("component.search.clear")}
+              onClick={clearSelection}
+            >
               <icons.XIcon className="h-4 w-4" />
             </Button>
           </div>
@@ -163,7 +166,7 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
           onFocus={() => setOpenMenu(true)}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter") event.preventDefault();
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) event.preventDefault();
           }}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => {
@@ -175,10 +178,10 @@ export function SongSearch({ value, autofocus = false, onInput }: SongSearchProp
       <PopoverContent align="start" sideOffset={6} className="w-[var(--anchor-width)] p-0">
         <Command shouldFilter={false}>
           <CommandList>
-            {results.map((item, index) => (
+            {results.map((item) => (
               <CommandItem
-                key={item.index || item.trackId || index}
-                value={`${item.index || item.trackId || index}`}
+                key={item.resultKey}
+                value={item.resultKey}
                 onSelect={() => selectItem(item)}
               >
                 {renderSongSummary(item, true)}

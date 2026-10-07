@@ -738,19 +738,14 @@ export function AppStateProvider({
     () => new Set(state.settings.ignoredTopics || []),
     [state.settings.ignoredTopics],
   );
-  const store = useMemo(
+  // Actions only use setState, refs and stateRef (the latest committed state, also updated
+  // eagerly by setUser/logout), so they are created once and are safe effect dependencies.
+  const actions = useMemo(
     () => ({
-      ...state,
-      isLoggedIn: !!state.userdata.jwt,
-      isSuperuser: ["admin", "editor"].includes(state.userdata.user?.role),
-      favoriteChannelIDs,
-      blockedChannelIDs,
-      ignoredTopicsSet,
       setSearchUseMainOrgFilter: (value: boolean) =>
         setState((s) =>
           s.searchUseMainOrgFilter === value ? s : { ...s, searchUseMainOrgFilter: value },
         ),
-      homeNav,
       setHomeNav: (patch: HomeUiState) =>
         setState((s) => {
           const cur = resolveHomeNav(s.homeNav, s.settings.defaultOpen);
@@ -765,9 +760,6 @@ export function AppStateProvider({
           return { ...s, homeNav: next };
         }),
       setLivePollFocus,
-      isFavorited: (id: string) =>
-        state.stagedFavorites[id] === "add" ||
-        (favoriteChannelIDs.has(id) && state.stagedFavorites[id] !== "remove"),
 
       // Persistence (localStorage + boot cookie) happens in the effects above, keeping these
       // updaters pure.
@@ -845,9 +837,10 @@ export function AppStateProvider({
       fetchHomeLive,
 
       fetchFavorites: () => {
-        if (!state.userdata.jwt) return null;
+        const { jwt } = stateRef.current.userdata;
+        if (!jwt) return null;
         return api
-          .favorites(state.userdata.jwt)
+          .favorites(jwt)
           .then((res: any) => setState((s) => ({ ...s, favorites: res.data || [] })))
           .catch(console.error);
       },
@@ -978,9 +971,10 @@ export function AppStateProvider({
         setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() })),
       markPlaylistModified: () => setState((s) => ({ ...s, playlistIsSaved: false })),
       saveActivePlaylist: async () => {
-        const { jwt, user } = state.userdata;
+        const current = stateRef.current;
+        const { jwt, user } = current.userdata;
         if (!jwt || !user) return;
-        const pl = { ...state.playlistActive, videos: state.playlist };
+        const pl = { ...current.playlistActive, videos: current.playlist };
         if (!pl.user_id || !pl.id) pl.user_id = user.id;
         else if (`${pl.user_id}` !== `${user.id}`) {
           delete pl.id;
@@ -1009,8 +1003,8 @@ export function AppStateProvider({
         }));
       },
       deleteActivePlaylist: async () => {
-        const { jwt, user } = state.userdata;
-        const a = state.playlistActive;
+        const { userdata, playlistActive: a } = stateRef.current;
+        const { jwt, user } = userdata;
         if (a?.id && jwt && `${a.user_id}` === `${user?.id}`) await api.deletePlaylist(a.id, jwt);
         setState((s) => ({ ...s, playlist: [], playlistActive: emptyPlaylist() }));
       },
@@ -1019,7 +1013,7 @@ export function AppStateProvider({
       setUploadPanel: (v: boolean) => setState((s) => ({ ...s, uploadPanel: v })),
 
       loginCheck: async () => {
-        const jwt = state.userdata.jwt;
+        const jwt = stateRef.current.userdata.jwt;
         if (!jwt) return null;
         const { exp } = jwtDecode<{ exp: number }>(jwt);
         if (exp - Date.now() / 1000 < 0) logout();
@@ -1029,7 +1023,7 @@ export function AppStateProvider({
         }
       },
       loginVerify: async (opts?: { bounceToLogin?: boolean }) => {
-        const jwt = state.userdata.jwt;
+        const jwt = stateRef.current.userdata.jwt;
         if (!jwt) return;
         const v: any = await api.loginIsValid(jwt);
         if (v?.status === 200) {
@@ -1059,18 +1053,24 @@ export function AppStateProvider({
         return consumed;
       },
     }),
-    [
-      state,
-      homeNav,
+    [setPlaylist, logout, fetchHomeLive, fetchFavoritesLive, setLivePollFocus],
+  );
+
+  const store = useMemo(
+    () => ({
+      ...state,
+      isLoggedIn: !!state.userdata.jwt,
+      isSuperuser: ["admin", "editor"].includes(state.userdata.user?.role),
       favoriteChannelIDs,
       blockedChannelIDs,
       ignoredTopicsSet,
-      setPlaylist,
-      logout,
-      fetchHomeLive,
-      fetchFavoritesLive,
-      setLivePollFocus,
-    ],
+      homeNav,
+      isFavorited: (id: string) =>
+        state.stagedFavorites[id] === "add" ||
+        (favoriteChannelIDs.has(id) && state.stagedFavorites[id] !== "remove"),
+      ...actions,
+    }),
+    [state, favoriteChannelIDs, blockedChannelIDs, ignoredTopicsSet, homeNav, actions],
   );
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

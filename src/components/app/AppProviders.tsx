@@ -96,6 +96,7 @@ function ThemeRuntime() {
 
 function ViewportRuntime() {
   const app = useAppState();
+  const { setWindowWidth, setIsMobile, setVisibilityState, fetchOrgs, loginCheck } = app;
   useLayoutEffect(() => {
     let raf: number | null = null;
     let lastBand = -1;
@@ -107,8 +108,8 @@ function ViewportRuntime() {
       if (band === lastBand) return;
       lastBand = band;
       // Columns change at the breakpoint; within a band nothing re-renders.
-      app.setWindowWidth(w);
-      app.setIsMobile(w < 960);
+      setWindowWidth(w);
+      setIsMobile(w < 960);
     };
     const update = () => {
       // Suppress card transitions while actively resizing so cards don't animate their fluid size change.
@@ -117,7 +118,7 @@ function ViewportRuntime() {
       settle = setTimeout(() => document.documentElement.classList.remove("holo-resizing"), 150);
       if (raf == null) raf = requestAnimationFrame(apply);
     };
-    const onVis = () => app.setVisibilityState(document.visibilityState);
+    const onVis = () => setVisibilityState(document.visibilityState);
     apply();
     onVis();
     window.addEventListener("resize", update, { passive: true });
@@ -129,13 +130,16 @@ function ViewportRuntime() {
       window.removeEventListener("resize", update);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, []);
+  }, [setWindowWidth, setIsMobile, setVisibilityState]);
+  const orgCount = app.orgs.length;
   useEffect(() => {
-    if (!app.orgs.length) app.fetchOrgs();
-  }, [app.orgs.length]);
+    if (!orgCount) fetchOrgs();
+  }, [orgCount, fetchOrgs]);
+  // Re-validate whenever the signed-in user changes.
+  const jwt = app.userdata.jwt;
   useEffect(() => {
-    app.loginCheck();
-  }, [app.userdata.jwt]);
+    loginCheck();
+  }, [jwt, loginCheck]);
   return null;
 }
 
@@ -169,9 +173,15 @@ function RouteQueryRuntime() {
     if (suppress.current) return;
     const preserved = langRef.current;
     if (!preserved) return;
+    // Keep the language override visible in the URL after navigating. Only the query string
+    // changes (the locale comes from the cookie), so update history rather than navigating.
     const p = new URLSearchParams(sp.toString());
     p.set("lang", preserved);
-    router.replace(`${pathname}${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${pathname}?${p.toString()}${window.location.hash}`,
+    );
   }, [locale, pathname, router, sp]);
 
   useEffect(() => {
@@ -199,16 +209,19 @@ function RouteQueryRuntime() {
     return () => document.removeEventListener("click", onClick, true);
   }, [sp]);
 
+  // `?org=` selects that org.
+  const queryOrg = sp.get("org");
+  const currentOrgName = app.currentOrg.name;
+  const { orgs, setCurrentOrg, fetchOrgs } = app;
   useEffect(() => {
-    const q = sp.get("org");
-    if (!q || app.currentOrg.name === q) return;
-    const apply = (orgs: any[]) => {
-      const o = orgs.find((x) => x.name === q);
-      if (o) app.setCurrentOrg(o);
+    if (!queryOrg || currentOrgName === queryOrg) return;
+    const apply = (list: any[]) => {
+      const o = list.find((x) => x.name === queryOrg);
+      if (o) setCurrentOrg(o);
     };
-    if (app.orgs.length) apply(app.orgs);
-    else app.fetchOrgs().then((orgs) => apply(orgs || []));
-  }, [sp, app.currentOrg.name, app.orgs.length]);
+    if (orgs.length) apply(orgs);
+    else fetchOrgs().then((list: any[]) => apply(list || []));
+  }, [queryOrg, currentOrgName, orgs, setCurrentOrg, fetchOrgs]);
   return null;
 }
 

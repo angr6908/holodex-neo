@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import {
@@ -24,11 +25,21 @@ import {
 
 const socialLinkClass = "h-auto w-full justify-start whitespace-normal font-normal";
 
+// Drag-to-bookmarks script that opens the current YouTube video on Holodex. React 19 replaces
+// `javascript:` hrefs with a stub, so it is set on the DOM node instead of through props.
+const BOOKMARKLET_HREF =
+  "javascript:(function(){var v=new%20URLSearchParams(window.location.search).get('v');v&&(window.location.href='https://holodex.net/watch/'+v)})()";
+const setBookmarkletHref = (node: HTMLAnchorElement | null) => {
+  node?.setAttribute("href", BOOKMARKLET_HREF);
+};
+
 function SocialLink({ item }: { item: any }) {
   return (
     <Button
       nativeButton={false}
-      render={<a href={item.href} target="_blank" rel="noopener noreferrer" />}
+      render={(props) => (
+        <a {...props} href={item.href} target="_blank" rel="noopener noreferrer" />
+      )}
       variant="outline"
       className={socialLinkClass}
     >
@@ -111,22 +122,27 @@ function TwitterFeed() {
       .then(({ data }) => setMetrics(data))
       .catch(() => {});
   }, []);
+  // Count each stat up to its value, all in one animation loop.
   useEffect(() => {
     if (!metrics) return;
-    const handles: number[] = [];
-    (elRef.current?.querySelectorAll<HTMLElement>("[data-stat-value]") ?? []).forEach((el) => {
-      const target = +(el.getAttribute("data-value") || 0);
-      const step = Math.max(target / 200, 1);
-      const tick = () => {
+    const counters = Array.from(
+      elRef.current?.querySelectorAll<HTMLElement>("[data-stat-value]") ?? [],
+      (el) => ({ el, target: +(el.getAttribute("data-value") || 0) }),
+    );
+    let frame = 0;
+    const tick = () => {
+      let counting = false;
+      for (const { el, target } of counters) {
         const curr = +(el.innerText || 0);
         if (curr < target) {
-          el.innerText = `${Math.ceil(curr + step)}`;
-          handles.push(requestAnimationFrame(tick));
+          el.innerText = `${Math.ceil(curr + Math.max(target / 200, 1))}`;
+          counting = true;
         } else el.innerText = `${target}`;
-      };
-      tick();
-    });
-    return () => handles.forEach(cancelAnimationFrame);
+      }
+      if (counting) frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
   }, [metrics]);
 
   return (
@@ -159,18 +175,16 @@ function TwitterFeed() {
               <SocialLink key={item.title} item={item} />
             ))}
         </div>
-        <Button
-          nativeButton={false}
-          render={
-            <a href="javascript:(function(){var v=new%20URLSearchParams(window.location.search).get('v');v&&(window.location.href='https://holodex.net/watch/'+v)})()" />
-          }
-          variant="outline"
-          className={socialLinkClass}
+        <a
+          ref={setBookmarkletHref}
+          href="#about"
+          data-slot="button"
+          className={buttonVariants({ variant: "outline", className: socialLinkClass })}
         >
           <Bookmark className="size-4" />
           <span>{t("about.bookmarklet.title")}</span>
           <span className="text-muted-foreground">{t("about.bookmarklet.openYoutube")}</span>
-        </Button>
+        </a>
       </div>
     </div>
   );

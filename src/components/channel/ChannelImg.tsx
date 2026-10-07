@@ -1,57 +1,32 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { channelAvatarSizeClass } from "@/components/channel/avatar-size";
 import { Avatar } from "@/components/ui/avatar";
 import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
 import { preloadImage } from "@/lib/image-preload";
 import { cn } from "@/lib/utils";
-
-export function channelAvatarSizeClass(size: string | number | undefined) {
-  const px = Number(size) || 40;
-  const classes: Record<number, string> = {
-    24: "size-6",
-    28: "size-7",
-    32: "size-8",
-    36: "size-9",
-    40: "size-10",
-    42: "size-[42px]",
-    48: "size-12",
-    52: "size-[52px]",
-    55: "size-[55px]",
-    56: "size-14",
-    60: "size-[60px]",
-    72: "size-[72px]",
-  };
-  return classes[px] || "size-10";
-}
 
 export function ChannelImg({
   channel,
   size = 40,
   noLink = false,
   className = "",
-  onReady,
 }: {
   channel: any;
   size?: string | number;
   noLink?: boolean;
   className?: string;
   rounded?: boolean;
-  onReady?: () => void;
 }) {
   const router = useRouter();
   const channelId = channel?.id;
   const channelPhoto = channel?.photo;
-  const [err, setErr] = useState(false);
-  const [sourceIndex, setSourceIndex] = useState(0);
-  const onReadyRef = useRef(onReady);
-  useEffect(() => {
-    onReadyRef.current = onReady;
-  });
-  useEffect(() => {
-    setErr(false);
-    setSourceIndex(0);
-  }, [channelId, channelPhoto]);
+  // Which photo source to try, tracked per channel photo so a new channel starts over.
+  const photoKey = `${channelId ?? ""}|${channelPhoto ?? ""}`;
+  const [fallback, setFallback] = useState({ photoKey, sourceIndex: 0, err: false });
+  const { sourceIndex, err } =
+    fallback.photoKey === photoKey ? fallback : { sourceIndex: 0, err: false };
   const px = Number(size) || 40;
   const title = `${channel?.name || ""}${channel?.english_name ? `\nEN: ${channel.english_name}` : ""}${channel?.org ? `\n> ${channel.org}` : ""}${channel?.group ? `\n> ${channel.group}` : ""}`;
   const photoSources = useMemo(() => {
@@ -66,12 +41,13 @@ export function ChannelImg({
   useEffect(() => {
     if (hasImage) void preloadImage(photo);
   }, [hasImage, photo]);
-  useEffect(() => {
-    if (!hasImage) onReadyRef.current?.();
-  }, [hasImage]);
 
   const onImgError = () =>
-    sourceIndex < photoSources.length - 1 ? setSourceIndex((index) => index + 1) : setErr(true);
+    setFallback(
+      sourceIndex < photoSources.length - 1
+        ? { photoKey, sourceIndex: sourceIndex + 1, err: false }
+        : { photoKey, sourceIndex, err: true },
+    );
   const avatar = (
     <Avatar title={title} className={cn(channelAvatarSizeClass(size), className)}>
       {hasImage ? (
@@ -85,12 +61,9 @@ export function ChannelImg({
           height={px}
           className="aspect-square size-full rounded-full object-cover"
           ref={(el) => {
-            if (el?.complete) {
-              if (el.naturalWidth > 0) onReadyRef.current?.();
-              else onImgError();
-            }
+            // A cached image can fail before React attaches onError.
+            if (el?.complete && el.naturalWidth === 0) onImgError();
           }}
-          onLoad={() => onReadyRef.current?.()}
           onError={onImgError}
           alt=""
         />

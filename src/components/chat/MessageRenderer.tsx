@@ -2,31 +2,11 @@
 
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { liveTlFontSizeClass } from "@/components/chat/tl-font-size";
+import { TlMessageText } from "@/components/chat/TlMessageText";
 import { checkIOS } from "@/lib/functions";
 import { cn } from "@/lib/utils";
 export type MessageRendererHandle = { scrollToBottom: () => void };
-
-const fontSizeClasses: Record<number, string> = {
-  10: "text-[10px]",
-  11: "text-[11px]",
-  12: "text-xs",
-  13: "text-[13px]",
-  14: "text-sm",
-  15: "text-[15px]",
-  16: "text-base",
-  17: "text-[17px]",
-  18: "text-lg",
-  19: "text-[19px]",
-  20: "text-xl",
-  21: "text-[21px]",
-  22: "text-[22px]",
-  23: "text-[23px]",
-  24: "text-2xl",
-};
-
-export function liveTlFontSizeClass(fontSize = 14) {
-  return fontSizeClasses[Math.round(fontSize)] || "text-sm";
-}
 
 export const MessageRenderer = forwardRef<
   MessageRendererHandle,
@@ -55,11 +35,7 @@ export const MessageRenderer = forwardRef<
     >
       <div className={iosClass}>
         {tlHistory.map((item, index) => (
-          <ChatMessage
-            key={item.key || `${item.name}-${item.timestamp}-${index}`}
-            source={item}
-            hideAuthor={hideAuthor(item, index)}
-          />
+          <ChatMessage key={item.key} source={item} hideAuthor={hideAuthor(item, index)} />
         ))}
       </div>
       <div className={`text-center ${iosClass}`}>{children}</div>
@@ -83,16 +59,9 @@ export function WatchSubtitleOverlay({ messages = [] }: { messages?: any[] }) {
                 <span className="bg-background px-2">{msg.name} :</span>
               </div>
             ) : null}
-            {msg.parsed ? (
-              <span
-                className="whitespace-pre-wrap break-words bg-background px-2 text-foreground"
-                dangerouslySetInnerHTML={{ __html: msg.parsed }}
-              />
-            ) : (
-              <span className="whitespace-pre-wrap break-words bg-background px-2 text-foreground">
-                {msg.message}
-              </span>
-            )}
+            <span className="whitespace-pre-wrap break-words bg-background px-2 text-foreground">
+              <TlMessageText message={msg.message} />
+            </span>
           </div>
         ))}
       </span>

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
+import { TlMessageText } from "@/components/chat/TlMessageText";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -74,7 +75,7 @@ export function ChatMessage({
             </Button>
           </div>
         ) : null}
-        <a
+        <span
           className="tl-message break-words [&_img]:h-[1.3em] [&_img]:w-auto [&_img]:align-middle"
           data-time={source.relativeMs / 1000}
         >
@@ -83,12 +84,10 @@ export function ChatMessage({
               {app.settings.liveTlShowLocalTime || !displayTime ? realTime : displayTime}
             </span>
           ) : null}
-          {source.parsed ? (
-            <span className="text-primary" dangerouslySetInnerHTML={{ __html: source.parsed }} />
-          ) : (
-            <span className="text-primary">{source.message}</span>
-          )}
-        </a>
+          <span className="text-primary">
+            <TlMessageText message={source.message} />
+          </span>
+        </span>
       </div>
       {!hideAuthor && !source.shouldHideAuthor ? (
         <Dialog open={showBlockChannelDialog} onOpenChange={setShowBlockChannelDialog}>
@@ -99,13 +98,14 @@ export function ChatMessage({
                 {source.channel_id ? (
                   <Button
                     nativeButton={false}
-                    render={
+                    render={(props) => (
                       <a
+                        {...props}
                         href={`https://youtube.com/channel/${source.channel_id}`}
                         target="_blank"
                         rel="noreferrer"
                       />
-                    }
+                    )}
                     variant="destructive"
                     size="sm"
                   >
@@ -116,13 +116,14 @@ export function ChatMessage({
                 {source.channel_id && source.is_vtuber ? (
                   <Button
                     nativeButton={false}
-                    render={
+                    render={(props) => (
                       <a
+                        {...props}
                         href={`https://holodex.net/channel/${source.channel_id}`}
                         target="_blank"
                         rel="noreferrer"
                       />
-                    }
+                    )}
                     variant="secondary"
                     size="sm"
                   >

@@ -65,25 +65,30 @@ const thumbnailImage = (t: string, size: ThumbnailSize = "default") => {
   return `/statics/thumbnail/${size === "maxres" ? "maxres" : "default"}/${n}.jpg`;
 };
 
-export function linkifyVideoTimestamps(message: string, videoId: string, redirectMode = false) {
+// Turns plain text from the API (descriptions, comments) into HTML-safe text.
+// Descriptions are plain text, not HTML. Parsing them with innerHTML/textContent silently deletes
+// anything that looks like a tag — Twitch stream descriptions contain literal "<name>:" lines,
+// so that ate the text before each colon. Decode entities via a <textarea> (RCDATA: entities
+// decode but "<...>" is kept as text), then re-escape so brackets render literally and the
+// text can't inject markup.
+export function escapePlainText(message: string) {
   const raw = String(message || "");
-  // Descriptions are plain text, not HTML. Parsing them with innerHTML/textContent (as this
-  // used to) silently deletes anything that looks like a tag — Twitch stream descriptions
-  // contain literal "<name>:" lines, so that ate the text before each colon. Decode entities
-  // via a <textarea> (RCDATA: entities decode but "<...>" is kept as text), then re-escape so
-  // brackets render literally and the description can't inject markup.
   let text: string;
   if (typeof document !== "undefined") {
     const ta = document.createElement("textarea");
     ta.innerHTML = raw;
     text = ta.value;
   } else text = decodeHTMLEntities(raw);
-  const escaped = text
+  return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+export function linkifyVideoTimestamps(message: string, videoId: string, redirectMode = false) {
+  const escaped = escapePlainText(message);
   const url = (redirectMode ? "https://youtu.be/" : "/watch/") + videoId;
   return escaped.replace(TIMESTAMP_REGEX, (m, hr, min, sec) => {
     const t = timestampToSeconds(hr, min, sec);

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { CalendarUsage } from "@/components/nav/CalendarUsage";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
 import { consumeOpenUserMenuRequest, OPEN_USER_MENU_EVENT } from "@/lib/browser";
 import { ALL_VTUBERS_ORG } from "@/lib/consts";
+import { useHostname } from "@/lib/hooks";
 import { Check, Copy, DiscordIcon, GoogleIcon, LogIn, LogOut, Pencil, XIcon } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 
@@ -29,10 +30,11 @@ const GoogleSignInButton = forwardRef<
 >(function GoogleSignInButton({ onCredentialResponse }, ref) {
   const divRef = useRef<HTMLDivElement | null>(null);
   const t = useTranslations();
-  const [ready, setReady] = useState(false);
+  // Whether Google's button has rendered; a trigger before then is replayed once it has.
+  const ready = useRef(false);
   const pendingTrigger = useRef(false);
 
-  function triggerGoogleLogin() {
+  const triggerGoogleLogin = useCallback(() => {
     const root = divRef.current;
     if (!root) {
       pendingTrigger.current = true;
@@ -47,9 +49,9 @@ const GoogleSignInButton = forwardRef<
       (window as any).google.accounts.id.prompt();
       return true;
     }
-    pendingTrigger.current = !ready;
+    pendingTrigger.current = !ready.current;
     return false;
-  }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,7 +79,7 @@ const GoogleSignInButton = forwardRef<
           width: divRef.current.clientWidth,
           logo_alignment: "left",
         });
-        setReady(true);
+        ready.current = true;
         if (pendingTrigger.current) {
           pendingTrigger.current = false;
           triggerGoogleLogin();
@@ -87,9 +89,9 @@ const GoogleSignInButton = forwardRef<
     return () => {
       cancelled = true;
     };
-  }, [onCredentialResponse, t]);
+  }, [onCredentialResponse, t, triggerGoogleLogin]);
 
-  useImperativeHandle(ref, () => ({ triggerGoogleLogin }), [ready]);
+  useImperativeHandle(ref, () => ({ triggerGoogleLogin }), [triggerGoogleLogin]);
 
   return <div ref={divRef} className="mb-3 h-[30px] w-full max-w-[420px]" />;
 });
@@ -106,9 +108,8 @@ export function useNavUserMenu() {
   const [usernameInput, setUsernameInput] = useState("");
   const [showManualOAuth, setShowManualOAuth] = useState(false);
   const [manualOAuthUrl, setManualOAuthUrl] = useState("");
-  const allowedOAuthHost =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname.endsWith("holodex.net"));
+  const hostname = useHostname();
+  const allowedOAuthHost = hostname === "localhost" || hostname.endsWith("holodex.net");
   const avatarUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${user?.id || "guest"}`;
   const userTag = user?.username ?? "";
   const userPts = `${user?.contribution_count || 0} pts`;
@@ -281,7 +282,7 @@ export function useNavUserMenu() {
                   placeholder={t("component.userMenu.pasteRedirectUrl")}
                   className="font-mono text-xs"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") submitManualOAuth();
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) submitManualOAuth();
                   }}
                 />
                 <div className="flex gap-2">
@@ -317,14 +318,23 @@ export function useNavUserMenu() {
                     onChange={(e) => setUsernameInput(e.target.value)}
                     className="flex-1 text-xs"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") saveUsername();
+                      if (e.key === "Enter" && !e.nativeEvent.isComposing) saveUsername();
                     }}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <Button size="icon-xs" onClick={saveUsername}>
+                  <Button
+                    size="icon-xs"
+                    aria-label={t("component.common.save")}
+                    onClick={saveUsername}
+                  >
                     <Check className="size-3.5" />
                   </Button>
-                  <Button variant="secondary" size="icon-xs" onClick={cancelUsernameEdit}>
+                  <Button
+                    variant="secondary"
+                    size="icon-xs"
+                    aria-label={t("views.library.deleteConfirmationCancel")}
+                    onClick={cancelUsernameEdit}
+                  >
                     <XIcon className="size-3.5" />
                   </Button>
                 </div>

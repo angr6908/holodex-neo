@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { ChannelList } from "@/components/channel/ChannelList";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { GenericListLoader } from "@/components/video/GenericListLoader";
 import { api } from "@/lib/api";
-import { readJSON, writeJSON } from "@/lib/browser";
 import { ALL_VTUBERS_ORG, CHANNEL_TYPES } from "@/lib/consts";
 import { localSortChannels } from "@/lib/functions";
 import { useDomElement, useSwipeTabs } from "@/lib/hooks";
@@ -31,6 +30,7 @@ import {
   UserMinus,
 } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
+import { useStoredState } from "@/lib/stored-state";
 import { cn } from "@/lib/utils";
 
 const Tabs = Object.freeze({ VTUBER: 0, SUBBER: 1, FAVORITES: 2, BLOCKED: 3 });
@@ -44,12 +44,12 @@ const NAV_SELECT_TRIGGER_CLASS =
 type SortOpt = { text: string; value: string; query_value: Record<string, any> };
 type State = { category: number; sort: Record<number, string>; cardView: Record<number, boolean> };
 
-const defaultState = (): State => ({
+const DEFAULT_STATE: State = {
   category: 0,
   sort: { 0: "subscribers", 1: "video_count", 2: "subscribers" },
   cardView: { 0: true, 1: true, 2: true },
-});
-const readState = (): State => ({ ...defaultState(), ...readJSON(KEY, {}) });
+};
+const NO_ORGS: string[] = [];
 
 function groupByOrg(channels: any[]) {
   const map = new Map<string, any[]>();
@@ -66,8 +66,9 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const app = useAppState();
   const t = useTranslations();
   const portal = useDomElement("channels-panel-portal");
-  const [state, setState] = useState<State>(defaultState);
-  const selectedOrgs = app.selectedHomeOrgs || [];
+  // Persisted tab/sort/view choices (stored values are merged over the defaults).
+  const [state, setState] = useStoredState<State>(KEY, DEFAULT_STATE);
+  const selectedOrgs: string[] = app.selectedHomeOrgs ?? NO_ORGS;
   const orgsKey = JSON.stringify(selectedOrgs);
   const langsKey = app.settings.clipLangs.join(",");
   const multiOrg = selectedOrgs.length > 1;
@@ -78,12 +79,6 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
   const sortValue = state.sort[category];
   const cardView = !!state.cardView[category];
 
-  useEffect(() => {
-    setState(readState());
-  }, []);
-  useEffect(() => {
-    writeJSON(KEY, state);
-  }, [state]);
   useEffect(() => {
     document.title = `${t("component.mainNav.channels")} - Holodex`;
   }, [t]);
@@ -154,7 +149,10 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
     [t],
   );
 
-  const setCategory = useCallback((v: number) => setState((p) => ({ ...p, category: v })), []);
+  const setCategory = useCallback(
+    (v: number) => setState((p) => ({ ...p, category: v })),
+    [setState],
+  );
   const swipeTabs = useSwipeTabs((d) => setCategory(Math.max(0, Math.min(3, category + d))));
   const setSort = useCallback(
     (v: string) =>
@@ -165,19 +163,17 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
           [p.category]: sortOptions.find((o) => o.value === v) ? v : DEFAULT_SORT,
         },
       })),
-    [sortOptions],
+    [sortOptions, setState],
   );
   const setCardView = useCallback(
     (v: boolean) => setState((p) => ({ ...p, cardView: { ...p.cardView, [p.category]: v } })),
-    [],
+    [setState],
   );
 
+  const { isLoggedIn, fetchFavorites } = app;
   useEffect(() => {
-    if (category === Tabs.FAVORITES && app.isLoggedIn) app.fetchFavorites();
-  }, [category]);
-  useEffect(() => {
-    if (!sortOptions.find((o) => o.value === sortValue)) setSort(DEFAULT_SORT);
-  }, [app.currentOrg.name, orgsKey, sortOptions.length]);
+    if (category === Tabs.FAVORITES && isLoggedIn) fetchFavorites();
+  }, [category, isLoggedIn, fetchFavorites]);
 
   const loadFn = useCallback(
     async (offset: number, limit: number) => {
@@ -204,7 +200,7 @@ export function ChannelsPage({ embedded = false }: { embedded?: boolean }) {
       const res: any = await api.channels(base);
       return gbo ? groupByOrg(res.data) : res.data;
     },
-    [category, currentSort, langsKey, orgsKey, selectedOrgs],
+    [category, currentSort, langsKey, selectedOrgs],
   );
 
   const perPage = category === Tabs.VTUBER ? 100 : 25;

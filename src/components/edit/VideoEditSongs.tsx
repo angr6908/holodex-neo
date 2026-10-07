@@ -6,7 +6,7 @@ import { SongItem } from "@/components/media/SongItem";
 import { SongSearch } from "@/components/media/SongSearch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -43,7 +43,13 @@ function RelativeTimestampEditor({
   }
   return (
     <div className="group mb-4 -mx-2.5">
-      <div ref={tl} className="relative cursor-pointer pt-[25px]" onClick={tryPlay}>
+      {/* Mouse shortcut for seeking; the start/duration fields cover keyboard editing. */}
+      <div
+        ref={tl}
+        role="presentation"
+        className="relative cursor-pointer pt-[25px]"
+        onClick={tryPlay}
+      >
         <Progress
           className="mx-2 mb-1.5 mt-5 h-2 [&>[data-slot=progress-indicator]]:bg-primary"
           value={((Number(test) - min) * 100.0) / (max - min)}
@@ -102,6 +108,7 @@ function maskTimestamp(s: string) {
   }
   return out.join(":");
 }
+const sortSongs = (songs: any[]) => [...(songs || [])].sort((a, b) => a.start - b.start);
 const startTimeRegex = /^\d+([:]\d+)?([:]\d+)?$/;
 const endTimeRegex = /^\+\d+$|^\d+(:\d+)?(:\d+)?$/;
 function getEmptySong(video: any) {
@@ -159,9 +166,20 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
       : t("editor.music.add");
     const currentStartTime = currentStartTimeInput;
     const currentEndTime = `${current.end - current.start}`;
+    const channelId = video.channel.id;
+    const videoId = video.id;
     useEffect(() => {
-      refreshSongList();
-    }, [video.id]);
+      let cancelled = false;
+      api
+        .songListByVideo(channelId, videoId, false)
+        .then(({ data }: any) => {
+          if (!cancelled) setSongList(sortSongs(data));
+        })
+        .catch(console.error);
+      return () => {
+        cancelled = true;
+      };
+    }, [channelId, videoId]);
     function setStartInput(val: string) {
       const masked = maskTimestamp(val);
       setCurrentStartTimeInput(masked);
@@ -196,11 +214,7 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
       else setCurrent((c: any) => ({ ...c, song: null, itunesid: -1, amUrl: null, art: null }));
     }
     async function refreshSongList() {
-      setSongList(
-        (await api.songListByVideo(video.channel.id, video.id, false)).data.sort(
-          (a: any, b: any) => a.start - b.start,
-        ),
-      );
+      setSongList(sortSongs((await api.songListByVideo(video.channel.id, video.id, false)).data));
     }
     async function saveCurrentSong() {
       await api.tryCreateSong(current, app.userdata.jwt);
@@ -273,6 +287,7 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
         </div>
         <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
           <DialogContent>
+            <DialogTitle className="sr-only">{t("editor.music.titles.help")}</DialogTitle>
             <blockquote className="twitter-tweet">
               <p lang="en" dir="ltr">
                 Easily create Music entries on Holodex, coming soon! 🎵🎶{" "}
@@ -403,14 +418,27 @@ export const VideoEditSongs = forwardRef<VideoEditSongsHandle, VideoEditSongsPro
             </Button>
           </div>
           <div className="md:col-span-1">
-            <Button type="button" variant="destructive" className="w-full" onClick={reset}>
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full"
+              aria-label={t("views.library.selectionReset")}
+              onClick={reset}
+            >
               <RotateCcw className="size-5" />
             </Button>
           </div>
           <div className="md:col-span-3">
             <Button
               nativeButton={false}
-              render={<a href={current.amUrl || "#"} rel="noopener norefferer" target="_blank" />}
+              render={(props) => (
+                <a
+                  {...props}
+                  href={current.amUrl || "#"}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                />
+              )}
               variant="secondary"
               disabled={!current.amUrl}
               className="justify-start whitespace-normal text-left"
