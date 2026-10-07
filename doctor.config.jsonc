@@ -1,0 +1,16 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "overrides": [
+      {
+        // Same policy as .oxlintrc.json: the design system itself owns its look.
+        "files": ["src/components/ui/**"],
+        "rules": [
+          "shadcn/no-restyle",
+          "shadcn/no-arbitrary-values",
+          "shadcn/require-static-classes"
+        ]
+      }
+    ]
+  }
+}
