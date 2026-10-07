@@ -1,9 +1,10 @@
 "use client";
 
+import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ import {
   videoTitle,
   viewerCountText,
 } from "@/lib/video-format";
+import { preloadWatchPlayer, preloadWatchVideo, warmWatchPageWhenIdle } from "@/lib/watch-preload";
 
 function externalHref(link = "") {
   if (!link) return "";
@@ -277,6 +279,53 @@ function useCardDrag(data: any) {
         setDragSelectionLocked(false);
         removeDragPreview(dragPreviewEl);
       },
+    },
+  };
+}
+
+// Hover long enough to skip cards the pointer only passes over.
+const HOVER_PREFETCH_DELAY_MS = 80;
+// A touch that starts a scroll is cancelled within this time; one that holds still is a tap.
+const TOUCH_PREFETCH_DELAY_MS = 50;
+
+// Prefetches the watch page of a card that is about to be opened: hovering, focusing or pressing
+// it fetches the route in full (so the click needs no server round trip) and the player's script;
+// a press also starts the video request. Off for cards that don't open the page.
+function useWatchPrefetch(data: any, watchLink: string, enabled: boolean, clipLangs: string) {
+  const router = useRouter();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const prefetchFullRoute = useEffectEvent(() =>
+    router.prefetch(watchLink, { kind: PrefetchKind.FULL }),
+  );
+  useEffect(() => {
+    if (enabled) warmWatchPageWhenIdle(() => prefetchFullRoute());
+    return () => clearTimeout(timer.current);
+  }, [enabled]);
+  function prefetchRoute() {
+    clearTimeout(timer.current);
+    if (!enabled) return;
+    router.prefetch(watchLink, { kind: PrefetchKind.FULL });
+    preloadWatchPlayer(data);
+  }
+  function press() {
+    prefetchRoute();
+    preloadWatchVideo(data, clipLangs);
+  }
+  return {
+    onPointerEnter: (e: React.PointerEvent) => {
+      if (!enabled || e.pointerType !== "mouse") return;
+      clearTimeout(timer.current);
+      timer.current = setTimeout(prefetchRoute, HOVER_PREFETCH_DELAY_MS);
+    },
+    onPointerLeave: () => clearTimeout(timer.current),
+    onPointerCancel: () => clearTimeout(timer.current),
+    onFocus: prefetchRoute,
+    onPointerDown: (e: React.PointerEvent) => {
+      if (!enabled || e.button !== 0) return;
+      if ((e.target as Element).closest?.(".video-card-item-actions")) return;
+      if (e.pointerType === "mouse") return press();
+      clearTimeout(timer.current);
+      timer.current = setTimeout(press, TOUCH_PREFETCH_DELAY_MS);
     },
   };
 }
@@ -941,6 +990,13 @@ export function VideoCard({
   );
   const inMultiViewActiveVideos =
     inMultiViewSelector && inMultiviewLayout(multiviewStore?.activeVideos, data?.id);
+  const clipLangs = app.settings.clipLangs.join(",");
+  const watchPrefetch = useWatchPrefetch(
+    data,
+    watchLink,
+    !!data?.id && !openExternal && !disableDefaultClick,
+    clipLangs,
+  );
 
   useEffect(() => {
     if (!denseList && !shouldHideThumbnail) void preloadImage(imageSrc);
@@ -953,6 +1009,7 @@ export function VideoCard({
       if (externalUrl) window.open(externalUrl, "_blank", "noopener");
       return;
     }
+    preloadWatchVideo(data, clipLangs);
     setHasWatched(true);
     if (pathname.startsWith("/watch") && app.isMobile) router.replace(watchLink);
     else router.push(watchLink);
@@ -981,6 +1038,7 @@ export function VideoCard({
     <article
       className={articleClassFor({ fluid, active, dragging, horizontal, denseList })}
       {...dragProps}
+      {...watchPrefetch}
     >
       {/* Clicking anywhere on the card opens the video (the title link is the keyboard path);
           `contents` keeps the card's layout. */}

@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { loadTwitchEmbedApi } from "@/lib/twitch-embed-api";
 
 let pid = 0;
 
@@ -16,32 +17,6 @@ let pid = 0;
 function listen(player: any, event: string, listener: () => void) {
   player.addEventListener(event, listener);
   return () => player.removeEventListener?.(event, listener);
-}
-let twitchScriptPromise: Promise<void> | null = null;
-
-function loadTwitchScript(src: string): Promise<void> {
-  if (twitchScriptPromise) return twitchScriptPromise;
-  twitchScriptPromise = new Promise((resolve, reject) => {
-    if ((window as any).Twitch?.Player) {
-      resolve();
-      return;
-    }
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", reject, { once: true });
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = src;
-    s.onload = () => resolve();
-    s.onerror = (e) => {
-      twitchScriptPromise = null;
-      reject(e);
-    };
-    document.head.appendChild(s);
-  });
-  return twitchScriptPromise;
 }
 
 export type TwitchPlayerHandle = {
@@ -182,7 +157,7 @@ export const TwitchPlayer = forwardRef<
   useEffect(() => {
     let cancelled = false;
     let unsubscribers: Array<() => void> = [];
-    loadTwitchScript("https://player.twitch.tv/js/embed/v1.js")
+    loadTwitchEmbedApi()
       .then(() => {
         if (cancelled) return;
         const options = initialOptions();

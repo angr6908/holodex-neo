@@ -2,7 +2,15 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type CSSProperties, Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  Suspense,
+  startTransition,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
@@ -30,8 +38,10 @@ import * as icons from "@/lib/icons";
 import { Maximize, ThumbsUp } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { useWatchPlaylist } from "@/lib/watch-playlist";
+import { loadWatchVideo, readWatchSeed } from "@/lib/watch-preload";
 import { fetchTwitchViewerCounts, twitchLoginOf } from "@/lib/twitch-viewers";
 import { cn } from "@/lib/utils";
+import { loadYoutubeIframeApi } from "@/lib/youtube-iframe-api";
 import { fetchYoutubeViewerCounts } from "@/lib/youtube-viewers";
 
 const empty = { channel: {}, id: null, title: "Loading...", description: "" };
@@ -422,10 +432,12 @@ function WatchDetails({
 }
 
 // Loads the video on navigation, resetting the page's controls, prefetching the live viewer
-// counts and recording the visit.
+// counts and recording the visit. A video opened from a card renders from the card's data right
+// away (see watch-preload) and `hasDetails` turns on once the full video has loaded.
 function useWatchVideo(videoId: string, clipLangsParam: () => string, resetControls: () => void) {
-  const [video, setVideo] = useState<Record<string, any>>(empty);
-  const [isLoading, setIsLoading] = useState(true);
+  const [video, setVideo] = useState<Record<string, any>>(() => readWatchSeed(videoId) ?? empty);
+  const [isLoading, setIsLoading] = useState(() => !readWatchSeed(videoId));
+  const [hasDetails, setHasDetails] = useState(false);
   const [hasError, setHasError] = useState(false);
   const onReset = useEffectEvent(resetControls);
   const langs = useEffectEvent(clipLangsParam);
@@ -437,40 +449,44 @@ function useWatchVideo(videoId: string, clipLangsParam: () => string, resetContr
     }
     let cancelled = false;
     window.scrollTo(0, 0);
-    setVideo(empty);
+    const seed = readWatchSeed(videoId);
+    setVideo(seed ?? empty);
     onReset();
-    setIsLoading(true);
+    setIsLoading(!seed);
+    setHasDetails(false);
     setHasError(false);
 
-    // Start the direct YouTube CCV lookup alongside the video metadata request. Previously
-    // LiveViewers did not mount (and therefore did not request the count) until api.video had
-    // completed, making the badge visibly pop in one request later than the rest of the page.
-    // The shared viewer client deduplicates this with LiveViewers' own refresh and seeds its
-    // synchronous cache before the toolbar mounts in the usual case.
-    if (/^[\w-]{11}$/.test(videoId)) void fetchYoutubeViewerCounts([videoId]);
+    // Start the direct live-viewer lookups alongside the video metadata request so the toolbar
+    // badge doesn't pop in one request later than the rest of the page. The shared viewer
+    // clients deduplicate these with LiveViewers' own refresh. Without card data, an id that
+    // looks like YouTube's also starts loading the player API.
+    const twitchLogin = seed ? twitchLoginOf(seed) : "";
+    if (/^[\w-]{11}$/.test(videoId) && !twitchLogin && (!seed || seed.status === "live"))
+      void fetchYoutubeViewerCounts([videoId]);
+    if (twitchLogin && seed?.status === "live") void fetchTwitchViewerCounts([twitchLogin]);
+    if (!seed && /^[\w-]{11}$/.test(videoId)) void loadYoutubeIframeApi().catch(() => {});
 
-    api
-      .video(videoId, langs(), 1)
-      .then(async ({ data }: any) => {
+    loadWatchVideo(videoId, langs())
+      .then((data) => {
         if (cancelled) return;
+        // Without card data, the Twitch login is only known from the fetched video metadata.
+        const login = twitchLoginOf(data);
+        if (data.status === "live" && login) void fetchTwitchViewerCounts([login]);
 
-        // Unlike YouTube, the Twitch login is stored in the fetched video metadata, so it cannot
-        // be prefetched at page entry. Warm the shared cache before mounting WatchToolbar; this
-        // prevents LiveViewers from first rendering empty and popping in after its own request.
-        const twitchLogin = twitchLoginOf(data);
-        if (data.status === "live" && twitchLogin) {
-          await fetchTwitchViewerCounts([twitchLogin]);
-          if (cancelled) return;
-        }
-
-        setVideo(data);
-        setIsLoading(false);
+        // The details are mostly below the player, so render them without blocking the
+        // main thread the player's iframe may share.
+        startTransition(() => {
+          setVideo(data);
+          setIsLoading(false);
+          setHasDetails(true);
+        });
         document.title = videoTitle(data) || "Holodex";
         addWatchedVideo(data);
       })
       .catch((e) => {
         console.error(e);
-        if (!cancelled) {
+        // A page rendered from card data keeps its player; only the details are missing.
+        if (!cancelled && !seed) {
           setHasError(true);
           setIsLoading(false);
         }
@@ -479,7 +495,7 @@ function useWatchVideo(videoId: string, clipLangsParam: () => string, resetContr
       cancelled = true;
     };
   }, [videoId]);
-  return { video, setVideo, isLoading, hasError };
+  return { video, setVideo, isLoading, hasDetails, hasError };
 }
 
 // The Twitch embed for Twitch streams, otherwise the YouTube player, plus the overlay target.
@@ -599,7 +615,7 @@ function Watch() {
   const [theater, setTheater] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   // Clip language preferences shape the request but changing them shouldn't reload the video.
-  const { video, setVideo, isLoading, hasError } = useWatchVideo(
+  const { video, setVideo, isLoading, hasDetails, hasError } = useWatchVideo(
     videoId,
     () => app.settings.clipLangs.join(","),
     () => {
@@ -630,7 +646,7 @@ function Watch() {
   const playNextInPlaylist = () => {
     if (watchPlaylist.currentIndex >= 0) playNextVideo();
   };
-  const showHighlights = showsHighlights(video, app.isMobile, showTL);
+  const showHighlights = hasDetails && showsHighlights(video, app.isMobile, showTL);
 
   useEffect(() => {
     if (title) document.title = title;
@@ -742,7 +758,9 @@ function Watch() {
           {app.isMobile ? (
             <>
               {chatPanel}
-              <WatchMobileComments video={video} comments={comments} onTimeJump={seekTo} />
+              {hasDetails ? (
+                <WatchMobileComments video={video} comments={comments} onTimeJump={seekTo} />
+              ) : null}
             </>
           ) : null}
           <WatchInfo
@@ -752,15 +770,17 @@ function Watch() {
             onTimeJump={seekTo}
             actions={<LikeOnYoutubeButton onLike={() => player.current?.sendLikeEvent()} />}
           />
-          <WatchDetails
-            video={video}
-            comments={comments}
-            isMobile={app.isMobile}
-            isEditor={isEditorRole(app.userdata?.user?.role)}
-            playlist={playlistId ? watchPlaylist : null}
-            onTimeJump={seekTo}
-            onPlaylistNext={playNextVideo}
-          />
+          {hasDetails ? (
+            <WatchDetails
+              video={video}
+              comments={comments}
+              isMobile={app.isMobile}
+              isEditor={isEditorRole(app.userdata?.user?.role)}
+              playlist={playlistId ? watchPlaylist : null}
+              onTimeJump={seekTo}
+              onPlaylistNext={playNextVideo}
+            />
+          ) : null}
         </div>
       </div>
       {!app.isMobile ? chatPanel : null}

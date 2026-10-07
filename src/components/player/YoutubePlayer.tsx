@@ -11,6 +11,7 @@ import {
 } from "react";
 import youtubePlayer from "youtube-player";
 import type { Options, YouTubePlayer as YTPlayer } from "youtube-player/dist/types";
+import { loadYoutubeIframeApi } from "@/lib/youtube-iframe-api";
 
 let pid = 0;
 
@@ -222,16 +223,24 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
 
     useEffect(() => {
       (window as any).YTConfig = { host: "https://www.youtube.com/iframe_api" };
-      const options = initialOptions();
-      const player = youtubePlayer(elementId, options) as EmitterPlayer;
-      playerRef.current = player;
-      videoIdRef.current = options.videoId;
-      const unsubscribers = [
-        listen(player, "ready", () => handleReady(player)),
-        listen(player, "stateChange", (event) => handleStateChange(event)),
-        listen(player, "error", (event) => handleError(event)),
-      ];
+      let unsubscribers: Array<() => void> = [];
+      let disposed = false;
+      const create = () => {
+        if (disposed) return;
+        const options = initialOptions();
+        const player = youtubePlayer(elementId, options) as EmitterPlayer;
+        playerRef.current = player;
+        videoIdRef.current = options.videoId;
+        unsubscribers = [
+          listen(player, "ready", () => handleReady(player)),
+          listen(player, "stateChange", (event) => handleStateChange(event)),
+          listen(player, "error", (event) => handleError(event)),
+        ];
+      };
+      // Usually loaded ahead of time by pages listing videos; on failure youtube-player retries.
+      loadYoutubeIframeApi().then(create, create);
       return () => {
+        disposed = true;
         // destroy() waits for the player to be ready, so stop listening right away.
         for (const unsubscribe of unsubscribers) unsubscribe();
         readyRef.current = false;
