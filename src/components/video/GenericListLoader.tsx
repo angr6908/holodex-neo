@@ -75,6 +75,228 @@ function cachedSnapshotForPage(cacheKey: string, page: number, paginate: boolean
   return stored;
 }
 
+// The next page for an infinite list restored from `cached`: its stored cursor, else the page
+// after the cached items.
+function nextPageFor(cached: StoredSnapshot | null, infiniteLoad: boolean, perPage: number) {
+  return (
+    cached?.nextPage || (cached && infiniteLoad ? Math.ceil(cached.items.length / perPage) + 1 : 1)
+  );
+}
+
+// The live query string (it may be ahead of `searchParams` after a pushState), with `page` set.
+function pageUrl(pathname: string, searchParams: URLSearchParams, page: number) {
+  const params =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams(searchParams.toString());
+  params.set("page", String(page));
+  return `${pathname}${params.toString() ? `?${params}` : ""}`;
+}
+
+// Puts `page` in the URL (keeping the hash) and scrolls to the top, again after the next frame
+// so the new page's (possibly shorter) content can't clamp or anchor the scroll position back
+// down.
+function showPageInUrl(pathname: string, searchParams: URLSearchParams, page: number) {
+  if (typeof window !== "undefined")
+    window.history.pushState(
+      null,
+      "",
+      `${pageUrl(pathname, searchParams, page)}${window.location.hash || ""}`,
+    );
+  const scroll = () => window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  scroll();
+  requestAnimationFrame(scroll);
+}
+
+// A window of page numbers around the current page, wider on wider screens.
+function visiblePageNumbers(windowWidth: number, currentPage: number, pages: number) {
+  const width = windowWidth || 1440;
+  const totalVisible =
+    width < 640 ? 5 : width < 768 ? 8 : width < 1024 ? 12 : width < 1280 ? 14 : 16;
+  const half = Math.floor(totalVisible / 2);
+  let start = Math.max(1, currentPage - half);
+  const end = Math.min(pages, start + totalVisible - 1);
+  start = Math.max(1, end - totalVisible + 1);
+  return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
+}
+
+// Page requests for a list: each page is fetched once at a time (in-flight requests are
+// shared) and kept in the per-cacheKey page cache that `pageCacheRef` points at.
+function usePageRequests(loadFn: GenericListLoaderProps["loadFn"], perPage: number) {
+  // Points at the shared per-cacheKey page cache once the loader's reset layout effect runs.
+  const pageCacheRef = useRef<Map<number, PagePayload>>(new Map());
+  const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
+
+  const fetchPage = useCallback(
+    (page: number) => {
+      const pending = inflightRef.current.get(page);
+      if (pending) return pending;
+      const targetCache = pageCacheRef.current;
+      const targetInflight = inflightRef.current;
+      const promise = Promise.resolve(loadFn((page - 1) * perPage, perPage)).then(
+        extractListPayload,
+      );
+      targetInflight.set(page, promise);
+      promise
+        .then((payload) => {
+          targetCache.set(page, payload);
+        })
+        .catch(() => {})
+        .finally(() => {
+          targetInflight.delete(page);
+        });
+      return promise;
+    },
+    [loadFn, perPage],
+  );
+
+  const prefetchNeighbors = useCallback(
+    (page: number, totalCount: number | null) => {
+      for (const target of [page - 1, page + 1]) {
+        if (target < 1) continue;
+        if (totalCount !== null && (target - 1) * perPage >= totalCount) continue;
+        if (inflightRef.current.has(target)) continue;
+        const cached = pageCacheRef.current.get(target);
+        const expectedLength =
+          totalCount === null
+            ? perPage
+            : Math.min(perPage, Math.max(0, totalCount - (target - 1) * perPage));
+        // A sparse page can be cached while its loader is still discovering later matches.
+        // Refresh it so adjacent-page preloading never strands a short page.
+        if (cached && cached.items.length >= expectedLength) continue;
+        if (cached) pageCacheRef.current.delete(target);
+        void fetchPage(target);
+      }
+    },
+    [fetchPage, perPage],
+  );
+
+  return { pageCacheRef, inflightRef, fetchPage, prefetchNeighbors };
+}
+
+// Spinner while the next page loads, or the error; the observed sentinel for loading more.
+function InfiniteLoadFooter({
+  sentinel,
+  status,
+}: {
+  sentinel: React.RefObject<HTMLDivElement | null>;
+  status: number;
+}) {
+  const t = useTranslations();
+  return (
+    <div ref={sentinel} className="flex min-h-[100px] justify-center py-4">
+      {status === STATUSES.LOADING ? <Spinner className="mt-8" /> : null}
+      {status === STATUSES.ERROR ? (
+        <Alert variant="destructive" className="mt-4 max-w-md">
+          <AlertDescription>{t("component.apiError.title")}</AlertDescription>
+        </Alert>
+      ) : null}
+    </div>
+  );
+}
+
+type PaginationNav = {
+  currentPage: number;
+  hidden: boolean;
+  pageHref: (page: number) => string;
+  onPageClick: (event: MouseEvent<HTMLAnchorElement>, page: number, disabled?: boolean) => void;
+};
+
+// Numbered pages with previous/next arrows, for lists with a known total.
+function NumberedPagination({
+  nav,
+  pages,
+  visiblePages,
+}: {
+  nav: PaginationNav;
+  pages: number;
+  visiblePages: number[];
+}) {
+  const t = useTranslations();
+  const { currentPage, pageHref, onPageClick } = nav;
+  const isFirst = currentPage === 1;
+  const isLast = currentPage === pages;
+  return (
+    <Pagination className={nav.hidden ? "hidden" : ""}>
+      <PaginationContent className="flex-wrap justify-center gap-2">
+        <PaginationItem>
+          <PaginationLink
+            href={pageHref(currentPage - 1)}
+            size="sm"
+            aria-label={t("component.pagination.previousPage")}
+            aria-disabled={isFirst}
+            className={isFirst ? "pointer-events-none opacity-50" : ""}
+            onClick={(event) => onPageClick(event, currentPage - 1, isFirst)}
+          >
+            <ChevronLeft className="size-4" />
+          </PaginationLink>
+        </PaginationItem>
+        {visiblePages.map((pageNumber) => (
+          <PaginationItem key={`page-${pageNumber}`}>
+            <PaginationLink
+              href={pageHref(pageNumber)}
+              size="sm"
+              isActive={pageNumber === currentPage}
+              onClick={(event) => onPageClick(event, pageNumber)}
+            >
+              {pageNumber}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationLink
+            href={pageHref(currentPage + 1)}
+            size="sm"
+            aria-label={t("component.pagination.nextPage")}
+            aria-disabled={isLast}
+            className={isLast ? "pointer-events-none opacity-50" : ""}
+            onClick={(event) => onPageClick(event, currentPage + 1, isLast)}
+          >
+            <ChevronRight className="size-4" />
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
+// Newer/older links for lists without a total; "older" stops once a page comes back empty.
+function NewerOlderPagination({ nav, completed }: { nav: PaginationNav; completed: boolean }) {
+  const t = useTranslations();
+  const { currentPage, pageHref, onPageClick } = nav;
+  const isFirst = currentPage === 1;
+  return (
+    <Pagination className={nav.hidden ? "hidden" : ""}>
+      <PaginationContent className="flex-wrap justify-center gap-0">
+        <PaginationItem>
+          <PaginationLink
+            href={pageHref(currentPage - 1)}
+            size="default"
+            aria-disabled={isFirst}
+            className={`m-2 pr-6 ${isFirst ? "pointer-events-none opacity-50" : ""}`}
+            onClick={(event) => onPageClick(event, currentPage - 1, isFirst)}
+          >
+            <ChevronLeft className="size-4" />
+            {t("component.paginateLoad.newer")}
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink
+            href={pageHref(currentPage + 1)}
+            size="default"
+            aria-disabled={completed}
+            className={`m-2 pl-6 ${completed ? "pointer-events-none opacity-50" : ""}`}
+            onClick={(event) => onPageClick(event, currentPage + 1, completed)}
+          >
+            {t("component.paginateLoad.older")}
+            <ChevronRight className="size-4" />
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
 type GenericListLoaderProps = {
   infiniteLoad?: boolean;
   paginate?: boolean;
@@ -138,28 +360,20 @@ function ListLoader({
   const [isLoading, setIsLoading] = useState(!initialCache);
   const [isFetching, setIsFetching] = useState(false);
   const [status, setStatus] = useState<number>(STATUSES.READY);
-  const [nextPage, setNextPage] = useState(
-    initialCache?.nextPage ||
-      (initialCache && infiniteLoad ? Math.ceil(initialCache.items.length / perPage) + 1 : 1),
-  );
+  const [nextPage, setNextPage] = useState(() => nextPageFor(initialCache, infiniteLoad, perPage));
   const [identifier, setIdentifier] = useState(0);
   const restoredFromCache = useRef(!!initialCache);
   // Last committed `data`, for async loads that append to it.
   const dataRef = useRef<any[]>(data);
   const currentPageRef = useRef(currentPage);
   const requestSeq = useRef(0);
-  // Points at the shared per-cacheKey page cache once the reset layout effect below runs.
-  const pageCacheRef = useRef<Map<number, PagePayload>>(new Map());
-  const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
+  const { pageCacheRef, inflightRef, fetchPage, prefetchNeighbors } = usePageRequests(
+    loadFn,
+    perPage,
+  );
   const sentinel = useRef<HTMLDivElement | null>(null);
-  const t = useTranslations();
   const pages = total ? Math.ceil(total / perPage) : 1;
   const pageLessMode = total === null;
-
-  const currentSearchParams = useCallback(() => {
-    if (typeof window !== "undefined") return new URLSearchParams(window.location.search);
-    return new URLSearchParams(searchParams.toString());
-  }, [searchParams]);
 
   const writeCache = useCallback(
     (next: any[], meta: Omit<StoredSnapshot, "items"> = {}) => {
@@ -169,50 +383,6 @@ function ListLoader({
       } catch {}
     },
     [cacheKey],
-  );
-
-  const fetchPage = useCallback(
-    (page: number) => {
-      const pending = inflightRef.current.get(page);
-      if (pending) return pending;
-      const targetCache = pageCacheRef.current;
-      const targetInflight = inflightRef.current;
-      const promise = Promise.resolve(loadFn((page - 1) * perPage, perPage)).then(
-        extractListPayload,
-      );
-      targetInflight.set(page, promise);
-      promise
-        .then((payload) => {
-          targetCache.set(page, payload);
-        })
-        .catch(() => {})
-        .finally(() => {
-          targetInflight.delete(page);
-        });
-      return promise;
-    },
-    [loadFn, perPage],
-  );
-
-  const prefetchNeighbors = useCallback(
-    (page: number, totalCount: number | null) => {
-      for (const target of [page - 1, page + 1]) {
-        if (target < 1) continue;
-        if (totalCount !== null && (target - 1) * perPage >= totalCount) continue;
-        if (inflightRef.current.has(target)) continue;
-        const cached = pageCacheRef.current.get(target);
-        const expectedLength =
-          totalCount === null
-            ? perPage
-            : Math.min(perPage, Math.max(0, totalCount - (target - 1) * perPage));
-        // A sparse page can be cached while its loader is still discovering later matches.
-        // Refresh it so adjacent-page preloading never strands a short page.
-        if (cached && cached.items.length >= expectedLength) continue;
-        if (cached) pageCacheRef.current.delete(target);
-        void fetchPage(target);
-      }
-    },
-    [fetchPage, perPage],
   );
 
   const applyPaginatedPayload = useCallback(
@@ -287,7 +457,7 @@ function ListLoader({
         setStatus(STATUSES.ERROR);
       }
     },
-    [applyPaginatedPayload, fetchPage, loadFn, perPage, readExternalPage, writeCache],
+    [applyPaginatedPayload, fetchPage, loadFn, pageCacheRef, perPage, readExternalPage, writeCache],
   );
 
   useEffect(() => {
@@ -327,13 +497,19 @@ function ListLoader({
     setIsLoading(!cached && (!keepPreviousData || dataRef.current.length === 0));
     setIsFetching(false);
     setStatus(STATUSES.READY);
-    setNextPage(
-      cached?.nextPage ||
-        (cached && infiniteLoad ? Math.ceil(cached.items.length / perPage) + 1 : 1),
-    );
+    setNextPage(nextPageFor(cached, infiniteLoad, perPage));
     setIdentifier((value) => value + 1);
     restoredFromCache.current = !!cached;
-  }, [cacheKey, infiniteLoad, keepPreviousData, paginate, perPage, readExternalPage]);
+  }, [
+    cacheKey,
+    infiniteLoad,
+    keepPreviousData,
+    paginate,
+    perPage,
+    readExternalPage,
+    pageCacheRef,
+    inflightRef,
+  ]);
 
   // Paginated lists load whenever the page changes or the list resets. (A new `loadFn` alone
   // doesn't reload: pages are cached per `cacheKey` and in-flight requests are deduped.)
@@ -394,140 +570,36 @@ function ListLoader({
       applyPaginatedPayload(page, cached);
     }
     setCurrentPage(page);
-    const params = currentSearchParams();
-    params.set("page", String(page));
-    if (typeof window !== "undefined") {
-      const nextUrl = `${pathname}${params.toString() ? `?${params}` : ""}${window.location.hash || ""}`;
-      window.history.pushState(null, "", nextUrl);
-    }
-    // Repeat after the next frame so the new page's (possibly shorter) content can't clamp or
-    // anchor the scroll position back down.
-    const scroll = () => window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    scroll();
-    requestAnimationFrame(scroll);
-  }
-  function pageHref(page: number) {
-    const params = currentSearchParams();
-    params.set("page", String(page));
-    return `${pathname}${params.toString() ? `?${params}` : ""}`;
+    showPageInUrl(pathname, searchParams, page);
   }
   function handlePageClick(event: MouseEvent<HTMLAnchorElement>, page: number, disabled = false) {
     event.preventDefault();
     if (!disabled) goToPage(page);
   }
 
-  const visiblePages = useMemo(() => {
-    const width = app.windowWidth || 1440;
-    const totalVisible =
-      width < 640 ? 5 : width < 768 ? 8 : width < 1024 ? 12 : width < 1280 ? 14 : 16;
-    const half = Math.floor(totalVisible / 2);
-    let start = Math.max(1, currentPage - half);
-    const end = Math.min(pages, start + totalVisible - 1);
-    start = Math.max(1, end - totalVisible + 1);
-    return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
-  }, [app.windowWidth, currentPage, pages]);
+  const visiblePages = useMemo(
+    () => visiblePageNumbers(app.windowWidth, currentPage, pages),
+    [app.windowWidth, currentPage, pages],
+  );
+  const nav: PaginationNav = {
+    currentPage,
+    hidden: !(status === STATUSES.READY || status === STATUSES.COMPLETED || data.length > 0),
+    pageHref: (page) => pageUrl(pathname, searchParams, page),
+    onPageClick: handlePageClick,
+  };
 
   return (
     <div>
       {children({ data, isLoading, isFetching })}
       {infiniteLoad ? (
-        <div ref={sentinel} key={identifier} className="flex min-h-[100px] justify-center py-4">
-          {status === STATUSES.LOADING ? <Spinner className="mt-8" /> : null}
-          {status === STATUSES.ERROR ? (
-            <Alert variant="destructive" className="mt-4 max-w-md">
-              <AlertDescription>{t("component.apiError.title")}</AlertDescription>
-            </Alert>
-          ) : null}
-        </div>
+        <InfiniteLoadFooter key={identifier} sentinel={sentinel} status={status} />
       ) : null}
       {paginate ? (
         <div key={identifier} className="flex min-h-[100px] justify-center py-4">
           {!pageLessMode ? (
-            <Pagination
-              className={
-                status === STATUSES.READY || status === STATUSES.COMPLETED || data.length > 0
-                  ? ""
-                  : "hidden"
-              }
-            >
-              <PaginationContent className="flex-wrap justify-center gap-2">
-                <PaginationItem>
-                  <PaginationLink
-                    href={pageHref(currentPage - 1)}
-                    size="sm"
-                    aria-label={t("component.pagination.previousPage")}
-                    aria-disabled={currentPage === 1}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}
-                  >
-                    <ChevronLeft className="size-4" />
-                  </PaginationLink>
-                </PaginationItem>
-                {visiblePages.map((pageNumber) => (
-                  <PaginationItem key={`page-${pageNumber}`}>
-                    <PaginationLink
-                      href={pageHref(pageNumber)}
-                      size="sm"
-                      isActive={pageNumber === currentPage}
-                      onClick={(event) => handlePageClick(event, pageNumber)}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationLink
-                    href={pageHref(currentPage + 1)}
-                    size="sm"
-                    aria-label={t("component.pagination.nextPage")}
-                    aria-disabled={currentPage === pages}
-                    className={currentPage === pages ? "pointer-events-none opacity-50" : ""}
-                    onClick={(event) =>
-                      handlePageClick(event, currentPage + 1, currentPage === pages)
-                    }
-                  >
-                    <ChevronRight className="size-4" />
-                  </PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <NumberedPagination nav={nav} pages={pages} visiblePages={visiblePages} />
           ) : (
-            <Pagination
-              className={
-                status === STATUSES.READY || status === STATUSES.COMPLETED || data.length > 0
-                  ? ""
-                  : "hidden"
-              }
-            >
-              <PaginationContent className="flex-wrap justify-center gap-0">
-                <PaginationItem>
-                  <PaginationLink
-                    href={pageHref(currentPage - 1)}
-                    size="default"
-                    aria-disabled={currentPage === 1}
-                    className={`m-2 pr-6 ${currentPage === 1 ? "pointer-events-none opacity-50" : ""}`}
-                    onClick={(event) => handlePageClick(event, currentPage - 1, currentPage === 1)}
-                  >
-                    <ChevronLeft className="size-4" />
-                    {t("component.paginateLoad.newer")}
-                  </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink
-                    href={pageHref(currentPage + 1)}
-                    size="default"
-                    aria-disabled={status === STATUSES.COMPLETED}
-                    className={`m-2 pl-6 ${status === STATUSES.COMPLETED ? "pointer-events-none opacity-50" : ""}`}
-                    onClick={(event) =>
-                      handlePageClick(event, currentPage + 1, status === STATUSES.COMPLETED)
-                    }
-                  >
-                    {t("component.paginateLoad.older")}
-                    <ChevronRight className="size-4" />
-                  </PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <NewerOlderPagination nav={nav} completed={status === STATUSES.COMPLETED} />
           )}
         </div>
       ) : null}
