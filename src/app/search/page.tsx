@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
@@ -73,6 +73,14 @@ function routeSearchType(searchParams: Pick<URLSearchParams, "get">) {
 }
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchResults />
+    </Suspense>
+  );
+}
+
+function SearchResults() {
   const searchParams = useSearchParams();
   const app = useAppState();
   const t = useTranslations();
@@ -104,7 +112,7 @@ export default function SearchPage() {
         executedQuery,
         filterSort,
         filterType,
-        app.settings.clipLangs,
+        clipLangsKey.split(","),
       );
       return queryPromise;
     };

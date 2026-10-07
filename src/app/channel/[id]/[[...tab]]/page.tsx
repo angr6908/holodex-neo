@@ -4,7 +4,7 @@ import linkifyHtml from "linkify-html";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelSocials } from "@/components/channel/ChannelSocials";
@@ -37,21 +37,22 @@ export default function ChannelPage() {
   const [channel, setChannel] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [bannerFailed, setBannerFailed] = useState(false);
-  const [bannerAttempt, setBannerAttempt] = useState(0);
+  // Which banner variant to try next, tracked per banner so a new channel starts over.
+  const [bannerFallback, setBannerFallback] = useState({ banner: "", attempt: 0, failed: false });
 
+  const setPageTitle = useEffectEvent((data: any) => {
+    document.title = `${channelDisplayName(data, app.settings.useEnglishName)} - Holodex`;
+  });
   useEffect(() => {
     window.scrollTo(0, 0);
     setChannel({});
     setIsLoading(true);
     setHasError(false);
-    setBannerFailed(false);
-    setBannerAttempt(0);
     api
       .channel(id)
       .then(({ data }: any) => {
         setChannel(data);
-        document.title = `${channelDisplayName(data, app.settings.useEnglishName)} - Holodex`;
+        setPageTitle(data);
         setIsLoading(false);
       })
       .catch((e) => {
@@ -70,16 +71,16 @@ export default function ChannelPage() {
     return [...new Set([mobile, tablet, banner, tv, channel.banner].filter(Boolean))];
   }, [channel.banner]);
 
-  useEffect(() => {
-    setBannerFailed(false);
-    setBannerAttempt(0);
-  }, [channel.banner]);
-
+  const bannerKey = channel.banner || "";
+  const { attempt: bannerAttempt, failed: bannerFailed } =
+    bannerFallback.banner === bannerKey ? bannerFallback : { attempt: 0, failed: false };
   const bannerImage = bannerFailed ? "" : bannerSources[bannerAttempt] || "";
   const onBannerError = () =>
-    bannerAttempt < bannerSources.length - 1
-      ? setBannerAttempt((i) => i + 1)
-      : setBannerFailed(true);
+    setBannerFallback(
+      bannerAttempt < bannerSources.length - 1
+        ? { banner: bannerKey, attempt: bannerAttempt + 1, failed: false }
+        : { banner: bannerKey, attempt: bannerAttempt, failed: true },
+    );
 
   const avatarSize = bp === "xs" || bp === "sm" ? 48 : 56;
   const channelName = channelDisplayName(channel, app.settings.useEnglishName);
@@ -123,16 +124,17 @@ export default function ChannelPage() {
     );
   const renderTabLink = (i: any, compact = false) => {
     const ext = i.path.includes("https");
-    const render = ext ? (
-      <a href={i.path} target="_blank" rel="noreferrer" />
-    ) : (
-      <Link href={i.path} />
-    );
     return (
       <Button
         nativeButton={false}
         key={i.path}
-        render={render}
+        render={(props) =>
+          ext ? (
+            <a {...props} href={i.path} target="_blank" rel="noreferrer" />
+          ) : (
+            <Link {...props} href={i.path} />
+          )
+        }
         variant={isActiveTab(i) ? "secondary" : "ghost"}
         size="sm"
         className={tabBtnClass(compact)}

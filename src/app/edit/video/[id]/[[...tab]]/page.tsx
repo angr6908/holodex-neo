@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { VideoEditMentions } from "@/components/edit/VideoEditMentions";
 import { VideoEditSongs, type VideoEditSongsHandle } from "@/components/edit/VideoEditSongs";
@@ -44,7 +44,20 @@ type TabKey = (typeof TABS)[keyof typeof TABS];
 const playerClass =
   "relative aspect-video h-auto w-full overflow-hidden rounded-lg bg-background [&>div]:absolute [&>div]:inset-0 [&>div]:h-full [&>div]:w-full [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full";
 
+const tabFromRoute = (routeTab?: string): TabKey => {
+  const tab = routeTab?.toLowerCase();
+  return (tab && (Object.values(TABS) as string[]).includes(tab) ? tab : TABS.TOPIC) as TabKey;
+};
+
 export default function EditVideoPage() {
+  return (
+    <Suspense fallback={null}>
+      <EditVideo />
+    </Suspense>
+  );
+}
+
+function EditVideo() {
   const params = useParams<{ id?: string; tab?: string[] }>();
   const search = useSearchParams();
   const t = useTranslations();
@@ -52,7 +65,14 @@ export default function EditVideoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [video, setVideo] = useState<any>(null);
-  const [currentTab, setCurrentTab] = useState<TabKey>(TABS.TOPIC);
+  const routeTab = params.tab?.[0];
+  const [currentTab, setCurrentTab] = useState<TabKey>(() => tabFromRoute(routeTab));
+  // Follow the tab in the URL (adjusted during render, so the matching tab shows immediately).
+  const [syncedRouteTab, setSyncedRouteTab] = useState(routeTab);
+  if (syncedRouteTab !== routeTab) {
+    setSyncedRouteTab(routeTab);
+    setCurrentTab(tabFromRoute(routeTab));
+  }
   const [newTopic, setNewTopic] = useState<string | null>(null);
   const [topics, setTopics] = useState<{ value: string; text: string }[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -68,33 +88,6 @@ export default function EditVideoPage() {
   const isStream = video?.type === "stream";
   const showChat = isLive && (showTL || showLiveChat);
   const getLang = getYTLangFromState({ settings: { lang: app.settings.lang } });
-
-  async function fetchVideo() {
-    if (!videoId) {
-      setHasError(true);
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    setHasError(false);
-    try {
-      const { data } = await api.video(videoId, null as any, 1);
-      setVideo(data);
-      setIsLoading(false);
-    } catch (e) {
-      setHasError(true);
-      setIsLoading(false);
-      console.error(e);
-    }
-  }
-
-  async function populateTopics() {
-    try {
-      setTopics(await fetchTopicOptions());
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
   function seekTo(time: number, playNow?: boolean, updateStartTime?: boolean) {
     if (!player.current) return;
@@ -124,12 +117,6 @@ export default function EditVideoPage() {
   }
 
   useEffect(() => {
-    const tab = params.tab?.[0]?.toLowerCase();
-    const known = Object.values(TABS) as string[];
-    setCurrentTab((tab && known.includes(tab) ? tab : TABS.TOPIC) as TabKey);
-  }, [params.tab]);
-
-  useEffect(() => {
     if (title) document.title = title;
   }, [title]);
   useEffect(() => {
@@ -137,10 +124,42 @@ export default function EditVideoPage() {
     writeWatchControlsState({ ...current, showTL, showLiveChat });
   }, [showTL, showLiveChat]);
   useEffect(() => {
-    fetchVideo();
+    if (!videoId) {
+      setHasError(true);
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoading(true);
+    setHasError(false);
+    api
+      .video(videoId, null as any, 1)
+      .then(({ data }: any) => {
+        if (cancelled) return;
+        setVideo(data);
+        setIsLoading(false);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setHasError(true);
+        setIsLoading(false);
+        console.error(e);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [videoId]);
   useEffect(() => {
-    if (currentTab === TABS.TOPIC) populateTopics();
+    if (currentTab !== TABS.TOPIC) return;
+    let cancelled = false;
+    fetchTopicOptions()
+      .then((options) => {
+        if (!cancelled) setTopics(options);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
   }, [currentTab]);
   useEffect(
     () => () => {

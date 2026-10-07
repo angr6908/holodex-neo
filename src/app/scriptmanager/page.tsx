@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { ImportMchad } from "@/components/tl/ImportMchad";
 import { ExportToFile } from "@/components/tl/ManagerExportToFile";
 import { UploadScript } from "@/components/tl/UploadScript";
@@ -68,19 +68,22 @@ export default function TLScriptManagerPage() {
   const [tlData, setTlData] = useState<Row[]>([]);
   const [modal, setModal] = useState(false);
   const [mode, setMode] = useState<Mode>(0);
-  const [selectedID, setSelectedID] = useState("");
+  // The script a dialog acts on, its delete-able entry ids and the script whose link is being
+  // changed; only read by handlers, so they live in refs.
+  const selectedID = useRef("");
   const [lang, setLang] = useState<Lang>(TL_LANGS[0]);
   const [modalText, setModalText] = useState("");
-  const [entries, setEntries] = useState<Array<string | number>>([]);
+  const deleteEntries = useRef<Array<string | number>>([]);
   const [query, setQuery] = useState({ limit: 20, offset: 0 });
   const [newLink, setNewLink] = useState("");
-  const [selScript, setSelScript] = useState<Row | undefined>();
+  const selScript = useRef<Row | undefined>(undefined);
   const [videoData, setVideoData] = useState<VideoExport | undefined>();
   const panelClass = mode === 2 ? "max-w-[300px]" : mode === 3 ? "max-w-[95vw]" : "max-w-[600px]";
   const pageRange = useMemo(() => `${query.offset + 1} ... ${query.offset + query.limit}`, [query]);
+  const loadPage = useEffectEvent(() => reloadData());
   useEffect(() => {
     document.title = "TLManager - Holodex";
-    reloadData();
+    loadPage();
   }, [query.offset]);
 
   function reloadData() {
@@ -103,7 +106,7 @@ export default function TLScriptManagerPage() {
     const target = customId || id;
     setModal(true);
     setMode(2);
-    setSelectedID(target);
+    selectedID.current = target;
     setTimeout(() => reloadDeleteEntries(target, lang), 0);
   }
 
@@ -120,7 +123,7 @@ export default function TLScriptManagerPage() {
     }
     setModal(true);
     setMode(1);
-    setSelectedID(customId || id);
+    selectedID.current = customId || id;
   }
 
   function uploadClick(id = "") {
@@ -135,7 +138,7 @@ export default function TLScriptManagerPage() {
         });
         setModal(true);
         setMode(0);
-        setSelectedID(id);
+        selectedID.current = id;
       })
       .catch(console.error);
   }
@@ -156,7 +159,7 @@ export default function TLScriptManagerPage() {
     setQuery((q) => ({ ...q, offset: Math.max(0, q.offset - q.limit) }));
   };
 
-  function reloadDeleteEntries(id = selectedID, lg = lang) {
+  function reloadDeleteEntries(id: string, lg: Lang) {
     const isCustom = /^https:\/\//i.test(id);
     api
       .chatHistory(isCustom ? "custom" : id, {
@@ -172,20 +175,21 @@ export default function TLScriptManagerPage() {
       .then(({ status, data }: any) => {
         if (status !== 200) return;
         const next = data.map((e: { id: string | number }) => e.id);
-        setEntries(next);
+        deleteEntries.current = next;
         setModalText(`${next.length} entries`);
       })
       .catch(console.error);
   }
 
   function clearAll() {
-    const isCustom = /^https:\/\//i.test(selectedID);
+    const id = selectedID.current;
+    const isCustom = /^https:\/\//i.test(id);
     api
       .postTLLog({
-        ...(isCustom && { custom_video_id: selectedID }),
-        videoId: isCustom ? "custom" : selectedID,
+        ...(isCustom && { custom_video_id: id }),
+        videoId: isCustom ? "custom" : id,
         jwt: app.userdata.jwt!,
-        body: entries.map((id) => ({ type: "Delete", data: { id } })),
+        body: deleteEntries.current.map((entryId) => ({ type: "Delete", data: { id: entryId } })),
         lang: lang.value,
       })
       .then(({ status }) => {
@@ -198,11 +202,12 @@ export default function TLScriptManagerPage() {
   }
 
   async function changeLink() {
-    if (!selScript) return;
+    const script = selScript.current;
+    if (!script) return;
     try {
       await api.postChangeLink({
         jwt: app.userdata.jwt!,
-        body: { oldId: selScript.custom_video_id, newId: newLink, lang: selScript.lang },
+        body: { oldId: script.custom_video_id, newId: newLink, lang: script.lang },
       });
     } catch (e) {
       alert(`failed ${e}`);
@@ -213,14 +218,14 @@ export default function TLScriptManagerPage() {
   function changeDeleteLang(v: string) {
     const next = TL_LANGS.find((i) => i.value === v) || TL_LANGS[0];
     setLang(next);
-    reloadDeleteEntries(selectedID, next);
+    reloadDeleteEntries(selectedID.current, next);
   }
 
   function openChangeLink(s: Row) {
     setMode(4);
     setModal(true);
     setNewLink(s.custom_video_id || "");
-    setSelScript(s);
+    selScript.current = s;
   }
 
   const renderDialog = () => {
@@ -332,11 +337,11 @@ export default function TLScriptManagerPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tlData.map((s, i) => {
-                const sid = s.video_id || s.custom_video_id || String(i);
+              {tlData.map((s) => {
+                const sid = s.video_id || s.custom_video_id || "";
                 const href = s.video_id ? `/watch/${s.video_id}` : s.custom_video_id || "#";
                 return (
-                  <TableRow key={sid}>
+                  <TableRow key={`${sid}:${s.lang}`}>
                     <TableCell>
                       <Link className="text-primary hover:underline" href={href}>
                         {s.video_id || s.custom_video_id}

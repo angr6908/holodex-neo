@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { ChannelsPage } from "@/components/channel/ChannelsPage";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { ConnectedVideoList } from "@/components/nav/MainNav";
@@ -16,14 +15,14 @@ import {
 } from "@/components/ui/empty";
 import { openUserMenu } from "@/lib/browser";
 import { HOME_TABS as Tabs } from "@/lib/cookie-codec";
-import { useSwipeTabs } from "@/lib/hooks";
+import { useDeferredCallbacks, useSwipeTabs } from "@/lib/hooks";
 import { Heart } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 
 export function HomeClient() {
   const app = useAppState();
-  const router = useRouter();
   const t = useTranslations();
+  const defer = useDeferredCallbacks();
   const { viewMode, isFavPage, tab } = app.homeNav as {
     viewMode: "streams" | "channels";
     isFavPage: boolean;
@@ -49,13 +48,15 @@ export function HomeClient() {
   const swipeTabs = useSwipeTabs((d) => setTab(Math.max(0, Math.min(2, tab + d))));
   const switchToChannels = () => app.setHomeNav({ viewMode: "channels" });
 
+  // Store reads/actions used by the effects below; they should not re-run the effects.
+  const refresh = useEffectEvent((updateFavs: boolean, favOverride?: boolean) =>
+    init(updateFavs, favOverride),
+  );
+  const showArchiveTab = useEffectEvent(() => setTab(Tabs.ARCHIVE));
+
+  // (Users who open to multiview are redirected by the server page before this renders.)
   useEffect(() => {
-    if (!app.hydrated) return;
-    if (app.settings.defaultOpen === "multiview") {
-      router.replace("/multiview");
-      return;
-    }
-    init(true);
+    if (app.hydrated) refresh(true);
   }, [app.hydrated]);
 
   // React to nav-state changes (from the nav bar or the local controls): scroll back to the
@@ -65,36 +66,45 @@ export function HomeClient() {
     prevNav.current = { viewMode, isFavPage, tab };
     if (prev.viewMode === viewMode && prev.isFavPage === isFavPage && prev.tab === tab) return;
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    if (prev.isFavPage !== isFavPage) setTimeout(() => init(true, isFavPage), 0);
-  }, [viewMode, isFavPage, tab]);
+    if (prev.isFavPage !== isFavPage) defer(() => refresh(true, isFavPage));
+  }, [viewMode, isFavPage, tab, defer]);
 
   useEffect(() => {
     document.title = isFavPage ? `${t("component.mainNav.favorites")} - Holodex` : "Holodex";
   }, [isFavPage, t]);
-  useEffect(() => {
+  // Refresh the favorites list when the set of favorite channels changes.
+  const refreshFavorites = useEffectEvent(() => {
     if (isFavPage) init(false);
-  }, [app.favoriteChannelIDs.size]);
+  });
+  const favoriteCount = app.favoriteChannelIDs.size;
+  useEffect(() => {
+    refreshFavorites();
+  }, [favoriteCount]);
   useEffect(() => {
     if (app.settings.hideLive && app.settings.hideUpcoming && tab === Tabs.LIVE_UPCOMING)
-      setTab(Tabs.ARCHIVE);
+      showArchiveTab();
   }, [app.settings.hideLive, app.settings.hideUpcoming, tab]);
 
-  useEffect(() => {
-    const tr = app.reloadTrigger;
-    if (!tr || tr.consumed || tr.source !== "logo-home" || lastLogoTrigger.current === tr.timestamp)
-      return;
+  const handleLogoTrigger = useEffectEvent((tr: NonNullable<typeof app.reloadTrigger>) => {
     lastLogoTrigger.current = tr.timestamp;
     void app.reloadCurrentPage({ ...tr, consumed: true });
     const fav = tr.defaultOpen === "favorites";
     app.setHomeNav({ viewMode: "streams", isFavPage: fav, tab: Tabs.LIVE_UPCOMING });
-    setTimeout(() => {
+    // Scroll and refetch once the nav change has rendered.
+    defer(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       if (fav) {
         app.fetchFavorites();
         if (app.favoriteChannelIDs.size > 0 && app.isLoggedIn)
           app.fetchFavoritesLive({ force: true, minutes: 2 });
       } else app.fetchHomeLive({ force: true, minutes: 2 });
-    }, 0);
+    });
+  });
+  useEffect(() => {
+    const tr = app.reloadTrigger;
+    if (!tr || tr.consumed || tr.source !== "logo-home" || lastLogoTrigger.current === tr.timestamp)
+      return;
+    handleLogoTrigger(tr);
   }, [app.reloadTrigger]);
 
   return (

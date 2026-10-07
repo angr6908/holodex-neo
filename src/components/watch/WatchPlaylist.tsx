@@ -1,99 +1,24 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
 import { SectionPanel } from "@/components/common/SectionPanel";
 import { Button } from "@/components/ui/button";
 import { VirtualVideoCardList } from "@/components/video/VirtualVideoCardList";
-import { api } from "@/lib/api";
 import * as icons from "@/lib/icons";
-import { useAppState } from "@/lib/store";
 
 export function WatchPlaylist({
-  value = 0,
-  video,
-  onInput,
-  onPlayNext,
+  playlist,
+  hasError = false,
+  currentIndex,
+  onNext,
 }: {
-  value?: number;
-  currentTime?: number;
-  video: any;
-  onInput?: (index: number) => void;
-  onPlayNext?: (payload: { video: any }) => void;
+  playlist?: any;
+  hasError?: boolean;
+  /** Index of the playing video in the playlist, or -1. */
+  currentIndex: number;
+  onNext?: () => void;
 }) {
-  const searchParams = useSearchParams();
-  const app = useAppState();
   const t = useTranslations();
-  const [hasError, setHasError] = useState(false);
-  const [playlist, setPlaylist] = useState<any>(undefined);
-  const videos = useMemo(() => playlist?.videos || [], [playlist]);
-  const playlistId = searchParams.get("playlist");
-  const activePlaylistName =
-    !app.playlistActive?.id && app.playlistActive?.name === "Unnamed Playlist"
-      ? t("component.playlist.unnamed-playlist")
-      : app.playlistActive?.name || t("component.playlist.unnamed-playlist");
-  const activePlaylist = useMemo(
-    () => ({
-      ...(app.playlistActive || {}),
-      id: app.playlistActive?.id || "local",
-      name: activePlaylistName,
-      videos: app.playlist,
-    }),
-    [app.playlistActive, app.playlist, activePlaylistName],
-  );
-
-  function updateCurrentIndex(nextPlaylist = playlist) {
-    const currentId = video?.id;
-    const newIndex = (nextPlaylist?.videos || []).findIndex(({ id }: any) => id === currentId);
-    onInput?.(newIndex);
-  }
-
-  function nextVideo() {
-    if (videos[value + 1]) onInput?.(value + 1);
-  }
-
-  function loadPlaylist(id: string) {
-    setHasError(false);
-    if (id === activePlaylist.id || id === "local") {
-      setPlaylist(activePlaylist);
-      updateCurrentIndex(activePlaylist);
-      return;
-    }
-    api
-      .getPlaylist(id)
-      .then(({ data }: any) => {
-        setPlaylist(data);
-        updateCurrentIndex(data);
-      })
-      .catch((e: any) => {
-        console.error(e);
-        setHasError(true);
-      });
-  }
-
-  useEffect(() => {
-    if (!playlistId) return;
-    updateCurrentIndex();
-    loadPlaylist(playlistId);
-  }, [playlistId, activePlaylist.id, activePlaylist.videos]);
-
-  useEffect(() => {
-    updateCurrentIndex();
-  }, [video?.id, playlist?.id]);
-
-  useEffect(() => {
-    if (
-      !videos.length ||
-      videos.length === value ||
-      value === -1 ||
-      video?.id === videos[value]?.id
-    )
-      return;
-    onPlayNext?.({ video: videos[value] });
-  }, [value, videos, video?.id, onPlayNext]);
-
-  if (!playlistId) return null;
   if (hasError) {
     return (
       <div className="rounded-xl border border-border/60 bg-card/50 px-4 py-3 text-sm text-destructive">
@@ -105,7 +30,7 @@ export function WatchPlaylist({
   return (
     <SectionPanel
       title={playlist.name}
-      meta={`${value + 1}/${videos.length}`}
+      meta={`${currentIndex + 1}/${(playlist.videos || []).length}`}
       actions={
         <Button
           type="button"
@@ -113,13 +38,19 @@ export function WatchPlaylist({
           variant="ghost"
           className="h-8 w-8"
           title={t("component.playlist.next-video")}
-          onClick={nextVideo}
+          aria-label={t("component.playlist.next-video")}
+          onClick={onNext}
         >
           <icons.ArrowLeft className="size-4 rotate-180" />
         </Button>
       }
     >
-      <VirtualVideoCardList playlist={playlist} includeChannel horizontal activeIndex={value} />
+      <VirtualVideoCardList
+        playlist={playlist}
+        includeChannel
+        horizontal
+        activeIndex={currentIndex}
+      />
     </SectionPanel>
   );
 }

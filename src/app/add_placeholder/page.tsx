@@ -3,7 +3,7 @@
 import { jwtDecode } from "jwt-decode";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ChannelAutocomplete } from "@/components/channel/ChannelAutocomplete";
 import { VideoSelector } from "@/components/multiview/VideoSelector";
@@ -34,6 +34,14 @@ const TIMEZONES = [
 ];
 
 export default function AddPlaceholderPage() {
+  return (
+    <Suspense fallback={null}>
+      <AddPlaceholder />
+    </Suspense>
+  );
+}
+
+function AddPlaceholder() {
   const app = useAppState();
   const t = useTranslations();
   const search = useSearchParams();
@@ -47,7 +55,7 @@ export default function AddPlaceholderPage() {
   const [thumbnail, setThumbnail] = useState("");
   const [placeholderType, setPlaceholderType] = useState("");
   const [certainty, setCertainty] = useState("");
-  const [liveDate, setLiveDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [liveDate, setLiveDate] = useState(() => dayjs().format("YYYY-MM-DD"));
   const [liveTime, setLiveTime] = useState("");
   const [timezone, setTimezone] = useState("Asia/Tokyo");
   const [duration, setDuration] = useState(60);
@@ -127,9 +135,6 @@ export default function AddPlaceholderPage() {
   } as Record<string, string>;
   const formValid = Object.values(validation).every((v) => !v);
   useEffect(() => {
-    if (tab === 0) setId("");
-  }, [tab]);
-  useEffect(() => {
     if (token?.link)
       api
         .discordServerInfo(token.link)
@@ -138,11 +143,19 @@ export default function AddPlaceholderPage() {
   }, [token?.link]);
   useEffect(() => {
     const queryId = search.get("id");
-    if (queryId && isEditor) {
-      setId(queryId);
-      setTab(1);
-      void loadExistingPlaceholder(queryId);
-    }
+    if (!queryId || !isEditor) return;
+    let cancelled = false;
+    setId(queryId);
+    setTab(1);
+    api
+      .video(queryId, undefined, 0)
+      .then(({ data }: any) => {
+        if (!cancelled) applyPlaceholder(data);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
   }, [search, isEditor]);
   function changeDate(amount: number, unit: "hour" | "day") {
     if (unit === "hour")
@@ -160,7 +173,9 @@ export default function AddPlaceholderPage() {
   }
   async function loadExistingPlaceholder(phId: string) {
     if (!phId) return;
-    const video = (await api.video(phId, undefined, 0)).data;
+    applyPlaceholder((await api.video(phId, undefined, 0)).data);
+  }
+  function applyPlaceholder(video: any) {
     setVideoTitle(video.title || "");
     setVideoTitleJP(video.jp_name || "");
     setSourceUrl(video.link || "");
@@ -237,7 +252,13 @@ export default function AddPlaceholderPage() {
           <Card className="p-6">
             <ToggleGroup
               value={[String(tab)]}
-              onValueChange={(value) => value[0] && setTab(Number(value[0]))}
+              onValueChange={(value) => {
+                if (!value[0]) return;
+                const next = Number(value[0]);
+                setTab(next);
+                // The "new placeholder" tab never edits an existing id.
+                if (next === 0) setId("");
+              }}
               className="flex-wrap justify-start"
             >
               <ToggleGroupItem value="0">

@@ -4,8 +4,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   type MouseEvent,
+  Suspense,
   useCallback,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -73,17 +75,7 @@ function cachedSnapshotForPage(cacheKey: string, page: number, paginate: boolean
   return stored;
 }
 
-export function GenericListLoader({
-  infiniteLoad = false,
-  paginate = false,
-  preloadAdjacent = false,
-  keepPreviousData = false,
-  getCachedPage,
-  loadFn,
-  perPage = 24,
-  cacheKey = "",
-  children,
-}: {
+type GenericListLoaderProps = {
   infiniteLoad?: boolean;
   paginate?: boolean;
   preloadAdjacent?: boolean;
@@ -93,12 +85,40 @@ export function GenericListLoader({
   perPage?: number;
   cacheKey?: string;
   children: (state: { data: any[]; isLoading: boolean; isFetching: boolean }) => React.ReactNode;
-}) {
+};
+
+// The loader reads the `page` query param, so it brings its own Suspense boundary for
+// useSearchParams.
+export function GenericListLoader(props: GenericListLoaderProps) {
+  return (
+    <Suspense fallback={null}>
+      <ListLoader {...props} />
+    </Suspense>
+  );
+}
+
+function ListLoader({
+  infiniteLoad = false,
+  paginate = false,
+  preloadAdjacent = false,
+  keepPreviousData = false,
+  getCachedPage,
+  loadFn,
+  perPage = 24,
+  cacheKey = "",
+  children,
+}: GenericListLoaderProps) {
   const app = useAppState();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const routePage = parsePage(searchParams.get("page"));
   const [currentPage, setCurrentPage] = useState(routePage);
+  // Follow `?page=` changes from navigation (adjusted during render, not in an effect).
+  const [syncedRoutePage, setSyncedRoutePage] = useState(routePage);
+  if (syncedRoutePage !== routePage) {
+    setSyncedRoutePage(routePage);
+    if (paginate && routePage !== currentPage) setCurrentPage(routePage);
+  }
   const readExternalPage = useCallback(
     (page: number) => {
       if (!getCachedPage) return undefined;
@@ -124,10 +144,12 @@ export function GenericListLoader({
   );
   const [identifier, setIdentifier] = useState(0);
   const restoredFromCache = useRef(!!initialCache);
-  const dataLenRef = useRef(initialCache?.items.length || 0);
+  // Last committed `data`, for async loads that append to it.
+  const dataRef = useRef<any[]>(data);
   const currentPageRef = useRef(currentPage);
   const requestSeq = useRef(0);
-  const pageCacheRef = useRef<Map<number, PagePayload>>(getPageCache(cacheKey));
+  // Points at the shared per-cacheKey page cache once the reset layout effect below runs.
+  const pageCacheRef = useRef<Map<number, PagePayload>>(new Map());
   const inflightRef = useRef<Map<number, Promise<PagePayload>>>(new Map());
   const sentinel = useRef<HTMLDivElement | null>(null);
   const t = useTranslations();
@@ -227,7 +249,7 @@ export function GenericListLoader({
         setStatus(STATUSES.READY);
       } else {
         setIsFetching(true);
-        setIsLoading(dataLenRef.current === 0);
+        setIsLoading(dataRef.current.length === 0);
         setStatus(STATUSES.LOADING);
       }
       try {
@@ -243,12 +265,12 @@ export function GenericListLoader({
           setIsLoading(false);
           setIsFetching(false);
           setTotal(nextTotal);
-          setData((prev) => {
-            const next = restoredFromCache.current && page === 1 ? items : prev.concat(items);
-            restoredFromCache.current = false;
-            writeCache(next, { nextPage: page + 1 });
-            return next;
-          });
+          const next =
+            restoredFromCache.current && page === 1 ? items : dataRef.current.concat(items);
+          restoredFromCache.current = false;
+          dataRef.current = next;
+          setData(next);
+          writeCache(next, { nextPage: page + 1 });
           if (items.length === 0) setStatus(STATUSES.COMPLETED);
           else {
             setNextPage(page + 1);
@@ -269,8 +291,8 @@ export function GenericListLoader({
   );
 
   useEffect(() => {
-    dataLenRef.current = data.length;
-  }, [data.length]);
+    dataRef.current = data;
+  }, [data]);
   useEffect(() => {
     currentPageRef.current = currentPage;
   }, [currentPage]);
@@ -282,11 +304,6 @@ export function GenericListLoader({
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [paginate]);
-
-  useEffect(() => {
-    if (!paginate || routePage === currentPageRef.current) return;
-    setCurrentPage(routePage);
-  }, [paginate, routePage]);
 
   useLayoutEffect(() => {
     requestSeq.current++;
@@ -305,9 +322,9 @@ export function GenericListLoader({
       ? { items: external.items, total: external.total, page }
       : cachedSnapshotForPage(cacheKey, page, paginate);
     if (cached) setData(cached.items);
-    else if (!keepPreviousData || dataLenRef.current === 0) setData([]);
+    else if (!keepPreviousData || dataRef.current.length === 0) setData([]);
     setTotal(cached?.total ?? null);
-    setIsLoading(!cached && (!keepPreviousData || dataLenRef.current === 0));
+    setIsLoading(!cached && (!keepPreviousData || dataRef.current.length === 0));
     setIsFetching(false);
     setStatus(STATUSES.READY);
     setNextPage(
@@ -318,15 +335,20 @@ export function GenericListLoader({
     restoredFromCache.current = !!cached;
   }, [cacheKey, infiniteLoad, keepPreviousData, paginate, perPage, readExternalPage]);
 
+  // Paginated lists load whenever the page changes or the list resets. (A new `loadFn` alone
+  // doesn't reload: pages are cached per `cacheKey` and in-flight requests are deduped.)
+  const loadCurrentPage = useEffectEvent(() => {
+    if (paginate) void runLoad(currentPage, "paginate");
+  });
   useEffect(() => {
-    if (!paginate) return;
-    if (!identifier) return;
-    void runLoad(currentPage, "paginate");
-  }, [paginate, currentPage, identifier, runLoad]);
+    if (identifier) loadCurrentPage();
+  }, [currentPage, identifier]);
 
+  // Infinite lists load their first page after each reset, unless it was restored from cache.
+  const loadFirstPage = useEffectEvent(() => runLoad(1, "infinite"));
   useEffect(() => {
     if (!infiniteLoad) return;
-    if (identifier && !restoredFromCache.current) void runLoad(1, "infinite");
+    if (identifier && !restoredFromCache.current) void loadFirstPage();
   }, [infiniteLoad, identifier]);
 
   useEffect(() => {

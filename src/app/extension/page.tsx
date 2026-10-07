@@ -166,8 +166,8 @@ function ExtensionPromoCard({
 
           <div className="mb-2 text-lg font-medium">{featuresLabel}</div>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            {features.map((feature, index) => (
-              <li key={index}>{feature}</li>
+            {features.map((feature) => (
+              <li key={feature}>{feature}</li>
             ))}
           </ul>
 

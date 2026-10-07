@@ -146,6 +146,13 @@ export const api = {
   },
   channel: (id: string) => ax.get(`/channels/${id}`),
   video: (id: string, lang?: string, c?: number) => ax.get(`/videos/${id}?${qs({ lang, c })}`),
+  // Current title/category and channel bio for a Twitch login, or null when unavailable.
+  twitchStreamInfo: (
+    login: string,
+  ): Promise<{ title?: string; category?: string; description?: string } | null> =>
+    fetch(`/twitch-stream-info?login=${encodeURIComponent(login)}`).then((r) =>
+      r.ok ? r.json() : null,
+    ),
   searchAutocomplete(query: string, { type, n }: { type?: string; n?: number } = {}) {
     const vid = query.match(VIDEO_URL_REGEX);
     if (vid?.groups?.id)

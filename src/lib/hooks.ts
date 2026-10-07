@@ -55,6 +55,26 @@ export function useMediaQuery(query: string) {
   );
 }
 
+// Schedules callbacks for the next macrotask, after the current render and effects settle.
+// Callbacks still pending when the component unmounts are dropped.
+export function useDeferredCallbacks() {
+  const pending = useRef(new Set<ReturnType<typeof setTimeout>>());
+  useEffect(() => {
+    const timers = pending.current;
+    return () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+  }, []);
+  return useCallback((callback: () => void) => {
+    const id = setTimeout(() => {
+      pending.current.delete(id);
+      callback();
+    }, 0);
+    pending.current.add(id);
+  }, []);
+}
+
 export function useDomElement<T extends HTMLElement = HTMLElement>(id: string) {
   const [element, setElement] = useState<T | null>(null);
 

@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useEffectEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -47,10 +47,17 @@ function cloneSettings(setting: any[]) {
 }
 
 export default function RelayBotPage() {
+  return (
+    <Suspense fallback={null}>
+      <RelayBot />
+    </Suspense>
+  );
+}
+
+function RelayBot() {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const [loggedIn, setLoggedIn] = useState(false);
-  const [accessToken, setAccessToken] = useState("");
   const [guilds, setGuilds] = useState<any[]>([]);
   const [channels, setChannels] = useState<any[]>([]);
   const [setting, setSetting] = useState<any[]>([]);
@@ -95,9 +102,8 @@ export default function RelayBotPage() {
   }, []);
   const selectedGuildData = selectedGuild >= 0 ? guilds[selectedGuild] : null;
   const selectedChannelData = selectedChannel >= 0 ? channels[selectedChannel] : null;
-  function init() {
+  function init(code: string | null) {
     setLoggedIn(false);
-    const code = searchParams.get("code");
     if (!code) return;
     const mode =
       location.hostname === "localhost" ? 0 : location.hostname === "staging.holodex.net" ? 1 : 2;
@@ -108,7 +114,6 @@ export default function RelayBotPage() {
           setSelectedChannel(-1);
           setSelectedGuild(-1);
           setLoggedIn(true);
-          setAccessToken(data.access_token);
           const nextGuilds = data.guilds
             .filter((e: any) => e.admin)
             .map((e: any) => ({ id: e.id, name: e.name, bot: false }));
@@ -116,17 +121,20 @@ export default function RelayBotPage() {
           api
             .relayBotCheckBotPresence(nextGuilds.map((e: any) => e.id))
             .then(({ status, data }: any) => {
-              if (status === 200)
-                setGuilds(nextGuilds.map((e: any) => ({ ...e, bot: data.includes(e.id) })));
+              if (status !== 200) return;
+              const withBot = new Set(data);
+              setGuilds(nextGuilds.map((e: any) => ({ ...e, bot: withBot.has(e.id) })));
             })
             .catch(() => setLoggedIn(false));
         }
       })
       .catch(() => setLoggedIn(false));
   }
+  const code = searchParams.get("code");
+  const login = useEffectEvent((oauthCode: string | null) => init(oauthCode));
   useEffect(() => {
-    init();
-  }, [searchParams.get("code")]);
+    login(code);
+  }, [code]);
   function loadChannel(index: number) {
     setChannels([]);
     setSelectedGuild(index);
@@ -183,19 +191,15 @@ export default function RelayBotPage() {
     const value = rawValue.trim();
     if (!value || selectedSetting < 0) return;
     const other = kind === "blacklist" ? "whitelist" : "blacklist";
-    let duplicate = false;
-    setSetting((cur) => {
-      const next = cloneSettings(cur);
-      const row = next[selectedSetting];
-      if (row[kind].includes(value)) {
-        duplicate = true;
-      } else {
-        row[kind].push(value);
-        row[other] = row[other].filter((e: string) => e !== value);
-      }
-      return next;
-    });
-    if (duplicate) clearInput();
+    if (setting[selectedSetting][kind].includes(value)) {
+      clearInput();
+      return;
+    }
+    const next = cloneSettings(setting);
+    const row = next[selectedSetting];
+    row[kind].push(value);
+    row[other] = row[other].filter((e: string) => e !== value);
+    setSetting(next);
   }
   function addBlacklist() {
     addList("blacklist", blacklistInput, () => setBlacklistInput(""));
@@ -249,12 +253,17 @@ export default function RelayBotPage() {
       </header>
       {!loggedIn ? (
         <Card className="flex flex-col items-center justify-center gap-4 p-10 text-center sm:flex-row">
-          <Button nativeButton={false} render={<a href={discordOAuth2Links} />}>
+          <Button
+            nativeButton={false}
+            render={(props) => <a {...props} href={discordOAuth2Links} />}
+          >
             {t("views.relayBot.loginDiscord")}
           </Button>
           <Button
             nativeButton={false}
-            render={<a href={botInviteLink} target="_blank" rel="noopener noreferrer" />}
+            render={(props) => (
+              <a {...props} href={botInviteLink} target="_blank" rel="noopener noreferrer" />
+            )}
             variant="secondary"
           >
             {t("views.relayBot.inviteBot")}
@@ -303,7 +312,14 @@ export default function RelayBotPage() {
                   <p className="text-sm text-muted-foreground">{t("views.relayBot.botMissing")}</p>
                   <Button
                     nativeButton={false}
-                    render={<a href={botInviteLink} target="_blank" rel="noopener noreferrer" />}
+                    render={(props) => (
+                      <a
+                        {...props}
+                        href={botInviteLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    )}
                   >
                     {t("views.relayBot.inviteBot")}
                   </Button>
@@ -437,7 +453,7 @@ export default function RelayBotPage() {
                     <TableBody>
                       {setting.map((set, index) => (
                         <TableRow
-                          key={`${set.link}-${set.lang}-${index}`}
+                          key={`${set.link}-${set.lang}`}
                           className={cn("cursor-pointer", selectedSetting === index && "bg-accent")}
                           onClick={() => selectSetting(index)}
                         >
@@ -447,6 +463,7 @@ export default function RelayBotPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              aria-label={t("component.common.remove")}
                               onClick={(e: any) => {
                                 e.stopPropagation();
                                 setSelectedSetting(-1);
@@ -486,12 +503,13 @@ export default function RelayBotPage() {
                         <TableBody>
                           {(setting[selectedSetting].blacklist || []).map(
                             (dt: string, index: number) => (
-                              <TableRow key={`${dt}-${index}`}>
+                              <TableRow key={dt}>
                                 <TableCell>{dt}</TableCell>
                                 <TableCell className="text-right">
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    aria-label={t("component.common.remove")}
                                     onClick={() => removeList("blacklist", index)}
                                   >
                                     <MinusCircle className="h-4 w-4" />
@@ -516,10 +534,14 @@ export default function RelayBotPage() {
                         onChange={(e) => setBlacklistInput(e.target.value)}
                         placeholder={t("views.relayBot.translatorName")}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") addBlacklist();
+                          if (e.key === "Enter" && !e.nativeEvent.isComposing) addBlacklist();
                         }}
                       />
-                      <Button variant="secondary" onClick={addBlacklist}>
+                      <Button
+                        variant="secondary"
+                        aria-label={t("views.multiview.video.addUrlShort")}
+                        onClick={addBlacklist}
+                      >
                         <CirclePlus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -539,12 +561,13 @@ export default function RelayBotPage() {
                         <TableBody>
                           {(setting[selectedSetting].whitelist || []).map(
                             (dt: string, index: number) => (
-                              <TableRow key={`${dt}-${index}`}>
+                              <TableRow key={dt}>
                                 <TableCell>{dt}</TableCell>
                                 <TableCell className="text-right">
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    aria-label={t("component.common.remove")}
                                     onClick={() => removeList("whitelist", index)}
                                   >
                                     <MinusCircle className="h-4 w-4" />
@@ -569,10 +592,14 @@ export default function RelayBotPage() {
                         onChange={(e) => setWhitelistInput(e.target.value)}
                         placeholder={t("views.relayBot.translatorName")}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") addWhitelist();
+                          if (e.key === "Enter" && !e.nativeEvent.isComposing) addWhitelist();
                         }}
                       />
-                      <Button variant="secondary" onClick={addWhitelist}>
+                      <Button
+                        variant="secondary"
+                        aria-label={t("views.multiview.video.addUrlShort")}
+                        onClick={addWhitelist}
+                      >
                         <CirclePlus className="h-4 w-4" />
                       </Button>
                     </div>

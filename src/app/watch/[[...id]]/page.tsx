@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { TwitchPlayer } from "@/components/player/TwitchPlayer";
 import { YoutubePlayer, type YoutubePlayerHandle } from "@/components/player/YoutubePlayer";
@@ -25,9 +25,11 @@ import { WatchToolbar } from "@/components/watch/WatchToolbar";
 import { api } from "@/lib/api";
 import { addWatchedVideo, defaultWatchControlsState, writeWatchControlsState } from "@/lib/browser";
 import { decodeHTMLEntities, getYTLangFromState } from "@/lib/functions";
+import { useIsClient } from "@/lib/hooks";
 import * as icons from "@/lib/icons";
 import { Maximize, ThumbsUp } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
+import { useWatchPlaylist } from "@/lib/watch-playlist";
 import { fetchTwitchViewerCounts, twitchLoginOf } from "@/lib/twitch-viewers";
 import { cn } from "@/lib/utils";
 import { fetchYoutubeViewerCounts } from "@/lib/youtube-viewers";
@@ -35,6 +37,14 @@ import { fetchYoutubeViewerCounts } from "@/lib/youtube-viewers";
 const empty = { channel: {}, id: null, title: "Loading...", description: "" };
 
 export default function WatchPage() {
+  return (
+    <Suspense fallback={null}>
+      <Watch />
+    </Suspense>
+  );
+}
+
+function Watch() {
   const params = useParams<{ id?: string | string[] }>();
   const sp = useSearchParams();
   const router = useRouter();
@@ -49,7 +59,6 @@ export default function WatchPage() {
   const [theater, setTheater] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [mobileChatHeight, setMobileChatHeight] = useState("65dvh");
-  const [plIdx, setPlIdx] = useState(-1);
   const [twitchInfo, setTwitchInfo] = useState<{
     title: string;
     category: string;
@@ -72,7 +81,17 @@ export default function WatchPage() {
   const showChat = ((hasLiveChat || hasTwitchChat) && showLiveChat) || (showTL && hasLiveTL);
   const comments = video.comments || [];
   const hasComments = comments.length > 0;
-  const isPlaylist = !!sp.get("playlist");
+  const playlistId = sp.get("playlist");
+  const isPlaylist = !!playlistId;
+  const watchPlaylist = useWatchPlaylist(playlistId, video.id);
+  const playVideo = (next: any) => {
+    if (next?.id) router.push(`/watch/${next.id}${playlistId ? `?playlist=${playlistId}` : ""}`);
+  };
+  // Auto-advance only when the current video is part of the playlist.
+  const playNextInPlaylist = () => {
+    if (watchPlaylist.currentIndex >= 0)
+      playVideo(watchPlaylist.videos[watchPlaylist.currentIndex + 1]);
+  };
   const role = app.userdata?.user?.role;
   const isEditor = role === "admin" || role === "editor";
   const hasRelated = Boolean(
@@ -84,12 +103,15 @@ export default function WatchPage() {
       video?.refers?.length,
   );
   const showRail = Boolean(isEditor || isPlaylist);
-  const hasExt = typeof window !== "undefined" && !!(window as any).HOLODEX_PLUS_INSTALLED;
+  const isClient = useIsClient();
+  const hasExt = isClient && !!(window as any).HOLODEX_PLUS_INSTALLED;
   const showHighlights = !!(comments.length || video.songcount) && (!app.isMobile || !showTL);
   const likeLbl = t("views.watch.likeOnYoutube");
   const theaterLbl = t("views.watch.theaterMode");
   const tlLbl = showTL ? t("views.watch.chat.hideTLBtn") : t("views.watch.chat.showTLBtn");
 
+  // Clip language preferences shape the request but changing them shouldn't reload the video.
+  const clipLangsParam = useEffectEvent(() => app.settings.clipLangs.join(","));
   useEffect(() => {
     if (!videoId) {
       setHasError(true);
@@ -115,7 +137,7 @@ export default function WatchPage() {
     if (/^[\w-]{11}$/.test(videoId)) void fetchYoutubeViewerCounts([videoId]);
 
     api
-      .video(videoId, app.settings.clipLangs.join(","), 1)
+      .video(videoId, clipLangsParam(), 1)
       .then(async ({ data }: any) => {
         if (cancelled) return;
 
@@ -157,9 +179,9 @@ export default function WatchPage() {
     }
     let cancelled = false;
     setTwitchInfo(null);
-    fetch(`/twitch-stream-info?login=${encodeURIComponent(twitchChannel)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((info: { title?: string; category?: string; description?: string } | null) => {
+    api
+      .twitchStreamInfo(twitchChannel)
+      .then((info) => {
         if (cancelled || !info) return;
         setTwitchInfo({
           title: info.title || "",
@@ -343,9 +365,7 @@ export default function WatchPage() {
                       key={twitchChannel}
                       channel={twitchChannel}
                       className={playerClass}
-                      onEnded={() => {
-                        if (plIdx >= 0) setPlIdx((v) => v + 1);
-                      }}
+                      onEnded={playNextInPlaylist}
                     />
                   ) : (
                     <YoutubePlayer
@@ -359,9 +379,7 @@ export default function WatchPage() {
                         player.current = p;
                       }}
                       onCurrentTime={setCurrentTime}
-                      onEnded={() => {
-                        if (plIdx >= 0) setPlIdx((v) => v + 1);
-                      }}
+                      onEnded={playNextInPlaylist}
                     />
                   )
                 ) : null}
@@ -475,13 +493,10 @@ export default function WatchPage() {
               {isEditor ? <WatchQuickEditor video={video} /> : null}
               {isPlaylist ? (
                 <WatchPlaylist
-                  value={plIdx}
-                  video={video}
-                  onInput={setPlIdx}
-                  onPlayNext={({ video: next }) => {
-                    const pl = sp.get("playlist");
-                    if (next?.id) router.push(`/watch/${next.id}${pl ? `?playlist=${pl}` : ""}`);
-                  }}
+                  playlist={watchPlaylist.playlist}
+                  hasError={watchPlaylist.hasError}
+                  currentIndex={watchPlaylist.currentIndex}
+                  onNext={() => playVideo(watchPlaylist.videos[watchPlaylist.currentIndex + 1])}
                 />
               ) : null}
             </div>
