@@ -50,7 +50,157 @@ const delContent = (prev: Record<string, Content>, id: string | number) => {
   return next;
 };
 
-export function MultiviewProvider({ children }: { children: React.ReactNode }) {
+// Lock (or unlock) one cell against dragging and resizing.
+function withItemLock(prev: LayoutItem[], id: string | number, locked: boolean) {
+  const key = String(id);
+  const unlocked = !locked;
+  let changed = false;
+  const next = prev.map((item) => {
+    if (String(item.i) !== key || (item.isResizable === unlocked && item.isDraggable === unlocked))
+      return item;
+    changed = true;
+    return { ...item, isResizable: unlocked, isDraggable: unlocked };
+  });
+  return changed ? next : prev;
+}
+
+// Swap in fetched video data, and flag videos that still have none so they aren't refetched.
+function withVideoData(prev: Record<string, Content>, videos: any[]) {
+  let changed = false;
+  const next: Record<string, Content> = { ...prev };
+  const byId = new Map(videos.map((v: any) => [v.id, v]));
+  for (const k of Object.keys(next)) {
+    const c = next[k];
+    const m = byId.get(c.video?.id);
+    if (m && c.video !== m) {
+      next[k] = { ...c, video: m };
+      changed = true;
+    }
+    if (missing(next[k])) {
+      next[k] = { ...next[k], video: { ...next[k].video, noData: true } };
+      changed = true;
+    }
+  }
+  return changed ? next : prev;
+}
+
+// Data for the cells' videos that lack it (and, with `refreshLive`, the live ones): from the
+// API in batches, then YouTube's oEmbed for videos the API doesn't know.
+async function fetchCellVideos(snap: Record<string, Content>, opts?: { refreshLive?: boolean }) {
+  const ids = new Set<string>(
+    Object.values(snap)
+      .filter((x) => missing(x) || (opts?.refreshLive && isLive(x)))
+      .map((x) => x.video?.id)
+      .filter(Boolean),
+  );
+  if (!ids.size) return null;
+
+  const arr = [...ids];
+  const chunks: string[][] = [];
+  for (let i = 0; i < arr.length; i += BATCH) chunks.push(arr.slice(i, i + BATCH));
+  const res = await Promise.allSettled(
+    chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })),
+  );
+  const backend = res.flatMap((r) => {
+    if (r.status === "fulfilled") return (r.value as any)?.data?.items || [];
+    console.error(r.reason);
+    return [];
+  });
+  backend.forEach((v: any) => {
+    ids.delete(v.id);
+  });
+
+  const rest = [...ids];
+  const ytRes = await Promise.allSettled(
+    rest.map((id) =>
+      axios.get(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}`, {
+        timeout: 10000,
+      }),
+    ),
+  );
+  const yt = ytRes.flatMap((r, i) => {
+    if (r.status !== "fulfilled") {
+      console.error(r.reason);
+      return [];
+    }
+    const { data, config } = r.value;
+    const ch = data.author_url?.match(CHANNEL_URL_REGEX);
+    const channelId = ch?.groups?.id || (ch?.length >= 2 && ch[1]);
+    const videoId = String(config.url || "").replace(
+      "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=",
+      "",
+    );
+    return [
+      {
+        id: videoId || rest[i],
+        title: data.title,
+        channel: { name: data.author_name, id: channelId || data.author_name },
+      },
+    ];
+  });
+  return [...backend, ...yt];
+}
+
+// A new 4x6 cell at the first free spot of the 24-column grid, else below everything.
+function withNewCell(prev: LayoutItem[]) {
+  const id = String(Date.now());
+  for (let y = 0; y < 24; y++)
+    for (let x = 0; x < 21; x++) {
+      const item: LayoutItem = { x, y, w: 4, h: 6, i: id, isResizable: true, isDraggable: true };
+      if (!prev.find((p) => collides(p, item))) return [...prev, item];
+    }
+  return [...prev, { x: 0, y: 24, w: 4, h: 6, i: id, isResizable: true, isDraggable: true }];
+}
+
+// Mute every video but the first.
+function mutedAllButFirst(prev: Record<string, Content>) {
+  let i = 0;
+  const next: Record<string, Content> = {};
+  for (const k of Object.keys(prev))
+    next[k] = prev[k]?.type === "video" ? { ...prev[k], muted: i++ !== 0 } : prev[k];
+  return next;
+}
+
+// Unmute `target` and mute every other video.
+function mutedAllBut(prev: Record<string, Content>, target: string) {
+  const next: Record<string, Content> = {};
+  for (const k of Object.keys(prev))
+    next[k] =
+      k === target
+        ? { ...prev[k], muted: false }
+        : prev[k]?.type === "video"
+          ? { ...prev[k], muted: true }
+          : prev[k];
+  return next;
+}
+
+function withSwappedCells(prev: LayoutItem[], id1: number, id2: number) {
+  if (!prev[id1] || !prev[id2]) return prev;
+  const n = prev.map((i) => ({ ...i }));
+  const a = n[id1],
+    b = n[id2];
+  [a.x, a.y, a.w, a.h, b.x, b.y, b.w, b.h] = [b.x, b.y, b.w, b.h, a.x, a.y, a.w, a.h];
+  return n;
+}
+
+// Desktop presets (custom ones first, flagged) grouped by their video cell count.
+function groupDesktopPresets(custom: any[], builtIn: any[]) {
+  const groups: any[][] = [];
+  const seen = new Set<string>();
+  const customIds = new Set(custom.map((p: any) => p.id));
+  custom.concat(builtIn).forEach((p: any) => {
+    if (seen.has(p.id)) return;
+    seen.add(p.id);
+    const next = { ...p, ...(customIds.has(p.id) && { custom: true }) };
+    groups[next.videoCellCount] ||= [];
+    groups[next.videoCellCount].push(next);
+  });
+  return groups;
+}
+
+// The multiview state, restored from localStorage on mount and saved back (debounced) as it
+// changes. Sync offsets are per session.
+function useMultiviewState() {
   const [layout, setLayoutState] = useState<LayoutItem[]>([]);
   const [layoutContent, setLayoutContentState] = useState<Record<string, Content>>({});
   const [presetLayout, setPresetLayout] = useState<Array<{ name: string; layout: string }>>([]);
@@ -60,17 +210,6 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
   const [muteOthers, setMuteOthersState] = useState(checkIOS);
   const [syncOffsets, setSyncOffsetsState] = useState<Record<string, any>>({});
   const initialized = useRef(false);
-  const fetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fetchQueued = useRef<{ refreshLive?: boolean }>({});
-  const resolvers = useRef<Array<() => void>>([]);
-  const rejectors = useRef<Array<(e: unknown) => void>>([]);
-  // Callers set content and then queue a fetch in the same handler, so the debounced fetch
-  // must read the committed content rather than the snapshot from the calling render.
-  const layoutContentRef = useRef(layoutContent);
-
-  useLayoutEffect(() => {
-    layoutContentRef.current = layoutContent;
-  }, [layoutContent]);
 
   useEffect(() => {
     const s = readJSON<any>(STORAGE_KEY, {});
@@ -101,138 +240,53 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(handle);
   }, [autoLayout, ytUrlHistory, twUrlHistory, muteOthers, presetLayout, layout, layoutContent]);
 
-  const activeVideos = useMemo(
-    () =>
-      layout
-        .filter((i) => layoutContent[i.i]?.type === "video")
-        .map((i) => layoutContent[i.i].video),
-    [layout, layoutContent],
+  // The setters never change, so the store's actions can be rebuilt from them freely.
+  const setters = useMemo(
+    () => ({
+      setLayoutState,
+      setLayoutContentState,
+      setPresetLayout,
+      setAutoLayoutState,
+      setYtUrlHistory,
+      setTwUrlHistory,
+      setMuteOthersState,
+      setSyncOffsetsState,
+    }),
+    [],
   );
-  const nonChatCellCount = useMemo(
-    () =>
-      layout.reduce(
-        (n, i) => n + (!layoutContent[i.i] || layoutContent[i.i]?.type === "video" ? 1 : 0),
-        0,
-      ),
-    [layout, layoutContent],
-  );
-  const decodedCustomPresets = useMemo(() => presetLayout.map(decodePreset), [presetLayout]);
-  const decodedDesktopPresets = useMemo(() => desktopPresets.map(decodePreset), []);
-  const decodedMobilePresets = useMemo(() => mobilePresets.map(decodePreset), []);
-  const desktopGroups = useMemo(() => {
-    const groups: any[][] = [];
-    const seen = new Set<string>();
-    const customIds = new Set(decodedCustomPresets.map((p: any) => p.id));
-    decodedCustomPresets.concat(decodedDesktopPresets).forEach((p: any) => {
-      if (seen.has(p.id)) return;
-      seen.add(p.id);
-      const next = { ...p, ...(customIds.has(p.id) && { custom: true }) };
-      groups[next.videoCellCount] ||= [];
-      groups[next.videoCellCount].push(next);
-    });
-    return groups;
-  }, [decodedCustomPresets, decodedDesktopPresets]);
+  return {
+    setters,
+    layout,
+    layoutContent,
+    presetLayout,
+    autoLayout,
+    ytUrlHistory,
+    twUrlHistory,
+    muteOthers,
+    syncOffsets,
+  };
+}
 
-  const setItemLock = useCallback((id: string | number, locked: boolean) => {
-    const key = String(id);
-    const unlocked = !locked;
-    setLayoutState((prev) => {
-      let changed = false;
-      const next = prev.map((item) => {
-        if (
-          String(item.i) !== key ||
-          (item.isResizable === unlocked && item.isDraggable === unlocked)
-        )
-          return item;
-        changed = true;
-        return { ...item, isResizable: unlocked, isDraggable: unlocked };
-      });
-      return changed ? next : prev;
-    });
-  }, []);
-
-  const setVideoData = useCallback((videos: any[]) => {
-    if (!videos) return;
-    setLayoutContentState((prev) => {
-      let changed = false;
-      const next: Record<string, Content> = { ...prev };
-      const byId = new Map(videos.map((v: any) => [v.id, v]));
-      for (const k of Object.keys(next)) {
-        const c = next[k];
-        const m = byId.get(c.video?.id);
-        if (m && c.video !== m) {
-          next[k] = { ...c, video: m };
-          changed = true;
-        }
-        if (missing(next[k])) {
-          next[k] = { ...next[k], video: { ...next[k].video, noData: true } };
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, []);
+// Debounced video data fetches for the cells. Calls made in the same window share one fetch
+// (a `refreshLive` call runs it right away) and each caller's promise settles with it.
+function useCellVideoFetcher(
+  layoutContentRef: React.RefObject<Record<string, Content>>,
+  setLayoutContent: React.Dispatch<React.SetStateAction<Record<string, Content>>>,
+) {
+  const fetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchQueued = useRef<{ refreshLive?: boolean }>({});
+  const resolvers = useRef<Array<() => void>>([]);
+  const rejectors = useRef<Array<(e: unknown) => void>>([]);
 
   const runFetch = useCallback(
     async (opts?: { refreshLive?: boolean }) => {
-      const snap = layoutContentRef.current;
-      const ids = new Set<string>(
-        Object.values(snap)
-          .filter((x) => missing(x) || (opts?.refreshLive && isLive(x)))
-          .map((x) => x.video?.id)
-          .filter(Boolean),
-      );
-      if (!ids.size) return;
-
-      const arr = [...ids];
-      const chunks: string[][] = [];
-      for (let i = 0; i < arr.length; i += BATCH) chunks.push(arr.slice(i, i + BATCH));
-      const res = await Promise.allSettled(
-        chunks.map((c) => api.videos({ include: "live_info", id: c.join(",") })),
-      );
-      const backend = res.flatMap((r) => {
-        if (r.status === "fulfilled") return (r.value as any)?.data?.items || [];
-        console.error(r.reason);
-        return [];
-      });
-      backend.forEach((v: any) => {
-        ids.delete(v.id);
-      });
-
-      const rest = [...ids];
-      const ytRes = await Promise.allSettled(
-        rest.map((id) =>
-          axios.get(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}`, {
-            timeout: 10000,
-          }),
-        ),
-      );
-      const yt = ytRes.flatMap((r, i) => {
-        if (r.status !== "fulfilled") {
-          console.error(r.reason);
-          return [];
-        }
-        const { data, config } = r.value;
-        const ch = data.author_url?.match(CHANNEL_URL_REGEX);
-        const channelId = ch?.groups?.id || (ch?.length >= 2 && ch[1]);
-        const videoId = String(config.url || "").replace(
-          "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=",
-          "",
-        );
-        return [
-          {
-            id: videoId || rest[i],
-            title: data.title,
-            channel: { name: data.author_name, id: channelId || data.author_name },
-          },
-        ];
-      });
-      setVideoData([...backend, ...yt]);
+      const videos = await fetchCellVideos(layoutContentRef.current, opts);
+      if (videos) setLayoutContent((prev) => withVideoData(prev, videos));
     },
-    [setVideoData],
+    [layoutContentRef, setLayoutContent],
   );
 
-  const fetchVideoData = useCallback(
+  return useCallback(
     (opts?: { refreshLive?: boolean }) => {
       fetchQueued.current = { refreshLive: fetchQueued.current.refreshLive || opts?.refreshLive };
       return new Promise<void>((resolve, reject) => {
@@ -265,125 +319,148 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
     },
     [runFetch],
   );
+}
+
+// The store's actions over the state setters; `muteOthers` gates muteOthersAction.
+function multiviewActions(
+  setters: ReturnType<typeof useMultiviewState>["setters"],
+  muteOthers: boolean,
+) {
+  const {
+    setLayoutState,
+    setLayoutContentState,
+    setPresetLayout,
+    setAutoLayoutState,
+    setYtUrlHistory,
+    setTwUrlHistory,
+    setMuteOthersState,
+    setSyncOffsetsState,
+  } = setters;
+  return {
+    setLayout: (l: LayoutItem[]) => setLayoutState(l.map((i) => ({ ...i, i: String(i.i) }))),
+    setLayoutContent: setLayoutContentState,
+    setLayoutContentById: ({ id, content }: { id: string | number; content: Content }) =>
+      setLayoutContentState((prev) =>
+        prev[String(id)] === content ? prev : { ...prev, [String(id)]: content },
+      ),
+    setLayoutContentWithKey: ({
+      id,
+      key,
+      value,
+    }: {
+      id: string | number;
+      key: string;
+      value: any;
+    }) =>
+      setLayoutContentState((prev) => {
+        const c = prev[String(id)];
+        if (!c || equal((c as any)[key], value)) return prev;
+        return { ...prev, [String(id)]: { ...c, [key]: value } };
+      }),
+    deleteLayoutContent: (id: string | number) =>
+      setLayoutContentState((prev) => delContent(prev, id)),
+    removeLayoutItem: (id: string | number) => {
+      setLayoutState((prev) => prev.filter((i) => i.i !== String(id)));
+      setLayoutContentState((prev) => delContent(prev, id));
+    },
+    addLayoutItem: () => setLayoutState(withNewCell),
+    freezeLayoutItem: (id: string | number) =>
+      setLayoutState((prev) => withItemLock(prev, id, true)),
+    unfreezeLayoutItem: (id: string | number) =>
+      setLayoutState((prev) => withItemLock(prev, id, false)),
+    reset: () => {
+      setLayoutState([]);
+      setLayoutContentState({});
+    },
+    addPresetLayout: (c: { name: string; layout: string }) => setPresetLayout((p) => [...p, c]),
+    removePresetLayout: (name: string) => setPresetLayout((p) => p.filter((i) => i.name !== name)),
+    setAutoLayout: ({ index, encodedLayout }: { index: number; encodedLayout: string | null }) =>
+      setAutoLayoutState((p) => {
+        const n = [...p];
+        n[index] = encodedLayout;
+        return n;
+      }),
+    resetAutoLayout: () => setAutoLayoutState(getDesktopDefaults()),
+    addUrlHistory: ({ twitch = false, url }: { twitch?: boolean; url: string }) =>
+      (twitch ? setTwUrlHistory : setYtUrlHistory)((p) => {
+        const n = [...p, url];
+        if (n.length > 8) n.shift();
+        return n;
+      }),
+    setMuteOthers: (v: boolean) => {
+      setMuteOthersState(v);
+      if (!v) return;
+      setLayoutContentState(mutedAllButFirst);
+    },
+    muteOthersAction: (cur: string | number) => {
+      if (!muteOthers) return;
+      const target = String(cur);
+      setLayoutContentState((prev) => mutedAllBut(prev, target));
+    },
+    setSyncOffsets: ({ id, value }: { id: string; value: any }) =>
+      setSyncOffsetsState((p) => ({ ...p, [id]: value })),
+    swapGridPosition: ({ id1, id2 }: { id1: number; id2: number }) =>
+      setLayoutState((prev) => withSwappedCells(prev, id1, id2)),
+  };
+}
+
+export function MultiviewProvider({ children }: { children: React.ReactNode }) {
+  const {
+    setters,
+    layout,
+    layoutContent,
+    presetLayout,
+    autoLayout,
+    ytUrlHistory,
+    twUrlHistory,
+    muteOthers,
+    syncOffsets,
+  } = useMultiviewState();
+  // Callers set content and then queue a fetch in the same handler, so the debounced fetch
+  // must read the committed content rather than the snapshot from the calling render.
+  const layoutContentRef = useRef(layoutContent);
+
+  useLayoutEffect(() => {
+    layoutContentRef.current = layoutContent;
+  }, [layoutContent]);
+
+  const activeVideos = useMemo(
+    () =>
+      layout
+        .filter((i) => layoutContent[i.i]?.type === "video")
+        .map((i) => layoutContent[i.i].video),
+    [layout, layoutContent],
+  );
+  const nonChatCellCount = useMemo(
+    () =>
+      layout.reduce(
+        (n, i) => n + (!layoutContent[i.i] || layoutContent[i.i]?.type === "video" ? 1 : 0),
+        0,
+      ),
+    [layout, layoutContent],
+  );
+  const decodedCustomPresets = useMemo(() => presetLayout.map(decodePreset), [presetLayout]);
+  const decodedDesktopPresets = useMemo(() => desktopPresets.map(decodePreset), []);
+  const decodedMobilePresets = useMemo(() => mobilePresets.map(decodePreset), []);
+  const desktopGroups = useMemo(
+    () => groupDesktopPresets(decodedCustomPresets, decodedDesktopPresets),
+    [decodedCustomPresets, decodedDesktopPresets],
+  );
+  const fetchVideoData = useCellVideoFetcher(layoutContentRef, setters.setLayoutContentState);
 
   const store = useMemo(
     () => ({
+      ...multiviewActions(setters, muteOthers),
       layout,
-      setLayout: (l: LayoutItem[]) => setLayoutState(l.map((i) => ({ ...i, i: String(i.i) }))),
       layoutContent,
-      setLayoutContent: setLayoutContentState,
-      setLayoutContentById: ({ id, content }: { id: string | number; content: Content }) =>
-        setLayoutContentState((prev) =>
-          prev[String(id)] === content ? prev : { ...prev, [String(id)]: content },
-        ),
-      setLayoutContentWithKey: ({
-        id,
-        key,
-        value,
-      }: {
-        id: string | number;
-        key: string;
-        value: any;
-      }) =>
-        setLayoutContentState((prev) => {
-          const c = prev[String(id)];
-          if (!c || equal((c as any)[key], value)) return prev;
-          return { ...prev, [String(id)]: { ...c, [key]: value } };
-        }),
-      deleteLayoutContent: (id: string | number) =>
-        setLayoutContentState((prev) => delContent(prev, id)),
-      removeLayoutItem: (id: string | number) => {
-        setLayoutState((prev) => prev.filter((i) => i.i !== String(id)));
-        setLayoutContentState((prev) => delContent(prev, id));
-      },
-      addLayoutItem: () =>
-        setLayoutState((prev) => {
-          const id = String(Date.now());
-          for (let y = 0; y < 24; y++)
-            for (let x = 0; x < 21; x++) {
-              const item: LayoutItem = {
-                x,
-                y,
-                w: 4,
-                h: 6,
-                i: id,
-                isResizable: true,
-                isDraggable: true,
-              };
-              if (!prev.find((p) => collides(p, item))) return [...prev, item];
-            }
-          return [
-            ...prev,
-            { x: 0, y: 24, w: 4, h: 6, i: id, isResizable: true, isDraggable: true },
-          ];
-        }),
-      freezeLayoutItem: (id: string | number) => setItemLock(id, true),
-      unfreezeLayoutItem: (id: string | number) => setItemLock(id, false),
-      reset: () => {
-        setLayoutState([]);
-        setLayoutContentState({});
-      },
       activeVideos,
       nonChatCellCount,
       presetLayout,
-      addPresetLayout: (c: { name: string; layout: string }) => setPresetLayout((p) => [...p, c]),
-      removePresetLayout: (name: string) =>
-        setPresetLayout((p) => p.filter((i) => i.name !== name)),
       autoLayout,
-      setAutoLayout: ({ index, encodedLayout }: { index: number; encodedLayout: string | null }) =>
-        setAutoLayoutState((p) => {
-          const n = [...p];
-          n[index] = encodedLayout;
-          return n;
-        }),
-      resetAutoLayout: () => setAutoLayoutState(getDesktopDefaults()),
       ytUrlHistory,
       twUrlHistory,
-      addUrlHistory: ({ twitch = false, url }: { twitch?: boolean; url: string }) =>
-        (twitch ? setTwUrlHistory : setYtUrlHistory)((p) => {
-          const n = [...p, url];
-          if (n.length > 8) n.shift();
-          return n;
-        }),
       muteOthers,
-      setMuteOthers: (v: boolean) => {
-        setMuteOthersState(v);
-        if (!v) return;
-        setLayoutContentState((prev) => {
-          let i = 0;
-          const next: Record<string, Content> = {};
-          for (const k of Object.keys(prev))
-            next[k] = prev[k]?.type === "video" ? { ...prev[k], muted: i++ !== 0 } : prev[k];
-          return next;
-        });
-      },
-      muteOthersAction: (cur: string | number) => {
-        if (!muteOthers) return;
-        const target = String(cur);
-        setLayoutContentState((prev) => {
-          const next: Record<string, Content> = {};
-          for (const k of Object.keys(prev))
-            next[k] =
-              k === target
-                ? { ...prev[k], muted: false }
-                : prev[k]?.type === "video"
-                  ? { ...prev[k], muted: true }
-                  : prev[k];
-          return next;
-        });
-      },
       syncOffsets,
-      setSyncOffsets: ({ id, value }: { id: string; value: any }) =>
-        setSyncOffsetsState((p) => ({ ...p, [id]: value })),
-      swapGridPosition: ({ id1, id2 }: { id1: number; id2: number }) =>
-        setLayoutState((prev) => {
-          if (!prev[id1] || !prev[id2]) return prev;
-          const n = prev.map((i) => ({ ...i }));
-          const a = n[id1],
-            b = n[id2];
-          [a.x, a.y, a.w, a.h, b.x, b.y, b.w, b.h] = [b.x, b.y, b.w, b.h, a.x, a.y, a.w, a.h];
-          return n;
-        }),
       fetchVideoData,
       decodedCustomPresets,
       decodedDesktopPresets,
@@ -391,6 +468,7 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
       desktopGroups,
     }),
     [
+      setters,
       layout,
       layoutContent,
       activeVideos,
@@ -401,7 +479,6 @@ export function MultiviewProvider({ children }: { children: React.ReactNode }) {
       twUrlHistory,
       muteOthers,
       syncOffsets,
-      setItemLock,
       fetchVideoData,
       decodedCustomPresets,
       decodedDesktopPresets,
