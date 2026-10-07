@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { mergeProps } from "@base-ui/react/merge-props";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -95,17 +96,19 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
     <div className="space-y-1 p-1 text-sm">
       <Button
         nativeButton={false}
-        render={
+        render={(props) => (
           <a
+            {...mergeProps<"a">(props, {
+              onClick: (e) => {
+                e.stopPropagation();
+                close();
+              },
+            })}
             target="_blank"
             rel="noopener noreferrer"
             href={newTabHref}
-            onClick={(e) => {
-              e.stopPropagation();
-              close();
-            }}
           />
-        }
+        )}
         variant="ghost"
         className={ITEM_CLASS}
       >
@@ -116,17 +119,19 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
         <>
           <Button
             nativeButton={false}
-            render={
+            render={(props) => (
               <a
+                {...mergeProps<"a">(props, {
+                  onClick: (e) => {
+                    e.stopPropagation();
+                    close();
+                  },
+                })}
                 target="_blank"
                 href={`https://youtu.be/${video.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  close();
-                }}
                 rel="noopener"
               />
-            }
+            )}
             variant="ghost"
             className={ITEM_CLASS}
           >
@@ -170,11 +175,8 @@ export function VideoCardMenu({ video, close }: { video: any; close: () => void 
               />
             </CollapsibleTrigger>
             <CollapsibleContent className="ml-4 border-l border-border pl-2">
-              <VideoQuickPlaylist
-                key={`${video.id}-${Date.now()}`}
-                videoId={video.id}
-                video={video}
-              />
+              {/* The panel unmounts while collapsed, so each opening starts fresh. */}
+              <VideoQuickPlaylist key={video.id} videoId={video.id} video={video} />
             </CollapsibleContent>
           </Collapsible>
           <Button

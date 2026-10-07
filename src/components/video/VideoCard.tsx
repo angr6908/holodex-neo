@@ -282,11 +282,11 @@ export function VideoCard({
     !includeChannel && !denseList && !horizontal && isLiveStatus && !!viewerCount;
   // Count only clips in the user's selected clip languages (same filter as the watch page's
   // clips tab); some endpoints return clips in every language.
+  const clipLangs = new Set<string>(app.settings.clipLangs);
   const clipsInLang =
     !isPlaceholder && Array.isArray(data.clips)
-      ? data.clips.filter(
-          (clip: any) => clip.status !== "missing" && app.settings.clipLangs.includes(clip.lang),
-        ).length
+      ? data.clips.filter((clip: any) => clip.status !== "missing" && clipLangs.has(clip.lang))
+          .length
       : 0;
   const clipsCount = clipsInLang ? t("component.videoCard.clips", { n: clipsInLang }) : "";
   const isFlat = horizontal || denseList;
@@ -514,219 +514,229 @@ export function VideoCard({
       onMouseDownCapture={(event) => setDragSelectionLocked(shouldSuppressDrag(event.target))}
       onDragStart={drag}
       onDragEnd={handleDragEnd}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest("a,button")) return;
-        if (shouldIgnoreTextClick(e)) return;
-        goToVideo();
-      }}
     >
-      <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
-        <ContextMenuTrigger render={<Card className={shellClass} />}>
-          {!denseList ? (
-            <div className={thumbnailClass}>
-              {horizontal && !shouldHideThumbnail ? (
-                <img
-                  src={imageSrc}
-                  width="128"
-                  height="72"
-                  loading="lazy"
-                  decoding="async"
-                  className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-                  alt=""
-                />
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onThumbnailClicked();
-                }}
-              >
-                <span className="sr-only">{title}</span>
-              </Button>
-              <div className={overlayClass}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    {data.topic_id && !isClip ? (
-                      <Badge
+      {/* Clicking anywhere on the card opens the video (the title link is the keyboard path);
+          `contents` keeps the card's layout. */}
+      <div
+        role="presentation"
+        className="contents"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("a,button")) return;
+          if (shouldIgnoreTextClick(e)) return;
+          goToVideo();
+        }}
+      >
+        <ContextMenu key={menuResetKey} onOpenChange={setMenuOpen}>
+          <ContextMenuTrigger render={<Card className={shellClass} />}>
+            {!denseList ? (
+              <div className={thumbnailClass}>
+                {horizontal && !shouldHideThumbnail ? (
+                  <img
+                    src={imageSrc}
+                    width="128"
+                    height="72"
+                    loading="lazy"
+                    decoding="async"
+                    className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                    alt=""
+                  />
+                ) : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="absolute inset-0 z-0 h-full w-full rounded-none border-0 bg-transparent p-0 text-transparent hover:bg-transparent! focus-visible:ring-2 focus-visible:ring-primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onThumbnailClicked();
+                  }}
+                >
+                  <span className="sr-only">{title}</span>
+                </Button>
+                <div className={overlayClass}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      {data.topic_id && !isClip ? (
+                        <Badge
+                          variant="secondary"
+                          className="m-1.5 max-w-full truncate capitalize font-ibm"
+                        >
+                          {data.topic_id}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    {!isPlaceholder ? (
+                      <Button
+                        type="button"
                         variant="secondary"
-                        className="m-1.5 max-w-full truncate capitalize font-ibm"
+                        size="icon-xs"
+                        className="pointer-events-auto m-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data);
+                        }}
                       >
-                        {data.topic_id}
-                      </Badge>
+                        {hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}
+                      </Button>
                     ) : null}
                   </div>
-                  {!isPlaceholder ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="icon-xs"
-                      className="pointer-events-auto m-1"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        hasSaved ? app.removeFromPlaylist(data.id) : app.addToPlaylist(data);
-                      }}
-                    >
-                      {hasSaved ? <Check className="size-4" /> : <Plus className="size-4" />}
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="flex min-w-0 items-end justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    {showViewerBadge ? (
-                      <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}>
-                        <BroadcastIcon className="size-3.5" />
-                        {viewerCount}
-                      </Badge>
-                    ) : null}
-                  </div>
-                  {!isPlaceholder ? (
-                    <div className="flex flex-col items-end">
-                      {data.songcount ? (
-                        <Badge
-                          variant="secondary"
-                          className="m-1"
-                          title={t("component.videoCard.totalSongs")}
-                        >
-                          {data.songcount > 1 ? data.songcount : ""}
-                          <Music className="h-3.5 w-3.5" />
-                        </Badge>
-                      ) : null}
-                      {hasTLs ? (
-                        <Badge
-                          variant="secondary"
-                          className="m-1"
-                          title={
-                            data.status === "past"
-                              ? t("component.videoCard.totalTLs")
-                              : t("component.videoCard.tlPresence")
-                          }
-                        >
-                          {data.status === "past"
-                            ? data.live_tl_count?.[app.settings.liveTlLang || "en"]
-                            : ""}
-                          <icons.TlChatIcon className="h-3.5 w-3.5" />
-                        </Badge>
-                      ) : null}
-                      {data.duration > 0 || data.start_actual ? (
-                        <Badge variant="secondary" className={durationBadgeClass}>
-                          {durationNode}
+                  <div className="flex min-w-0 items-end justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      {showViewerBadge ? (
+                        <Badge variant="destructive" className="m-1 gap-1" title={viewerLabel}>
+                          <BroadcastIcon className="size-3.5" />
+                          {viewerCount}
                         </Badge>
                       ) : null}
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-end">
-                      <Badge variant="secondary" className={durationBadgeClass}>
-                        {durationText ? (
-                          <span className="inline-block leading-[13px] group-hover:hidden">
+                    {!isPlaceholder ? (
+                      <div className="flex flex-col items-end">
+                        {data.songcount ? (
+                          <Badge
+                            variant="secondary"
+                            className="m-1"
+                            title={t("component.videoCard.totalSongs")}
+                          >
+                            {data.songcount > 1 ? data.songcount : ""}
+                            <Music className="h-3.5 w-3.5" />
+                          </Badge>
+                        ) : null}
+                        {hasTLs ? (
+                          <Badge
+                            variant="secondary"
+                            className="m-1"
+                            title={
+                              data.status === "past"
+                                ? t("component.videoCard.totalTLs")
+                                : t("component.videoCard.tlPresence")
+                            }
+                          >
+                            {data.status === "past"
+                              ? data.live_tl_count?.[app.settings.liveTlLang || "en"]
+                              : ""}
+                            <icons.TlChatIcon className="h-3.5 w-3.5" />
+                          </Badge>
+                        ) : null}
+                        {data.duration > 0 || data.start_actual ? (
+                          <Badge variant="secondary" className={durationBadgeClass}>
                             {durationNode}
-                          </span>
+                          </Badge>
                         ) : null}
-                        {data.placeholderType === "scheduled-yt-stream" ? (
-                          <span className="hidden leading-[13px] group-hover:inline-block">
-                            {t("component.videoCard.typeScheduledYT")}
-                          </span>
-                        ) : data.placeholderType === "external-stream" ? (
-                          <span className="hidden leading-[13px] group-hover:inline-block">
-                            {t("component.videoCard.typeExternalStream")}
-                          </span>
-                        ) : data.placeholderType === "event" ? (
-                          <span className="hidden leading-[13px] group-hover:inline-block">
-                            {t("component.videoCard.typeEventPlaceholder")}
-                          </span>
-                        ) : null}
-                        {(() => {
-                          const C = twitchPlaceholder
-                            ? TwitchIcon
-                            : twitterPlaceholder
-                              ? TwitterIcon
-                              : placeholderIconMap[data.placeholderType];
-                          return <C className="h-4 w-4 rounded-sm" />;
-                        })()}
-                      </Badge>
-                    </div>
-                  )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-end">
+                        <Badge variant="secondary" className={durationBadgeClass}>
+                          {durationText ? (
+                            <span className="inline-block leading-[13px] group-hover:hidden">
+                              {durationNode}
+                            </span>
+                          ) : null}
+                          {data.placeholderType === "scheduled-yt-stream" ? (
+                            <span className="hidden leading-[13px] group-hover:inline-block">
+                              {t("component.videoCard.typeScheduledYT")}
+                            </span>
+                          ) : data.placeholderType === "external-stream" ? (
+                            <span className="hidden leading-[13px] group-hover:inline-block">
+                              {t("component.videoCard.typeExternalStream")}
+                            </span>
+                          ) : data.placeholderType === "event" ? (
+                            <span className="hidden leading-[13px] group-hover:inline-block">
+                              {t("component.videoCard.typeEventPlaceholder")}
+                            </span>
+                          ) : null}
+                          {(() => {
+                            const C = twitchPlaceholder
+                              ? TwitchIcon
+                              : twitterPlaceholder
+                                ? TwitterIcon
+                                : placeholderIconMap[data.placeholderType];
+                            return <C className="h-4 w-4 rounded-sm" />;
+                          })()}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {!horizontal && !shouldHideThumbnail ? (
+                  <img
+                    src={imageSrc}
+                    width="100%"
+                    loading="lazy"
+                    decoding="async"
+                    className="pointer-events-none aspect-video w-full object-cover"
+                    alt=""
+                  />
+                ) : !horizontal && shouldHideThumbnail ? (
+                  <div className="pointer-events-none aspect-[60/9] w-full bg-muted" />
+                ) : null}
               </div>
-              {!horizontal && !shouldHideThumbnail ? (
-                <img
-                  src={imageSrc}
-                  width="100%"
-                  loading="lazy"
-                  decoding="async"
-                  className="pointer-events-none aspect-video w-full object-cover"
-                  alt=""
-                />
-              ) : !horizontal && shouldHideThumbnail ? (
-                <div className="pointer-events-none aspect-[60/9] w-full bg-muted" />
-              ) : null}
-            </div>
-          ) : null}
-          <div className={textClass}>
-            {denseList && data.channel ? (
-              <div className="mx-2 flex flex-col self-center">{avatarButton()}</div>
             ) : null}
-            <div className={linesClass}>
-              {titleNode}
-              {metaNode}
+            <div className={textClass}>
+              {denseList && data.channel ? (
+                <div className="mx-2 flex flex-col self-center">{avatarButton()}</div>
+              ) : null}
+              <div className={linesClass}>
+                {titleNode}
+                {metaNode}
+              </div>
             </div>
+          </ContextMenuTrigger>
+          {menuOpen ? (
+            <ContextMenuContent className="w-[260px]">
+              <VideoCardMenu video={data} close={closeContextMenu} />
+            </ContextMenuContent>
+          ) : null}
+        </ContextMenu>
+        {children || action || activePlaylistItem ? (
+          <div className={itemActionsClass}>
+            {activePlaylistItem ? (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("component.common.moveUp")}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    move("up");
+                  }}
+                >
+                  <icons.ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("component.videoCard.removeFromPlaylist")}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    app.removeFromPlaylist(data.id);
+                  }}
+                >
+                  <icons.Trash2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("component.common.moveDown")}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    move("down");
+                  }}
+                >
+                  <icons.ChevronDown className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              action || children
+            )}
           </div>
-        </ContextMenuTrigger>
-        {menuOpen ? (
-          <ContextMenuContent className="w-[260px]">
-            <VideoCardMenu video={data} close={closeContextMenu} />
-          </ContextMenuContent>
         ) : null}
-      </ContextMenu>
-      {children || action || activePlaylistItem ? (
-        <div className={itemActionsClass}>
-          {activePlaylistItem ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  move("up");
-                }}
-              >
-                <icons.ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  app.removeFromPlaylist(data.id);
-                }}
-              >
-                <icons.Trash2 className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  move("down");
-                }}
-              >
-                <icons.ChevronDown className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            action || children
-          )}
-        </div>
-      ) : null}
+      </div>
     </article>
   );
 }

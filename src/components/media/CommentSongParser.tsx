@@ -177,6 +177,7 @@ export function CommentSongParser({
                       size="icon"
                       variant="ghost"
                       className="h-7 w-7"
+                      aria-label={t("component.common.close")}
                       onClick={() => setSearchResultIdx(-1)}
                     >
                       <icons.XIcon className="size-4" />

@@ -22,9 +22,19 @@ export function VideoEditMentions({ video }: { video: any }) {
   const [selectedChannel, setSelectedChannel] = useState<any>(null);
   const { useEnglishName } = app.settings;
 
+  const videoId = video.id;
   useEffect(() => {
-    updateMentions();
-  }, [video.id]);
+    let cancelled = false;
+    api
+      .getMentions(videoId)
+      .then(({ data }: any) => {
+        if (!cancelled) setMentions(data);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [videoId]);
 
   function flashAlert(kind: "success" | "error", message: string) {
     setAlert({ kind, message });
@@ -83,7 +93,7 @@ export function VideoEditMentions({ video }: { video: any }) {
       </div>
       <div className="overflow-hidden rounded-xl border border-border">
         {mentions.map((channel, index) => (
-          <div key={`${channel.id || "channel"}-${index}`}>
+          <div key={channel.id}>
             {index > 0 ? <Separator /> : null}
             <div className="flex items-start gap-3 px-4 py-3 no-underline">
               <div className="shrink-0">

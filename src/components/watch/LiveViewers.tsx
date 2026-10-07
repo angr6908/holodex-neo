@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatCount } from "@/lib/functions";
 import * as icons from "@/lib/icons";
@@ -40,19 +40,21 @@ export function LiveViewers({ platform, id }: { platform: "youtube" | "twitch"; 
     const c = src.seed([id])[id];
     return typeof c === "number" && c > 0 ? c : null;
   });
-  const alive = useRef(true);
 
   useEffect(() => {
-    alive.current = true;
-    const unsubscribe = src.subscribe((counts) => {
+    let cancelled = false;
+    const apply = (counts: Record<string, number>) => {
       const n = counts[id];
-      if (alive.current && typeof n === "number" && n >= 0) setCount(n);
+      if (typeof n === "number" && n >= 0) setCount(n);
+    };
+    const unsubscribe = src.subscribe((counts) => {
+      if (!cancelled) apply(counts);
     });
     const tick = async () => {
       if (document.visibilityState === "hidden") return;
       const counts = await src.fetch([id]);
-      const n = counts[id];
-      if (alive.current && typeof n === "number" && n >= 0) setCount(n);
+      if (cancelled) return;
+      apply(counts);
     };
     tick();
     const timer = setInterval(tick, 60_000);
@@ -61,12 +63,12 @@ export function LiveViewers({ platform, id }: { platform: "youtube" | "twitch"; 
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      alive.current = false;
+      cancelled = true;
       unsubscribe();
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [platform, id]);
+  }, [src, id]);
 
   if (count == null || count <= 0) return null;
   return (

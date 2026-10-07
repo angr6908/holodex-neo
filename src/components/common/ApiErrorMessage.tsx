@@ -17,7 +17,13 @@ export function ApiErrorMessage() {
   return (
     <Empty className="mx-auto w-full max-w-xl flex-none">
       <EmptyContent>
-        <Button nativeButton={false} render={<a href="/" />} variant="outline" size="sm">
+        {/* A full page load (not client navigation) so a broken client state starts over. */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => window.location.assign("/")}
+        >
           <icons.RefreshCw className="size-4" />
           <span>{t("component.apiError.refresh")}</span>
         </Button>

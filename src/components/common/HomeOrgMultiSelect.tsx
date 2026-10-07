@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,6 +53,8 @@ const preferredOrgNames = [
   "Independents",
 ];
 
+const NO_NAMES: string[] = [];
+
 export function HomeOrgMultiSelect({
   hideTrigger = false,
   buttonVariant = "secondary",
@@ -74,18 +76,22 @@ export function HomeOrgMultiSelect({
   const draftSelectedNamesRef = useRef<string[]>([]);
   const allVtubersLabel = t("component.search.allVtubers");
 
-  const formatSelectionLabel = (name: string) =>
-    name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name);
+  const formatSelectionLabel = useCallback(
+    (name: string) => (name === ALL_VTUBERS_ORG ? allVtubersLabel : formatOrgDisplayName(name)),
+    [allVtubersLabel],
+  );
 
+  const { fetchOrgs } = app;
+  const orgCount = app.orgs.length;
   useEffect(() => {
-    if (!app.orgs.length) void app.fetchOrgs();
-  }, [app.orgs.length]);
+    if (!orgCount) void fetchOrgs();
+  }, [orgCount, fetchOrgs]);
 
   const orgs = useMemo(
     () => (app.orgs || []).filter((org) => org.name !== ALL_VTUBERS_ORG),
     [app.orgs],
   );
-  const selectedNames = selectedNamesOverride || app.selectedHomeOrgs || [];
+  const selectedNames: string[] = selectedNamesOverride || app.selectedHomeOrgs || NO_NAMES;
   const workingSelectedNames = open ? draftSelectedNames : selectedNames;
   const selectedSet = useMemo(() => new Set(workingSelectedNames), [workingSelectedNames]);
   const quickSelectOrgNames = useMemo(() => {
@@ -109,7 +115,7 @@ export function HomeOrgMultiSelect({
     }
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
-  }, [selectedNames, emptySelectionLabel, allVtubersLabel, t]);
+  }, [selectedNames, emptySelectionLabel, allVtubersLabel, t, formatSelectionLabel]);
   const showSelectedCount = selectedNames.length > 2;
 
   const clearLabel =
@@ -126,12 +132,11 @@ export function HomeOrgMultiSelect({
     else app.setSelectedHomeOrgs(nextSelection);
   }
 
+  // The ref mirrors the draft for handlers that read it right after updating.
   function setDraftSelection(next: string[] | ((prev: string[]) => string[])) {
-    setDraftSelectedNames((prev) => {
-      const value = typeof next === "function" ? next(prev) : next;
-      draftSelectedNamesRef.current = value;
-      return value;
-    });
+    const value = typeof next === "function" ? next(draftSelectedNamesRef.current) : next;
+    draftSelectedNamesRef.current = value;
+    setDraftSelectedNames(value);
   }
 
   async function openSelector() {

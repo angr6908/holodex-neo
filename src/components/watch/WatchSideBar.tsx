@@ -65,9 +65,10 @@ export function WatchSideBar({
   const [fallbackAutoLayout] = useState(readPersistedAutoLayout);
   const [selectedRelation, setSelectedRelation] = useState<RelationKey | null>(null);
   const related = useMemo<RelatedVideos>(() => {
+    const clipLangs = new Set<string>(app.settings.clipLangs);
     const clips =
       video.clips
-        ?.filter?.((x: any) => x.status !== "missing" && app.settings.clipLangs.includes(x.lang))
+        ?.filter?.((x: any) => x.status !== "missing" && clipLangs.has(x.lang))
         .sort(videoTemporalComparator)
         .reverse() || [];
     return {
@@ -172,7 +173,7 @@ export function WatchSideBar({
     }
   }
   function addToMusicPlaylist() {
-    window.open(`${musicdexURL}/video/${video.id}`, "_blank");
+    window.open(`${musicdexURL}/video/${video.id}`, "_blank", "noopener");
   }
   const addToPlaylist = (videos: RelationVideo[]) =>
     [...videos]
@@ -217,9 +218,9 @@ export function WatchSideBar({
         }
         contentClassName="px-2 py-1"
       >
-        {songList.map((song: any, index: number) => (
+        {songList.map((song: any) => (
           <SongItem
-            key={`${song.name}${song.video_id}${index}`}
+            key={`${song.video_id}:${song.start}:${song.name}`}
             detailed={showDetailed}
             song={song}
             hoverIcon={icons.Play}

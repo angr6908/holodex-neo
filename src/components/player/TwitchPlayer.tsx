@@ -1,8 +1,22 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 let pid = 0;
+
+// Subscribes to a Twitch embed event; returns the unsubscribe function.
+function listen(player: any, event: string, listener: () => void) {
+  player.addEventListener(event, listener);
+  return () => player.removeEventListener?.(event, listener);
+}
 let twitchScriptPromise: Promise<void> | null = null;
 
 function loadTwitchScript(src: string): Promise<void> {
@@ -137,41 +151,60 @@ export const TwitchPlayer = forwardRef<
 
   useImperativeHandle(ref, () => handle, [handle]);
 
+  // The player is created once per element; later prop changes are applied by the effects
+  // below, and events always reach the latest callbacks.
+  const initialOptions = useEffectEvent(() => {
+    const options: Record<string, any> = {
+      width,
+      height,
+      parent: [window.location.hostname],
+      autoplay,
+    };
+    if (playsInline) options.playsinline = true;
+    if (channel) options.channel = channel;
+    else if (video) options.video = video;
+    else return null;
+    return options;
+  });
+  const handleReady = useEffectEvent((tp: any) => {
+    readyRef.current = true;
+    tp.setQuality(quality);
+    tp.setMuted(mute);
+    onReady?.(handle);
+  });
+  const handleEvent = useEffectEvent((event: "ended" | "pause" | "play") => {
+    if (event === "ended") onEnded?.();
+    else if (event === "pause") onPaused?.();
+    else onPlaying?.();
+  });
+  const handleError = useEffectEvent((error: unknown) => onError?.(error));
+
   useEffect(() => {
     let cancelled = false;
+    let unsubscribers: Array<() => void> = [];
     loadTwitchScript("https://player.twitch.tv/js/embed/v1.js")
       .then(() => {
         if (cancelled) return;
-        const options: Record<string, any> = {
-          width,
-          height,
-          parent: [window.location.hostname],
-          autoplay,
-        };
-        if (playsInline) options.playsinline = true;
-        if (channel) options.channel = channel;
-        else if (video) options.video = video;
-        else {
-          onError?.("no source specified");
+        const options = initialOptions();
+        if (!options) {
+          handleError("no source specified");
           return;
         }
         const tp = new (window as any).Twitch.Player(elementId, options);
         twitchPlayer.current = tp;
-        tp.addEventListener("ended", () => onEnded?.());
-        tp.addEventListener("pause", () => onPaused?.());
-        tp.addEventListener("play", () => onPlaying?.());
-        tp.addEventListener("ready", () => {
-          readyRef.current = true;
-          tp.setQuality(quality);
-          tp.setMuted(mute);
-          onReady?.(handle);
-        });
+        unsubscribers = [
+          listen(tp, "ended", () => handleEvent("ended")),
+          listen(tp, "pause", () => handleEvent("pause")),
+          listen(tp, "play", () => handleEvent("play")),
+          listen(tp, "ready", () => handleReady(tp)),
+        ];
       })
-      .catch((e) => onError?.(e));
+      .catch((e) => handleError(e));
     return () => {
       cancelled = true;
+      for (const unsubscribe of unsubscribers) unsubscribe();
       readyRef.current = false;
-      onPaused?.();
+      handleEvent("pause");
       twitchPlayer.current = null;
     };
   }, [elementId]);

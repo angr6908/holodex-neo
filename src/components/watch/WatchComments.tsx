@@ -162,7 +162,9 @@ export function WatchComments({
         </ToggleGroup>
       ) : null}
 
-      <div className="text-sm" onClick={handleCommentClick}>
+      {/* Delegates clicks from the timestamp links inside comments (keyboard activation of those
+          links bubbles here as a click too), so the container itself isn't interactive. */}
+      <div role="presentation" className="text-sm" onClick={handleCommentClick}>
         {visibleComments.map((comment) => (
           <Comment key={comment.comment_key} comment={comment} videoId={video.id || ""} />
         ))}

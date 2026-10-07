@@ -1,8 +1,16 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import youtubePlayer from "youtube-player";
-import type { Options } from "youtube-player/dist/types";
+import type { Options, YouTubePlayer as YTPlayer } from "youtube-player/dist/types";
 
 let pid = 0;
 
@@ -50,6 +58,21 @@ type YoutubePlayerProps = {
   onCued?: (target: unknown) => void;
 };
 
+// youtube-player's event emitter returns each listener from on() so it can be passed to off();
+// its typings leave both out.
+type EmitterPlayer = YTPlayer & {
+  on(eventType: string, listener: (event: any) => void): unknown;
+  off(listener: unknown): void;
+};
+
+// Subscribes to a player event; returns the unsubscribe function.
+function listen(player: EmitterPlayer, eventType: string, listener: (event: any) => void) {
+  const handle = player.on(eventType, listener);
+  return () => player.off(handle);
+}
+
+const NO_PLAYER_VARS: Record<string, any> = {};
+
 const UNSTARTED = -1;
 const ENDED = 0;
 const PLAYING = 1;
@@ -70,7 +93,7 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
       refreshRate = 500,
       manualUpdate = false,
       className = "",
-      playerVars = {},
+      playerVars = NO_PLAYER_VARS,
       onReady,
       onError,
       onCurrentTime,
@@ -94,6 +117,8 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
     const readyRef = useRef(false);
     const retryForMengenRef = useRef(false);
     const videoIdRef = useRef(videoId);
+    // Callers often pass playerVars inline, so compare them by value.
+    const playerVarsKey = JSON.stringify(playerVars);
     const vars = useMemo(
       () =>
         ({
@@ -102,9 +127,9 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
           hl: lang,
           ...(start ? { start } : {}),
           ...(autoplay ? { autoplay: 1 } : {}),
-          ...playerVars,
+          ...JSON.parse(playerVarsKey),
         }) as Options["playerVars"],
-      [lang, start, autoplay, JSON.stringify(playerVars)],
+      [lang, start, autoplay, playerVarsKey],
     );
 
     const handle: YoutubePlayerHandle = useMemo(
@@ -154,48 +179,61 @@ export const YoutubePlayer = forwardRef<YoutubePlayerHandle, YoutubePlayerProps>
 
     useImperativeHandle(ref, () => handle, [handle]);
 
+    // The player is created once per element; later prop changes are applied by the effects
+    // below, and events always reach the latest callbacks.
+    const initialOptions = useEffectEvent(
+      () =>
+        ({
+          host: "https://www.youtube.com",
+          width,
+          height,
+          videoId,
+          playerVars: vars,
+          origin: window.origin,
+        }) as Options & { origin: string },
+    );
+    const handleReady = useEffectEvent((player: EmitterPlayer) => {
+      readyRef.current = true;
+      if (mute) player.mute();
+      else player.unMute();
+      retryForMengenRef.current = false;
+      onReady?.(handle);
+    });
+    const handleStateChange = useEffectEvent((event: any) => {
+      const handlers: Record<number, ((t: unknown) => void) | undefined> = {
+        [UNSTARTED]: onUnstarted,
+        [PLAYING]: onPlaying,
+        [PAUSED]: onPaused,
+        [ENDED]: onEnded,
+        [BUFFERING]: onBuffering,
+        [CUED]: onCued,
+      };
+      handlers[event?.data]?.(event?.target);
+    });
+    const handleError = useEffectEvent((event: any) => {
+      if (!retryForMengenRef.current && String(event?.data) === "150") {
+        retryForMengenRef.current = true;
+        const retryVideoId = event?.target?.getVideoData?.()?.video_id ?? videoIdRef.current;
+        event?.target?.loadVideoById?.(retryVideoId);
+        return;
+      }
+      onError?.(event);
+    });
+
     useEffect(() => {
-      if (typeof window === "undefined") return;
       (window as any).YTConfig = { host: "https://www.youtube.com/iframe_api" };
-      const player = youtubePlayer(elementId, {
-        host: "https://www.youtube.com",
-        width,
-        height,
-        videoId,
-        playerVars: vars,
-        origin: window.origin,
-      } as Options & { origin: string });
+      const options = initialOptions();
+      const player = youtubePlayer(elementId, options) as EmitterPlayer;
       playerRef.current = player;
-      videoIdRef.current = videoId;
-      player.on("ready", () => {
-        readyRef.current = true;
-        if (mute) player.mute();
-        else player.unMute();
-        retryForMengenRef.current = false;
-        onReady?.(handle);
-      });
-      player.on("stateChange", (event: any) => {
-        const target = event?.target;
-        const handlers: Record<number, ((t: unknown) => void) | undefined> = {
-          [UNSTARTED]: onUnstarted,
-          [PLAYING]: onPlaying,
-          [PAUSED]: onPaused,
-          [ENDED]: onEnded,
-          [BUFFERING]: onBuffering,
-          [CUED]: onCued,
-        };
-        handlers[event?.data]?.(target);
-      });
-      player.on("error", (event: any) => {
-        if (!retryForMengenRef.current && String(event?.data) === "150") {
-          retryForMengenRef.current = true;
-          const retryVideoId = event?.target?.getVideoData?.()?.video_id ?? videoIdRef.current;
-          event?.target?.loadVideoById?.(retryVideoId);
-          return;
-        }
-        onError?.(event);
-      });
+      videoIdRef.current = options.videoId;
+      const unsubscribers = [
+        listen(player, "ready", () => handleReady(player)),
+        listen(player, "stateChange", (event) => handleStateChange(event)),
+        listen(player, "error", (event) => handleError(event)),
+      ];
       return () => {
+        // destroy() waits for the player to be ready, so stop listening right away.
+        for (const unsubscribe of unsubscribers) unsubscribe();
         readyRef.current = false;
         playerRef.current?.destroy?.();
         playerRef.current = null;

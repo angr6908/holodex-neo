@@ -126,8 +126,8 @@ export function WatchToolbar({
           ) : null}
           {mentions.length > 0 ? (
             <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain">
-              {mentions.map((mention: any, i: number) => (
-                <span key={`${mention.id ?? "m"}-${i}`} className="shrink-0">
+              {mentions.map((mention: any) => (
+                <span key={mention.id} className="shrink-0">
                   <ChannelChip channel={mention} size={32} />
                 </span>
               ))}

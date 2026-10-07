@@ -8,8 +8,12 @@ import { makeVideoFilter } from "@/lib/filter-videos";
 import { useAppState } from "@/lib/store";
 import { cn, GRID_COLUMN_CLASSES, getBreakpoint } from "@/lib/utils";
 
+const NO_VIDEOS: any[] = [];
+const DEFAULT_COLS = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 };
+const NO_FILTER = {};
+
 export function VideoCardList({
-  videos = [],
+  videos = NO_VIDEOS,
   includeChannel = false,
   includeAvatar = false,
   hideThumbnail = false,
@@ -21,11 +25,11 @@ export function VideoCardList({
   autoFitMin = "13rem",
   max = undefined,
   className = "",
-  cols = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
+  cols = DEFAULT_COLS,
   activeId = "",
   dense = false,
   disableDefaultClick = false,
-  filterConfig = {},
+  filterConfig = NO_FILTER,
   sortFn,
   showComments = false,
   inMultiViewSelector = false,
@@ -42,20 +46,15 @@ export function VideoCardList({
     if (horizontal || denseList) return 1;
     if (autoFit || autoFill) return 2;
     return cols[getBreakpoint(width)];
-  }, [
-    app.windowWidth,
-    horizontal,
-    denseList,
-    autoFit,
-    autoFill,
-    cols.xs,
-    cols.sm,
-    cols.md,
-    cols.lg,
-    cols.xl,
-  ]);
+  }, [app.windowWidth, horizontal, denseList, autoFit, autoFill, cols]);
+  // The filter only reads these slices of app state, so unrelated store updates don't re-run it.
+  const { blockedChannelIDs, ignoredTopicsSet, favoriteChannelIDs } = app;
+  const hiddenGroups = app.settings.hiddenGroups;
   const list = useMemo(() => {
-    const matchesFilter = makeVideoFilter(app, { hideGroups: includeChannel, ...filterConfig });
+    const matchesFilter = makeVideoFilter(
+      { blockedChannelIDs, ignoredTopicsSet, favoriteChannelIDs, settings: { hiddenGroups } },
+      { hideGroups: includeChannel, ...filterConfig },
+    );
     const processed = (videos || [])
       .filter((v: any) => v && typeof v === "object" && v.id && v.channel)
       .filter(matchesFilter);
@@ -67,17 +66,16 @@ export function VideoCardList({
       return true;
     });
     return max ? deduped.slice(0, max) : deduped;
-    // The filter only reads these slices of app state, so unrelated store updates don't re-run it.
   }, [
     videos,
     max,
     includeChannel,
     filterConfig,
     sortFn,
-    app.blockedChannelIDs,
-    app.ignoredTopicsSet,
-    app.favoriteChannelIDs,
-    app.settings.hiddenGroups,
+    blockedChannelIDs,
+    ignoredTopicsSet,
+    favoriteChannelIDs,
+    hiddenGroups,
   ]);
   return (
     <div className={cn("relative py-0", className)}>

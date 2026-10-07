@@ -26,13 +26,15 @@ export function Comment({ comment, videoId }: { comment: Record<string, any>; vi
       />
       <Button
         nativeButton={false}
-        render={
+        render={(props) => (
           <a
+            {...props}
             href={`https://www.youtube.com/watch?v=${videoId}&lc=${comment.comment_key}`}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={t("views.settings.redirectModeLabel")}
           />
-        }
+        )}
         variant="ghost"
         size="icon-xs"
         className="absolute -right-1 -top-1 hidden group-focus-within/comment:inline-flex group-hover/comment:inline-flex"

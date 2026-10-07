@@ -132,7 +132,9 @@ export function WatchInfo({
               </div>
             ) : null}
             {desc ? (
+              // Delegates clicks from the timestamp links in the description (see WatchComments).
               <div
+                role="presentation"
                 className="px-4 py-3.5 text-sm leading-relaxed text-muted-foreground"
                 onClick={handleClick}
               >

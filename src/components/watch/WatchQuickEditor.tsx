@@ -39,9 +39,9 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
   const [topics, setTopics] = useState<any[]>([]);
   const [newTopic, setNewTopic] = useState<string | null>(null);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
-  const [isSelectedAll, setIsSelectedAll] = useState(false);
   const [isApplyingBulkEdit, setIsApplyingBulkEdit] = useState(false);
-  const [deletionSet, setDeletionSet] = useState<Set<string>>(new Set());
+  const [deletionSet, setDeletionSet] = useState<Set<string>>(() => new Set());
+  const isSelectedAll = mentions.length > 0 && deletionSet.size === mentions.length;
   const { useEnglishName } = app.settings;
   const channelValues = useMemo(() => searchResults.map((item) => item.id), [searchResults]);
   const channelLabels = useMemo(
@@ -79,32 +79,43 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
     [video.channel?.id, mentions],
   );
 
+  const videoId = video.id;
   useEffect(() => {
-    updateMentions();
-    updateCurrentTopic();
-  }, [video.id]);
+    let cancelled = false;
+    api
+      .getMentions(videoId)
+      .then(({ data }: any) => {
+        if (!cancelled) applyMentions(data);
+      })
+      .catch(console.error);
+    api
+      .getVideoTopic(videoId)
+      .then(({ data }: any) => {
+        if (!cancelled) applyTopic(data);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [videoId]);
   useEffect(() => {
     debouncedSearch(search);
     return () => debouncedSearch.cancel();
   }, [search, debouncedSearch]);
 
-  function updateCurrentTopic() {
-    api
-      .getVideoTopic(video.id)
-      .then(({ data }: any) => {
-        setCurrentTopic(data.topic_id);
-        setNewTopic(data.topic_id);
-      })
-      .catch(console.error);
+  function applyTopic(data: any) {
+    setCurrentTopic(data.topic_id);
+    setNewTopic(data.topic_id);
+  }
+  function applyMentions(data: any) {
+    setMentions(data || []);
+    setSearchResults([]);
+    setSearch("");
   }
   function updateMentions() {
     api
       .getMentions(video.id)
-      .then(({ data }: any) => {
-        setMentions(data || []);
-        setSearchResults([]);
-        setSearch("");
-      })
+      .then(({ data }: any) => applyMentions(data))
       .catch(console.error);
   }
   function isAddedToDeletionSet(id: string) {
@@ -115,18 +126,11 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      setIsSelectedAll(next.size === mentions.length && mentions.length > 0);
       return next;
     });
   }
   function toggleMentionSelection() {
-    if (isSelectedAll) {
-      setDeletionSet(new Set());
-      setIsSelectedAll(false);
-    } else {
-      setDeletionSet(new Set(mentions.map((mention) => mention.id)));
-      setIsSelectedAll(true);
-    }
+    setDeletionSet(isSelectedAll ? new Set() : new Set(mentions.map((mention) => mention.id)));
   }
   function showError(message: string) {
     setErrorMessage(message);
@@ -150,7 +154,6 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
       .then(({ data }: any) => {
         if (!data) return;
         setDeletionSet(new Set());
-        setIsSelectedAll(false);
         showSuccess(t("views.editor.channelMentions.deleteSuccess"));
         updateMentions();
       })
@@ -241,8 +244,8 @@ export function WatchQuickEditor({ video }: { video: Record<string, any> }) {
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {mentions.map((item, index) => (
-              <div key={`${item.id || "mention"}-${index}`} className="relative">
+            {mentions.map((item) => (
+              <div key={item.id} className="relative">
                 <ChannelChip channel={item} size={60} closeDelay={0}>
                   {() => (
                     <div className="absolute inset-0 flex items-center justify-center rounded-full">

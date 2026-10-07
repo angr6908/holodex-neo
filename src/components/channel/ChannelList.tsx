@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 import { ChannelCard } from "@/components/channel/ChannelCard";
 import { ChannelImg } from "@/components/channel/ChannelImg";
 import { ChannelInfo } from "@/components/channel/ChannelInfo";
@@ -17,7 +17,7 @@ import { useAppState } from "@/lib/store";
 import { cn, GRID_COLUMN_CLASSES, getBreakpoint } from "@/lib/utils";
 
 export function ChannelList({
-  channels,
+  channels: channelsProp,
   cardView = false,
   includeVideoCount = false,
   grouped = false,
@@ -33,6 +33,15 @@ export function ChannelList({
 }) {
   const t = useTranslations();
   const app = useAppState();
+  // Pages of an infinite list can overlap; show each channel once (they're keyed by id).
+  const channels = useMemo(() => {
+    const seen = new Set<string>();
+    return (channelsProp || []).filter((c) => {
+      if (!c?.id || seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }, [channelsProp]);
   const isXs = app.windowWidth <= 420;
   const cols = ({ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 } as const)[getBreakpoint(app.windowWidth)];
   const gridClass = cn("grid gap-2", GRID_COLUMN_CLASSES[cols] || "grid-cols-1");
@@ -44,7 +53,7 @@ export function ChannelList({
   const channelsByGroup = (() => {
     const groups: any[] = [];
     let last = "";
-    (channels || []).forEach((c) => {
+    channels.forEach((c) => {
       const g = c?.[groupKey] || "Other";
       if (g !== last) {
         groups.push({
@@ -97,13 +106,10 @@ export function ChannelList({
       </Item>
     );
 
-  const renderCardGrid = (items: any[], keyPrefix: string, className?: string) => (
+  const renderCardGrid = (items: any[], className?: string) => (
     <div className={cn(gridClass, className)}>
-      {items.map((c: any, j: number) => (
-        <div
-          key={`${c.id || "channel"}-${keyPrefix}-${j}`}
-          className={cn("h-full", c.inactive && "opacity-50")}
-        >
+      {items.map((c: any) => (
+        <div key={c.id} className={cn("h-full", c.inactive && "opacity-50")}>
           <ChannelCard channel={c} />
         </div>
       ))}
@@ -114,7 +120,8 @@ export function ChannelList({
   // identically: title trigger, member count, hide toggle, favorite-all.
   const renderGroup = (g: any, i: number, content: ReactNode) => (
     <SectionPanel
-      key={`group-${i}`}
+      // Runs of one group can repeat in an unsorted list, so the first member disambiguates.
+      key={`${g.title}:${g.items[0].id}`}
       title={g.title}
       count={g.items.length}
       actions={
@@ -165,9 +172,9 @@ export function ChannelList({
             g,
             i,
             cardView
-              ? renderCardGrid(g.items, `${i}`, "p-3")
+              ? renderCardGrid(g.items, "p-3")
               : g.items.map((c: any, j: number) => (
-                  <div key={`${c.id || "channel"}-${i}-${j}`}>
+                  <div key={c.id}>
                     {j > 0 ? <Separator /> : null}
                     <div className={c.inactive ? "opacity-50" : undefined}>
                       {renderChannelItem(c)}
@@ -179,13 +186,13 @@ export function ChannelList({
       </div>
     );
 
-  if (cardView) return renderCardGrid(channels || [], "flat");
+  if (cardView) return renderCardGrid(channels);
 
-  if ((channels || []).length > 0)
+  if (channels.length > 0)
     return (
       <div className={panelClass}>
-        {(channels || []).map((c, i) => (
-          <div key={`${c.id || "channel"}-${i}`}>
+        {channels.map((c, i) => (
+          <div key={c.id}>
             {i > 0 ? <Separator /> : null}
             <div className={c.inactive ? "opacity-50" : undefined}>{renderChannelItem(c)}</div>
           </div>

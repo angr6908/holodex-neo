@@ -51,7 +51,7 @@ export function VirtualVideoCardList({
     >
       {videos.map((video: any, index: number) => (
         <div
-          key={`${video.id || "video"}-${index}`}
+          key={video.id}
           ref={(el) => {
             itemRefs.current[index] = el;
           }}

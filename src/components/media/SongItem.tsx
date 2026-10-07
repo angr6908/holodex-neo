@@ -127,6 +127,7 @@ export function SongItem({
           <button
             type="button"
             className="absolute inset-0 flex items-center justify-center bg-black/45 text-white outline-none transition-colors hover:bg-black/55 focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={t("component.common.play")}
             onClick={handlePlayNow}
           >
             <ArtworkHoverIcon className="size-5 drop-shadow-sm" />

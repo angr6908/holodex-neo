@@ -110,11 +110,12 @@ export function SearchDropdown() {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+  const { fetchOrgs } = app;
   useEffect(() => {
     if (!open) return;
-    void app.fetchOrgs();
+    void fetchOrgs();
     void fetchTopics();
-  }, [open]);
+  }, [open, fetchOrgs, fetchTopics]);
 
   // Hydrate filters from the URL when on /search
   useEffect(() => {
@@ -132,19 +133,24 @@ export function SearchDropdown() {
       reset();
       return;
     }
+    let cancelled = false;
     (async () => {
       try {
         const { csv2json } = await import("json-2-csv");
         const items = (await csv2json(q)) as FilterItem[];
+        if (cancelled) return;
         setOrgs(items.filter((i) => i.type === "org").map((i) => i.value));
         setChannels(items.filter((i) => i.type === "channel"));
         const selectedTopic = items.find((i) => i.type === "topic")?.value || "";
         setTopic(selectedTopic);
         setQuery(String(items.find((i) => i.type === "title & desc")?.text ?? ""));
       } catch {
-        reset();
+        if (!cancelled) reset();
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [pathname, searchParams]);
 
   // Top-bar autocomplete fetch (debounced)
