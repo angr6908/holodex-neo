@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api";
+import { runWhenSettled } from "@/lib/idle";
 import { loadTwitchEmbedApi } from "@/lib/twitch-embed-api";
 import { twitchLoginOf } from "@/lib/twitch-viewers";
 import { loadYoutubeIframeApi } from "@/lib/youtube-iframe-api";
@@ -71,16 +72,14 @@ export function preloadWatchVideo(video: Record<string, any>, langs: string) {
 
 let warmed = false;
 
-// Once per session, a page listing videos warms the watch page when the browser is idle, as
+// Once per session, a page listing videos warms the watch page once the page has settled, as
 // opening a video is likely: `prefetchRoute` fetches the route (and with it the page's code) and
 // the YouTube IFrame API is loaded.
 export function warmWatchPageWhenIdle(prefetchRoute: () => void) {
   if (warmed) return;
   warmed = true;
-  const warm = () => {
+  runWhenSettled(() => {
     prefetchRoute();
     void loadYoutubeIframeApi().catch(() => {});
-  };
-  if ("requestIdleCallback" in window) requestIdleCallback(warm, { timeout: 4000 });
-  else setTimeout(warm, 2000);
+  }, 300);
 }

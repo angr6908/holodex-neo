@@ -3,7 +3,6 @@
 import axios from "axios";
 import equal from "fast-deep-equal";
 import {
-  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -24,12 +23,11 @@ import {
   type LayoutItem,
   mobilePresets,
 } from "@/lib/mv-utils";
+import { MultiviewContext } from "@/lib/multiview-context";
 
 const STORAGE_KEY = "holodex-v2-multiview";
 const BATCH = 25;
 const DEBOUNCE = 140;
-
-const MultiviewContext = createContext<any>(null);
 
 const collides = (a: LayoutItem, b: LayoutItem) =>
   a.i !== b.i && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -496,4 +494,4 @@ export function useMultiviewStore() {
   return s;
 }
 
-export const useOptionalMultiviewStore = () => useContext(MultiviewContext);
+export { useOptionalMultiviewStore } from "@/lib/multiview-context";

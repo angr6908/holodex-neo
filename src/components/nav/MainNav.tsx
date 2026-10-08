@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -11,11 +12,8 @@ import {
   type HomeNavSelection,
 } from "@/components/nav/HomeNavSegments";
 import { useNavUserMenu } from "@/components/nav/NavUserMenu";
-import { PlaylistPanel } from "@/components/nav/PlaylistPanel";
 import { VideoListTopControls } from "@/components/nav/VideoListTopControls";
 import { SearchDropdown } from "@/components/search/SearchDropdown";
-import { AboutSection } from "@/components/setting/AboutSection";
-import { SettingsPage } from "@/components/setting/SettingsPage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -26,9 +24,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { musicdexURL } from "@/lib/consts";
 import { type AppBootState, HOME_TABS, type HomeUiState } from "@/lib/cookie-codec";
 import { displayModeFor } from "@/lib/display-mode";
+import { useHasBeenTrue } from "@/lib/hooks";
 import { LayoutDashboard, ListVideo, Music, Search, Settings as SettingsIcon } from "@/lib/icons";
+import { loadAboutSection, loadPlaylistPanel, loadSettingsPage } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+const PlaylistPanel = dynamic(() => loadPlaylistPanel().then((m) => m.PlaylistPanel), {
+  ssr: false,
+});
+const SettingsPage = dynamic(() => loadSettingsPage().then((m) => m.SettingsPage), {
+  ssr: false,
+});
+const AboutSection = dynamic(() => loadAboutSection().then((m) => m.AboutSection), {
+  ssr: false,
+});
+// Pointing at or focusing a nav button starts loading its popover's content, in case it is
+// opened before the page has warmed it (see warmLazyComponentsWhenSettled).
+const preloadOnIntent = (load: () => Promise<unknown>) => {
+  const preload = () => void load().catch(() => {});
+  return { onPointerEnter: preload, onFocus: preload };
+};
+const loadSettingsPopover = () => Promise.all([loadSettingsPage(), loadAboutSection()]);
 
 // Nav buttons dip on press even when they open a popup (the Button base skips aria-haspopup).
 const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px";
@@ -179,6 +196,7 @@ function PlaylistButton({
   const t = useTranslations();
   const app = useAppState();
   const playlistCount = app.playlist.length;
+  const panelUsed = useHasBeenTrue(open);
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
@@ -192,6 +210,7 @@ function PlaylistButton({
             className={cn("relative", NAV_BUTTON_PRESS_CLASS)}
             pressHighlight
             selected={open}
+            {...preloadOnIntent(loadPlaylistPanel)}
           />
         }
       >
@@ -202,7 +221,7 @@ function PlaylistButton({
           </Badge>
         ) : null}
       </PopoverTrigger>
-      <PlaylistPanel open={open} onOpenChange={onOpenChange} />
+      {panelUsed ? <PlaylistPanel open={open} onOpenChange={onOpenChange} /> : null}
     </Popover>
   );
 }
@@ -228,6 +247,7 @@ function SettingsButton({
             className={NAV_BUTTON_PRESS_CLASS}
             pressHighlight
             selected={open}
+            {...preloadOnIntent(loadSettingsPopover)}
           />
         }
       >
@@ -411,7 +431,9 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               className="flex shrink-0 items-center gap-2 pr-1 text-left no-underline select-none"
             >
               <img
-                src="/img/icons/uetchy_logo_morespace.png"
+                src="/img/icons/uetchy_logo_morespace-84.png"
+                width={28}
+                height={28}
                 className="h-7 w-7 object-contain"
                 alt=""
               />

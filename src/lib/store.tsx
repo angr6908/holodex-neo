@@ -33,6 +33,7 @@ import {
   type HomeUiState,
 } from "@/lib/cookie-codec";
 import { getLang, getLiveViewerCount, getUILang, videoTemporalComparator } from "@/lib/functions";
+import { HOME_LIVE_QUERY, homeLiveTargets } from "@/lib/live-list";
 import {
   primeTwitchViewerCounts,
   subscribeTwitchViewerCounts,
@@ -915,9 +916,7 @@ function useLiveFetchers(stateRef: StateRef, setState: SetState) {
       const current = stateRef.current;
       if (pageHidden() && !opts.force) return null;
       const { force = false, minutes = 5 } = opts;
-      const orgTargets = current.selectedHomeOrgs.length
-        ? current.selectedHomeOrgs
-        : [ALL_VTUBERS_ORG];
+      const orgTargets = homeLiveTargets(current.selectedHomeOrgs);
       const nextKey = liveCacheKey(orgTargets);
       const cacheChanged = current.homeLiveCacheKey !== nextKey;
       if (homeInflight.current && !cacheChanged) return homeInflight.current;
@@ -935,7 +934,7 @@ function useLiveFetchers(stateRef: StateRef, setState: SetState) {
       const seq = ++homeSeq.current;
       const isCurrent = () => seq === homeSeq.current;
       const p = api
-        .allLive(orgTargets, { type: "placeholder,stream", include: "mentions" }, { force })
+        .allLive(orgTargets, HOME_LIVE_QUERY, { force })
         .then((res: any[]) => {
           if (!isCurrent()) return;
           // `_ccv` is already injected (and offline Twitch streams dropped) by the API proxy.

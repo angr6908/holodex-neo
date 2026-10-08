@@ -1,12 +1,13 @@
 "use client";
 
 import { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { CARD_AVATAR_SIZE } from "@/components/channel/avatar-size";
 import { ChannelImg } from "@/components/channel/ChannelImg";
-import { VideoCardMenu } from "@/components/common/VideoCardMenu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,7 +29,8 @@ import {
   YoutubeIcon,
 } from "@/lib/icons";
 import { preloadImage } from "@/lib/image-preload";
-import { useOptionalMultiviewStore } from "@/lib/multiview-store";
+import { loadVideoCardMenu } from "@/lib/lazy";
+import { useOptionalMultiviewStore } from "@/lib/multiview-context";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
@@ -41,6 +43,11 @@ import {
   viewerCountText,
 } from "@/lib/video-format";
 import { preloadWatchPlayer, preloadWatchVideo, warmWatchPageWhenIdle } from "@/lib/watch-preload";
+
+// The context menu's content loads with the menu.
+const VideoCardMenu = dynamic(() => loadVideoCardMenu().then((m) => m.VideoCardMenu), {
+  ssr: false,
+});
 
 function externalHref(link = "") {
   if (!link) return "";
@@ -119,10 +126,16 @@ function hasTlsFor(data: any, tlLang: string) {
 // Time, viewer and duration texts shared by the thumbnail badges and the meta row.
 function videoCardTimes(data: any, lang: string, t: any, displayStartTime: boolean) {
   const viewerCount = viewerCountText(data, lang);
+  let absoluteTimeText: string | undefined;
   return {
     durationText: formattedDuration(data, t),
     compactTimeText: compactVideoTime(data, lang, undefined, displayStartTime),
-    absoluteTimeText: absoluteTime(data, lang, displayStartTime),
+    // Only the time metric's tooltip (not shown for live streams) reads it, and formatting it in
+    // two time zones is costly, so it's formatted on first read.
+    get absoluteTimeText() {
+      absoluteTimeText ??= absoluteTime(data, lang, displayStartTime);
+      return absoluteTimeText;
+    },
     viewerCount,
     viewerLabel: viewerCount ? t("component.videoCard.watching", { arg0: viewerCount }) : "",
   };
@@ -441,8 +454,11 @@ function VideoCardTitle({
   const gridSize = app.currentGridSize;
   return (
     <div className={cn("min-h-0", denseList ? "m-0 min-w-0 flex-1 overflow-hidden" : "flex-none")}>
+      {/* The card prefetches the watch route on hover, focus and press (useWatchPrefetch), so a
+          list of cards doesn't prefetch every route it scrolls into view. */}
       <Link
         href={href}
+        prefetch={false}
         lang="en"
         className={cn(
           "video-card-title select-text text-left font-medium no-underline",
@@ -536,7 +552,7 @@ function ChannelMetaRow({
           <ChannelAvatarButton
             channel={data.channel}
             channelName={channelName}
-            size={24}
+            size={CARD_AVATAR_SIZE}
             onClick={onChannel}
           />
         ) : null}

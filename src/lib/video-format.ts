@@ -50,10 +50,15 @@ const resizeTwitchPreview = (t: string, size: ThumbnailSize) => {
   return t.replace(/-\d+x\d+(\.jpg)(?=([?#]|$))/i, `-${w}x${h}$1`);
 };
 
+// Narrow grid cards use the medium image on standard-density screens.
+const densityDependent = (opts: { horizontal?: boolean; colSize?: number }) => {
+  const cs = opts.colSize || 1;
+  return !opts.horizontal && cs > 2 && cs <= 8;
+};
+
 const sizeForVideo = (opts: { horizontal?: boolean; colSize?: number } = {}): ThumbnailSize => {
   if (opts.horizontal) return "medium";
-  const cs = opts.colSize || 1;
-  if (cs > 2 && cs <= 8 && typeof window !== "undefined")
+  if (densityDependent(opts) && typeof window !== "undefined")
     return window.devicePixelRatio > 1 ? "standard" : "medium";
   return "standard";
 };
@@ -107,17 +112,34 @@ export function videoTitle(v: any, useEnglish = true) {
   return decodeHTMLEntities(t || "");
 }
 
+function videoImageOfSize(v: any, size: ThumbnailSize, forceJpg?: boolean) {
+  if (v.thumbnail) return thumbnailImage(v.thumbnail, size);
+  const login = twitchLoginOf(v);
+  if (login) return twitchPreviewUrl(login, size);
+  if (v.type === "placeholder") return getChannelPhoto(v.channel_id || v.channel?.id);
+  return getVideoThumbnails(v.id, !forceJpg)[size];
+}
+
 export function videoImage(
   v: any,
   opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {},
 ) {
   if (!v) return "";
-  const size = sizeForVideo(opts);
-  if (v.thumbnail) return thumbnailImage(v.thumbnail, size);
-  const login = twitchLoginOf(v);
-  if (login) return twitchPreviewUrl(login, size);
-  if (v.type === "placeholder") return getChannelPhoto(v.channel_id || v.channel?.id);
-  return getVideoThumbnails(v.id, !opts.forceJpg)[size];
+  return videoImageOfSize(v, sizeForVideo(opts), opts.forceJpg);
+}
+
+// A preload for the image videoImage() picks, for the server, which doesn't know the screen's
+// pixel density: where the choice depends on it, both candidates as a density srcset.
+export function videoImagePreload(
+  v: any,
+  opts: { horizontal?: boolean; colSize?: number; forceJpg?: boolean } = {},
+): { href: string; imageSrcSet?: string } {
+  if (!densityDependent(opts)) return { href: videoImage(v, opts) };
+  const medium = videoImageOfSize(v, "medium", opts.forceJpg);
+  const standard = videoImageOfSize(v, "standard", opts.forceJpg);
+  return medium === standard
+    ? { href: medium }
+    : { href: medium, imageSrcSet: `${medium} 1x, ${standard} 2x` };
 }
 
 export function formattedDuration(v: any, t: any, now = Date.now()) {

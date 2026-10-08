@@ -19,9 +19,9 @@ import {
   ensureFavoritesVideoFetch,
   ensureHomeMultiOrgVideoFetch,
   getHomeMultiOrgVideoCache,
-  hasHomeMultiOrgVideoCache,
 } from "@/lib/home-video-loader";
 import { useDomElement } from "@/lib/hooks";
+import { runWhenSettled } from "@/lib/idle";
 import { useAppState } from "@/lib/store";
 import { getBreakpoint } from "@/lib/utils";
 
@@ -354,13 +354,15 @@ function useLiveWindow({
 
 // Warm the other tabs' caches once so switching to them is instant. Each cache is then
 // freshened on activation (tab-change effect above) instead of on a rolling 60s timer,
-// and the live lists are owned by the store's central poll.
+// and the live lists are owned by the store's central poll. Warming waits until the shown
+// list has loaded and the page has settled, so it never delays what is on screen.
 function useWarmTabCaches(
   app: AppState,
   {
     isActive,
     isFavPage,
     tab,
+    shownListLoaded,
     keyFor,
     buildQuery,
     targets,
@@ -368,6 +370,7 @@ function useWarmTabCaches(
     isActive: boolean;
     isFavPage: boolean;
     tab: number;
+    shownListLoaded: boolean;
     keyFor: (tv: number, fav?: boolean) => string;
     buildQuery: (tv: number) => Record<string, any>;
     targets: any[];
@@ -377,18 +380,31 @@ function useWarmTabCaches(
   const warmFavorites = !!jwt && app.isLoggedIn && app.favoriteChannelIDs.size > 0;
   const hydrated = app.hydrated;
   useEffect(() => {
-    if (!isActive || !hydrated) return;
-    const contexts = warmFavorites && !isFavPage ? [false, true] : [isFavPage];
-    contexts.forEach((fav) => {
-      OTHER_TABS.forEach((tv) => {
-        if (fav === isFavPage && tv === tab) return;
-        const key = keyFor(tv, fav);
-        const q = buildQuery(tv);
-        if (fav) ensureFavoritesVideoFetch(key, q, jwt!, tv);
-        else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
+    if (!isActive || !hydrated || !shownListLoaded) return;
+    return runWhenSettled(() => {
+      const contexts = warmFavorites && !isFavPage ? [false, true] : [isFavPage];
+      contexts.forEach((fav) => {
+        OTHER_TABS.forEach((tv) => {
+          if (fav === isFavPage && tv === tab) return;
+          const key = keyFor(tv, fav);
+          const q = buildQuery(tv);
+          if (fav) ensureFavoritesVideoFetch(key, q, jwt!, tv);
+          else ensureHomeMultiOrgVideoFetch(key, q, targets, tv);
+        });
       });
     });
-  }, [isActive, isFavPage, hydrated, warmFavorites, jwt, tab, keyFor, buildQuery, targets]);
+  }, [
+    isActive,
+    isFavPage,
+    hydrated,
+    shownListLoaded,
+    warmFavorites,
+    jwt,
+    tab,
+    keyFor,
+    buildQuery,
+    targets,
+  ]);
 }
 
 // The list loader reads from the warmed multi-org/favorites cache for this list identity.
@@ -399,7 +415,6 @@ function useCachedLoadFn({
   isFavPage,
   jwt,
   cacheKey,
-  keyFor,
   targets,
 }: {
   buildQuery: (tv: number) => Record<string, any>;
@@ -408,45 +423,31 @@ function useCachedLoadFn({
   isFavPage: boolean;
   jwt: string | null;
   cacheKey: string;
-  keyFor: (tv: number, fav?: boolean) => string;
   targets: any[];
 }) {
   return useMemo(() => {
+    // The live tab renders the store's live list, not this loader.
+    if (tab === HOME_TABS.LIVE_UPCOMING) return async () => [];
+    if (isFavPage && !jwt) return async () => [];
     const query: Record<string, any> = buildQuery(tab);
     query.paginated = !scrollMode;
-    const readCache = (key: string) => {
-      const cached = getHomeMultiOrgVideoCache(key)!;
-      return async (offset: number, limit: number) => {
-        await cached.page1;
-        await fetchCacheUntil(cached, offset + limit);
-        const snap = cached.getCurrentItems();
-        const slice = snap.slice(offset, offset + limit);
-        if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
-        return scrollMode
-          ? slice
-          : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
-      };
+    // The cache (and its first request) is created when the list first loads, not during render,
+    // so neither server rendering nor a render that never commits starts a request. The other
+    // tabs are warmed separately once the page has settled (useWarmTabCaches).
+    return async (offset: number, limit: number) => {
+      if (isFavPage) ensureFavoritesVideoFetch(cacheKey, query, jwt!, tab);
+      else ensureHomeMultiOrgVideoFetch(cacheKey, query, targets, tab);
+      const cached = getHomeMultiOrgVideoCache(cacheKey)!;
+      await cached.page1;
+      await fetchCacheUntil(cached, offset + limit);
+      const snap = cached.getCurrentItems();
+      const slice = snap.slice(offset, offset + limit);
+      if (!cached.isExhausted() && snap.length - (offset + limit) < limit * 4) cached.fetchMore();
+      return scrollMode
+        ? slice
+        : { items: slice, total: cached.isExhausted() ? snap.length : snap.length + limit };
     };
-    if (isFavPage) {
-      if (!jwt) return async () => [];
-      ensureFavoritesVideoFetch(cacheKey, query, jwt, tab);
-      OTHER_TABS.forEach((otherTab) => {
-        if (otherTab === tab) return;
-        const key = keyFor(otherTab, true);
-        if (!hasHomeMultiOrgVideoCache(key))
-          ensureFavoritesVideoFetch(key, buildQuery(otherTab), jwt, otherTab);
-      });
-      return readCache(cacheKey);
-    }
-    ensureHomeMultiOrgVideoFetch(cacheKey, query, targets, tab);
-    OTHER_TABS.forEach((otherTab) => {
-      if (otherTab === tab) return;
-      const key = keyFor(otherTab);
-      if (!hasHomeMultiOrgVideoCache(key))
-        ensureHomeMultiOrgVideoFetch(key, buildQuery(otherTab), targets, otherTab);
-    });
-    return readCache(cacheKey);
-  }, [buildQuery, tab, scrollMode, isFavPage, jwt, cacheKey, keyFor, targets]);
+  }, [buildQuery, tab, scrollMode, isFavPage, jwt, cacheKey, targets]);
 }
 
 // How the list's cards and skeletons are laid out.
@@ -747,7 +748,16 @@ export function ConnectedVideoList({
     cacheKey,
   });
   const { liveLimit, liveSentinel } = useLiveWindow({ cacheKey, perRow, tab, total });
-  useWarmTabCaches(app, { isActive, isFavPage, tab, keyFor, buildQuery, targets });
+  useWarmTabCaches(app, {
+    isActive,
+    isFavPage,
+    tab,
+    // The archive/clips loaders show their own progress; the live tab waits for its list.
+    shownListLoaded: tab !== HOME_TABS.LIVE_UPCOMING || !isLoading,
+    keyFor,
+    buildQuery,
+    targets,
+  });
   const loadFn = useCachedLoadFn({
     buildQuery,
     tab,
@@ -755,7 +765,6 @@ export function ConnectedVideoList({
     isFavPage,
     jwt: app.userdata.jwt,
     cacheKey,
-    keyFor,
     targets,
   });
 

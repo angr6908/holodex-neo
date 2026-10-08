@@ -1,9 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { CalendarUsage } from "@/components/nav/CalendarUsage";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,12 @@ import { consumeOpenUserMenuRequest, OPEN_USER_MENU_EVENT } from "@/lib/browser"
 import { ALL_VTUBERS_ORG } from "@/lib/consts";
 import { useHostname } from "@/lib/hooks";
 import { Check, Copy, DiscordIcon, GoogleIcon, LogIn, LogOut, Pencil, XIcon } from "@/lib/icons";
+import { loadCalendarUsage } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
+
+const CalendarUsage = dynamic(() => loadCalendarUsage().then((m) => m.CalendarUsage), {
+  ssr: false,
+});
 
 const GOOGLE_CLIENT_ID = "275540829388-87s7f9v2ht3ih51ah0tjkqng8pd8bqo2.apps.googleusercontent.com";
 

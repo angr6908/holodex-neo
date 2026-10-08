@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { channelAvatarSizeClass } from "@/components/channel/avatar-size";
 import { Avatar } from "@/components/ui/avatar";
-import { getChannelPhoto, resizeChannelPhoto } from "@/lib/functions";
+import { getChannelPhoto, getChannelPhotoSrcSet, resizeChannelPhoto } from "@/lib/functions";
 import { preloadImage } from "@/lib/image-preload";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +38,17 @@ export function ChannelImg({
   }, [channelId, channelPhoto]);
   const photo = photoSources[sourceIndex] || "";
   const hasImage = !err && !!photo;
+  // The Holodex photo comes in several sizes; the fallback (YouTube's) in one.
+  const responsive = useMemo(
+    () =>
+      channelId && photo === getChannelPhoto(channelId)
+        ? { srcSet: getChannelPhotoSrcSet(channelId), sizes: `${px}px` }
+        : null,
+    [channelId, photo, px],
+  );
   useEffect(() => {
-    if (hasImage) void preloadImage(photo);
-  }, [hasImage, photo]);
+    if (hasImage) void preloadImage(photo, responsive);
+  }, [hasImage, photo, responsive]);
 
   const onImgError = () =>
     setFallback(
@@ -58,8 +66,9 @@ export function ChannelImg({
         <img
           key={photo}
           src={photo}
+          srcSet={responsive?.srcSet}
+          sizes={responsive?.sizes}
           loading="eager"
-          fetchPriority="high"
           decoding="sync"
           width={px}
           height={px}

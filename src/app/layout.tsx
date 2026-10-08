@@ -3,19 +3,14 @@ import Script from "next/script";
 import "./globals.css";
 import { Noto_Sans_JP } from "next/font/google";
 import localFont from "next/font/local";
-import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { AppProviders } from "@/components/app/AppProviders";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import {
-  APP_BOOT_COOKIE,
-  decodeAppBootCookie,
-  decodeHomeStateCookie,
-  HOME_STATE_COOKIE,
-} from "@/lib/cookie-codec";
+import { APP_BOOT_COOKIE, HOME_STATE_COOKIE } from "@/lib/cookie-codec";
+import { readBootState } from "@/lib/server/boot-state";
 import { LEGACY_THEME_COLOR } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 
@@ -24,15 +19,19 @@ const geistSans = localFont({
   variable: "--font-geist",
   weight: "100 900",
 });
+// Only a few inputs (API key, script editor) use the monospace face, so it isn't preloaded.
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff2",
   variable: "--font-geist-mono",
   weight: "100 900",
+  preload: false,
 });
 // Video-card title typeface. Noto Sans JP covers Latin + CJK, so titles render consistently in every UI language.
 // preload disabled — the glyph set is large and only needed for the title.
+// Titles are font-medium, so only that weight is declared: each weight adds ~120 unicode-range
+// @font-face rules to the render-blocking stylesheet.
 const notoSansJp = Noto_Sans_JP({
-  weight: ["400", "500", "700"],
+  weight: "500",
   variable: "--font-noto-jp",
   display: "swap",
   preload: false,
@@ -159,18 +158,7 @@ ${themeBootSnippet}
 })();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const requestHeaders = await headers();
-  const cookieBootState = decodeAppBootCookie(cookieStore.get(APP_BOOT_COOKIE)?.value);
-  const initialHomeState = decodeHomeStateCookie(cookieStore.get(HOME_STATE_COOKIE)?.value);
-  const requestIsMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(
-    requestHeaders.get("user-agent") || "",
-  );
-  const initialBootState = {
-    ...cookieBootState,
-    isMobile: cookieBootState?.isMobile ?? requestIsMobile,
-    windowWidth: cookieBootState?.windowWidth ?? (requestIsMobile ? 390 : 1440),
-  };
+  const { boot: initialBootState, homeState: initialHomeState } = await readBootState();
   const locale = await getLocale();
   return (
     <html

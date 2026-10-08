@@ -1,19 +1,18 @@
 import axios from "axios";
-import { ALL_VTUBERS_ORG, CACHE_TTL_MS, CHANNEL_URL_REGEX, VIDEO_URL_REGEX } from "@/lib/consts";
+import { CACHE_TTL_MS, CHANNEL_URL_REGEX, VIDEO_URL_REGEX } from "@/lib/consts";
+import {
+  isLiveInWindow,
+  type LiveListSeed,
+  liveListOrgs,
+  liveListPath,
+  queryString as qs,
+} from "@/lib/live-list";
 import { dayjs } from "@/lib/time";
 
 const MCHATX = "https://repo.mchatx.org";
 const MAX_CONCURRENT = 6;
-
-function qs(obj: Record<string, any> = {}) {
-  const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(obj))
-    if (v !== undefined && v !== null) p.append(k, String(v));
-  return p.toString();
-}
-
-const isLiveInWindow = (live: any) =>
-  !!live.start_actual || !dayjs().isAfter(dayjs(live.start_scheduled).add(2, "h"));
+// A seeded live list is only used by a request made soon after the page loaded.
+const SEED_TTL_MS = 30_000;
 
 let active = 0;
 const queue: Array<() => void> = [];
@@ -39,17 +38,12 @@ const enqueue = <T>(fn: () => Promise<T>) =>
     else queue.push(run);
   });
 
-function dedupGet<T>(url: string, config?: any, force = false): Promise<T> {
-  const key = url + (config ? JSON.stringify(config) : "");
-  const e = cache.get(key);
-  if (!force && e) {
-    if (Date.now() - e.ts < CACHE_TTL_MS) return Promise.resolve(e.data);
-    cache.delete(key);
-  }
-  const existing = inflight.get(key);
-  if (existing) return existing;
-  const p = enqueue(() => ax.get(url, config))
-    .then((res: any) => {
+const requestKey = (url: string, config?: any) => url + (config ? JSON.stringify(config) : "");
+
+// Records an in-flight request so identical requests share it, and caches its response.
+function track(key: string, request: Promise<any>): Promise<any> {
+  const p = request
+    .then((res) => {
       cache.set(key, { data: res, ts: Date.now() });
       return res;
     })
@@ -58,7 +52,35 @@ function dedupGet<T>(url: string, config?: any, force = false): Promise<T> {
   return p;
 }
 
+function dedupGet<T>(url: string, config?: any, force = false): Promise<T> {
+  const key = requestKey(url, config);
+  const e = cache.get(key);
+  if (!force && e) {
+    if (Date.now() - e.ts < CACHE_TTL_MS) return Promise.resolve(e.data);
+    cache.delete(key);
+  }
+  const existing = inflight.get(key);
+  if (existing) return existing;
+  return track(key, enqueue(() => ax.get(url, config)));
+}
+
 const ax = axios.create({ baseURL: "/api/v2", timeout: 30000 });
+
+// Live lists the server started loading with the page (see app/page.tsx), by request path.
+const liveSeeds = new Map<string, Promise<any[]>>();
+
+export function seedLiveLists(seeds?: LiveListSeed[] | null) {
+  // A promise passed from the server arrives as a thenable whose then() doesn't chain.
+  for (const { path, data } of seeds || []) liveSeeds.set(path, Promise.resolve(data));
+}
+
+// The seed for a request, used only while the page is fresh: seeds come with the document, and
+// a later client-side navigation home may reuse its cached payload, seeds and all.
+function takeLiveSeed(path: string) {
+  const seed = liveSeeds.get(path);
+  liveSeeds.delete(path);
+  return seed && performance.now() < SEED_TTL_MS ? seed : null;
+}
 
 // v3 autocomplete returns groups ({ vtuber, topic }); flatten to a typed suggestion list.
 function normalizeAutocomplete(data: any) {
@@ -137,9 +159,12 @@ export const api = {
   channels: (q: Record<string, any> = {}) => dedupGet(`/channels?${qs(q)}`),
   videos: (q: Record<string, any> = {}) => dedupGet(`/videos?${qs(q)}`),
   live: ({ org, ...q }: Record<string, any> = {}, { force = false }: { force?: boolean } = {}) => {
-    const scoped = org && org !== ALL_VTUBERS_ORG;
-    const url = `/live?${qs({ limit: 3000, ...(scoped ? { org } : {}), ...q })}`;
+    const url = liveListPath(org, q);
     const config = { timeout: 10000 };
+    // The list the server loaded with the page answers this request (and any identical one made
+    // meanwhile); if it failed, the retry below requests it.
+    const seeded = takeLiveSeed(url);
+    if (seeded) track(requestKey(url, config), seeded.then((data) => ({ data })));
     return dedupGet<any>(url, config, force)
       .catch(() => dedupGet<any>(url, config, force))
       .then((res: any) => (res.data || []).filter(isLiveInWindow));
@@ -251,9 +276,9 @@ export const api = {
       );
   },
   allLive(orgs: string[] = [], q: Record<string, any> = {}, opts: { force?: boolean } = {}) {
-    const t = (orgs || []).filter(Boolean);
-    if (!t.length || t.includes(ALL_VTUBERS_ORG)) return api.live({ ...q }, opts);
-    return Promise.all(t.map((org) => api.live({ ...q, org }, opts))).then((r) => r.flat());
+    return Promise.all(liveListOrgs(orgs || []).map((org) => api.live({ ...q, org }, opts))).then(
+      (r) => r.flat(),
+    );
   },
   patchFavorites: (jwt: string | null, ops: any[]) =>
     ax.patch("/users/favorites", ops, { headers: H(jwt) }),

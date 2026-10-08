@@ -132,7 +132,9 @@ export function applyThemeColor(hex: string) {
     el.id = "holodex-theme-vars";
     document.head.appendChild(el);
   }
-  el.textContent = css;
+  // Usually the inline boot script already applied this palette; replacing an identical
+  // stylesheet would still restyle the whole page.
+  if (el.textContent !== css) el.textContent = css;
 }
 
 function createTheme({ name, id, color }: { name: string; id: number; color: string }) {
@@ -230,10 +232,12 @@ const MEMBERS = [
 const DEFAULT_THEME_ID = MEMBERS.length;
 const defaultTheme = createTheme({ name: "Default", id: DEFAULT_THEME_ID, color: "#38bdf8" });
 
+// One collator: localeCompare() with options builds a new one for every comparison.
+const byName = new Intl.Collator("en", { sensitivity: "base", numeric: true });
 const themeSet = [
   ...MEMBERS.map(([, name, color], id) => createTheme({ name, id, color })),
   defaultTheme,
-].sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base", numeric: true }));
+].sort((a, b) => byName.compare(a.name, b.name));
 
 export function resolveThemeById(themeId: number | string) {
   return themeSet.find((item) => item.id === Number(themeId)) || defaultTheme;

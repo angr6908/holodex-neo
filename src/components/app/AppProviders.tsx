@@ -1,21 +1,27 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ReportDialog } from "@/components/app/ReportDialog";
 import { MainNav } from "@/components/nav/MainNav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { openUserMenu, setLocaleCookie } from "@/lib/browser";
 import type { AppBootState, HomeUiState } from "@/lib/cookie-codec";
+import { useHasBeenTrue } from "@/lib/hooks";
 import * as icons from "@/lib/icons";
+import { loadReportDialog, warmLazyComponentsWhenSettled } from "@/lib/lazy";
 import { pullToRefresh } from "@/lib/mobile-pull-to-refresh";
 import { AppStateProvider, useAppState } from "@/lib/store";
 import { applyThemeColor, getComputedThemeColor } from "@/lib/themes";
 import { configureDayjsLocale } from "@/lib/time";
 import { viewportBand } from "@/lib/utils";
+
+const ReportDialog = dynamic(() => loadReportDialog().then((m) => m.ReportDialog), {
+  ssr: false,
+});
 
 export function AppProviders({
   children,
@@ -262,6 +268,9 @@ function AppChrome({ initialBootState }: { initialBootState?: AppBootState | nul
   const app = useAppState();
   const t = useTranslations();
   const [showTwitter, setShowTwitter] = useState(false);
+  const reportUsed = useHasBeenTrue(!!app.reportVideo);
+
+  useEffect(() => warmLazyComponentsWhenSettled(), []);
 
   useEffect(() => {
     const u = app.userdata?.user;
@@ -293,7 +302,7 @@ function AppChrome({ initialBootState }: { initialBootState?: AppBootState | nul
           </AlertDescription>
         </Alert>
       ) : null}
-      <ReportDialog />
+      {reportUsed ? <ReportDialog /> : null}
     </>
   );
 }

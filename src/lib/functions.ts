@@ -22,6 +22,11 @@ export const formatOrgDisplayName = (name: string) => orgDisplayNameOverrides[na
 export const getChannelPhoto = (channelId?: string, size = 150) =>
   channelId ? `${STATIC_BASE}/channelImg/${channelId}/${size}.png` : "";
 
+// The sizes the channel photo is served in, as a srcset: the browser picks the smallest one that
+// covers the avatar's rendered size (a 24px card avatar needs the 2.8KB 50px file, not 16KB).
+export const getChannelPhotoSrcSet = (channelId?: string) =>
+  channelId ? [50, 100, 150].map((s) => `${getChannelPhoto(channelId, s)} ${s}w`).join(", ") : "";
+
 export const resizeChannelPhoto = (url: string) =>
   typeof url === "string" && url.includes("ggpht.com")
     ? `${url.split("=s")[0]}=s176-c-k-c0x00ffffff-no-rj-mo`

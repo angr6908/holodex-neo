@@ -84,6 +84,14 @@ export function useDeferredCallbacks() {
   }, []);
 }
 
+// Whether `value` has been true: lazily loaded UI mounts on first use and then stays mounted,
+// keeping its state and its closing animations.
+export function useHasBeenTrue(value: boolean) {
+  const [hasBeen, setHasBeen] = useState(value);
+  if (value && !hasBeen) setHasBeen(true);
+  return hasBeen || value;
+}
+
 export function useDomElement<T extends HTMLElement = HTMLElement>(id: string) {
   const [element, setElement] = useState<T | null>(null);
 

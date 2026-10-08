@@ -1,3 +1,6 @@
+// The channel avatar beside a live/upcoming card's channel name (the home page preloads it).
+export const CARD_AVATAR_SIZE = 24;
+
 export function channelAvatarSizeClass(size: string | number | undefined) {
   const px = Number(size) || 40;
   const classes: Record<number, string> = {

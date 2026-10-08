@@ -1,12 +1,16 @@
 "use client";
+import dynamic from "next/dynamic";
 import { type CSSProperties, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Comment } from "@/components/video/Comment";
 import { VideoCard } from "@/components/video/VideoCard";
 import { makeVideoFilter } from "@/lib/filter-videos";
+import { loadComment } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
 import { cn, GRID_COLUMN_CLASSES, getBreakpoint } from "@/lib/utils";
+
+// Only search results show comments (with linkified text), so they load when shown.
+const Comment = dynamic(() => loadComment().then((m) => m.Comment), { ssr: false });
 
 const NO_VIDEOS: any[] = [];
 const DEFAULT_COLS = { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 };

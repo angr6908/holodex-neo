@@ -1,11 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useEffect, useEffectEvent, useRef } from "react";
-import { ChannelsPage } from "@/components/channel/ChannelsPage";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef } from "react";
 import { ApiErrorMessage } from "@/components/common/ApiErrorMessage";
 import { ConnectedVideoList } from "@/components/video/ConnectedVideoList";
 import { Button } from "@/components/ui/button";
+import { seedLiveLists } from "@/lib/api";
 import {
   Empty,
   EmptyContent,
@@ -17,9 +18,16 @@ import { openUserMenu } from "@/lib/browser";
 import { HOME_TABS as Tabs } from "@/lib/cookie-codec";
 import { useDeferredCallbacks, useSwipeTabs } from "@/lib/hooks";
 import { Heart } from "@/lib/icons";
+import { loadChannelsPage } from "@/lib/lazy";
+import type { LiveListSeed } from "@/lib/live-list";
 import { useAppState } from "@/lib/store";
 
-export function HomeClient() {
+// The channels view loads when it is first shown.
+const ChannelsPage = dynamic(() => loadChannelsPage().then((m) => m.ChannelsPage), {
+  ssr: false,
+});
+
+export function HomeClient({ liveSeeds }: { liveSeeds?: LiveListSeed[] | null }) {
   const app = useAppState();
   const t = useTranslations();
   const defer = useDeferredCallbacks();
@@ -53,6 +61,12 @@ export function HomeClient() {
     init(updateFavs, favOverride),
   );
   const showArchiveTab = useEffectEvent(() => setTab(Tabs.ARCHIVE));
+
+  // The live list the server started loading with the page answers the first request for it.
+  // A layout effect, so it is in place before the effects below make that request.
+  useLayoutEffect(() => {
+    seedLiveLists(liveSeeds);
+  }, [liveSeeds]);
 
   // (Users who open to multiview are redirected by the server page before this renders.)
   useEffect(() => {

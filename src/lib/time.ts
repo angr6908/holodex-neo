@@ -25,6 +25,11 @@ import "dayjs/locale/th";
 [localizedFormat, isTomorrow, advancedFormat, utc, timezone].forEach((p) => {
   dayjs.extend(p);
 });
+// The timezone plugin looks the local zone up (a new Intl.DateTimeFormat) for every zone name
+// it formats; it doesn't change while the page is open.
+const guessTimeZone = dayjs.tz.guess;
+let localTimeZone: string | undefined;
+dayjs.tz.guess = () => (localTimeZone ??= guessTimeZone());
 
 const dayjsLocaleMap: Record<string, string> = {
   zh: "zh-tw",
@@ -98,13 +103,28 @@ export function formatDuration(ms: number) {
   return `${ms < 0 ? "-" : ""}${h ? `${h}:` : ""}${String(m).padStart(h ? 2 : 1, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
+// Each list render formats every card's time in two zones, which is slow; the result only
+// changes with the day (for "tomorrow"), so it is kept per day.
+const titleTimes = new Map<string, string>();
+let titleTimesDay = "";
+
 export function titleTimeString(at: string, lang?: string) {
+  const day = new Date().toDateString();
+  if (day !== titleTimesDay || titleTimes.size > 2000) {
+    titleTimes.clear();
+    titleTimesDay = day;
+  }
+  const key = at ? `${at}|${lang ?? ""}` : "";
+  const cached = key ? titleTimes.get(key) : undefined;
+  if (cached !== undefined) return cached;
   const loc = getDayjsLocale(lang);
   const ts = dayjs(at).locale(loc);
   const fmt = `${ts.isTomorrow() ? "ddd " : ""}LT zzz`;
   const a = ts.format(fmt),
     b = ts.tz("Asia/Tokyo").locale(loc).format(fmt);
-  return a === b ? a : `${a}\n${b}`;
+  const text = a === b ? a : `${a}\n${b}`;
+  if (key) titleTimes.set(key, text);
+  return text;
 }
 
 export function formatDistance(

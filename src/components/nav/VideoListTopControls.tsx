@@ -1,11 +1,11 @@
 "use client";
 
 import dayjs from "dayjs";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toggle } from "@/components/ui/toggle";
 import { VideoListFilters } from "@/components/video/VideoListFilters";
@@ -24,6 +24,10 @@ import {
   ListFilter,
   Rows3,
 } from "@/lib/icons";
+import { loadCalendar } from "@/lib/lazy";
+
+// The date picker (react-day-picker) loads with its popover.
+const Calendar = dynamic(() => loadCalendar().then((m) => m.Calendar), { ssr: false });
 
 // Nav buttons dip on press even when they open a popup (the Button base skips aria-haspopup).
 const NAV_BUTTON_PRESS_CLASS = "active:translate-y-px";
