@@ -4,7 +4,7 @@
   "routes": [
     {
       "src": "^/(watch|search|edit/video|api/v2/videos/[^/]+|youtube-live-viewers|twitch-live-viewers|twitch-stream-info)(/.*)?$",
-      "has": [{ "type": "header", "key": "user-agent", "value": { "re": "Applebot|bingbot" } }],
+      "has": [{ "type": "header", "key": "user-agent", "value": { "re": "Applebot|bingbot|DuckDuckBot" } }],
       "mitigate": { "action": "deny" }
     },
     {
