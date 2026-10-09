@@ -420,7 +420,7 @@ function NavScrollStrip({ children }: { children: React.ReactNode }) {
       ref={stripRef}
       data-overflow-left={overflow.left || undefined}
       data-overflow-right={overflow.right || undefined}
-      className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_2.5rem,#000_calc(100%-2.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
+      className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_1.5rem,#000_calc(100%-1.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
     >
       {children}
     </div>
