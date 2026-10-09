@@ -26,6 +26,8 @@ type HomeOrgMultiSelectProps = {
   buttonVariant?: string;
   buttonPressHighlight?: boolean;
   iconOnly?: boolean;
+  // Show the number of selected orgs as a badge when there are two or more.
+  countBadge?: boolean;
   emptySelectionLabel?: string;
   clearSelectionLabel?: string;
   fallbackSelection?: string[];
@@ -55,17 +57,19 @@ const preferredOrgNames = [
 
 const NO_NAMES: string[] = [];
 
-// Icon-only triggers show just a count badge (past two orgs); full triggers add the label.
+// The org icon plus, with `showCount`, a badge with the number of orgs: in the corner of an
+// icon-only trigger, or in place of a full trigger's label.
 function OrgTriggerContent({
   iconOnly,
   count,
+  showCount,
   label,
 }: {
   iconOnly: boolean;
   count: number;
+  showCount: boolean;
   label: string;
 }) {
-  const showCount = count > 1;
   if (iconOnly)
     return (
       <>
@@ -97,6 +101,7 @@ export function HomeOrgMultiSelect({
   buttonVariant = "secondary",
   buttonPressHighlight,
   iconOnly = false,
+  countBadge = true,
   emptySelectionLabel = ALL_VTUBERS_ORG,
   clearSelectionLabel = ALL_VTUBERS_ORG,
   fallbackSelection = [],
@@ -153,8 +158,10 @@ export function HomeOrgMultiSelect({
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
   }, [selectedNames, emptySelectionLabel, allVtubersLabel, t, formatSelectionLabel]);
-  // Two or more orgs show as a count badge; the label names the count for screen readers.
-  const showSelectedCount = selectedNames.length > 1;
+  // Two or more orgs show as a count (a badge unless turned off); the label names the count for
+  // screen readers.
+  const multipleSelected = selectedNames.length > 1;
+  const showCountBadge = countBadge && multipleSelected;
 
   const clearLabel =
     clearSelectionLabel === ALL_VTUBERS_ORG ? allVtubersLabel : clearSelectionLabel;
@@ -216,11 +223,11 @@ export function HomeOrgMultiSelect({
             type="button"
             variant={buttonVariant as any}
             pressHighlight={buttonPressHighlight}
-            aria-label={showSelectedCount ? triggerLabel : undefined}
+            aria-label={multipleSelected ? triggerLabel : undefined}
             className={cn(
               "justify-between transition-colors",
               className,
-              showSelectedCount && iconOnly && "relative",
+              showCountBadge && iconOnly && "relative",
               selectedNames.length > 0 && buttonVariant !== "outline" && "bg-muted dark:bg-muted",
             )}
           />
@@ -229,6 +236,7 @@ export function HomeOrgMultiSelect({
         <OrgTriggerContent
           iconOnly={iconOnly}
           count={selectedNames.length}
+          showCount={showCountBadge}
           label={triggerLabel}
         />
       </PopoverTrigger>

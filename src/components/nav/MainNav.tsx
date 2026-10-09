@@ -445,6 +445,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
             <div className="shrink-0 sm:hidden">
               <HomeOrgMultiSelect
                 iconOnly
+                countBadge={false}
                 buttonVariant="outline"
                 className="size-9 p-0 justify-center dark:data-[popup-open]:bg-muted! active:translate-y-0!"
                 buttonPressHighlight
