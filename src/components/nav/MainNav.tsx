@@ -26,7 +26,6 @@ import { type AppBootState, HOME_TABS, type HomeUiState } from "@/lib/cookie-cod
 import { displayModeFor } from "@/lib/display-mode";
 import { useHasBeenTrue } from "@/lib/hooks";
 import {
-  ChevronLeft,
   ChevronRight,
   LayoutDashboard,
   ListVideo,
@@ -396,10 +395,10 @@ function NavActions({
   );
 }
 
-// Below 960px the home controls and the actions sit together in one strip that scrolls as a
-// whole. Its edges fade where buttons are out of view, with an arrow there that scrolls toward
-// them. From 960px the strip drops out of the layout: the search bar sits between the home
-// controls and the actions, which keep to the right.
+// Below 960px everything after the logo (org picker, home controls, actions) sits in one strip
+// that scrolls as a whole. Its edges fade where buttons are out of view, and while more lie to
+// the right an arrow there scrolls toward them. From 960px the strip drops out of the layout:
+// the search bar sits between the home controls and the actions, which keep to the right.
 function NavScrollStrip({ children }: { children: React.ReactNode }) {
   const stripRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState({ left: false, right: false });
@@ -422,27 +421,10 @@ function NavScrollStrip({ children }: { children: React.ReactNode }) {
       observer.disconnect();
     };
   }, []);
-  const scrollBy = (direction: 1 | -1) => {
+  const scrollRight = () => {
     const strip = stripRef.current;
-    strip?.scrollBy({ left: direction * strip.clientWidth * 0.75, behavior: "smooth" });
+    strip?.scrollBy({ left: strip.clientWidth * 0.75, behavior: "smooth" });
   };
-  // The arrows are pointer shortcuts only: keyboard focus already scrolls a button into view.
-  const arrow = (direction: 1 | -1) => (
-    <Button
-      type="button"
-      variant="secondary"
-      size="icon-sm"
-      tabIndex={-1}
-      aria-hidden="true"
-      onClick={() => scrollBy(direction)}
-      className={cn(
-        "absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-sm active:-translate-y-1/2 min-[960px]:hidden",
-        direction < 0 ? "left-0" : "right-0",
-      )}
-    >
-      {direction < 0 ? <ChevronLeft /> : <ChevronRight />}
-    </Button>
-  );
   return (
     <div className="relative flex min-w-0 flex-1 min-[960px]:contents">
       {/* The padding keeps count badges clear of the strip's edge. */}
@@ -450,12 +432,22 @@ function NavScrollStrip({ children }: { children: React.ReactNode }) {
         ref={stripRef}
         data-overflow-left={overflow.left || undefined}
         data-overflow-right={overflow.right || undefined}
-        className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_3.5rem,#000_calc(100%-3.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
+        className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_2.5rem,#000_calc(100%-2.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>
-      {overflow.left ? arrow(-1) : null}
-      {overflow.right ? arrow(1) : null}
+      {overflow.right ? (
+        // A pointer shortcut only: keyboard focus already scrolls a button into view.
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden="true"
+          onClick={scrollRight}
+          className="absolute inset-y-0 right-0 z-10 flex w-6 items-center justify-end text-foreground/80 min-[960px]:hidden"
+        >
+          <ChevronRight className="size-5" strokeWidth={2.25} />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -514,24 +506,24 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               </span>
             </Link>
 
-            <div className="shrink-0 sm:hidden">
-              <HomeOrgMultiSelect
-                iconOnly
-                countBadge={false}
-                buttonVariant="outline"
-                className="size-9 p-0 justify-center dark:data-[popup-open]:bg-muted! active:translate-y-0!"
-                buttonPressHighlight
-              />
-            </div>
-            <div className="hidden shrink-0 sm:block">
-              <HomeOrgMultiSelect
-                buttonVariant="outline"
-                className="h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted! active:translate-y-0!"
-                buttonPressHighlight
-              />
-            </div>
-
             <NavScrollStrip>
+              <div className="shrink-0 sm:hidden">
+                <HomeOrgMultiSelect
+                  iconOnly
+                  countBadge={false}
+                  buttonVariant="outline"
+                  className="size-9 p-0 justify-center dark:data-[popup-open]:bg-muted! active:translate-y-0!"
+                  buttonPressHighlight
+                />
+              </div>
+              <div className="hidden shrink-0 sm:block">
+                <HomeOrgMultiSelect
+                  buttonVariant="outline"
+                  className="h-9 w-auto min-w-0 max-w-[12rem] min-[960px]:max-w-[18rem] dark:data-[popup-open]:bg-muted! active:translate-y-0!"
+                  buttonPressHighlight
+                />
+              </div>
+
               <NavHomeControls initialBootState={initialBootState} />
 
               <div className="hidden min-w-0 flex-1 min-[960px]:block">
