@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
-import { ALL_VTUBERS_ORG, CHANNEL_URL_REGEX, VIDEO_URL_REGEX } from "@/lib/consts";
+import { ALL_VTUBERS_ORG, VIDEO_URL_REGEX } from "@/lib/consts";
 import { formatOrgDisplayName } from "@/lib/functions";
 import { Building } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
@@ -96,13 +96,13 @@ function suggestionFromAutocomplete(item: any): Suggestion | null {
   }
 }
 
-// Autocomplete results plus recognised video/channel URLs, local org matches and a trailing
-// free-text search option.
+// Autocomplete results plus a recognised video URL, local org matches and a trailing free-text
+// search option. A channel URL is suggested only when autocomplete knows it as a VTuber, the
+// only channels video search filters by.
 function buildSuggestions(query: string, results: Suggestion[], orgOptions: string[]) {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const list: Suggestion[] = [];
-  const channelMatch = trimmed.match(CHANNEL_URL_REGEX);
   const videoMatch = trimmed.match(VIDEO_URL_REGEX);
   if (videoMatch?.groups?.id && !results.some((r) => r.type === "video"))
     list.push({
@@ -110,16 +110,6 @@ function buildSuggestions(query: string, results: Suggestion[], orgOptions: stri
       type: "video",
       value: videoMatch.groups.id,
       text: videoMatch.groups.id,
-    });
-  if (
-    channelMatch?.groups?.id &&
-    !results.some((r) => r.type === "channel" && r.value === channelMatch.groups!.id)
-  )
-    list.push({
-      id: `channel:${channelMatch.groups.id}`,
-      type: "channel",
-      value: channelMatch.groups.id,
-      text: channelMatch.groups.id,
     });
   // Include local organization matches even when autocomplete omits its org group.
   const ql = trimmed.toLowerCase();

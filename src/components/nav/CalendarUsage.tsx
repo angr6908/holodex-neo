@@ -67,7 +67,8 @@ export function CalendarUsage({
   async function runSearch(formatted: string) {
     const current = ++requestId.current;
     try {
-      const res = await api.searchAutocomplete(formatted);
+      // v2 autocomplete also suggests orgs, which calendar feeds can follow.
+      const res = await api.searchAutocomplete(formatted, { version: "v2" });
       if (current !== requestId.current) return;
       const next = (res.data || [])
         .map((x: any) => ({ ...x, text: x.text || x.value }))

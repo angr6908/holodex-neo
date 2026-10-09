@@ -13,54 +13,61 @@ import { ALL_VTUBERS_ORG } from "@/lib/consts";
 import { Search } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { videoStartTimestamp } from "@/lib/video-format";
+import {
+  VIDEO_SEARCH_MAX_LIMIT,
+  type VideoSearchPage,
+  type VideoSearchQuery,
+} from "@/lib/video-search";
 
 const pageLength = 30;
-const ORG_SOURCE_BATCH_SIZE = 100;
+const ORG_SOURCE_BATCH_SIZE = VIDEO_SEARCH_MAX_LIMIT;
+// The v3 sort for each sort the search filters offer.
+const SEARCH_SORTS: Record<string, string> = {
+  newest: "latest",
+  oldest: "oldest",
+  longest: "longest",
+};
 
 type SearchFilterItem = { type: string; value: string; text: string };
-type SearchResultPage = { items: any[]; total: number | null };
 type OrgSource = {
-  chunks: Map<number, SearchResultPage>;
+  chunks: Map<number, VideoSearchPage>;
   items: any[];
   exhausted: boolean;
   unavailable: boolean;
 };
 
-function buildSearchQuery(
-  items: SearchFilterItem[],
-  sort: string,
-  type: string,
-  languages: string[],
-) {
-  const query = {
-    sort,
-    lang: languages,
-    target: type === "all" ? ["stream", "clip"] : [type],
-    conditions: [] as Array<{ text: string }>,
+// The v3 search for the filters in the URL. Text matches titles only (the "title & desc" type
+// is kept so existing search links still work), and channel filters match VTuber channels only.
+function buildSearchQuery(items: SearchFilterItem[], sort: string, type: string): VideoSearchQuery {
+  const titles: string[] = [];
+  const q = {
+    type: type === "all" ? ["stream", "clip"] : [type],
+    vtuber: [] as string[],
     topic: [] as string[],
-    vch: [] as string[],
     org: [] as string[],
   };
   for (const item of items) {
     const text = String(item.text ?? "").trim();
-    if (item.type === "title & desc" && text) query.conditions.push({ text });
-    else if (item.type === "channel") query.vch.push(item.value);
-    else if (item.type === "topic") query.topic.push(item.value);
-    else if (item.type === "org") query.org.push(item.value);
+    if (item.type === "title & desc" && text) titles.push(text);
+    else if (item.type === "channel") q.vtuber.push(item.value);
+    else if (item.type === "topic") q.topic.push(item.value);
+    else if (item.type === "org") q.org.push(item.value);
   }
-  return query;
-}
-
-async function loadSearchQuery(query: string, sort: string, type: string, languages: string[]) {
-  const { csv2json } = await import("json-2-csv");
-  return buildSearchQuery((await csv2json(query)) as SearchFilterItem[], sort, type, languages);
-}
-
-function searchResultPage(response: any): SearchResultPage {
-  const payload = response.data || {};
   return {
-    items: Array.isArray(payload.items) ? payload.items : [],
-    total: typeof payload.total === "number" ? payload.total : null,
+    q: titles.length ? { ...q, search: titles.join(" ") } : q,
+    sort: SEARCH_SORTS[sort] ?? SEARCH_SORTS.newest,
+  };
+}
+
+async function loadSearchQuery(query: string, sort: string, type: string) {
+  const { csv2json } = await import("json-2-csv");
+  return buildSearchQuery((await csv2json(query)) as SearchFilterItem[], sort, type);
+}
+
+function searchResultPage(payload: any): VideoSearchPage {
+  return {
+    items: Array.isArray(payload?.items) ? payload.items : [],
+    total: typeof payload?.total === "number" ? payload.total : null,
   };
 }
 
@@ -87,12 +94,11 @@ function SearchResults() {
   const executedQuery = searchParams.get("q");
   const filterSort = searchParams.get("sort") || "newest";
   const filterType = routeSearchType(searchParams);
-  const clipLangsKey = app.settings.clipLangs.join(",");
   const selectedMainOrgs = app.selectedHomeOrgs || [];
   const mainOrgFilterKey = app.searchUseMainOrgFilter ? JSON.stringify(selectedMainOrgs) : "";
   const searchCacheKey =
     executedQuery && executedQuery.length >= 5
-      ? `search:v7:${filterType}:${filterSort}:${clipLangsKey}:${mainOrgFilterKey}:${executedQuery}`
+      ? `search:v8:${filterType}:${filterSort}:${mainOrgFilterKey}:${executedQuery}`
       : "";
 
   useEffect(() => {
@@ -108,21 +114,14 @@ function SearchResults() {
     let initialPrefetchStarted = false;
     let queryPromise: ReturnType<typeof loadSearchQuery> | null = null;
     const getSearchQuery = () => {
-      queryPromise ??= loadSearchQuery(
-        executedQuery,
-        filterSort,
-        filterType,
-        clipLangsKey.split(","),
-      );
+      queryPromise ??= loadSearchQuery(executedQuery, filterSort, filterType);
       return queryPromise;
     };
 
     const load = async (offset: number, limit: number) => {
       const searchQuery = await getSearchQuery();
       if (!mainOrgFilterKey || targetOrgs.includes(ALL_VTUBERS_ORG)) {
-        const page = searchResultPage(
-          await api.searchVideo({ ...searchQuery, paginated: true, offset, limit }),
-        );
+        const page = await api.searchVideo(searchQuery, offset, limit);
         return {
           items: page.items,
           total: page.total,
@@ -180,7 +179,7 @@ function SearchResults() {
             }
             continue;
           }
-          const { items, total } = searchResultPage({ data: result.data });
+          const { items, total } = searchResultPage(result.data);
           const offset = Math.max(0, Number(result.offset) || 0);
           source.chunks.set(offset, { items, total });
           rebuildOrgSource(source);
@@ -307,7 +306,7 @@ function SearchResults() {
       void load(0, pageLength).catch(() => {});
     }
     return load;
-  }, [executedQuery, filterSort, filterType, clipLangsKey, mainOrgFilterKey]);
+  }, [executedQuery, filterSort, filterType, mainOrgFilterKey]);
 
   return (
     <section className="mx-auto min-h-screen w-full max-w-[1600px] px-5 pb-10 pt-[calc(var(--nav-total-height,120px)+0.75rem)] sm:px-8 lg:px-10 xl:px-12">

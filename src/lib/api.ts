@@ -8,6 +8,12 @@ import {
   queryString as qs,
 } from "@/lib/live-list";
 import { dayjs } from "@/lib/time";
+import {
+  type VideoSearchPage,
+  type VideoSearchQuery,
+  videoSearchBody,
+  videoSearchPage,
+} from "@/lib/video-search";
 
 const MCHATX = "https://repo.mchatx.org";
 const MAX_CONCURRENT = 6;
@@ -65,6 +71,7 @@ function dedupGet<T>(url: string, config?: any, force = false): Promise<T> {
 }
 
 const ax = axios.create({ baseURL: "/api/v2", timeout: 30000 });
+const ax3 = axios.create({ baseURL: "/api/v3", timeout: 30000 });
 
 // Live lists the server started loading with the page (see app/page.tsx), by request path.
 const liveSeeds = new Map<string, Promise<any[]>>();
@@ -178,20 +185,29 @@ export const api = {
     fetch(`/twitch-stream-info?login=${encodeURIComponent(login)}`).then((r) =>
       r.ok ? r.json() : null,
     ),
-  searchAutocomplete(query: string, { type, n }: { type?: string; n?: number } = {}) {
+  // v3 suggests only VTubers and topics, the filters video search takes; v2 also suggests clip
+  // channels and orgs.
+  searchAutocomplete(
+    query: string,
+    { type, n, version = "v3" }: { type?: string; n?: number; version?: "v2" | "v3" } = {},
+  ) {
     const vid = query.match(VIDEO_URL_REGEX);
     if (vid?.groups?.id)
       return Promise.resolve({
         data: [{ type: "video url", value: vid.groups.id, text: vid.groups.id }],
       });
     const ch = query.match(CHANNEL_URL_REGEX);
-    return ax
+    return (version === "v3" ? ax3 : ax)
       .get(`/search/autocomplete?${qs({ q: ch?.groups?.id || query, t: type, n })}`)
       .then((res: any) => ({ ...res, data: normalizeAutocomplete(res.data) }));
   },
-  searchVideo: (q: any) => ax.post("/search/videoSearch", q),
+  searchVideo(query: VideoSearchQuery, offset: number, limit: number): Promise<VideoSearchPage> {
+    const body = videoSearchBody(query, offset, limit);
+    if (!body) return Promise.resolve({ items: [], total: null });
+    return ax3.post("/search/videoSearch", body).then((res) => videoSearchPage(res.data));
+  },
   searchVideoByOrgs: (
-    query: any,
+    query: VideoSearchQuery,
     requests: Array<{ org: string; offset: number }>,
     limit: number,
   ) => axios.post("/api/search/multi-org", { query, requests, limit }, { timeout: 35000 }),
