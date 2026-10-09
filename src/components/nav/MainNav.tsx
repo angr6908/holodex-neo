@@ -25,14 +25,7 @@ import { musicdexURL } from "@/lib/consts";
 import { type AppBootState, HOME_TABS, type HomeUiState } from "@/lib/cookie-codec";
 import { displayModeFor } from "@/lib/display-mode";
 import { useHasBeenTrue } from "@/lib/hooks";
-import {
-  ChevronRight,
-  LayoutDashboard,
-  ListVideo,
-  Music,
-  Search,
-  Settings as SettingsIcon,
-} from "@/lib/icons";
+import { LayoutDashboard, ListVideo, Music, Search, Settings as SettingsIcon } from "@/lib/icons";
 import { loadAboutSection, loadPlaylistPanel, loadSettingsPage } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -396,9 +389,9 @@ function NavActions({
 }
 
 // Below 960px everything after the logo (org picker, home controls, actions) sits in one strip
-// that scrolls as a whole. Its edges fade where buttons are out of view, and while more lie to
-// the right an arrow there scrolls toward them. From 960px the strip drops out of the layout:
-// the search bar sits between the home controls and the actions, which keep to the right.
+// that scrolls as a whole; its edges fade where buttons are out of view. From 960px the strip
+// drops out of the layout: the search bar sits between the home controls and the actions, which
+// keep to the right.
 function NavScrollStrip({ children }: { children: React.ReactNode }) {
   const stripRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState({ left: false, right: false });
@@ -421,33 +414,15 @@ function NavScrollStrip({ children }: { children: React.ReactNode }) {
       observer.disconnect();
     };
   }, []);
-  const scrollRight = () => {
-    const strip = stripRef.current;
-    strip?.scrollBy({ left: strip.clientWidth * 0.75, behavior: "smooth" });
-  };
+  // The padding keeps count badges clear of the strip's edge.
   return (
-    <div className="relative flex min-w-0 flex-1 min-[960px]:contents">
-      {/* The padding keeps count badges clear of the strip's edge. */}
-      <div
-        ref={stripRef}
-        data-overflow-left={overflow.left || undefined}
-        data-overflow-right={overflow.right || undefined}
-        className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_2.5rem,#000_calc(100%-2.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
-      >
-        {children}
-      </div>
-      {overflow.right ? (
-        // A pointer shortcut only: keyboard focus already scrolls a button into view.
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-hidden="true"
-          onClick={scrollRight}
-          className="absolute inset-y-0 right-0 z-10 flex w-6 items-center justify-end text-foreground/80 min-[960px]:hidden"
-        >
-          <ChevronRight className="size-5" strokeWidth={2.25} />
-        </button>
-      ) : null}
+    <div
+      ref={stripRef}
+      data-overflow-left={overflow.left || undefined}
+      data-overflow-right={overflow.right || undefined}
+      className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_2.5rem,#000_calc(100%-2.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
+    >
+      {children}
     </div>
   );
 }
