@@ -25,7 +25,15 @@ import { musicdexURL } from "@/lib/consts";
 import { type AppBootState, HOME_TABS, type HomeUiState } from "@/lib/cookie-codec";
 import { displayModeFor } from "@/lib/display-mode";
 import { useHasBeenTrue } from "@/lib/hooks";
-import { LayoutDashboard, ListVideo, Music, Search, Settings as SettingsIcon } from "@/lib/icons";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  ListVideo,
+  Music,
+  Search,
+  Settings as SettingsIcon,
+} from "@/lib/icons";
 import { loadAboutSection, loadPlaylistPanel, loadSettingsPage } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -388,6 +396,70 @@ function NavActions({
   );
 }
 
+// Below 960px the home controls and the actions sit together in one strip that scrolls as a
+// whole. Its edges fade where buttons are out of view, with an arrow there that scrolls toward
+// them. From 960px the strip drops out of the layout: the search bar sits between the home
+// controls and the actions, which keep to the right.
+function NavScrollStrip({ children }: { children: React.ReactNode }) {
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState({ left: false, right: false });
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const update = () => {
+      const left = strip.scrollLeft > 1;
+      const right = strip.scrollLeft < strip.scrollWidth - strip.clientWidth - 1;
+      setOverflow((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
+    };
+    update();
+    strip.addEventListener("scroll", update, { passive: true });
+    // The strip's own size and its contents' (list controls portal in after load) both matter.
+    const observer = new ResizeObserver(update);
+    observer.observe(strip);
+    for (const child of Array.from(strip.children)) observer.observe(child);
+    return () => {
+      strip.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, []);
+  const scrollBy = (direction: 1 | -1) => {
+    const strip = stripRef.current;
+    strip?.scrollBy({ left: direction * strip.clientWidth * 0.75, behavior: "smooth" });
+  };
+  // The arrows are pointer shortcuts only: keyboard focus already scrolls a button into view.
+  const arrow = (direction: 1 | -1) => (
+    <Button
+      type="button"
+      variant="secondary"
+      size="icon-sm"
+      tabIndex={-1}
+      aria-hidden="true"
+      onClick={() => scrollBy(direction)}
+      className={cn(
+        "absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-sm active:-translate-y-1/2 min-[960px]:hidden",
+        direction < 0 ? "left-0" : "right-0",
+      )}
+    >
+      {direction < 0 ? <ChevronLeft /> : <ChevronRight />}
+    </Button>
+  );
+  return (
+    <div className="relative flex min-w-0 flex-1 min-[960px]:contents">
+      {/* The padding keeps count badges clear of the strip's edge. */}
+      <div
+        ref={stripRef}
+        data-overflow-left={overflow.left || undefined}
+        data-overflow-right={overflow.right || undefined}
+        className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [--fade-left:#000] [--fade-right:#000] [mask-image:linear-gradient(to_right,var(--fade-left),#000_3.5rem,#000_calc(100%-3.5rem),var(--fade-right))] [scrollbar-width:none] [-ms-overflow-style:none] data-overflow-left:[--fade-left:transparent] data-overflow-right:[--fade-right:transparent] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden"
+      >
+        {children}
+      </div>
+      {overflow.left ? arrow(-1) : null}
+      {overflow.right ? arrow(1) : null}
+    </div>
+  );
+}
+
 export function MainNav({ initialBootState }: { initialBootState?: AppBootState | null }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -459,10 +531,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               />
             </div>
 
-            {/* Below 960px the home controls and the actions sit together in one strip that
-                scrolls as a whole; from 960px the search bar sits between them and the actions
-                keep to the right. The padding keeps count badges clear of the strip's edge. */}
-            <div className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden">
+            <NavScrollStrip>
               <NavHomeControls initialBootState={initialBootState} />
 
               <div className="hidden min-w-0 flex-1 min-[960px]:block">
@@ -481,7 +550,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
                   userMenu={userMenu}
                 />
               </div>
-            </div>
+            </NavScrollStrip>
           </div>
 
           {mobileSearchOpen ? (
