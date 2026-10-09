@@ -16,6 +16,7 @@ import {
   ComboboxList,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
+import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
@@ -30,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG, VIDEO_URL_REGEX } from "@/lib/consts";
 import { buildSearchUrl, formatOrgDisplayName, searchTypeFromParams } from "@/lib/functions";
@@ -444,33 +444,24 @@ function TopicFilterField({
   );
 }
 
-// Orgs to search in, or (toggled) the home page's org selection.
+// Orgs to search in; the button fills them with the navigation bar's org selection.
 function OrgFilterField({
   orgOptions,
   orgs,
   onOrgs,
-  onToggleMainOrgFilter,
   onKeyDown,
 }: {
   orgOptions: string[];
   orgs: string[];
   onOrgs: (orgs: string[]) => void;
-  onToggleMainOrgFilter: (next?: boolean) => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {
   const t = useTranslations();
   const app = useAppState();
   const orgAnchor = useComboboxAnchor();
-  const useMainOrgs = app.searchUseMainOrgFilter;
-  const mainOrgValues = useMemo(
-    () => (app.selectedHomeOrgs?.length ? unique(app.selectedHomeOrgs) : [ALL_VTUBERS_ORG]),
-    [app.selectedHomeOrgs],
-  );
-  const displayedOrgs = useMainOrgs ? mainOrgValues : orgs;
-  const displayedOrgOptions = useMemo(
-    () => unique([...orgOptions, ...displayedOrgs]),
-    [orgOptions, displayedOrgs],
-  );
+  // Listed options include the chosen orgs, so an "All VTubers" chip from the navigation bar
+  // still has its label.
+  const displayedOrgOptions = useMemo(() => unique([...orgOptions, ...orgs]), [orgOptions, orgs]);
   const orgLabel = (name: string) =>
     name === ALL_VTUBERS_ORG ? t("component.search.allVtubers") : formatOrgDisplayName(name);
   return (
@@ -481,22 +472,15 @@ function OrgFilterField({
           <Combobox
             multiple
             items={displayedOrgOptions}
-            value={displayedOrgs}
-            disabled={useMainOrgs}
+            value={orgs}
             onValueChange={(values) => onOrgs(unique(values))}
           >
-            <ComboboxChips
-              ref={orgAnchor}
-              className="gap-1.5 data-disabled:cursor-not-allowed data-disabled:opacity-60"
-            >
-              {displayedOrgs.map((value) => (
-                <ComboboxChip key={value} showRemove={!useMainOrgs}>
-                  {orgLabel(value)}
-                </ComboboxChip>
+            <ComboboxChips ref={orgAnchor} className="gap-1.5">
+              {orgs.map((value) => (
+                <ComboboxChip key={value}>{orgLabel(value)}</ComboboxChip>
               ))}
               <ComboboxChipsInput
                 className="px-1"
-                disabled={useMainOrgs}
                 onFocus={() => {
                   void app.fetchOrgs();
                 }}
@@ -515,18 +499,19 @@ function OrgFilterField({
             </ComboboxContent>
           </Combobox>
         </div>
-        <Toggle
+        <Button
           type="button"
-          pressed={useMainOrgs}
-          onPressedChange={onToggleMainOrgFilter}
+          variant="outline"
+          size="icon"
+          pressHighlight
+          onClick={() =>
+            onOrgs(app.selectedHomeOrgs?.length ? unique(app.selectedHomeOrgs) : [ALL_VTUBERS_ORG])
+          }
           aria-label={t("component.search.useMainOrgFilter")}
           title={t("component.search.useMainOrgFilter")}
-          variant="outline"
-          size="default"
-          className="size-8 p-0"
         >
           <Building className="size-4" aria-hidden="true" />
-        </Toggle>
+        </Button>
       </div>
     </Field>
   );
@@ -627,7 +612,6 @@ export function SearchDropdown() {
     setChannelSearch("");
     filters.setFilterType("all");
     filters.setFilterSort("newest");
-    app.setSearchUseMainOrgFilter(false);
     setOpen(false);
     // Refocus the input without reopening the dropdown.
     suppressOpenRef.current = true;
@@ -640,9 +624,7 @@ export function SearchDropdown() {
 
   async function runSearch() {
     const payload: FilterItem[] = [
-      ...(app.searchUseMainOrgFilter
-        ? []
-        : orgs.map((value) => ({ type: "org", value, text: value }))),
+      ...orgs.map((value) => ({ type: "org", value, text: value })),
       ...channels,
       ...(topic ? [{ type: "topic", value: topic, text: topic }] : []),
     ];
@@ -653,14 +635,6 @@ export function SearchDropdown() {
       await buildSearchUrl(payload, { sort: filters.filterSort, type: filters.filterType }),
     );
     setOpen(false);
-  }
-
-  function toggleMainOrgFilter(next = !app.searchUseMainOrgFilter) {
-    app.setSearchUseMainOrgFilter(next);
-    if (!pathname.startsWith("/search") || !searchParams.get("page")) return;
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("page");
-    router.replace(`${pathname}${params.toString() ? `?${params}` : ""}`);
   }
 
   function addSuggestion(s: Suggestion) {
@@ -779,7 +753,6 @@ export function SearchDropdown() {
                 orgOptions={orgOptions}
                 orgs={orgs}
                 onOrgs={setOrgs}
-                onToggleMainOrgFilter={toggleMainOrgFilter}
                 onKeyDown={onFilterKeyDown}
               />
             </div>

@@ -113,7 +113,6 @@ type State = {
   reportVideo: any;
   uploadPanel: boolean;
   visibilityState: string;
-  searchUseMainOrgFilter: boolean;
   reloadTrigger: {
     source?: string;
     consumed?: boolean;
@@ -222,7 +221,6 @@ const defaultState: State = {
   reportVideo: null,
   uploadPanel: false,
   visibilityState: "visible",
-  searchUseMainOrgFilter: false,
   reloadTrigger: null,
   homeNav: null,
 };
@@ -343,10 +341,6 @@ function loadPersisted(base: State): State {
     windowWidth: window.innerWidth,
     visibilityState: document.visibilityState,
     currentGridSize: app.currentGridSize ?? defaultState.currentGridSize,
-    searchUseMainOrgFilter:
-      typeof app.searchUseMainOrgFilter === "boolean"
-        ? app.searchUseMainOrgFilter
-        : defaultState.searchUseMainOrgFilter,
     currentOrg: app.currentOrg || base.currentOrg,
     selectedHomeOrgs,
     orgFavorites: app.orgFavorites || base.orgFavorites,
@@ -416,10 +410,6 @@ type StateRef = React.RefObject<State>;
 // (localStorage + boot cookie) happens in usePersistAppState, keeping these updaters pure.
 function uiActions(setState: SetState) {
   return {
-    setSearchUseMainOrgFilter: (value: boolean) =>
-      setState((s) =>
-        s.searchUseMainOrgFilter === value ? s : { ...s, searchUseMainOrgFilter: value },
-      ),
     setHomeNav: (patch: HomeUiState) =>
       setState((s) => {
         const cur = resolveHomeNav(s.homeNav, s.settings.defaultOpen);
@@ -763,7 +753,6 @@ function usePersistAppState(state: State) {
     selectedHomeOrgs,
     orgFavorites,
     currentGridSize,
-    searchUseMainOrgFilter,
     userdata,
     isMobile,
     windowWidth,
@@ -808,19 +797,10 @@ function usePersistAppState(state: State) {
         selectedHomeOrgs,
         orgFavorites,
         currentGridSize,
-        searchUseMainOrgFilter,
       });
       syncBootCookie();
     }
-  }, [
-    hydrated,
-    currentOrg,
-    selectedHomeOrgs,
-    orgFavorites,
-    currentGridSize,
-    searchUseMainOrgFilter,
-    userdata,
-  ]);
+  }, [hydrated, currentOrg, selectedHomeOrgs, orgFavorites, currentGridSize, userdata]);
   useEffect(() => {
     if (hydrated) syncBootCookie();
   }, [hydrated, isMobile, windowWidth]);
