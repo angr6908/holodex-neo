@@ -89,7 +89,7 @@ function takeLiveSeed(path: string) {
   return seed && performance.now() < SEED_TTL_MS ? seed : null;
 }
 
-// v3 autocomplete returns groups ({ vtuber, topic }); flatten to a typed suggestion list.
+// v3 autocomplete returns groups ({ vtuber, topic }); flatten them to v2's typed suggestion list.
 function normalizeAutocomplete(data: any) {
   if (Array.isArray(data)) return data;
   if (!data || typeof data !== "object") return [];
@@ -104,8 +104,6 @@ function normalizeAutocomplete(data: any) {
       org: v.org,
     });
   for (const tp of data.topic || []) out.push({ type: "topic", value: tp.id, text: tp.id });
-  for (const o of data.org || [])
-    out.push({ type: "org", value: o.id ?? o, text: o.name ?? o.id ?? o });
   return out;
 }
 const H = (jwt?: string | null) => (jwt ? { Authorization: `BEARER ${jwt}` } : {});
@@ -191,11 +189,8 @@ export const api = {
     query: string,
     { type, n, version = "v3" }: { type?: string; n?: number; version?: "v2" | "v3" } = {},
   ) {
-    const vid = query.match(VIDEO_URL_REGEX);
-    if (vid?.groups?.id)
-      return Promise.resolve({
-        data: [{ type: "video url", value: vid.groups.id, text: vid.groups.id }],
-      });
+    // A video URL matches no suggestions.
+    if (VIDEO_URL_REGEX.test(query)) return Promise.resolve({ data: [] });
     const ch = query.match(CHANNEL_URL_REGEX);
     return (version === "v3" ? ax3 : ax)
       .get(`/search/autocomplete?${qs({ q: ch?.groups?.id || query, t: type, n })}`)

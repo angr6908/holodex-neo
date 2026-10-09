@@ -127,9 +127,23 @@ export function checkIOS() {
   );
 }
 
-export async function buildSearchUrl(query: any[]) {
+// The /search link for filter items, with the sort and video type when they aren't the defaults.
+export async function buildSearchUrl(query: any[], { sort = "newest", type = "all" } = {}) {
   const { json2csv } = await import("json-2-csv");
-  return `/search?q=${encodeURIComponent(await json2csv(query))}`;
+  const params = new URLSearchParams({ q: await json2csv(query) });
+  if (sort !== "newest") params.set("sort", sort);
+  if (type === "stream") params.set("channelType", "vtuber");
+  if (type === "clip") params.set("channelType", "subber");
+  return `/search?${params}`;
+}
+
+// The video type a /search link asks for: "stream", "clip" or "all".
+export function searchTypeFromParams(searchParams: Pick<URLSearchParams, "get">) {
+  const channelType = searchParams.get("channelType");
+  if (searchParams.get("vtuber") === "false" || channelType === "subber" || channelType === "clip")
+    return "clip";
+  if (channelType === "vtuber" || channelType === "stream") return "stream";
+  return "all";
 }
 
 const NUMERIC_FIELDS = new Set(["video_count", "subscriber_count", "clip_count"]);

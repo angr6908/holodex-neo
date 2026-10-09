@@ -33,7 +33,7 @@ import {
 import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
 import { ALL_VTUBERS_ORG, VIDEO_URL_REGEX } from "@/lib/consts";
-import { formatOrgDisplayName } from "@/lib/functions";
+import { buildSearchUrl, formatOrgDisplayName, searchTypeFromParams } from "@/lib/functions";
 import { Building } from "@/lib/icons";
 import { useAppState } from "@/lib/store";
 import { useTopicsCache } from "@/lib/topics";
@@ -55,27 +55,8 @@ const TYPE_ICON: Record<Suggestion["type"], typeof Tv> = {
   freeText: Search,
 };
 
-function routeSearchType(searchParams: Pick<URLSearchParams, "get">) {
-  const channelType = searchParams.get("channelType");
-  if (searchParams.get("vtuber") === "false" || channelType === "subber" || channelType === "clip")
-    return "clip";
-  if (channelType === "vtuber" || channelType === "stream") return "stream";
-  return "all";
-}
-
 function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))];
-}
-
-async function buildSearchUrl(payload: FilterItem[], sort: string, type: string) {
-  if (!payload.length) return "/search";
-  const { json2csv } = await import("json-2-csv");
-  const params = new URLSearchParams();
-  params.set("q", await json2csv(payload));
-  if (sort !== "newest") params.set("sort", sort);
-  if (type === "stream") params.set("channelType", "vtuber");
-  if (type === "clip") params.set("channelType", "subber");
-  return `/search?${params.toString()}`;
 }
 
 function suggestionFromAutocomplete(item: any): Suggestion | null {
@@ -87,31 +68,27 @@ function suggestionFromAutocomplete(item: any): Suggestion | null {
       return { id: `channel:${value}`, type: "channel", value, text, org: item.org };
     case "topic":
       return { id: `topic:${value}`, type: "topic", value, text: text || value };
-    case "org":
-      return { id: `org:${value}`, type: "org", value, text: text || value };
-    case "video url":
-      return { id: `video:${value}`, type: "video", value, text: text || value };
     default:
       return null;
   }
 }
 
-// Autocomplete results plus a recognised video URL, local org matches and a trailing free-text
-// search option. A channel URL is suggested only when autocomplete knows it as a VTuber, the
-// only channels video search filters by.
+// Autocomplete results (VTubers and topics) plus a recognised video URL, matching orgs and a
+// trailing free-text search option. A channel URL is suggested only when autocomplete knows it
+// as a VTuber, the only channels video search filters by.
 function buildSuggestions(query: string, results: Suggestion[], orgOptions: string[]) {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const list: Suggestion[] = [];
   const videoMatch = trimmed.match(VIDEO_URL_REGEX);
-  if (videoMatch?.groups?.id && !results.some((r) => r.type === "video"))
+  if (videoMatch?.groups?.id)
     list.push({
       id: `video:${videoMatch.groups.id}`,
       type: "video",
       value: videoMatch.groups.id,
       text: videoMatch.groups.id,
     });
-  // Include local organization matches even when autocomplete omits its org group.
+  // Autocomplete suggests no orgs; match them from the org list.
   const ql = trimmed.toLowerCase();
   orgOptions
     .filter(
@@ -145,7 +122,7 @@ function useSearchFilters(pathname: string, searchParams: ReturnType<typeof useS
   useEffect(() => {
     if (!pathname.startsWith("/search")) return;
     setFilterSort(searchParams.get("sort") || "newest");
-    setFilterType(routeSearchType(searchParams));
+    setFilterType(searchTypeFromParams(searchParams));
     const q = searchParams.get("q");
     const reset = () => {
       setOrgs([]);
@@ -193,14 +170,16 @@ function useSearchFilters(pathname: string, searchParams: ReturnType<typeof useS
   };
 }
 
-// Top-bar autocomplete fetch (debounced); only the latest request's results are kept.
+// Top-bar autocomplete fetch (debounced); only the latest request's results are kept. A video
+// URL needs no request: buildSuggestions recognises it.
 function useSearchAutocomplete(query: string) {
   const [results, setResults] = useState<Suggestion[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
   const requestId = useRef(0);
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < 2) {
+    if (trimmed.length < 2 || VIDEO_URL_REGEX.test(trimmed)) {
+      requestId.current++;
       setResults([]);
       setLoadingResults(false);
       return;
@@ -622,7 +601,8 @@ export function SearchDropdown() {
 
   const filters = useSearchFilters(pathname, searchParams);
   const { query, setQuery, orgs, setOrgs, channels, setChannels, topic, setTopic } = filters;
-  const { results, setResults, loadingResults } = useSearchAutocomplete(query);
+  // Suggestions load only while the dropdown is open, not for a query restored from the URL.
+  const { results, setResults, loadingResults } = useSearchAutocomplete(open ? query : "");
   const channelOptions = useChannelAutocomplete(channelSearch);
   useCloseOnOutsideClick(open, containerRef, () => setOpen(false));
 
@@ -669,7 +649,9 @@ export function SearchDropdown() {
     const text = query.trim();
     if (text) payload.push({ type: "title & desc", value: text, text });
     if (!payload.length) return;
-    router.push(await buildSearchUrl(payload, filters.filterSort, filters.filterType));
+    router.push(
+      await buildSearchUrl(payload, { sort: filters.filterSort, type: filters.filterType }),
+    );
     setOpen(false);
   }
 
