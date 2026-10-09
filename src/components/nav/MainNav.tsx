@@ -144,7 +144,7 @@ function NavHomeControls({ initialBootState }: { initialBootState?: AppBootState
   return (
     <div
       id="mainNavHomeControls"
-      className="-my-px flex min-w-0 items-center gap-1.5 overflow-x-auto py-px [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      className="-my-px flex min-w-0 shrink-0 items-center gap-1.5 overflow-x-auto py-px [scrollbar-width:none] [-ms-overflow-style:none] min-[960px]:shrink [&::-webkit-scrollbar]:hidden"
     >
       <HomeNavSegments
         selection={homeSelection}
@@ -459,23 +459,28 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
               />
             </div>
 
-            <NavHomeControls initialBootState={initialBootState} />
+            {/* Below 960px the home controls and the actions sit together in one strip that
+                scrolls as a whole; from 960px the search bar sits between them and the actions
+                keep to the right. The padding keeps count badges clear of the strip's edge. */}
+            <div className="-my-1.5 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] sm:gap-3 min-[960px]:contents [&::-webkit-scrollbar]:hidden">
+              <NavHomeControls initialBootState={initialBootState} />
 
-            <div className="hidden min-w-0 flex-1 min-[960px]:block">
-              <SearchDropdown />
-            </div>
+              <div className="hidden min-w-0 flex-1 min-[960px]:block">
+                <SearchDropdown />
+              </div>
 
-            <div className="ml-auto flex shrink-0 items-center">
-              <NavActions
-                windowWidth={app.windowWidth || initialBootState?.windowWidth || 1440}
-                mobileSearchOpen={mobileSearchOpen}
-                onToggleMobileSearch={() => setMobileSearchOpen((v) => !v)}
-                playlistOpen={playlistOpen}
-                onPlaylistOpenChange={setPlaylistOpen}
-                settingsOpen={settingsOpen}
-                onSettingsOpenChange={setSettingsOpen}
-                userMenu={userMenu}
-              />
+              <div className="flex shrink-0 items-center min-[960px]:ml-auto">
+                <NavActions
+                  windowWidth={app.windowWidth || initialBootState?.windowWidth || 1440}
+                  mobileSearchOpen={mobileSearchOpen}
+                  onToggleMobileSearch={() => setMobileSearchOpen((v) => !v)}
+                  playlistOpen={playlistOpen}
+                  onPlaylistOpenChange={setPlaylistOpen}
+                  settingsOpen={settingsOpen}
+                  onSettingsOpenChange={setSettingsOpen}
+                  userMenu={userMenu}
+                />
+              </div>
             </div>
           </div>
 
