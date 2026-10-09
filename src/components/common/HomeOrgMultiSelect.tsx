@@ -65,7 +65,7 @@ function OrgTriggerContent({
   count: number;
   label: string;
 }) {
-  const showCount = count > 2;
+  const showCount = count > 1;
   if (iconOnly)
     return (
       <>
@@ -153,7 +153,8 @@ export function HomeOrgMultiSelect({
     if (selectedNames.length === 1) return formatSelectionLabel(selectedNames[0]);
     return t("component.search.selectedOrgCount", { count: selectedNames.length });
   }, [selectedNames, emptySelectionLabel, allVtubersLabel, t, formatSelectionLabel]);
-  const showSelectedCount = selectedNames.length > 2;
+  // Two or more orgs show as a count badge; the label names the count for screen readers.
+  const showSelectedCount = selectedNames.length > 1;
 
   const clearLabel =
     clearSelectionLabel === ALL_VTUBERS_ORG ? allVtubersLabel : clearSelectionLabel;
@@ -215,6 +216,7 @@ export function HomeOrgMultiSelect({
             type="button"
             variant={buttonVariant as any}
             pressHighlight={buttonPressHighlight}
+            aria-label={showSelectedCount ? triggerLabel : undefined}
             className={cn(
               "justify-between transition-colors",
               className,
