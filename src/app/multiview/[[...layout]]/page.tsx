@@ -474,7 +474,7 @@ const EXPAND_TAB_LINGER_MS = 2000;
 // mouse moves and fades once it stops (or stays while hovered or focused); touch screens, which
 // can't hover, always show it. Moves over a video stay inside its frame, so a thin strip along the
 // top edge picks up the mouse heading there. Both sit above the cells, their resize handles and
-// the empty-stage panel, and the tab is solid so it shows over video.
+// the empty-stage panel.
 function ExpandToolbarTab({ onExpand }: { onExpand: () => void }) {
   const t = useTranslations();
   const [moving, setMoving] = useState(false);
@@ -500,13 +500,13 @@ function ExpandToolbarTab({ onExpand }: { onExpand: () => void }) {
       <div aria-hidden="true" className="absolute inset-x-0 top-0 z-50 h-3" />
       <Button
         type="button"
-        variant="secondary"
+        variant="outline"
         size="xs"
         aria-label={t("views.multiview.expandToolbar")}
         title={t("views.multiview.expandToolbar")}
         onClick={onExpand}
         data-visible={moving || undefined}
-        className="absolute left-1/2 top-0 z-50 w-14 -translate-x-1/2 rounded-t-none opacity-0 shadow-md duration-300 hover:opacity-100 focus-visible:opacity-100 data-visible:opacity-100 pointer-coarse:opacity-100"
+        className="absolute left-1/2 top-0 z-50 w-14 -translate-x-1/2 rounded-t-none border-t-0 opacity-0 shadow-sm duration-300 hover:opacity-100 focus-visible:opacity-100 data-visible:opacity-100 pointer-coarse:opacity-100"
       >
         <ChevronDown className="size-4" />
       </Button>
