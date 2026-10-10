@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { RefreshCw } from "@/lib/icons";
+import { RotateCw } from "@/lib/icons";
 import { watchPulls } from "@/lib/mobile-pull-to-refresh";
 
 // Pages with gestures of their own (players, layouts, editors) don't pull to refresh.
@@ -71,7 +71,7 @@ export function PullToRefresh() {
         data-phase={phase}
         className="group/ptr flex size-9 [transform:translate3d(0,calc(var(--ptr-offset,0px)_-_3rem),0)] items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-all duration-300 ease-out data-[phase=armed]:text-foreground data-[phase=armed]:transition-colors data-[phase=pulling]:transition-none data-[phase=refreshing]:text-foreground motion-reduce:transition-none"
       >
-        <RefreshCw className="size-4 [rotate:calc(var(--ptr-progress,0)*270deg)] group-data-[phase=refreshing]/ptr:animate-spin" />
+        <RotateCw className="size-4 [rotate:calc(var(--ptr-progress,0)*270deg)] group-data-[phase=refreshing]/ptr:animate-spin" />
       </div>
     </div>
   );
