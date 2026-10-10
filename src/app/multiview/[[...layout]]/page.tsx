@@ -467,6 +467,53 @@ function useLayoutChangePrompt() {
   return { prompt, setDefaultMerge, dialog };
 }
 
+// How long the expand tab stays after the mouse stops moving.
+const EXPAND_TAB_LINGER_MS = 2000;
+
+// With the toolbar collapsed, a tab hanging from the top edge brings it back. It shows while the
+// mouse moves and fades once it stops (or stays while hovered or focused); touch screens, which
+// can't hover, always show it. Moves over a video stay inside its frame, so a thin strip along the
+// top edge picks up the mouse heading there. Both sit above the cells, their resize handles and
+// the empty-stage panel, and the tab is solid so it shows over video.
+function ExpandToolbarTab({ onExpand }: { onExpand: () => void }) {
+  const t = useTranslations();
+  const [moving, setMoving] = useState(false);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const reveal = () => {
+      setMoving(true);
+      clearTimeout(timer);
+      timer = setTimeout(() => setMoving(false), EXPAND_TAB_LINGER_MS);
+    };
+    // Shown at first too, so whoever just collapsed the toolbar sees where it went.
+    reveal();
+    document.addEventListener("mousemove", reveal, { passive: true });
+    return () => {
+      document.removeEventListener("mousemove", reveal);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <>
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 z-50 h-3" />
+      <Button
+        type="button"
+        variant="secondary"
+        size="xs"
+        aria-label={t("views.multiview.expandToolbar")}
+        title={t("views.multiview.expandToolbar")}
+        onClick={onExpand}
+        data-visible={moving || undefined}
+        className="absolute left-1/2 top-0 z-50 w-14 -translate-x-1/2 rounded-t-none opacity-0 shadow-md duration-300 hover:opacity-100 focus-visible:opacity-100 data-visible:opacity-100 pointer-coarse:opacity-100"
+      >
+        <ChevronDown className="size-4" />
+      </Button>
+    </>
+  );
+}
+
 // The stream picker in a popover: an icon button in the toolbar, a labeled button in empty cells.
 function StreamSelectorPopover({
   open,
@@ -710,17 +757,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
           }
         />
       ) : (
-        <div className="absolute right-0 top-0 z-10 m-1.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t("views.multiview.expandToolbar")}
-            onClick={() => setCollapsed(false)}
-          >
-            <ChevronDown />
-          </Button>
-        </div>
+        <ExpandToolbarTab onExpand={() => setCollapsed(false)} />
       )}
 
       <div ref={stage} className="relative min-h-0 w-full flex-1 overflow-hidden">
