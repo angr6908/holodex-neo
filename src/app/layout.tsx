@@ -187,7 +187,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Script src="/config.js" strategy="beforeInteractive" />
       </head>
       <body
-        className="group/ptr bg-background pt-[env(safe-area-inset-top)] text-foreground"
+        className="bg-background pt-[env(safe-area-inset-top)] text-foreground"
         suppressHydrationWarning
       >
         <noscript>

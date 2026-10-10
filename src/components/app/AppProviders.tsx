@@ -4,16 +4,14 @@ import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { PullToRefresh } from "@/components/app/PullToRefresh";
 import { MainNav } from "@/components/nav/MainNav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import { openUserMenu, setLocaleCookie } from "@/lib/browser";
 import type { AppBootState, HomeUiState } from "@/lib/cookie-codec";
 import { useHasBeenTrue } from "@/lib/hooks";
-import * as icons from "@/lib/icons";
 import { loadReportDialog, warmLazyComponentsWhenSettled } from "@/lib/lazy";
-import { pullToRefresh } from "@/lib/mobile-pull-to-refresh";
 import { AppStateProvider, useAppState } from "@/lib/store";
 import { applyThemeColor, getComputedThemeColor } from "@/lib/themes";
 import { configureDayjsLocale } from "@/lib/time";
@@ -229,39 +227,6 @@ function RouteQueryRuntime() {
     else fetchOrgs().then((list: any[]) => apply(list || []));
   }, [queryOrg, currentOrgName, orgs, setCurrentOrg, fetchOrgs]);
   return null;
-}
-
-function PullToRefresh() {
-  const pathname = usePathname();
-  const app = useAppState();
-  const ref = useRef(app);
-  useEffect(() => {
-    ref.current = app;
-  }, [app]);
-  useEffect(() => {
-    if (!("ontouchstart" in window)) return;
-    const disabled = ["/watch", "/edit/video", "/multiview", "/tlclient", "/scripteditor"].some(
-      (p) => pathname.startsWith(p),
-    );
-    return pullToRefresh({
-      container: document.body,
-      shouldPullToRefresh: () => !window.scrollY && !disabled,
-      async refresh() {
-        const r = await ref.current.reloadCurrentPage({ source: "ptr", consumed: false });
-        if (!r.consumed) location.reload();
-        await new Promise((res) => setTimeout(res, 300));
-      },
-    });
-  }, [pathname]);
-  return (
-    <div className="pull-to-refresh-material__control pointer-events-none fixed left-1/2 top-0 z-40 hidden size-10 -translate-x-1/2 items-center justify-center rounded-full bg-background text-primary shadow-md group-[.pull-to-refresh--aborting]/ptr:flex group-[.pull-to-refresh--pulling]/ptr:flex group-[.pull-to-refresh--reached]/ptr:flex group-[.pull-to-refresh--refreshing]/ptr:flex group-[.pull-to-refresh--restoring]/ptr:flex">
-      <icons.RefreshCw
-        className="size-6 group-[.pull-to-refresh--refreshing]/ptr:hidden group-[.pull-to-refresh--restoring]/ptr:hidden"
-        aria-hidden="true"
-      />
-      <Spinner className="hidden size-6 group-[.pull-to-refresh--refreshing]/ptr:block group-[.pull-to-refresh--restoring]/ptr:block" />
-    </div>
-  );
 }
 
 function AppChrome({ initialBootState }: { initialBootState?: AppBootState | null }) {

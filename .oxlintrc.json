@@ -98,7 +98,6 @@
       {
         // Classes without CSS that scripts or third-party code look for.
         "allow": [
-          "pull-to-refresh-material__control",
           "tl-message",
           "toaster",
           "twitter-tweet",

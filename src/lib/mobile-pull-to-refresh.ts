@@ -1,237 +1,86 @@
 "use client";
 
-type PanEvent = TouchEvent & { deltaX: number; deltaY: number };
-
-function onTouchPan({
-  element,
-  onpanstart,
-  onpanmove,
-  onpanend,
-}: {
-  element: Element;
-  onpanstart?: (e: PanEvent) => void;
-  onpanmove?: (e: PanEvent) => void;
-  onpanend?: (e: PanEvent) => void;
-}) {
-  let id: number | null = null,
-    sx = 0,
-    sy = 0,
-    started = false;
-
-  const calc = (e: TouchEvent): PanEvent | false => {
-    const t = [...e.changedTouches].find((x) => x.identifier === id);
-    if (!t) return false;
-    (e as PanEvent).deltaX = t.screenX - sx;
-    (e as PanEvent).deltaY = t.screenY - sy;
-    return e as PanEvent;
-  };
-
-  const start = (e: TouchEvent) => {
-    const t = e.changedTouches[0];
-    if (!t) return;
-    id = t.identifier;
-    sx = t.screenX;
-    sy = t.screenY;
-    started = false;
-  };
-  const move = (e: TouchEvent) => {
-    const p = calc(e);
-    if (!p) return;
-    if (onpanstart && !started) {
-      onpanstart(p);
-      started = true;
-    }
-    onpanmove?.(p);
-  };
-  const end = (e: TouchEvent) => {
-    const p = calc(e);
-    if (p) onpanend?.(p);
-  };
-
-  element.addEventListener("touchstart", start, { passive: true });
-  if (onpanmove) element.addEventListener("touchmove", move as EventListener, { passive: false });
-  if (onpanend) element.addEventListener("touchend", end as EventListener);
-
-  return () => {
-    element.removeEventListener("touchstart", start);
-    if (onpanmove) element.removeEventListener("touchmove", move as EventListener);
-    if (onpanend) element.removeEventListener("touchend", end as EventListener);
-  };
-}
-
-const material = {
-  pulling(d: number, o: any) {
-    if (!o.elControl) o.elControl = o.container.querySelector(".pull-to-refresh-material__control");
-    const { threshold, elControl } = o;
-    if (!elControl) return;
-    let p = d / threshold;
-    p = p > 1 ? 1 : p * p * p;
-    const y = d / 2.5;
-    elControl.style.opacity = String(p);
-    elControl.style.transform = y ? `translate3d(-50%, ${y}px, 0) rotate(${360 * p}deg)` : "";
-  },
-  refreshing({ elControl, threshold }: any) {
-    if (!elControl) return;
-    elControl.style.transition = "transform 0.2s";
-    elControl.style.transform = `translate3d(-50%, ${threshold / 2.5}px, 0)`;
-  },
-  aborting({ elControl }: any) {
-    return new Promise<void>((resolve) => {
-      if (!elControl?.style.transform) return resolve();
-      elControl.style.transition = "transform 0.3s, opacity 0.15s";
-      elControl.style.transform = "translate3d(-50%, 0, 0)";
-      elControl.style.opacity = 0;
-      elControl.addEventListener(
-        "transitionend",
-        () => {
-          elControl.style.transition = "";
-          resolve();
-        },
-        { once: true },
-      );
-    });
-  },
-  restoring({ elControl }: any) {
-    return new Promise<void>((resolve) => {
-      if (!elControl) return resolve();
-      elControl.style.transition = "transform 0.3s";
-      elControl.style.transform += " scale(0.01)";
-      elControl.addEventListener(
-        "transitionend",
-        () => {
-          elControl.style.transition = "";
-          resolve();
-        },
-        { once: true },
-      );
-    });
-  },
-};
-
-type State = "pulling" | "aborting" | "reached" | "refreshing" | "restoring" | null;
-
 // How far a touch moves before it counts as a pull or not; browsers wait about as long before
 // they start scrolling.
 const PULL_SLOP = 10;
 
-// A list scrolled down under the finger (a popup's options, say) scrolls back up instead.
-function inScrolledElement(target: EventTarget | null, container: Element) {
-  for (let el = target instanceof Element ? target : null; el && el !== container; ) {
+// Pulling down in a popup or dialog, or in a list scrolled down under the finger, scrolls that
+// instead of reloading the page behind it.
+function claimedByElement(target: EventTarget | null) {
+  for (let el = target instanceof Element ? target : null; el; el = el.parentElement) {
     if (el.scrollTop > 0) return true;
-    el = el.parentElement;
+    const role = el.getAttribute("role");
+    if (role === "dialog" || role === "alertdialog" || role === "menu" || role === "listbox")
+      return true;
   }
   return false;
 }
 
-export function pullToRefresh(opts: any) {
-  opts = {
-    scrollable: document.body,
-    threshold: 150,
-    onStateChange() {},
-    shouldPullToRefresh: () => true,
-    animates: material,
-    ...opts,
-  };
-  const {
-    container,
-    scrollable,
-    threshold,
-    refresh,
-    onStateChange,
-    animates,
-    shouldPullToRefresh,
-  } = opts;
-  let distance: number | null = null,
-    offset: number | null = null,
-    state: State = null,
-    // Whether the current touch is a pull: unknown until it passes PULL_SLOP, then fixed until
-    // the finger lifts. Only a mostly-downward touch is one, so sideways swipes (the nav strip,
-    // tab swipes) keep scrolling.
-    pull: boolean | null = null;
+// Follows touches for downward pulls from the top of the page. A touch becomes a pull once it
+// has moved PULL_SLOP, mostly downward, with the page at its top and `canPull()` true. From then
+// the page doesn't scroll under it, `onPull` gets the distance pulled on each move and
+// `onRelease` the final distance when the finger lifts (0 when the touch is cancelled). Any
+// other touch is left alone, so sideways swipes and scrolling work as usual.
+export function watchPulls({
+  canPull,
+  onPull,
+  onRelease,
+}: {
+  canPull: () => boolean;
+  onPull: (distance: number) => void;
+  onRelease: (distance: number) => void;
+}) {
+  let id: number | null = null,
+    startX = 0,
+    startY = 0,
+    // Unknown until the touch passes PULL_SLOP, then fixed until the finger lifts.
+    pulling: boolean | null = null,
+    distance = 0;
 
-  const cls = (op: "add" | "remove", c: string) => container.classList[op](`pull-to-refresh--${c}`);
-  const scrollTop = () => {
-    if (
-      !scrollable ||
-      [window, document, document.body, document.documentElement].includes(scrollable)
-    )
-      return document.documentElement.scrollTop || document.body.scrollTop;
-    return scrollable.scrollTop;
+  const trackedTouch = (e: TouchEvent) =>
+    id === null ? undefined : [...e.changedTouches].find((t) => t.identifier === id);
+
+  const start = (e: TouchEvent) => {
+    // A second finger doesn't take over a pull, and two fingers before one is a pinch.
+    if (pulling) return;
+    const t = e.changedTouches[0];
+    id = t && e.touches.length === 1 ? t.identifier : null;
+    startX = t?.clientX ?? 0;
+    startY = t?.clientY ?? 0;
+    pulling = null;
+  };
+  const move = (e: TouchEvent) => {
+    const t = trackedTouch(e);
+    if (!t || pulling === false) return;
+    if (pulling === null) {
+      const dx = Math.abs(t.clientX - startX);
+      const dy = t.clientY - startY;
+      if (Math.max(dx, Math.abs(dy)) < PULL_SLOP) return;
+      pulling = dy > dx && window.scrollY <= 0 && canPull() && !claimedByElement(e.target);
+      if (!pulling) return;
+      // Measured from here, the pull starts at 0.
+      startY = t.clientY;
+    }
+    if (e.cancelable) e.preventDefault();
+    distance = Math.max(0, t.clientY - startY);
+    onPull(distance);
+  };
+  const end = (e: TouchEvent) => {
+    if (!trackedTouch(e)) return;
+    if (pulling) onRelease(e.type === "touchcancel" ? 0 : distance);
+    id = null;
+    pulling = null;
+    distance = 0;
   };
 
-  return onTouchPan({
-    element: container,
-    onpanstart() {
-      pull = null;
-    },
-    onpanmove(event) {
-      let d = event.deltaY;
-      if (scrollTop() > 0 && state === "reached") {
-        cls("remove", state);
-        state = "pulling";
-        cls("add", state);
-        onStateChange(state, opts);
-      }
-      if (pull === null && !state) {
-        const dx = Math.abs(event.deltaX);
-        if (Math.max(dx, Math.abs(d)) < PULL_SLOP) return;
-        pull = d > dx && !inScrolledElement(event.target, container);
-      }
-      if (
-        pull === false ||
-        !shouldPullToRefresh() ||
-        scrollTop() > 0 ||
-        (d < 0 && !state) ||
-        (state && ["aborting", "refreshing", "restoring"].includes(state))
-      )
-        return;
-      if (event.cancelable) event.preventDefault();
-      if (distance == null) {
-        offset = d;
-        state = "pulling";
-        cls("add", state);
-        onStateChange(state, opts);
-      }
-      d -= offset || 0;
-      if (d < 0) d = 0;
-      distance = d;
-      if ((d >= threshold && state !== "reached") || (d < threshold && state !== "pulling")) {
-        if (state) cls("remove", state);
-        state = state === "reached" ? "pulling" : "reached";
-        cls("add", state);
-        onStateChange(state, opts);
-      }
-      animates.pulling(d, opts);
-    },
-    onpanend() {
-      if (!state) return;
-      const reset = () => {
-        if (state) cls("remove", state);
-        distance = null;
-        state = null;
-        offset = null;
-        onStateChange(state);
-      };
-      if (state === "pulling") {
-        cls("remove", state);
-        state = "aborting";
-        onStateChange(state);
-        cls("add", state);
-        animates.aborting(opts).then(reset);
-      } else if (state === "reached") {
-        cls("remove", state);
-        state = "refreshing";
-        cls("add", state);
-        onStateChange(state, opts);
-        animates.refreshing(opts);
-        Promise.resolve(refresh()).then(() => {
-          if (state) cls("remove", state);
-          state = "restoring";
-          cls("add", state);
-          onStateChange(state);
-          animates.restoring(opts).then(reset);
-        });
-      }
-    },
-  });
+  document.addEventListener("touchstart", start, { passive: true });
+  document.addEventListener("touchmove", move, { passive: false });
+  document.addEventListener("touchend", end, { passive: true });
+  document.addEventListener("touchcancel", end, { passive: true });
+  return () => {
+    document.removeEventListener("touchstart", start);
+    document.removeEventListener("touchmove", move);
+    document.removeEventListener("touchend", end);
+    document.removeEventListener("touchcancel", end);
+  };
 }
