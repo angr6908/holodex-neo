@@ -1,6 +1,16 @@
 "use client";
 
-import { Broom, Building2, CornerDownLeft, Hash, PlayCircle, Search, Tv } from "lucide-react";
+import {
+  Broom,
+  Building2,
+  CornerDownLeft,
+  Film,
+  Hash,
+  PlayCircle,
+  Search,
+  Tv,
+  X,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
@@ -39,6 +49,7 @@ import { useAppState } from "@/lib/store";
 import { useTopicsCache } from "@/lib/topics";
 
 type FilterItem = { type: string; value: string; text: string };
+type FilterChip = { id: string; icon: typeof Tv; label: string; onRemove: () => void };
 type Suggestion = {
   id: string;
   type: "channel" | "topic" | "org" | "video" | "freeText";
@@ -58,6 +69,15 @@ const TYPE_ICON: Record<Suggestion["type"], typeof Tv> = {
 function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))];
 }
+
+function formatOrgLabel(name: string, t: ReturnType<typeof useTranslations>) {
+  return name === ALL_VTUBERS_ORG ? t("component.search.allVtubers") : formatOrgDisplayName(name);
+}
+
+const TYPE_LABEL_KEY: Record<string, string> = {
+  stream: "views.search.type.official",
+  clip: "views.search.type.clip",
+};
 
 function suggestionFromAutocomplete(item: any): Suggestion | null {
   const value = String(item.value ?? "");
@@ -462,8 +482,7 @@ function OrgFilterField({
   // Listed options include the chosen orgs, so an "All VTubers" chip from the navigation bar
   // still has its label.
   const displayedOrgOptions = useMemo(() => unique([...orgOptions, ...orgs]), [orgOptions, orgs]);
-  const orgLabel = (name: string) =>
-    name === ALL_VTUBERS_ORG ? t("component.search.allVtubers") : formatOrgDisplayName(name);
+  const orgLabel = (name: string) => formatOrgLabel(name, t);
   return (
     <Field>
       <FieldLabel>{t("component.search.type.org")}</FieldLabel>
@@ -561,6 +580,46 @@ function TypeAndSortFields({
   );
 }
 
+// The dropdown's filters as removable chips at the start of the search bar; they scroll
+// sideways once they fill most of it, keeping the newest chip in view.
+function FilterChips({ chips }: { chips: FilterChip[] }) {
+  const t = useTranslations();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const count = chips.length;
+  const prevCount = useRef(count);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && count > prevCount.current) el.scrollLeft = el.scrollWidth;
+    prevCount.current = count;
+  }, [count]);
+  if (!count) return null;
+  return (
+    <InputGroupAddon align="inline-start" className="min-w-0 max-w-[60%] justify-start">
+      <div ref={scrollRef} className="no-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto">
+        {chips.map(({ id, icon: Icon, label, onRemove }) => (
+          <span
+            key={id}
+            className="flex h-[calc(--spacing(5.25))] shrink-0 items-center gap-1 rounded-sm bg-muted pl-1.5 text-xs font-medium whitespace-nowrap text-foreground"
+          >
+            <Icon className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="max-w-40 truncate">{label}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="-ml-1 opacity-50 hover:opacity-100"
+              aria-label={`${t("component.common.remove")} ${label}`}
+              onClick={onRemove}
+            >
+              <X className="pointer-events-none" />
+            </Button>
+          </span>
+        ))}
+      </div>
+    </InputGroupAddon>
+  );
+}
+
 export function SearchDropdown() {
   const router = useRouter();
   const pathname = usePathname();
@@ -600,7 +659,36 @@ export function SearchDropdown() {
     [query, results, orgOptions],
   );
 
-  const hasContent = !!(query.trim() || orgs.length || channels.length || topic);
+  const { filterType, setFilterType } = filters;
+  const chips = useMemo(() => {
+    const list: FilterChip[] = [
+      ...channels.map((channel) => ({
+        id: `channel:${channel.value}`,
+        icon: Tv,
+        label: channel.text || channel.value,
+        onRemove: () => setChannels((prev) => prev.filter((c) => c.value !== channel.value)),
+      })),
+      ...(topic
+        ? [{ id: `topic:${topic}`, icon: Hash, label: topic, onRemove: () => setTopic("") }]
+        : []),
+      ...orgs.map((org) => ({
+        id: `org:${org}`,
+        icon: Building2,
+        label: formatOrgLabel(org, t),
+        onRemove: () => setOrgs((prev) => prev.filter((o) => o !== org)),
+      })),
+    ];
+    if (TYPE_LABEL_KEY[filterType])
+      list.push({
+        id: `type:${filterType}`,
+        icon: Film,
+        label: t(TYPE_LABEL_KEY[filterType]),
+        onRemove: () => setFilterType("all"),
+      });
+    return list;
+  }, [channels, topic, orgs, filterType, setChannels, setTopic, setOrgs, setFilterType, t]);
+
+  const hasContent = !!(query.trim() || chips.length);
   const focusInput = () => containerRef.current?.querySelector("input")?.focus();
 
   function clearAll() {
@@ -665,6 +753,12 @@ export function SearchDropdown() {
       setOpen(false);
       return;
     }
+    // Backspace in the empty input removes the last filter chip.
+    if (event.key === "Backspace" && !query && chips.length) {
+      event.preventDefault();
+      chips[chips.length - 1].onRemove();
+      return;
+    }
     if (event.key === "Enter") {
       event.preventDefault();
       void runSearch();
@@ -681,6 +775,7 @@ export function SearchDropdown() {
   return (
     <div ref={containerRef} className="relative flex min-w-0 flex-1 items-center">
       <InputGroup className="h-9">
+        <FilterChips chips={chips} />
         <InputGroupInput
           value={query}
           placeholder={t("component.search.placeholder")}
