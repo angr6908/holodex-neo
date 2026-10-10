@@ -758,7 +758,6 @@ function Content({ routeLayout }: { routeLayout: string }) {
               />
               <VideoSelector
                 horizontal
-                compact={isXs}
                 hideOrgSelector
                 hideFavorites
                 hidePlaylist

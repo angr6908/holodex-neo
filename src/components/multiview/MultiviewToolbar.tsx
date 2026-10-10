@@ -89,7 +89,9 @@ export function MultiviewToolbar({
   }
   return (
     <div className="relative z-20 border-b bg-background px-3">
-      <div className="flex min-h-14 items-center gap-2 py-1">
+      {/* Below 600px the left side (the live strip) takes a full row under the buttons, rather
+          than the sliver they leave beside them. */}
+      <div className="flex min-h-14 flex-wrap items-center gap-x-2 gap-y-1 py-1">
         <div className="shrink-0 self-center">
           <Popover open={navMenuOpen} onOpenChange={setNavMenuOpen}>
             <ToolbarTooltip
@@ -123,8 +125,10 @@ export function MultiviewToolbar({
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex min-w-0 flex-1 items-center self-stretch">{left || children}</div>
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 self-center">
+        <div className="flex min-w-0 flex-1 items-center self-stretch max-[600px]:order-last max-[600px]:basis-full">
+          {left || children}
+        </div>
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 self-center">
           {extraButtons}
           {buttons
             .filter((button) => !button.collapse)
