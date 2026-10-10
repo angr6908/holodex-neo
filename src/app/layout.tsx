@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { APP_BOOT_COOKIE, HOME_STATE_COOKIE } from "@/lib/cookie-codec";
 import { readBootState } from "@/lib/server/boot-state";
 import { LEGACY_THEME_COLOR } from "@/lib/themes";
+import { NO_TOP_NAV_PATTERN } from "@/lib/top-nav";
 import { cn } from "@/lib/utils";
 
 const geistSans = localFont({
@@ -148,7 +149,7 @@ var homeLive=home.live||[],favLive=fav.live||[];
 var countLive=function(a){return(a||[]).filter(function(v){return v&&v.status==='live'}).length};
 try{var vw=window.innerWidth||1440;var boot={isMobile:vw<960,windowWidth:vw,currentOrg:app.currentOrg,selectedHomeOrgs:app.selectedHomeOrgs,orgFavorites:app.orgFavorites,currentGridSize:app.currentGridSize,homeLiveCount:countLive(homeLive),favoritesLiveCount:countLive(favLive),settings:{lang:settings.lang,defaultOpen:settings.defaultOpen,homeViewMode:settings.homeViewMode,scrollMode:settings.scrollMode,hideUpcoming:settings.hideUpcoming,hideLive:settings.hideLive,darkMode:settings.darkMode,followSystemTheme:settings.followSystemTheme}};document.cookie='${APP_BOOT_COOKIE}='+encodeURIComponent(JSON.stringify(boot))+'; Path=/; Max-Age=31536000; SameSite=Lax';}catch(e){}
 var path=location.pathname||'/';
-var showTopBar=!(new RegExp('^/(multiview|tlclient|scripteditor|watch)(/|$)').test(path));
+var showTopBar=!(new RegExp('${NO_TOP_NAV_PATTERN}').test(path));
 if(showTopBar){h.style.setProperty('--nav-header-height','52px');h.style.setProperty('--nav-total-height','56px');h.style.setProperty('--nav-h','52px');}else{h.style.setProperty('--nav-header-height','0px');h.style.setProperty('--nav-total-height','0px');h.style.setProperty('--nav-h','0px');}
 var dark=settings.darkMode!==false;
 if(settings.followSystemTheme){try{dark=window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){}}

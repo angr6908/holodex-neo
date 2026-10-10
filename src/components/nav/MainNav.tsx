@@ -28,6 +28,7 @@ import { useHasBeenTrue } from "@/lib/hooks";
 import { LayoutDashboard, ListVideo, Music, Search, Settings as SettingsIcon } from "@/lib/icons";
 import { loadAboutSection, loadPlaylistPanel, loadSettingsPage } from "@/lib/lazy";
 import { useAppState } from "@/lib/store";
+import { hasTopNav } from "@/lib/top-nav";
 import { cn } from "@/lib/utils";
 
 const PlaylistPanel = dynamic(() => loadPlaylistPanel().then((m) => m.PlaylistPanel), {
@@ -73,22 +74,29 @@ function navLiveCount(
   return isFavPage ? initialBootState?.favoritesLiveCount : initialBootState?.homeLiveCount;
 }
 
-// Publishes the nav's height as CSS variables for the pages laid out under it.
+// Publishes the nav's height as CSS variables for the pages laid out under it. Pages without the
+// nav get 0, as the boot script (app/layout) gives them on a first load, rather than the height
+// of the last page that had it.
 function useNavHeightVars(
   navRoot: React.RefObject<HTMLDivElement | null>,
   showTopBar: boolean,
   mobileSearchOpen: boolean,
 ) {
   useLayoutEffect(() => {
-    if (!showTopBar) return;
+    const publish = (total: number, header: number) => {
+      document.documentElement.style.setProperty("--nav-total-height", `${total}px`);
+      document.documentElement.style.setProperty("--nav-header-height", `${header}px`);
+      document.documentElement.style.setProperty("--nav-h", `${header}px`);
+    };
+    if (!showTopBar) {
+      publish(0, 0);
+      return;
+    }
     const el = navRoot.current;
     if (!el) return;
     const update = () => {
       const total = Math.ceil(el.getBoundingClientRect().height);
-      const header = Math.ceil(el.querySelector("header")?.getBoundingClientRect().height || total);
-      document.documentElement.style.setProperty("--nav-total-height", `${total}px`);
-      document.documentElement.style.setProperty("--nav-header-height", `${header}px`);
-      document.documentElement.style.setProperty("--nav-h", `${header}px`);
+      publish(total, Math.ceil(el.querySelector("header")?.getBoundingClientRect().height || total));
     };
     update();
     const ro = new ResizeObserver(update);
@@ -438,10 +446,7 @@ export function MainNav({ initialBootState }: { initialBootState?: AppBootState 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const userMenu = useNavUserMenu();
 
-  const showTopBar =
-    !pathname.startsWith("/multiview") &&
-    !pathname.startsWith("/tlclient") &&
-    !pathname.startsWith("/scripteditor");
+  const showTopBar = hasTopNav(pathname);
 
   useNavHeightVars(navRoot, showTopBar, mobileSearchOpen);
 

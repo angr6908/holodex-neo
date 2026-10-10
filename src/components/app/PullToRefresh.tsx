@@ -4,9 +4,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { RotateCw } from "@/lib/icons";
 import { watchPulls } from "@/lib/mobile-pull-to-refresh";
+import { hasTopNav } from "@/lib/top-nav";
 
-// Pages with gestures of their own (players, layouts, editors) don't pull to refresh.
-const NO_PULL_PATHS = ["/watch", "/edit/video", "/multiview", "/tlclient", "/scripteditor"];
+// Pages with gestures of their own (the player, the video editor) don't pull to refresh, and
+// neither do pages without the top nav, which the indicator comes out from under.
+const OWN_GESTURE_PATHS = ["/watch", "/edit/video"];
 
 // How far (px) the indicator comes out from under the nav at most, and how far out letting go
 // reloads the page; it waits there while the page reloads.
@@ -23,7 +25,9 @@ export function PullToRefresh() {
   const pathname = usePathname();
   const chipRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
-  const canPull = useEffectEvent(() => !NO_PULL_PATHS.some((p) => pathname.startsWith(p)));
+  const canPull = useEffectEvent(
+    () => hasTopNav(pathname) && !OWN_GESTURE_PATHS.some((p) => pathname.startsWith(p)),
+  );
 
   useEffect(() => {
     const chip = chipRef.current;
@@ -64,12 +68,13 @@ export function PullToRefresh() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-x-0 top-[var(--nav-total-height,0px)] z-30 flex justify-center"
     >
-      {/* Put away, it sits 3rem up, hidden behind the nav. It tracks the finger exactly while
-          pulled and eases into place otherwise. */}
+      {/* Put away, it sits 3rem up behind the nav and is hidden outright, so it can't show on a
+          page without the nav. It tracks the finger exactly while pulled and eases into place
+          otherwise, staying visible until it has slid back. */}
       <div
         ref={chipRef}
         data-phase={phase}
-        className="group/ptr flex size-9 [transform:translate3d(0,calc(var(--ptr-offset,0px)_-_3rem),0)] items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-all duration-300 ease-out data-[phase=armed]:text-foreground data-[phase=armed]:transition-colors data-[phase=pulling]:transition-none data-[phase=refreshing]:text-foreground motion-reduce:transition-none"
+        className="group/ptr flex size-9 [transform:translate3d(0,calc(var(--ptr-offset,0px)_-_3rem),0)] items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-all duration-300 ease-out data-[phase=armed]:text-foreground data-[phase=armed]:transition-colors data-[phase=idle]:invisible data-[phase=pulling]:transition-none data-[phase=refreshing]:text-foreground motion-reduce:transition-none"
       >
         <RotateCw className="size-4 [rotate:calc(var(--ptr-progress,0)*270deg)] group-data-[phase=refreshing]/ptr:animate-spin" />
       </div>
