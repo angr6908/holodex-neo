@@ -110,6 +110,19 @@ const material = {
 
 type State = "pulling" | "aborting" | "reached" | "refreshing" | "restoring" | null;
 
+// How far a touch moves before it counts as a pull or not; browsers wait about as long before
+// they start scrolling.
+const PULL_SLOP = 10;
+
+// A list scrolled down under the finger (a popup's options, say) scrolls back up instead.
+function inScrolledElement(target: EventTarget | null, container: Element) {
+  for (let el = target instanceof Element ? target : null; el && el !== container; ) {
+    if (el.scrollTop > 0) return true;
+    el = el.parentElement;
+  }
+  return false;
+}
+
 export function pullToRefresh(opts: any) {
   opts = {
     scrollable: document.body,
@@ -130,7 +143,11 @@ export function pullToRefresh(opts: any) {
   } = opts;
   let distance: number | null = null,
     offset: number | null = null,
-    state: State = null;
+    state: State = null,
+    // Whether the current touch is a pull: unknown until it passes PULL_SLOP, then fixed until
+    // the finger lifts. Only a mostly-downward touch is one, so sideways swipes (the nav strip,
+    // tab swipes) keep scrolling.
+    pull: boolean | null = null;
 
   const cls = (op: "add" | "remove", c: string) => container.classList[op](`pull-to-refresh--${c}`);
   const scrollTop = () => {
@@ -144,6 +161,9 @@ export function pullToRefresh(opts: any) {
 
   return onTouchPan({
     element: container,
+    onpanstart() {
+      pull = null;
+    },
     onpanmove(event) {
       let d = event.deltaY;
       if (scrollTop() > 0 && state === "reached") {
@@ -152,7 +172,13 @@ export function pullToRefresh(opts: any) {
         cls("add", state);
         onStateChange(state, opts);
       }
+      if (pull === null && !state) {
+        const dx = Math.abs(event.deltaX);
+        if (Math.max(dx, Math.abs(d)) < PULL_SLOP) return;
+        pull = d > dx && !inScrolledElement(event.target, container);
+      }
       if (
+        pull === false ||
         !shouldPullToRefresh() ||
         scrollTop() > 0 ||
         (d < 0 && !state) ||
