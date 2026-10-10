@@ -21,6 +21,7 @@ import {
   useEffectEvent,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { ChatCell } from "@/components/multiview/ChatCell";
 import { MediaControls } from "@/components/multiview/MediaControls";
@@ -74,6 +75,12 @@ import {
 } from "@/lib/mv-utils";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+// iPhones have no fullscreen API, so the fullscreen action is left out there rather than doing
+// nothing. Pages render without it on the server and add it once the browser says it can.
+const noSubscribe = () => () => {};
+const useCanFullscreen = () =>
+  useSyncExternalStore(noSubscribe, () => !!document.fullscreenEnabled, () => false);
 
 type ResizeHandleConfig = {
   direction: string;
@@ -689,6 +696,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
     setMultiview(store, { ...structuredClone(p), mergeContent: true });
   };
   const onDelete = (id: string) => deleteVideoAutoLayout(store, id, isStackedScreen());
+  const canFullscreen = useCanFullscreen();
   const toggleFull = () =>
     document.fullscreenElement
       ? document.exitFullscreen?.()
@@ -716,12 +724,16 @@ function Content({ routeLayout }: { routeLayout: string }) {
       },
       collapse: isSm,
     },
-    {
-      icon: Maximize2,
-      tooltip: t("views.multiview.fullScreen"),
-      onClick: toggleFull,
-      collapse: isMd,
-    },
+    ...(canFullscreen
+      ? [
+          {
+            icon: Maximize2,
+            tooltip: t("views.multiview.fullScreen"),
+            onClick: toggleFull,
+            collapse: isMd,
+          },
+        ]
+      : []),
   ]);
   const renderCellStreamSelector = (id: string | number) => (
     <StreamSelectorPopover
