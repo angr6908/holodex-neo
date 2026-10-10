@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -40,6 +40,44 @@ export function ToolbarTooltip({
   );
 }
 
+// Below 600px the live strip has a row of its own, so the button row has room to spare: this
+// measures how many more icon buttons fit beside the ones that always show (marked by not
+// carrying data-overflow). Wider, the strip shares the row and it returns null.
+function useSpareButtonSlots() {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [slots, setSlots] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    const actions = actionsRef.current;
+    if (!row || !actions) return;
+    const narrow = window.matchMedia("(max-width: 599.98px)");
+    const measure = () => {
+      if (!narrow.matches) return setSlots(null);
+      const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const gap = parseFloat(getComputedStyle(actions).columnGap) || 0;
+      const fixed = [...actions.children].filter(
+        (el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute("data-overflow"),
+      );
+      const nav = row.firstElementChild as HTMLElement | null;
+      const room = row.clientWidth - (nav?.offsetWidth ?? 0) - rowGap;
+      const used = fixed.reduce((w, el) => w + el.offsetWidth + gap, 0);
+      const slot = (fixed.at(-1)?.offsetWidth ?? 32) + gap;
+      setSlots(Math.max(0, Math.floor((room - used + gap) / slot)));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    observer.observe(actions);
+    narrow.addEventListener("change", measure);
+    return () => {
+      observer.disconnect();
+      narrow.removeEventListener("change", measure);
+    };
+  }, []);
+  return { rowRef, actionsRef, slots };
+}
+
 export function MultiviewToolbar({
   compact = false,
   buttons = [],
@@ -61,7 +99,15 @@ export function MultiviewToolbar({
   const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [doneCopy, setDoneCopy] = useState(false);
-  const collapseButtons = buttons.filter((button) => button.collapse);
+  const { rowRef, actionsRef, slots } = useSpareButtonSlots();
+  // With room measured, the buttons take the spare slots in order and More (itself a slot) holds
+  // the rest; otherwise the page's collapse flags decide.
+  const collapseButtons =
+    slots === null
+      ? buttons.filter((button) => button.collapse)
+      : buttons.length <= slots
+        ? []
+        : buttons.slice(Math.max(slots - 1, 0));
   const exportURL = useMemo(() => {
     if (!shareDialog || typeof window === "undefined") return "";
     const layoutParam = `/${encodeURIComponent(encodeLayout({ layout: store.layout, contents: store.layoutContent, includeVideo: true }))}`;
@@ -91,7 +137,7 @@ export function MultiviewToolbar({
     <div className="relative z-20 border-b bg-background px-3">
       {/* Below 600px the left side (the live strip) takes a full row under the buttons, rather
           than the sliver they leave beside them. */}
-      <div className="flex min-h-14 flex-wrap items-center gap-x-2 gap-y-1 py-1">
+      <div ref={rowRef} className="flex min-h-14 flex-wrap items-center gap-x-2 gap-y-1 py-1">
         <div className="shrink-0 self-center">
           <Popover open={navMenuOpen} onOpenChange={setNavMenuOpen}>
             <ToolbarTooltip
@@ -128,10 +174,13 @@ export function MultiviewToolbar({
         <div className="flex min-w-0 flex-1 items-center self-stretch max-[600px]:order-last max-[600px]:basis-full">
           {left || children}
         </div>
-        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 self-center">
+        <div
+          ref={actionsRef}
+          className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 self-center"
+        >
           {extraButtons}
           {buttons
-            .filter((button) => !button.collapse)
+            .filter((button) => !collapseButtons.includes(button))
             .map((button) => (
               <ToolbarTooltip
                 key={button.tooltip}
@@ -143,6 +192,7 @@ export function MultiviewToolbar({
                     size="icon"
                     aria-label={button.tooltip}
                     onClick={button.onClick}
+                    data-overflow
                   />
                 }
               >
@@ -198,6 +248,7 @@ export function MultiviewToolbar({
                         variant="ghost"
                         size="icon"
                         aria-label={t("component.common.moreActions")}
+                        data-overflow
                       />
                     }
                   />
