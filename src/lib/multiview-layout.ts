@@ -190,3 +190,12 @@ export function deleteVideoAutoLayout(s: Store, id: string, mobile: boolean) {
   }
   setMultiview(s, { ...structuredClone(next), mergeContent: true, excludeId: id });
 }
+
+// When the screen turns between a phone held upright and anything wider, swaps an automatic
+// layout for the other family's one with as many cells, keeping the videos and chats. A layout
+// arranged by hand matches no preset, so it stays as it is.
+export function reflowAutoLayout(s: Store, wasStacked: boolean, stacked: boolean) {
+  if (wasStacked === stacked || !s.nonChatCellCount || !isPreset(s, s.layout, wasStacked)) return;
+  const next = findForCount(stacked ? s.decodedMobilePresets : decodedAuto(s), s.nonChatCellCount);
+  if (next) setMultiview(s, { ...structuredClone(next), mergeContent: true });
+}
