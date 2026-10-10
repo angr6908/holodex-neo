@@ -778,7 +778,8 @@ export function SearchDropdown() {
         <FilterChips chips={chips} />
         <InputGroupInput
           value={query}
-          placeholder={t("component.search.placeholder")}
+          placeholder={chips.length ? undefined : t("component.search.placeholder")}
+          aria-label={t("component.search.searchLabel")}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
