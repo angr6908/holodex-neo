@@ -733,9 +733,11 @@ function Content({ routeLayout }: { routeLayout: string }) {
   );
 
   return (
+    // Fills the screen inside the device's safe area: the body already pads the top inset, and
+    // the padding keeps the edges clear of a notch and the home indicator.
     <div
       className={cn(
-        "relative flex h-[100dvh] min-h-[100dvh] w-full flex-col overflow-hidden",
+        "relative flex h-[calc(100dvh-env(safe-area-inset-top))] w-full flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]",
         app.isMobile && "select-none",
       )}
     >

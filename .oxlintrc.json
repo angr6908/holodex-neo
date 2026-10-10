@@ -78,7 +78,10 @@
           "pt-[calc(var(--nav-total-height,120px)+0.75rem)]",
           "px-[clamp(12px,1.8vw,24px)]",
           // Device safe areas.
+          "h-[calc(100dvh-env(safe-area-inset-top))]",
           "pb-[env(safe-area-inset-bottom)]",
+          "pl-[env(safe-area-inset-left)]",
+          "pr-[env(safe-area-inset-right)]",
           "pt-[env(safe-area-inset-top)]",
           // Other one-off values.
           "backdrop-blur-[1px]",
