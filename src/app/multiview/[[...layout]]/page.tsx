@@ -504,7 +504,7 @@ function ExpandToolbarTab({ onExpand }: { onExpand: () => void }) {
         title={t("views.multiview.expandToolbar")}
         onClick={onExpand}
         data-visible={moving || undefined}
-        className="absolute left-1/2 top-0 z-50 w-14 -translate-x-1/2 rounded-t-none border-t-0 opacity-0 shadow-sm duration-300 hover:opacity-100 focus-visible:opacity-100 data-visible:opacity-100 pointer-coarse:opacity-100"
+        className="absolute left-1/2 top-0 z-50 w-14 -translate-x-1/2 rounded-t-none border-t-0 opacity-0 shadow-sm backdrop-blur-sm duration-300 hover:opacity-100 dark:bg-muted/80 dark:hover:bg-muted focus-visible:opacity-100 data-visible:opacity-100 pointer-coarse:opacity-100"
       >
         <ChevronDown className="size-4" />
       </Button>
