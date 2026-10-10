@@ -25,7 +25,7 @@ import {
 import { ChatCell } from "@/components/multiview/ChatCell";
 import { MediaControls } from "@/components/multiview/MediaControls";
 import { MultiviewSyncBar } from "@/components/multiview/MultiviewSyncBar";
-import { MultiviewToolbar } from "@/components/multiview/MultiviewToolbar";
+import { MultiviewToolbar, ToolbarTooltip } from "@/components/multiview/MultiviewToolbar";
 import { gridAreaClass } from "@/components/multiview/grid-area";
 import {
   CellContainer,
@@ -50,7 +50,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 import {
   addCellAutoLayout,
@@ -238,18 +238,16 @@ function ToolbarPopover({
 }) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <PopoverTrigger
-              render={<Button type="button" variant="ghost" size="icon" aria-label={label} />}
-            />
-          }
-        >
-          {icon}
-        </TooltipTrigger>
-        <TooltipContent>{label}</TooltipContent>
-      </Tooltip>
+      <ToolbarTooltip
+        label={label}
+        render={
+          <PopoverTrigger
+            render={<Button type="button" variant="ghost" size="icon" aria-label={label} />}
+          />
+        }
+      >
+        {icon}
+      </ToolbarTooltip>
       {children}
     </Popover>
   );
@@ -530,19 +528,25 @@ function StreamSelectorPopover({
 }) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger
-        render={
-          <Button
-            type="button"
-            variant={compact ? "ghost" : "outline"}
-            size={compact ? "icon" : "lg"}
-            aria-label={label}
-          />
-        }
-      >
-        <Video />
-        {compact ? null : label}
-      </PopoverTrigger>
+      {compact ? (
+        <ToolbarTooltip
+          label={label}
+          render={
+            <PopoverTrigger
+              render={<Button type="button" variant="ghost" size="icon" aria-label={label} />}
+            />
+          }
+        >
+          <Video />
+        </ToolbarTooltip>
+      ) : (
+        <PopoverTrigger
+          render={<Button type="button" variant="outline" size="lg" aria-label={label} />}
+        >
+          <Video />
+          {label}
+        </PopoverTrigger>
+      )}
       <PopoverContent align="start" sideOffset={8} className={STREAM_SELECTOR_POPOVER_CLASS}>
         <VideoSelector embedded isActive={open} onVideoClicked={onVideoClicked} />
       </PopoverContent>

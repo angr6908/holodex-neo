@@ -15,10 +15,30 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMultiviewStore } from "@/lib/multiview-store";
 import { encodeLayout } from "@/lib/mv-utils";
 
 type ToolbarButton = { icon: LucideIcon; tooltip: string; onClick: () => void; collapse?: boolean };
+
+// Labels a toolbar icon button with a tooltip. `render` is the button, or a popover trigger
+// rendering one; `children` is its icon.
+export function ToolbarTooltip({
+  label,
+  render,
+  children,
+}: {
+  label: string;
+  render: React.ReactElement;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={render}>{children}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export function MultiviewToolbar({
   compact = false,
@@ -72,19 +92,23 @@ export function MultiviewToolbar({
       <div className="flex min-h-14 items-center gap-2 py-1">
         <div className="shrink-0 self-center">
           <Popover open={navMenuOpen} onOpenChange={setNavMenuOpen}>
-            <PopoverTrigger
+            <ToolbarTooltip
+              label={t("views.multiview.openNavigation")}
               render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  title={t("views.multiview.openNavigation")}
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("views.multiview.openNavigation")}
+                    />
+                  }
                 />
               }
             >
-              <span className="sr-only">{t("views.multiview.openNavigation")}</span>
               <Menu />
-            </PopoverTrigger>
+            </ToolbarTooltip>
             <PopoverContent align="start" sideOffset={8} className="w-auto min-w-[14rem] p-2">
               {navItems.map((item) => (
                 <Button
@@ -105,31 +129,41 @@ export function MultiviewToolbar({
           {buttons
             .filter((button) => !button.collapse)
             .map((button) => (
-              <Button
+              <ToolbarTooltip
                 key={button.tooltip}
-                type="button"
-                variant="ghost"
-                size="icon"
-                title={button.tooltip}
-                onClick={button.onClick}
-              >
-                <button.icon />
-              </Button>
-            ))}
-          {!compact ? (
-            <Popover open={shareDialog} onOpenChange={setShareDialog}>
-              <PopoverTrigger
+                label={button.tooltip}
                 render={
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    title={t("views.multiview.shareLayout")}
+                    aria-label={button.tooltip}
+                    onClick={button.onClick}
+                  />
+                }
+              >
+                <button.icon />
+              </ToolbarTooltip>
+            ))}
+          {!compact ? (
+            <Popover open={shareDialog} onOpenChange={setShareDialog}>
+              <ToolbarTooltip
+                label={t("views.multiview.shareLayout")}
+                render={
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("views.multiview.shareLayout")}
+                      />
+                    }
                   />
                 }
               >
                 <Share2 />
-              </PopoverTrigger>
+              </ToolbarTooltip>
               <PopoverContent align="end" sideOffset={8} className="w-[min(80vw,24rem)]">
                 <div className="relative flex items-center">
                   <Input readOnly value={exportURL} className="pr-10" />
@@ -150,18 +184,23 @@ export function MultiviewToolbar({
           ) : null}
           {collapseButtons.length ? (
             <Popover open={collapsedMenuOpen} onOpenChange={setCollapsedMenuOpen}>
-              <PopoverTrigger
+              <ToolbarTooltip
+                label={t("component.common.moreActions")}
                 render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    title={t("component.common.moreActions")}
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("component.common.moreActions")}
+                      />
+                    }
                   />
                 }
               >
                 <MoreVertical />
-              </PopoverTrigger>
+              </ToolbarTooltip>
               <PopoverContent align="end" sideOffset={8} className="w-auto min-w-[15rem] p-2">
                 {collapseButtons.map((button) => (
                   <Button
@@ -177,15 +216,20 @@ export function MultiviewToolbar({
               </PopoverContent>
             </Popover>
           ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            title={t("views.multiview.collapseToolbar")}
-            onClick={onCollapse}
+          <ToolbarTooltip
+            label={t("views.multiview.collapseToolbar")}
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={t("views.multiview.collapseToolbar")}
+                onClick={onCollapse}
+              />
+            }
           >
             <ChevronUp />
-          </Button>
+          </ToolbarTooltip>
         </div>
       </div>
     </div>
