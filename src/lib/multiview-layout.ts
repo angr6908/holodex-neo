@@ -33,6 +33,11 @@ interface Store {
   fetchVideoData: (opts?: { refreshLive?: boolean }) => Promise<void>;
 }
 
+// Phones and small tablets held upright stack their cells (the mobile presets). Turned sideways,
+// or on a wider screen, cells follow the desktop presets, which are laid out for a wide screen.
+export const STACKED_SCREEN_QUERY = "(max-width: 959px) and (orientation: portrait)";
+export const isStackedScreen = () => window.matchMedia(STACKED_SCREEN_QUERY).matches;
+
 const decodedAuto = (s: Store) =>
   s.autoLayout.filter((l): l is string => !!l).map((p) => ({ id: p, ...decodeLayout(p) }));
 

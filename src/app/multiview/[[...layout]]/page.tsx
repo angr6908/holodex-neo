@@ -58,7 +58,9 @@ import {
   addVideoWithId,
   deleteVideoAutoLayout,
   findEmptyCell,
+  isStackedScreen,
   reflowAutoLayout,
+  STACKED_SCREEN_QUERY,
   setMultiview,
   tryFillVideo,
 } from "@/lib/multiview-layout";
@@ -72,11 +74,6 @@ import {
 } from "@/lib/mv-utils";
 import { useAppState } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-// Phones and small tablets held upright stack their cells (the mobile presets). Turned sideways,
-// or on a wider screen, cells follow the desktop presets, which are laid out for a wide screen.
-const STACKED_QUERY = "(max-width: 959px) and (orientation: portrait)";
-const stackedScreen = () => window.matchMedia(STACKED_QUERY).matches;
 
 type ResizeHandleConfig = {
   direction: string;
@@ -635,7 +632,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
     reflowAutoLayout(store, !stacked, stacked),
   );
   useEffect(() => {
-    const mql = window.matchMedia(STACKED_QUERY);
+    const mql = window.matchMedia(STACKED_SCREEN_QUERY);
     const onChange = (e: MediaQueryListEvent) => reflowForScreen(e.matches);
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
@@ -659,7 +656,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
     if (!video) return;
     if (findEmptyCell(store)) tryFillVideo(store, video);
     else
-      addVideoAutoLayout(store, video, stackedScreen(), (l) => {
+      addVideoAutoLayout(store, video, isStackedScreen(), (l) => {
         layoutPrompt.setDefaultMerge(true);
         layoutPrompt.prompt(l);
       });
@@ -691,7 +688,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
     setShowPresetMenu(false);
     setMultiview(store, { ...structuredClone(p), mergeContent: true });
   };
-  const onDelete = (id: string) => deleteVideoAutoLayout(store, id, stackedScreen());
+  const onDelete = (id: string) => deleteVideoAutoLayout(store, id, isStackedScreen());
   const toggleFull = () =>
     document.fullscreenElement
       ? document.exitFullscreen?.()
@@ -701,7 +698,7 @@ function Content({ routeLayout }: { routeLayout: string }) {
     {
       icon: Grid2x2Plus,
       tooltip: t("views.multiview.addframe"),
-      onClick: () => addCellAutoLayout(store, stackedScreen()),
+      onClick: () => addCellAutoLayout(store, isStackedScreen()),
       collapse: isSm,
     },
     {

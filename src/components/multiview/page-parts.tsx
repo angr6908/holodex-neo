@@ -30,6 +30,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toggle } from "@/components/ui/toggle";
 import { getVideoIDFromUrl } from "@/lib/functions";
 import { useMediaQuery } from "@/lib/hooks";
+import { STACKED_SCREEN_QUERY } from "@/lib/multiview-layout";
 import { useMultiviewStore, useOptionalMultiviewStore } from "@/lib/multiview-store";
 import { asTwitchVideo, encodeLayout } from "@/lib/mv-utils";
 import { cn } from "@/lib/utils";
@@ -341,7 +342,8 @@ export function PresetEditor({
 export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => void }) {
   const t = useTranslations();
   const store = useMultiviewStore();
-  const hasPresets = store.desktopGroups.some((group: any[]) => group?.length);
+  const stacked = useMediaQuery(STACKED_SCREEN_QUERY);
+  const hasPresets = stacked || store.desktopGroups.some((group: any[]) => group?.length);
   const autoSet = new Set(store.autoLayout);
   const inAuto = (p: any) => autoSet.has(p.id);
   const selectPreset = (preset: any) => onSelected?.(preset);
@@ -397,6 +399,17 @@ export function PresetSelector({ onSelected }: { onSelected?: (preset: any) => v
   return (
     <ScrollArea className="max-h-[min(64vh,26rem)] w-full overflow-hidden">
       <div className="space-y-3 p-2.5">
+        {/* A phone held upright gets the stacked layouts first; the rest suit wide screens. */}
+        {stacked ? (
+          <FieldSet className="gap-0">
+            <div className="px-1.5 text-xs font-medium text-muted-foreground">
+              {t("views.multiview.preset.mobile")}
+            </div>
+            <div className="mt-1.5 grid grid-cols-3 gap-2 px-0.5">
+              {store.decodedMobilePresets.map((p: any) => renderTile(p, false))}
+            </div>
+          </FieldSet>
+        ) : null}
         {store.desktopGroups.map((g: any[], i: number) =>
           g?.length ? (
             // Groups are indexed by their video cell count, so the index is the group's identity.
