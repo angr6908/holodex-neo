@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CornerDownLeft, Hash, PlayCircle, Search, Tv, X } from "lucide-react";
+import { Broom, Building2, CornerDownLeft, Hash, PlayCircle, Search, Tv } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
@@ -612,8 +612,7 @@ export function SearchDropdown() {
     setChannelSearch("");
     filters.setFilterType("all");
     filters.setFilterSort("newest");
-    setOpen(false);
-    // Refocus the input without reopening the dropdown.
+    // Refocus the input without changing whether the dropdown is open.
     suppressOpenRef.current = true;
     focusInput();
     // Clear the flag in case focus was already on the input (no onFocus fired).
@@ -706,7 +705,7 @@ export function SearchDropdown() {
               aria-label={t("component.search.clear")}
               onClick={clearAll}
             >
-              <X className="size-4" />
+              <Broom className="size-4" />
             </InputGroupButton>
           ) : null}
           <InputGroupButton
